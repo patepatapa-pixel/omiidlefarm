@@ -825,6 +825,7 @@ let currentUser=null,authMode="login",cloudReady=false,savingCloud=false;
 
 
 function setAuthenticatedUI(user){
+  setTimeout(()=>window.v202ApplyAdminStudioVisibility?.(),0);
  const logged=!!user;
  document.body.classList.toggle("is-authenticated",logged);
  document.body.classList.toggle("is-guest",!logged);
@@ -1773,3 +1774,37 @@ document.addEventListener("click",e=>{
     },20);
   }
 },true);
+
+/* V20.2 - Admin Game Studio client visibility */
+(function(){
+  function v202IsAdmin(){
+    try{
+      const u=window.currentUser || (typeof currentUser!=="undefined" ? currentUser : null);
+      if(!u)return false;
+      const role=String(u.role||u.userRole||u.type||"").toLowerCase();
+      const name=String(u.username||u.name||u.playerName||"").toLowerCase();
+      return Boolean(
+        u.isAdmin===true ||
+        u.admin===true ||
+        role==="admin" ||
+        role==="administrator" ||
+        name==="omiadmin"
+      );
+    }catch(e){
+      return false;
+    }
+  }
+
+  function v202ApplyAdminStudioVisibility(){
+    document.body.classList.toggle("v202-is-admin",v202IsAdmin());
+  }
+
+  window.v202ApplyAdminStudioVisibility=v202ApplyAdminStudioVisibility;
+  window.addEventListener("load",()=>setTimeout(v202ApplyAdminStudioVisibility,50));
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.("[data-tab],#loginBtn,#landingLoginBtn")) {
+      setTimeout(v202ApplyAdminStudioVisibility,100);
+    }
+  },true);
+  setInterval(v202ApplyAdminStudioVisibility,1500);
+})();

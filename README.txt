@@ -225,3 +225,9 @@ V20.1
 - Inventory jobb oldali része kompaktabb és görgethető.
 - Felszerelés opciók kizárólag a Fejlesztés fülön jelenik meg.
 - Equip Best és tömeges rarity kezelés megmaradt.
+
+V20.2
+- ADMIN GAME STUDIO játékosok számára rejtett.
+- Csak admin jogosultságú felhasználónak jelenik meg.
+- OmiAdmin továbbra is adminnak számít.
+- A többi karakter/inventory funkcióhoz nem nyúltunk.

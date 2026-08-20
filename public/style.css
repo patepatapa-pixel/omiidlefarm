@@ -1859,3 +1859,11 @@ body:not(.v200-character-tab) .v200-character-only{
 #page-stats .item-option-help{
   display:none!important;
 }
+
+/* V20.2 - Admin Game Studio visible only to admins */
+.admin-studio-only-v202{
+  display:none!important;
+}
+body.v202-is-admin .admin-studio-only-v202{
+  display:block!important;
+}
