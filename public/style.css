@@ -1432,3 +1432,76 @@ main{width:100%!important;max-width:100%!important}
     max-width:82%!important;
   }
 }
+
+/* V17.4 - Prestige Aura Shop separate tab + HP Regen in Farm basic upgrades */
+.farm-hp-regen-upgrade{
+  margin-top:12px!important;
+  padding:12px!important;
+  border:1px solid #854251!important;
+  border-radius:11px!important;
+  background:radial-gradient(circle at 92% 15%,rgba(215,71,89,.14),transparent 34%),#080b10!important;
+}
+.farm-hp-regen-head{
+  display:flex!important;
+  justify-content:space-between!important;
+  align-items:center!important;
+  gap:12px!important;
+  margin-bottom:10px!important;
+}
+.farm-hp-regen-head b,.farm-hp-regen-head small{display:block}
+.farm-hp-regen-head>div:first-child>b{color:#ff707d!important}
+.farm-hp-regen-head small{color:#8f9aa5!important;margin-top:3px!important}
+.farm-hp-regen-values{display:flex!important;gap:7px!important;flex-wrap:wrap!important}
+.farm-hp-regen-values span{
+  padding:7px 9px!important;
+  border:1px solid #343d48!important;
+  border-radius:8px!important;
+  background:#06090d!important;
+  font-size:10px!important;
+}
+#hpRegenUpgradeBtn{width:100%!important;margin:0 0 6px!important}
+
+.aura-page-shell{
+  width:min(1280px,100%)!important;
+  margin:0 auto!important;
+  display:grid!important;
+  gap:12px!important;
+}
+.aura-page-hero{
+  display:grid!important;
+  grid-template-columns:1fr auto!important;
+  gap:18px!important;
+  align-items:center!important;
+  border-color:#8249ae!important;
+  background:radial-gradient(circle at 90% 22%,rgba(140,54,196,.22),transparent 34%),linear-gradient(145deg,#0b1017,#06080c)!important;
+}
+.aura-page-hero h2{margin:3px 0 7px!important;font-size:28px!important}
+.aura-page-hero p{max-width:760px!important;color:#9ca7b1!important;line-height:1.55!important}
+.aura-page-counters{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(100px,1fr))!important;
+  gap:8px!important;
+}
+.aura-page-counters>div{
+  padding:11px!important;
+  border:1px solid #4c365d!important;
+  border-radius:10px!important;
+  background:#080b10!important;
+}
+.aura-page-counters small,.aura-page-counters b{display:block!important}
+.aura-page-counters b{font-size:20px!important;color:#d191ff!important;margin-top:4px!important}
+.aura-shop-grid{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:10px!important;
+}
+.aura-shop-grid .aura-card{min-height:110px!important;padding:12px!important}
+@media(max-width:850px){
+ .aura-page-hero{grid-template-columns:1fr!important}
+ .aura-shop-grid{grid-template-columns:1fr 1fr!important}
+}
+@media(max-width:560px){
+ .farm-hp-regen-head{align-items:flex-start!important;flex-direction:column!important}
+ .aura-page-counters{grid-template-columns:1fr!important}
+ .aura-shop-grid{grid-template-columns:1fr!important}
+}

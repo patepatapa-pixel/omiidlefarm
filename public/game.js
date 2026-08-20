@@ -783,6 +783,14 @@ function renderAuraPageV171(){
  set("auraPageParagon",save.paragonLevel||0);
 }
 
+
+function renderAuraPageV174(){
+ const set=(id,val)=>{const e=$("#"+id);if(e)e.textContent=val};
+ set("auraPagePrestige",save.prestigeLevel||0);
+ set("auraPageTokens",save.auraTokens||0);
+ set("auraPageParagon",save.paragonLevel||0);
+}
+
 function renderAll(){
  renderCore();
  renderV15ExactCharacter();
@@ -800,7 +808,7 @@ function renderAll(){
  renderQuests();
  renderStats();
  renderCharacterAttributes();
-;renderHpRegenAndOptions();renderCombatSpeed();renderDynamicEquipment();renderV17QuickStats();renderAuraPageV171();}
+;renderHpRegenAndOptions();renderCombatSpeed();renderDynamicEquipment();renderV17QuickStats();renderAuraPageV171();renderAuraPageV174();}
 $("#bossBtn").onclick=()=>toast("👹 A boss automatikusan jön minden wave végén.");
 $("#petSummon").onclick=summonPet;
 $("#sellNormal").onclick=()=>{let equipped=new Set(Object.values(save.equipped));let sold=0;save.inventory=save.inventory.filter(it=>{if(it.rarity==="normal"&&!equipped.has(it.id)){save.gold+=sellValue(it);sold++;return false}return true});persist();renderAll();toast(`${sold} normál tárgy eladva`)};

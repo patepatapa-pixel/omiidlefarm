@@ -174,3 +174,5 @@ V17.1
 V17.2: Aura/Pet/Wave/Paragon alsó csík végleg a karakter panelbe rögzítve; nem követi a görgetést és nem nyúlik teljes képernyő szélességre. A felszerelés-összegző címke is a karakteren belül marad.
 
 V17.3: prémium 4× speed lecserélve 10× speedre. 1×/2×/3× ingyenes, 10× prémium 3 EUR. Régi 4× unlock automatikusan migrál 10× jogosultságra.
+
+V17.4: Prestige Aura Shop saját felső fülön; HP Regen áthelyezve Farm > Alap fejlesztések alá. V17.3 10x speed és minden korábbi funkció megmaradt.

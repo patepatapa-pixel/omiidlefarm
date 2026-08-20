@@ -10,7 +10,7 @@
 <header class="topbar">
   <div class="brand"><span>⚔️ OMI</span> IDLE FARM <em>COMPLETE</em></div>
   <div class="top-actions">
-    <span class="build-version" id="buildVersionBadge">V17.3</span><span id="onlineUser">👤 Vendég</span>
+    <span class="build-version" id="buildVersionBadge">V17.4</span><span id="onlineUser">👤 Vendég</span>
     <button class="ghost" id="leaderboardBtn">🏆 Ranglista</button>
     <button class="ghost admin-only-btn" id="adminPanelBtn" style="display:none">⚙️ Adminpanel</button><button class="ghost" id="authBtn">Belépés</button>
     <span id="saveState">💾 Mentve</span>
@@ -25,6 +25,7 @@
   <button class="tab" data-tab="upgrade">🔨 Fejlesztés</button>
   <button class="tab" data-tab="skills">✨ Képességek</button>
   <button class="tab" data-tab="pets">🐾 Petek</button>
+  <button class="tab" data-tab="aurashop">✨ Prestige Aura Shop</button>
   <button class="tab" data-tab="dungeon">🏰 Dungeon</button>
   <button class="tab" data-tab="quests">📜 Küldetések</button>
   <button class="tab" data-tab="pvp">⚔️ PvP</button><button class="tab" data-tab="shop">💳 Feltöltés / Discord</button><button class="tab" data-tab="stats">📊 Statisztika</button>
@@ -166,22 +167,7 @@
         <h3>⚔️ Paragon statpontok</h3>
         <div id="paragonStats" class="paragon-stat-list"></div>
       </section>
-
-      <section class="card v15-sidebox">
-        <h3>❤️ HP Regeneráció</h3>
-        <div class="hp-regen-box">
-          <div><small>Szint</small><b id="hpRegenLevel">0</b></div>
-          <div><small>Regen</small><b id="hpRegenPct">0% / mp</b></div>
-        </div>
-        <button id="hpRegenUpgradeBtn">⬆️ HP REGEN FEJLESZTÉS</button>
-        <small id="hpRegenCost">Ár: 0 arany</small>
-      </section>
-
-      <section class="card v15-sidebox">
-        <h3>⭐ Prestige Aura Shop</h3>
-        <div id="auraShop" class="aura-shop"></div>
-      </section>
-    </aside>
+</aside>
   </div>
 
   <div class="character-attributes v15-attributes">
@@ -207,6 +193,32 @@
   </section>
 </section>
 
+
+
+<!-- PRESTIGE AURA SHOP -->
+<section class="page" id="page-aurashop">
+  <div class="aura-page-shell">
+    <section class="card aura-page-hero">
+      <div>
+        <small class="eyebrow">✨ PRESTIGE RENDSZER</small>
+        <h2>Prestige Aura Shop</h2>
+        <p>Prestige szintekkel és Aura Tokenekkel különleges aurákat oldhatsz fel. A megvásárolt aurák közül bármikor kiválaszthatod, melyiket használja a karaktered.</p>
+      </div>
+      <div class="aura-page-counters">
+        <div><small>👑 Prestige</small><b id="auraPagePrestige">0</b></div>
+        <div><small>✨ Aura token</small><b id="auraPageTokens">0</b></div>
+        <div><small>🌟 Paragon</small><b id="auraPageParagon">0</b></div>
+      </div>
+    </section>
+
+    <section class="card aura-shop-main">
+      <div class="title-row">
+        <div><h2>🌌 Elérhető aurák</h2><small>A követelmények és árak automatikusan frissülnek.</small></div>
+      </div>
+      <div id="auraShop" class="aura-shop aura-shop-grid"></div>
+    </section>
+  </div>
+</section>
 
 <section class="page" id="page-farm">
 <div class="layout">
@@ -272,6 +284,21 @@
     <section class="card">
       <div class="title-row"><h2>🧰 Alap fejlesztések</h2><small>Biztos erősödés</small></div>
       <div id="baseUpgrades" class="upgrade-list"></div>
+
+      <div class="farm-hp-regen-upgrade">
+        <div class="farm-hp-regen-head">
+          <div>
+            <b>❤️ HP Regeneráció</b>
+            <small>Másodpercenként automatikusan visszatölti az életerőd egy részét.</small>
+          </div>
+          <div class="farm-hp-regen-values">
+            <span>Szint: <b id="hpRegenLevel">0</b></span>
+            <span>Regen: <b id="hpRegenPct">0% / mp</b></span>
+          </div>
+        </div>
+        <button id="hpRegenUpgradeBtn" class="gold-btn">⬆️ HP REGEN FEJLESZTÉS</button>
+        <small id="hpRegenCost">Ár: 0 arany</small>
+      </div>
     </section>
   </div>
 
