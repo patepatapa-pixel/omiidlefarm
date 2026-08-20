@@ -472,3 +472,11 @@ button.primary:hover,.gold-btn:hover,#prestigeBtn:hover{filter:brightness(1.08);
 .v15-attributes{margin-top:12px}
 @media(max-width:1180px){.v15-main-grid{grid-template-columns:1fr}.v15-left{order:3}.v15-right{order:2}.v15-character{order:1}.v15-character-stage{height:720px}}
 @media(max-width:650px){.v15-character-stage{height:650px}.v15-gear{width:90px}.v15-gear img{height:68px}.v15-helmet,.v15-armor,.v15-boots{left:5px}.v15-weapon,.v15-gloves,.v15-ring{right:5px}.v15-bottom-stats{grid-template-columns:1fr 1fr}}
+
+/* V15.1 runtime fix */
+.build-version{font-size:9px;font-weight:1000;letter-spacing:.08em;color:#080808;background:#f0c34d;border-radius:6px;padding:4px 7px}
+.v15-gear.rarity-normal{border-color:#737d87!important;box-shadow:0 0 12px #737d8728!important}
+.v15-gear.rarity-rare{border-color:#1499ef!important;box-shadow:0 0 20px #1499ef55!important}
+.v15-gear.rarity-epic{border-color:#c32cff!important;box-shadow:0 0 22px #c32cff58!important}
+.v15-gear.rarity-mythic{border-color:#ed477a!important;box-shadow:0 0 22px #ed477a58!important}
+.v15-gear.rarity-legendary{border-color:#ecb22f!important;box-shadow:0 0 24px #ecb22f60!important}

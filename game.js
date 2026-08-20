@@ -366,6 +366,9 @@ function renderCharacterAttributes(){
 }
 
 function renderV5Character(){
+ // V15 uses a completely new character DOM.
+ // Keep this function for old saves/pages, but never let missing legacy IDs break the app.
+ if(!$("#v5HeroHead"))return;
  const slotMap={
   helmet:["v5Helmet",".v5-slot-head"],weapon:["v5Weapon",".v5-slot-weapon"],
   armor:["v5Armor",".v5-slot-armor"],gloves:["v5Gloves",".v5-slot-gloves"],
@@ -373,61 +376,45 @@ function renderV5Character(){
  };
  Object.entries(slotMap).forEach(([slot,[id,selector]])=>{
    const it=equipObj(slot),el=$("#"+id),box=$(selector);
-   if(el)el.textContent=it?`${it.name} +${it.plus}`:"Üres";
+   if(el)el.textContent=it?`${it.name} +${Math.max(0,Math.min(15,Number(it.plus||0)))}`:"Üres";
    if(box){
     box.classList.remove("rarity-normal","rarity-rare","rarity-epic","rarity-mythic","rarity-legendary");
     if(it)box.classList.add("rarity-"+it.rarity);
    }
  });
-
- const weapon=equipObj("weapon"),armor=equipObj("armor"),helmet=equipObj("helmet"),
-       gloves=equipObj("gloves"),boots=equipObj("boots"),ring=equipObj("ring"),pet=petObj();
-
- const rarityColors={
-  normal:{metal:"#56616d",dark:"#22282e",accent:"#8c969f"},
-  rare:{metal:"#3c89c9",dark:"#15334d",accent:"#7dc4ff"},
-  epic:{metal:"#8955be",dark:"#342044",accent:"#c895ff"},
-  mythic:{metal:"#c3436c",dark:"#4a192a",accent:"#ff7ba6"},
-  legendary:{metal:"#cda13b",dark:"#4b3a12",accent:"#ffe07a"}
- };
-
- let ac=rarityColors[armor?.rarity||"normal"],wc=rarityColors[weapon?.rarity||"normal"],
-     hc=rarityColors[helmet?.rarity||"normal"],gc=rarityColors[gloves?.rarity||"normal"],
-     bc=rarityColors[boots?.rarity||"normal"],rc=rarityColors[ring?.rarity||"normal"];
-
- const armorEl=$("#svgArmor");if(armorEl){armorEl.setAttribute("fill",ac.dark);armorEl.setAttribute("stroke",ac.metal)}
- ["svgShoulderL","svgShoulderR"].forEach(id=>{let e=$("#"+id);if(e){e.setAttribute("fill",ac.dark);e.setAttribute("stroke",ac.metal)}});
- const helmetEl=$("#svgHelmet");if(helmetEl){helmetEl.setAttribute("opacity",helmet?"1":"0");helmetEl.querySelector("path")?.setAttribute("fill",hc.dark)}
- ["svgGloveL","svgGloveR"].forEach(id=>{let e=$("#"+id);if(e){e.setAttribute("fill",gc.dark);e.setAttribute("stroke",gc.metal)}});
- ["svgBootL","svgBootR"].forEach(id=>{let e=$("#"+id);if(e){e.setAttribute("fill",bc.dark);e.setAttribute("stroke",bc.metal)}});
- const ringGlow=$("#svgRingGlow");if(ringGlow){ringGlow.setAttribute("opacity",ring?".95":".15");ringGlow.setAttribute("stroke",rc.accent)}
- const wep=$("#svgWeapon");if(wep){wep.style.display=weapon?"block":"none";wep.style.filter=weapon?.rarity==="legendary"?"drop-shadow(0 0 12px #f2c64d)":"none"}
-
- $("#v5Pet").textContent=pet?pet.icon:"🐾";$("#v5Pet").style.opacity=pet?"1":".25";$("#v5PetName").textContent=pet?pet.name:"Nincs";
- $("#v5CharPower").textContent=fmt(power());$("#v5CharRank").textContent=rankName();
- $("#v5WaveLabel").textContent=save.wave;$("#v5ParagonLabel").textContent=save.paragonLevel;
-
- const aura=AURAS.find(x=>x.id===save.activeAura)||AURAS[0],ae=$("#v5Aura");
- ae.className="v5-aura"+(aura.className?` on ${aura.className}`:"");
- $("#v5AuraName").textContent=aura.name;
-
- let themes=[
-  ["#224c2b","#07100a"],["#15362c","#050a08"],["#4d4032","#090807"],["#5b1f1d","#0d0505"],
-  ["#294c6d","#060b10"],["#513879","#08050e"],["#202c67","#03050d"],["#7b6322","#0b0903"]
- ];
- let t=themes[save.zone]||themes[0];
- $("#v5SceneBg").style.background=`radial-gradient(circle at 50% 25%,${t[0]}88,transparent 30%),linear-gradient(180deg,${t[0]}55,${t[1]} 65%,#020303)`;
 }
 function renderWave(){
- $("#waveNumber").textContent=save.wave;$("#waveKills").textContent=save.waveKills;$("#waveGoal").textContent=save.waveGoal;
- $("#waveState").textContent=save.waveBoss?"BOSS HARC":"Normál farm";$("#bossState").textContent=save.waveBoss?`${fmt(Math.max(0,enemyHp))} HP`:"Wave végén";
+ const pairs=[
+  ["waveNumber",save.wave],
+  ["waveKills",save.waveKills],
+  ["waveGoal",save.waveGoal],
+  ["waveState",save.waveBoss?"BOSS HARC":"Normál farm"],
+  ["bossState",save.waveBoss?`${fmt(Math.max(0,enemyHp))} HP`:"Wave végén"]
+ ];
+ pairs.forEach(([id,val])=>{const el=$("#"+id);if(el)el.textContent=val});
 }
 function renderParagon(){
  const eligible=save.level>=200;
- $("#prestigeLevel").textContent=save.prestigeLevel;$("#paragonLevel").textContent=save.paragonLevel;$("#paragonPoints").textContent=save.paragonPoints;$("#auraTokens").textContent=save.auraTokens;
- $("#prestigeProgress").style.width=Math.min(100,save.level/200*100)+"%";
- $("#prestigeText").textContent=eligible?`Prestige elérhető! Lv.${save.level} → +1 Prestige, +1 Paragon, +5 statpont, +1 aura token.`:`Még ${200-save.level} szint kell a következő Prestige-hez.`;
- $("#prestigeBtn").disabled=!eligible;
+ const setText=(id,val)=>{const e=$("#"+id);if(e)e.textContent=val};
+
+ setText("prestigeLevel",save.prestigeLevel);
+ setText("paragonLevel",save.paragonLevel);
+ setText("paragonPoints",save.paragonPoints);
+ setText("auraTokens",save.auraTokens);
+
+ setText("v15Prestige",save.prestigeLevel);
+ setText("v15ParagonTop",save.paragonLevel);
+ setText("v15StatPoints",save.paragonPoints);
+ setText("v15AuraTokens",save.auraTokens);
+
+ const prog=$("#prestigeProgress");
+ if(prog)prog.style.width=Math.min(100,save.level/200*100)+"%";
+ const text=$("#prestigeText");
+ if(text)text.textContent=eligible
+   ?`Prestige elérhető! Lv.${save.level} → +1 Prestige, +1 Paragon, +5 statpont, +1 aura token.`
+   :`Még ${Math.max(0,200-save.level)} szint kell a következő Prestige-hez.`;
+ const btn=$("#prestigeBtn");
+ if(btn)btn.disabled=!eligible;
 
  const stats=[
   ["damage","⚔️ Sebzés","+2% / pont"],
@@ -435,14 +422,20 @@ function renderParagon(){
   ["drop","🎁 Drop","+1% / pont"],
   ["crit","🎯 Krit","+0.5% / pont"]
  ];
- $("#paragonStats").innerHTML=stats.map(x=>`<div class="paragon-row"><div><b>${x[1]}</b><small>${x[2]} · Pont: ${save.paragonStats[x[0]]}</small></div><button data-paragon="${x[0]}" ${save.paragonPoints<=0?"disabled":""}>+1</button></div>`).join("");
- $$("[data-paragon]").forEach(b=>b.onclick=()=>{if(save.paragonPoints<=0)return;save.paragonPoints--;save.paragonStats[b.dataset.paragon]++;persist();renderAll()});
+ const ps=$("#paragonStats");
+ if(ps){
+   ps.innerHTML=stats.map(x=>`<div class="paragon-row"><div><b>${x[1]}</b><small>${x[2]} · Pont: ${save.paragonStats[x[0]]}</small></div><button data-paragon="${x[0]}" ${save.paragonPoints<=0?"disabled":""}>+1</button></div>`).join("");
+   $$("[data-paragon]").forEach(b=>b.onclick=()=>{if(save.paragonPoints<=0)return;save.paragonPoints--;save.paragonStats[b.dataset.paragon]++;persist();renderAll()});
+ }
 
- $("#auraShop").innerHTML=AURAS.map(a=>{
-   const owned=save.ownedAuras.includes(a.id),active=save.activeAura===a.id,locked=save.prestigeLevel<a.need;
-   return `<div class="aura-card ${active?"active":""}"><b>✨ ${a.name}</b><small>${a.id==="none"?"Alap":`Prestige ${a.need} · ${a.cost} Aura token`}</small><button data-aura="${a.id}" ${locked?"disabled":""}>${active?"Aktív":owned?"Aktiválás":"Megvásárlás"}</button></div>`
- }).join("");
- $$("[data-aura]").forEach(b=>b.onclick=()=>buyOrEquipAura(b.dataset.aura));
+ const shop=$("#auraShop");
+ if(shop){
+   shop.innerHTML=AURAS.map(a=>{
+     const owned=save.ownedAuras.includes(a.id),active=save.activeAura===a.id,locked=save.prestigeLevel<a.need;
+     return `<div class="aura-card ${active?"active":""}"><b>✨ ${a.name}</b><small>${a.id==="none"?"Alap":`Prestige ${a.need} · ${a.cost} Aura token`}</small><button data-aura="${a.id}" ${locked?"disabled":""}>${active?"Aktív":owned?"Aktiválás":"Megvásárlás"}</button></div>`
+   }).join("");
+   $$("[data-aura]").forEach(b=>b.onclick=()=>buyOrEquipAura(b.dataset.aura));
+ }
 }
 function doPrestige(){
  if(save.level<200)return;
@@ -468,8 +461,10 @@ $("#prestigeBtn").onclick=doPrestige;
 
 function renderV15ExactCharacter(){
  if(!$("#v15Power"))return;
- $("#v15Power").textContent=fmt(power());
- if($("#v15AdminPower"))$("#v15AdminPower").textContent=fmt(power());
+
+ const setText=(id,val)=>{const e=$("#"+id);if(e)e.textContent=val};
+ setText("v15Power",fmt(power()));
+ setText("v15AdminPower",fmt(power()));
 
  const map={
    helmet:["v15Helmet",".v15-helmet"],
@@ -493,18 +488,36 @@ function renderV15ExactCharacter(){
    }
  });
 
- const pet=petObj(),aura=AURAS.find(x=>x.id===save.activeAura)||AURAS[0];
- $("#v15Aura").textContent=aura.name;
- $("#v15Pet").textContent=pet?pet.name:"Nincs";
- $("#v15Wave").textContent=save.wave;
- $("#v15Paragon").textContent=save.paragonLevel;
- $("#v15Prestige").textContent=save.prestigeLevel;
- $("#v15ParagonTop").textContent=save.paragonLevel;
- $("#v15StatPoints").textContent=save.paragonPoints;
- $("#v15AuraTokens").textContent=save.auraTokens;
+ const pet=petObj();
+ const aura=(typeof AURAS!=="undefined" ? AURAS.find(x=>x.id===save.activeAura) : null);
+ setText("v15Aura",aura?.name||"Nincs aura");
+ setText("v15Pet",pet?.name||"Nincs");
+ setText("v15Wave",save.wave);
+ setText("v15Paragon",save.paragonLevel);
+ setText("v15Prestige",save.prestigeLevel);
+ setText("v15ParagonTop",save.paragonLevel);
+ setText("v15StatPoints",save.paragonPoints);
+ setText("v15AuraTokens",save.auraTokens);
 }
 
-function renderAll(){renderCore();renderCharacterVisual();renderV5Character();renderWave();renderParagon();renderZones();renderBaseUpgrades();renderInventory();renderUpgrade();renderSkills();renderPets();renderDungeons();renderQuests();renderStats();renderCharacterAttributes();renderV15ExactCharacter();}
+function renderAll(){
+ renderCore();
+ renderV15ExactCharacter();
+ renderCharacterVisual();
+ renderV5Character();
+ renderWave();
+ renderParagon();
+ renderZones();
+ renderBaseUpgrades();
+ renderInventory();
+ renderUpgrade();
+ renderSkills();
+ renderPets();
+ renderDungeons();
+ renderQuests();
+ renderStats();
+ renderCharacterAttributes();
+}
 $("#bossBtn").onclick=()=>toast("👹 A boss automatikusan jön minden wave végén.");
 $("#petSummon").onclick=summonPet;
 $("#sellNormal").onclick=()=>{let equipped=new Set(Object.values(save.equipped));let sold=0;save.inventory=save.inventory.filter(it=>{if(it.rarity==="normal"&&!equipped.has(it.id)){save.gold+=sellValue(it);sold++;return false}return true});persist();renderAll();toast(`${sold} normál tárgy eladva`)};
