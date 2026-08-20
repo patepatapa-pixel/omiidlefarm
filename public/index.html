@@ -73,96 +73,55 @@
 <div class="v5-hero">
   <div class="v5-hero-shadow"></div>
 
-  <svg class="hero-svg" viewBox="0 0 300 470" aria-label="Fantasy character">
+  <svg class="hero-svg dark-warrior-svg" viewBox="0 0 300 470" aria-label="Sötét fantasy harcos">
     <defs>
-      <linearGradient id="skinG" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#f1c69a"/>
-        <stop offset="1" stop-color="#b87954"/>
-      </linearGradient>
-      <linearGradient id="metalG" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#65717d"/>
-        <stop offset=".5" stop-color="#252c33"/>
-        <stop offset="1" stop-color="#101418"/>
-      </linearGradient>
-      <linearGradient id="clothG" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#5b2438"/>
-        <stop offset="1" stop-color="#24101b"/>
-      </linearGradient>
-      <filter id="heroShadow"><feDropShadow dx="0" dy="10" stdDeviation="7" flood-opacity=".7"/></filter>
+      <linearGradient id="metalG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#59606d"/><stop offset=".32" stop-color="#1d2028"/><stop offset=".7" stop-color="#08090d"/><stop offset="1" stop-color="#29202d"/></linearGradient>
+      <linearGradient id="clothG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#381148"/><stop offset=".5" stop-color="#17091f"/><stop offset="1" stop-color="#050508"/></linearGradient>
+      <linearGradient id="goldG"><stop offset="0" stop-color="#ffe084"/><stop offset=".45" stop-color="#b98019"/><stop offset="1" stop-color="#5a3407"/></linearGradient>
+      <radialGradient id="voidG"><stop offset="0" stop-color="#9d38ff"/><stop offset=".35" stop-color="#42116d"/><stop offset="1" stop-color="#050208"/></radialGradient>
+      <filter id="heroShadow"><feDropShadow dx="0" dy="10" stdDeviation="8" flood-opacity=".9"/></filter>
+      <filter id="purpleGlow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
     </defs>
-
     <g filter="url(#heroShadow)">
-      <!-- cloak -->
-      <path id="svgCloak" d="M84 151 Q150 116 216 151 L236 330 Q150 382 64 330 Z"
-            fill="#21151d" stroke="#3b2733" stroke-width="5"/>
-
-      <!-- legs -->
-      <path d="M105 315 L145 315 L139 438 L91 438 Z" fill="#171c22" stroke="#303740" stroke-width="4"/>
-      <path d="M155 315 L195 315 L209 438 L161 438 Z" fill="#171c22" stroke="#303740" stroke-width="4"/>
-      <path d="M87 428 L142 428 L145 452 L77 452 Q73 441 87 428Z" fill="#15191e"/>
-      <path d="M158 428 L213 428 Q228 441 222 452 L155 452 Z" fill="#15191e"/>
-
-      <!-- torso armor -->
-      <path id="svgArmor" d="M95 148 Q150 125 205 148 L217 284 Q150 314 83 284 Z"
-            fill="url(#metalG)" stroke="#56616d" stroke-width="5"/>
-      <path d="M108 166 Q150 151 192 166 L188 257 Q150 275 112 257 Z"
-            fill="url(#clothG)" opacity=".85"/>
-      <path d="M85 282 L215 282 L209 310 L91 310 Z" fill="#b08936" stroke="#493816" stroke-width="4"/>
-      <rect x="140" y="280" width="20" height="31" rx="4" fill="#dfba4e" stroke="#604915" stroke-width="3"/>
-
-      <!-- shoulders -->
-      <path id="svgShoulderL" d="M83 148 Q54 151 45 183 L91 194 L111 157 Z"
-            fill="url(#metalG)" stroke="#56616d" stroke-width="5"/>
-      <path id="svgShoulderR" d="M217 148 Q246 151 255 183 L209 194 L189 157 Z"
-            fill="url(#metalG)" stroke="#56616d" stroke-width="5"/>
-
-      <!-- arms -->
-      <path d="M61 184 Q47 232 58 276 L82 270 L92 193 Z" fill="url(#skinG)" stroke="#714c39" stroke-width="4"/>
-      <path d="M239 184 Q253 232 242 276 L218 270 L208 193 Z" fill="url(#skinG)" stroke="#714c39" stroke-width="4"/>
-      <path id="svgGloveL" d="M53 263 Q66 253 84 263 L80 296 Q61 305 48 288 Z" fill="#45304f" stroke="#724e80" stroke-width="4"/>
-      <path id="svgGloveR" d="M216 263 Q234 253 247 263 L252 288 Q239 305 220 296 Z" fill="#45304f" stroke="#724e80" stroke-width="4"/>
-
-      <!-- neck -->
-      <rect x="132" y="112" width="36" height="42" rx="13" fill="url(#skinG)" stroke="#714c39" stroke-width="4"/>
-
-      <!-- head -->
-      <ellipse cx="150" cy="86" rx="52" ry="60" fill="url(#skinG)" stroke="#714c39" stroke-width="5"/>
-      <!-- ears -->
-      <ellipse cx="96" cy="90" rx="9" ry="15" fill="#cc966e"/>
-      <ellipse cx="204" cy="90" rx="9" ry="15" fill="#cc966e"/>
-      <!-- hair -->
-      <path id="svgHair" d="M101 76 Q96 18 150 18 Q207 18 202 79 Q188 50 170 45 Q151 58 128 46 Q111 57 101 76Z"
-            fill="#3b271a"/>
-      <path d="M106 69 Q98 93 108 119 L120 107 L119 75Z" fill="#3b271a"/>
-      <path d="M194 69 Q202 93 192 119 L180 107 L181 75Z" fill="#3b271a"/>
-
-      <!-- face -->
-      <ellipse cx="131" cy="86" rx="5" ry="7" fill="#171719"/>
-      <ellipse cx="169" cy="86" rx="5" ry="7" fill="#171719"/>
-      <path d="M139 109 Q150 117 161 109" fill="none" stroke="#7e493e" stroke-width="4" stroke-linecap="round"/>
-      <path d="M146 92 L141 103 L151 104" fill="none" stroke="#9b674e" stroke-width="3" stroke-linecap="round"/>
-
-      <!-- helmet overlay -->
-      <g id="svgHelmet" opacity="0">
-        <path d="M99 78 Q96 20 150 10 Q205 20 201 78 L186 61 Q150 45 114 61 Z"
-              fill="url(#metalG)" stroke="#687581" stroke-width="5"/>
-        <path d="M145 9 L155 9 L164 36 L136 36 Z" fill="#c79c31"/>
+      <!-- spectral aura -->
+      <path d="M57 355 Q18 278 59 199 Q35 122 108 92 Q148 45 194 91 Q270 128 239 207 Q281 286 226 370 Q174 422 82 389Z" fill="url(#voidG)" opacity=".24" filter="url(#purpleGlow)"/>
+      <!-- tattered cloak -->
+      <path id="svgCloak" d="M73 159 Q150 113 227 159 L253 342 L218 326 L201 376 L174 348 L149 394 L123 348 L91 377 L78 329 L46 346Z" fill="#0b0710" stroke="#48235d" stroke-width="5"/>
+      <!-- armored legs -->
+      <path d="M101 300 L145 300 L138 432 L84 432 L91 366Z" fill="url(#metalG)" stroke="#4b4055" stroke-width="5"/>
+      <path d="M155 300 L199 300 L216 432 L162 432 Z" fill="url(#metalG)" stroke="#4b4055" stroke-width="5"/>
+      <path id="svgBootL" d="M82 410 L141 410 L143 454 L67 454 Q67 429 82 410Z" fill="#101218" stroke="#7040a0" stroke-width="5"/>
+      <path id="svgBootR" d="M159 410 L218 410 Q235 431 232 454 L157 454Z" fill="#101218" stroke="#7040a0" stroke-width="5"/>
+      <!-- torso -->
+      <path id="svgArmor" d="M91 151 L119 128 L150 142 L181 128 L209 151 L220 286 Q150 321 80 286Z" fill="url(#metalG)" stroke="#786187" stroke-width="5"/>
+      <path d="M112 163 L150 150 L188 163 L180 267 L150 287 L120 267Z" fill="url(#clothG)" stroke="#522a63" stroke-width="3"/>
+      <path d="M150 158 L168 205 L150 249 L132 205Z" fill="#7c27ba" opacity=".7" filter="url(#purpleGlow)"/>
+      <!-- spiked shoulders -->
+      <path id="svgShoulderL" d="M91 149 L54 142 L27 178 L67 175 L42 201 L101 190Z" fill="url(#metalG)" stroke="#73558b" stroke-width="5"/>
+      <path id="svgShoulderR" d="M209 149 L246 142 L273 178 L233 175 L258 201 L199 190Z" fill="url(#metalG)" stroke="#73558b" stroke-width="5"/>
+      <!-- armored arms -->
+      <path d="M64 181 L98 188 L87 275 L53 268Z" fill="url(#metalG)" stroke="#55445f" stroke-width="4"/>
+      <path d="M236 181 L202 188 L213 275 L247 268Z" fill="url(#metalG)" stroke="#55445f" stroke-width="4"/>
+      <path id="svgGloveL" d="M48 259 L86 259 L82 298 L47 291Z" fill="#17111d" stroke="#8d49ba" stroke-width="5"/>
+      <path id="svgGloveR" d="M214 259 L252 259 L253 291 L218 298Z" fill="#17111d" stroke="#8d49ba" stroke-width="5"/>
+      <!-- hood + helmet, no childish face -->
+      <path d="M103 115 Q91 53 119 22 L150 4 L181 22 Q209 53 197 115 L177 143 L123 143Z" fill="#090a0f" stroke="#493557" stroke-width="5"/>
+      <path id="svgHelmet" d="M111 100 L105 55 L129 22 L150 9 L171 22 L195 55 L189 100 L170 128 L130 128Z" fill="url(#metalG)" stroke="#7b6689" stroke-width="5" opacity="1"/>
+      <path d="M122 65 L145 78 L132 88 L114 82Z" fill="#ff9d2e" filter="url(#purpleGlow)"/>
+      <path d="M178 65 L155 78 L168 88 L186 82Z" fill="#ff9d2e" filter="url(#purpleGlow)"/>
+      <path d="M145 78 L150 119 L155 78 L168 88 L160 111 L150 127 L140 111 L132 88Z" fill="#08090d" stroke="#5c4b67" stroke-width="3"/>
+      <path d="M104 55 L84 34 L111 39 M196 55 L216 34 L189 39" fill="none" stroke="url(#goldG)" stroke-width="7"/>
+      <!-- belt/skull -->
+      <path d="M83 281 L217 281 L208 313 L92 313Z" fill="#17131a" stroke="#775722" stroke-width="4"/>
+      <circle cx="150" cy="297" r="18" fill="url(#goldG)"/><path d="M141 294 L147 289 L150 296 L153 289 L159 294 L156 303 L144 303Z" fill="#171016"/>
+      <!-- giant cursed blade -->
+      <g id="svgWeapon" transform="translate(220 151) rotate(-15)">
+        <path d="M13 -8 L39 39 L27 174 L15 210 L3 174 L-9 39Z" fill="#211028" stroke="#d28cff" stroke-width="4" filter="url(#purpleGlow)"/>
+        <path d="M15 4 L24 45 L15 162 L6 45Z" fill="#9a34e8"/>
+        <rect x="-15" y="184" width="60" height="13" rx="4" fill="url(#goldG)"/>
+        <rect x="9" y="196" width="13" height="65" rx="5" fill="#241414" stroke="#8d6421" stroke-width="3"/>
       </g>
-
-      <!-- boots overlays -->
-      <path id="svgBootL" d="M86 408 L143 408 L145 452 L77 452 Q72 433 86 408Z" fill="#5f4632" stroke="#8a6548" stroke-width="4"/>
-      <path id="svgBootR" d="M157 408 L214 408 Q230 433 223 452 L155 452 Z" fill="#5f4632" stroke="#8a6548" stroke-width="4"/>
-
-      <!-- weapon -->
-      <g id="svgWeapon" transform="translate(220 154) rotate(-18)">
-        <rect x="9" y="40" width="13" height="170" rx="6" fill="#c4cbd1" stroke="#4c545c" stroke-width="4"/>
-        <path d="M15 0 L34 55 L15 45 L-4 55 Z" fill="#e4e9ec" stroke="#59636d" stroke-width="4"/>
-        <rect x="-10" y="190" width="50" height="12" rx="5" fill="#c89b31"/>
-        <rect x="10" y="200" width="11" height="58" rx="5" fill="#573923"/>
-      </g>
-
-      <!-- ring glow -->
-      <circle id="svgRingGlow" cx="244" cy="277" r="12" fill="none" stroke="#b9a9ff" stroke-width="5" opacity=".25"/>
+      <circle id="svgRingGlow" cx="238" cy="276" r="15" fill="none" stroke="#b745ff" stroke-width="6" opacity=".8" filter="url(#purpleGlow)"/>
     </g>
   </svg>
 

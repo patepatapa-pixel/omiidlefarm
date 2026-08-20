@@ -8,9 +8,16 @@ async function ensureAdmin(){try{let d=await api("/api/me");if(d.user.role!=="ad
 async function loadPlayers(){
  try{
   let d=await api("/api/admin/players");$("#playerCount").textContent=d.rows.filter(x=>x.role==="player").length;
-  $("#players").innerHTML=`<div class="leader-row head"><span>ID</span><span>JÁTÉKOS</span><span>ERŐ</span><span>SZINT</span><span>KILL</span></div>`+
-  d.rows.map(r=>`<div class="leader-row" data-player="${r.id}" style="cursor:pointer"><span>#${r.id}</span><span class="leader-name">${r.username}${r.role==="admin"?" ⚙️":r.banned?" 🚫":""}</span><span>${fmt(r.power)}</span><span>Lv.${r.level}</span><span>${fmt(r.kills)}</span></div>`).join("");
-  $$("[data-player]").forEach(x=>x.onclick=()=>openPlayer(x.dataset.player));
+  $("#players").innerHTML=`<div class="leader-row head admin-player-row"><span>ID</span><span>JÁTÉKOS</span><span>ERŐ</span><span>SZINT</span><span>KILL</span><span>MŰVELET</span></div>`+
+  d.rows.map(r=>`<div class="leader-row admin-player-row" data-player="${r.id}" style="cursor:pointer"><span>#${r.id}</span><span class="leader-name">${r.player_name||r.username}${r.role==="admin"?" ⚙️":r.banned?" 🚫":""}</span><span>${fmt(r.power)}</span><span>Lv.${r.level}</span><span>${fmt(r.kills)}</span><span>${r.role==="admin"?"<small class=\"admin-protected\">VÉDETT</small>":`<button class="delete-player-direct" data-delete-player="${r.id}" data-delete-name="${String(r.player_name||r.username).replace(/"/g,"&quot;")}">🗑️ Törlés</button>`}</span></div>`).join("");
+  $$("[data-player]").forEach(x=>x.onclick=e=>{if(e.target.closest("[data-delete-player]"))return;openPlayer(x.dataset.player)});
+  $$("[data-delete-player]").forEach(b=>b.onclick=async e=>{
+    e.stopPropagation();
+    const id=b.dataset.deletePlayer,name=b.dataset.deleteName||("ID "+id);
+    if(!confirm(`⚠️ Biztosan VÉGLEG törlöd ${name} játékost?\n\nA fiókja és teljes játékmentése törlődik.`))return;
+    try{await api(`/api/admin/player/${id}`,{method:"DELETE"});toast("Játékos törölve.");await loadPlayers();if(typeof loadStudioV8==="function")await loadStudioV8()}
+    catch(err){alert("❌ "+err.message)}
+  });
  }catch(e){toast(e.message)}
 }
 async function openPlayer(id){

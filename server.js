@@ -454,27 +454,24 @@ app.post("/api/admin/shop-request/:id/status",auth,admin,async(req,res)=>{
 // ==================================================================
 
 
-// V11.2 - teljes játékosfiók törlése adminból
+// V11.3 - megbízható teljes játékostörlés adminból
 app.delete("/api/admin/player/:id",auth,admin,async(req,res)=>{
   try{
     const targetId=Number(req.params.id);
-    if(!targetId)return res.status(400).json({error:"Hibás játékos ID."});
-    if(targetId===req.user.id)return res.status(400).json({error:"A saját adminfiókodat nem törölheted."});
-    const target=(await q("SELECT id,username,player_name,role FROM users WHERE id=$1",[targetId])).rows[0];
+    if(!Number.isInteger(targetId)||targetId<=0)return res.status(400).json({error:"Hibás játékos ID."});
+    if(targetId===Number(req.user.id))return res.status(400).json({error:"A saját adminfiókodat nem törölheted."});
+    const rr=await q("SELECT id,username,role FROM users WHERE id=$1",[targetId]);
+    const target=rr.rows[0];
     if(!target)return res.status(404).json({error:"A játékos nem található."});
-    if(target.role==="admin")return res.status(403).json({error:"Adminfiók innen nem törölhető."});
-    const displayName=target.player_name||target.username;
-    // A kapcsolódó táblák FK-i CASCADE-del törlődnek, ahol így vannak definiálva.
-    // Biztonsági explicit törlések a nem-CASCADE / opcionális táblákhoz.
-    await q("DELETE FROM purchase_requests WHERE user_id=$1",[targetId]).catch(()=>{});
-    await q("DELETE FROM pvp_fights WHERE challenger_id=$1 OR defender_id=$1",[targetId]).catch(()=>{});
-    await q("DELETE FROM admin_logs WHERE target_user_id=$1",[targetId]).catch(()=>{});
-    await q("DELETE FROM game_saves WHERE user_id=$1",[targetId]).catch(()=>{});
+    if(target.role==="admin")return res.status(403).json({error:"Adminfiók nem törölhető."});
+    // A game_saves, pvp_fights és purchase_requests FK-k ON DELETE CASCADE beállításúak.
+    // admin_logs target_user_id ON DELETE SET NULL, ezért a users törlés biztonságosan takarít.
     await q("DELETE FROM users WHERE id=$1",[targetId]);
-    await q("INSERT INTO admin_logs(admin_id,target_user_id,action) VALUES($1,NULL,$2)",[req.user.id,`DELETE_PLAYER ${displayName} (#${targetId})`]).catch(()=>{});
-    res.json({ok:true,message:`${displayName} játékos és a hozzá tartozó mentés törölve.`});
+    await q("INSERT INTO admin_logs(admin_id,target_user_id,action) VALUES($1,NULL,$2)",
+      [req.user.id,`DELETE_PLAYER ${target.username} (#${targetId})`]).catch(()=>{});
+    res.json({ok:true,message:`${target.username} játékos végleg törölve.`});
   }catch(e){
-    console.error("delete player",e);
+    console.error("DELETE PLAYER ERROR:",e);
     res.status(500).json({error:"A játékos törlése nem sikerült: "+e.message});
   }
 });
