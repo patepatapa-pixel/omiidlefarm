@@ -10,7 +10,7 @@
 <header class="topbar">
   <div class="brand"><span>⚔️ OMI</span> IDLE FARM <em>COMPLETE</em></div>
   <div class="top-actions">
-    <span class="build-version" id="buildVersionBadge">V16.7</span><span id="onlineUser">👤 Vendég</span>
+    <span class="build-version" id="buildVersionBadge">V16.8</span><span id="onlineUser">👤 Vendég</span>
     <button class="ghost" id="leaderboardBtn">🏆 Ranglista</button>
     <button class="ghost admin-only-btn" id="adminPanelBtn" style="display:none">⚙️ Adminpanel</button><button class="ghost" id="authBtn">Belépés</button>
     <span id="saveState">💾 Mentve</span>
@@ -111,9 +111,20 @@
       </div>
 
       <div class="v15-character-stage">
-        <div class="v166-character-art" aria-label="Karakter felszerelés előnézet">
-          <img src="/assets/character_equipment_v16_6.png" alt="OMI Idle Farm harcos karakter">
+        <div class="v168-character-system">
+          <div class="v168-avatar">
+            <div class="v168-aura" id="dynAura"></div>
+            <div class="v168-body">
+              <div class="v168-head"></div>
+              <div class="v168-torso"></div>
+              <div class="v168-arm left"></div><div class="v168-arm right"></div>
+              <div class="v168-leg left"></div><div class="v168-leg right"></div>
+              <div class="v168-hand-item" id="dynWeapon"></div>
+            </div>
+          </div>
+          <div class="v168-slots" id="dynamicEquipSlots"></div>
           <div class="hero-equipped-label" id="heroEquippedLabel">Nincs felszerelt tárgy</div>
+        </div>
         </div>
 <div class="v15-bottom-stats">
           <div><span>✨ Aura</span><b id="v15Aura">Nincs aura</b></div>

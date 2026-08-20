@@ -710,6 +710,57 @@ function renderV15ExactCharacter(){
  setText("v15AuraTokens",save.auraTokens);
 }
 
+
+function normalizedRarity(r){
+ r=String(r||"normal").toLowerCase();
+ if(r==="common")return "normal";
+ if(r==="mistic"||r==="mystic")return "mythic";
+ return ["normal","rare","epic","mythic","legendary"].includes(r)?r:"normal";
+}
+function dynamicItemIcon(slot,it){
+ const icons={helmet:"🪖",armor:"🛡️",boots:"🥾",weapon:"⚔️",gloves:"🧤",ring:"💍"};
+ if(it&&it.icon)return `<img src="${it.icon}" alt="">`;
+ return `<span class="v168-fallback-icon">${icons[slot]||"◆"}</span>`;
+}
+function renderDynamicEquipment(){
+ const root=$("#dynamicEquipSlots"); if(!root)return;
+ const order=["helmet","armor","boots","weapon","gloves","ring"];
+ root.innerHTML=order.map(slot=>{
+   const it=equipObj(slot);
+   const rarity=it?normalizedRarity(it.rarity):"empty";
+   const plus=it?Math.max(0,Math.min(15,Number(it.plus||0))):0;
+   const rarityLabel={normal:"Common",rare:"Rare",epic:"Epic",mythic:"Mythic",legendary:"Legendary",empty:"Üres"}[rarity];
+   return `<div class="v168-slot v168-${slot} rarity-${rarity}">
+      <div class="v168-icon">${dynamicItemIcon(slot,it)}</div>
+      <div class="v168-slottext">
+        <small>${SLOT_NAMES[slot]||slot}</small>
+        <b>${it?it.name:"Üres"}</b>
+        <strong>${it?rarityLabel+" · +"+plus:"Nincs felszerelve"}</strong>
+      </div>
+    </div>`;
+ }).join("");
+
+ const weapon=equipObj("weapon");
+ const hand=$("#dynWeapon");
+ if(hand){
+   if(weapon){
+     const r=normalizedRarity(weapon.rarity);
+     hand.className=`v168-hand-item rarity-${r}`;
+     hand.textContent="⚔";
+     hand.title=`${weapon.name} +${Number(weapon.plus||0)}`;
+   }else{
+     hand.className="v168-hand-item empty";
+     hand.textContent="";
+     hand.removeAttribute("title");
+   }
+ }
+ const equipped=order.map(equipObj).filter(Boolean);
+ const label=$("#heroEquippedLabel");
+ if(label) label.textContent=equipped.length
+   ? equipped.map(it=>`${it.name} +${Math.max(0,Math.min(15,Number(it.plus||0)))}`).join(" · ")
+   : "Nincs felszerelt tárgy";
+}
+
 function renderAll(){
  renderCore();
  renderV15ExactCharacter();
@@ -727,7 +778,7 @@ function renderAll(){
  renderQuests();
  renderStats();
  renderCharacterAttributes();
-;renderHpRegenAndOptions();renderCombatSpeed();}
+;renderHpRegenAndOptions();renderCombatSpeed();renderDynamicEquipment();}
 $("#bossBtn").onclick=()=>toast("👹 A boss automatikusan jön minden wave végén.");
 $("#petSummon").onclick=summonPet;
 $("#sellNormal").onclick=()=>{let equipped=new Set(Object.values(save.equipped));let sold=0;save.inventory=save.inventory.filter(it=>{if(it.rarity==="normal"&&!equipped.has(it.id)){save.gold+=sellValue(it);sold++;return false}return true});persist();renderAll();toast(`${sold} normál tárgy eladva`)};

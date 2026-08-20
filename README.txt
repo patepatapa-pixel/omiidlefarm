@@ -158,3 +158,5 @@ V16.4: karakter gear ikonok újraigazítva; ritkaság szerinti helyes keretek: N
 V16.6: új saját karakter/felszerelés grafika beépítve; régi lila sárkány háttér eltávolítva; Mythic=lila, Legendary=arany rarity keretek; slotok újraigazítva.
 
 V16.7: karakter nézet kitisztítva; a kép mögötti/alatti duplikált felszerelés ikonok eltávolítva. Inventory, Equip Best, rarity és speed rendszer megmaradt.
+
+V16.8: teljesen dinamikus karakter-felszerelés rendszer. A karakteroldali itemek közvetlenül az equipped adatokból renderelődnek; +szint és rarity azonnal követi a valódi tárgyat; üres slot üres; fegyver csak felszerelve jelenik meg a karakter kezében.

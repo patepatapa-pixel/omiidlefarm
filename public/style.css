@@ -929,3 +929,32 @@ body.is-authenticated #guestLanding{display:none!important}
 .v15-character-stage .v15-bottom-stats{
   z-index:12!important;
 }
+
+/* V16.8 fully dynamic equipment character */
+.v168-character-system{position:absolute;inset:0;overflow:hidden;border-radius:12px;background:radial-gradient(circle at 50% 42%,#18202b 0,#090d13 38%,#030507 76%);z-index:1}
+.v168-avatar{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);width:230px;height:480px;z-index:2}
+.v168-aura{position:absolute;inset:55px 15px 20px;border-radius:50%;background:radial-gradient(ellipse,#7844a626,transparent 68%);filter:blur(4px)}
+.v168-body{position:absolute;inset:0}
+.v168-head{position:absolute;left:87px;top:24px;width:58px;height:70px;border-radius:48% 48% 42% 42%;background:linear-gradient(145deg,#d8c0a3,#8f7158);border:5px solid #252a32;box-shadow:0 0 0 4px #8c6a32}
+.v168-head:after{content:"";position:absolute;left:-10px;top:-14px;width:72px;height:35px;background:#202632;clip-path:polygon(0 60%,18% 0,50% 28%,78% 0,100% 65%,75% 45%,50% 70%,25% 43%)}
+.v168-torso{position:absolute;left:55px;top:98px;width:120px;height:190px;clip-path:polygon(15% 0,85% 0,100% 86%,73% 100%,27% 100%,0 86%);background:linear-gradient(90deg,#171b22,#303641 50%,#151920);border:1px solid #b3863d;box-shadow:0 0 22px #000}
+.v168-torso:after{content:"";position:absolute;left:42px;top:34px;width:36px;height:78px;background:linear-gradient(#7c42bd,#351c5b);clip-path:polygon(50% 0,100% 35%,50% 100%,0 35%)}
+.v168-arm{position:absolute;top:118px;width:44px;height:205px;background:linear-gradient(#343b47,#13171d);border:3px solid #9d7436;border-radius:20px}
+.v168-arm.left{left:23px;transform:rotate(7deg)}.v168-arm.right{right:23px;transform:rotate(-7deg)}
+.v168-leg{position:absolute;top:275px;width:48px;height:185px;background:linear-gradient(#242a32,#090c10);border:3px solid #8e6b35}
+.v168-leg.left{left:59px}.v168-leg.right{right:59px}
+.v168-hand-item{position:absolute;right:-20px;top:182px;font-size:145px;line-height:1;transform:rotate(-35deg);transform-origin:center;z-index:5;text-shadow:0 0 18px currentColor}
+.v168-hand-item.rarity-normal{color:#9aa4ae}.v168-hand-item.rarity-rare{color:#159cff}.v168-hand-item.rarity-epic{color:#e128d8}.v168-hand-item.rarity-mythic{color:#8d49ff}.v168-hand-item.rarity-legendary{color:#f0bd37}.v168-hand-item.empty{display:none}
+.v168-slots{position:absolute;inset:0;z-index:6}
+.v168-slot{position:absolute;width:145px;min-height:96px;padding:8px;display:grid;grid-template-columns:58px 1fr;gap:7px;align-items:center;border:2px solid #3d4650;border-radius:11px;background:#05090eea;box-sizing:border-box}
+.v168-icon{height:58px;border-radius:8px;background:#0b1017;display:grid;place-items:center;overflow:hidden}.v168-icon img{width:100%;height:100%;object-fit:cover}.v168-fallback-icon{font-size:34px}
+.v168-slottext{min-width:0}.v168-slottext small,.v168-slottext b,.v168-slottext strong{display:block;overflow:hidden;text-overflow:ellipsis}.v168-slottext small{font-size:8px;color:#8d98a3}.v168-slottext b{font-size:10px;color:#fff;margin:2px 0}.v168-slottext strong{font-size:9px}
+.v168-helmet{left:15px;top:54px}.v168-armor{left:15px;top:222px}.v168-boots{left:15px;top:390px}
+.v168-weapon{right:15px;top:54px}.v168-gloves{right:15px;top:222px}.v168-ring{right:15px;top:390px}
+.v168-slot.rarity-normal{border-color:#9aa4ae;box-shadow:0 0 14px #9aa4ae44}.v168-slot.rarity-normal strong{color:#cbd1d7}
+.v168-slot.rarity-rare{border-color:#159cff;box-shadow:0 0 18px #159cff66}.v168-slot.rarity-rare strong{color:#55baff}
+.v168-slot.rarity-epic{border-color:#e128d8;box-shadow:0 0 19px #e128d866}.v168-slot.rarity-epic strong{color:#f05bea}
+.v168-slot.rarity-mythic{border-color:#8d49ff;box-shadow:0 0 21px #8d49ff77}.v168-slot.rarity-mythic strong{color:#b98cff}
+.v168-slot.rarity-legendary{border-color:#f0bd37;box-shadow:0 0 23px #f0bd3780}.v168-slot.rarity-legendary strong{color:#ffd45f}
+.v168-slot.rarity-empty{opacity:.55;border-color:#35404b;box-shadow:none}
+@media(max-width:650px){.v168-slot{width:112px;grid-template-columns:40px 1fr}.v168-icon{height:42px}.v168-avatar{transform:translate(-50%,-50%) scale(.82)}}
