@@ -2630,3 +2630,132 @@ body.v202-is-admin .admin-studio-only-v202{
 @media(max-width:650px){
   .v212-resource{min-width:calc(50% - 5px);box-sizing:border-box}
 }
+
+/* ================= V21.3 ================= */
+.v213-pvp-rewards,.v213-pet-reroll{
+  margin-top:10px;padding:10px;border:1px solid #39434e;border-radius:9px;
+  background:#080d12
+}
+.v213-reward-title{font-weight:900;color:#f2c451;margin-bottom:7px}
+.v213-reward-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.v213-reward-grid span{padding:7px;border:1px solid #303a45;border-radius:7px;background:#0b1117}
+.v213-reward-grid b,.v213-reward-grid strong{display:block}
+.v213-reward-grid strong{color:#f1c34f;margin-top:2px}
+.v213-pvp-rewards small,.v213-pet-reroll small{display:block;color:#8795a4;margin-top:5px}
+
+.v213-pet-reroll{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.v213-reroll-list{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.v213-reroll-list button{
+  border:1px solid #e0ad3f;background:#e6b94e;color:#080a0d;border-radius:7px;
+  padding:7px 10px;font-weight:900;cursor:pointer
+}
+.v213-muted{font-size:10px;color:#8995a1}
+
+.v213-skill-value{
+  display:flex;justify-content:space-between;gap:8px;margin:5px 0 7px;
+  padding:5px 7px;border:1px solid #303a45;border-radius:6px;background:#080d12;
+  font-size:9px
+}
+.v213-skill-value span{color:#aeb9c4}
+.v213-skill-value b{color:#b782ff}
+
+@media(max-width:700px){
+ .v213-reward-grid{grid-template-columns:1fr}
+ .v213-pet-reroll{display:block}
+ .v213-reroll-list{margin-top:8px;justify-content:flex-start}
+}
+
+/* ================= V21.4 CHARACTER LAYOUT RECOVERY ================= */
+
+/* The character workspace must have enough real height for draggable windows. */
+#page-character .v208-window-canvas{
+  position:relative!important;
+  width:min(1280px,calc(100vw - 32px))!important;
+  min-width:980px!important;
+  min-height:920px!important;
+  height:auto!important;
+  margin:18px auto 30px!important;
+  overflow:visible!important;
+}
+
+/* Restore the complete character card instead of the collapsed title strip. */
+#page-character .v208-character-window,
+#page-character .v208-character-window.v214-character-restored{
+  display:block!important;
+  position:absolute!important;
+  width:590px!important;
+  min-width:590px!important;
+  height:auto!important;
+  min-height:560px!important;
+  max-height:none!important;
+  overflow:visible!important;
+  visibility:visible!important;
+  opacity:1!important;
+  z-index:20!important;
+  transform:translate(var(--v208-x,30px),var(--v208-y,25px))!important;
+}
+
+/* Make sure all character equipment/body content is visible again. */
+#page-character .v208-character-window > *{
+  visibility:visible!important;
+  opacity:1!important;
+}
+#page-character .v208-character-window .v208-character-stage,
+#page-character .v208-character-window .character-stage,
+#page-character .v208-character-window [class*="character-body"],
+#page-character .v208-character-window [class*="equipment-stage"]{
+  display:block!important;
+}
+
+/* Equipment manager starts beside Character and remains a separate window. */
+#page-character .inventory-tools-v163.v210-equipment-open{
+  width:560px!important;
+  min-width:560px!important;
+  max-width:560px!important;
+  position:absolute!important;
+  transform:translate(var(--v208-x,650px),var(--v208-y,25px))!important;
+  z-index:30!important;
+}
+
+/* Admin window must not force the character workspace apart. */
+#page-character .admin-game-studio,
+#page-character .admin-studio,
+#page-character [class*="admin-game"],
+#page-character [class*="admin-studio"]{
+  position:absolute!important;
+  z-index:15!important;
+}
+
+/* Character stats below floating workspace should not overlap the windows. */
+#page-character .v208-window-canvas + *,
+#page-character .v208-character-workspace + *{
+  clear:both!important;
+}
+
+/* Reset control */
+#v214ResetLayout{
+  min-height:28px!important;
+  padding:5px 9px!important;
+  border:1px solid #4b5663!important;
+  border-radius:7px!important;
+  background:#0a1016!important;
+  color:#b9c4cf!important;
+  font-size:9px!important;
+  font-weight:800!important;
+  cursor:pointer!important;
+}
+#v214ResetLayout:hover{border-color:#d7a63c!important;color:#f2c452!important}
+
+/* 80% browser zoom / desktop layout remains readable */
+@media(min-width:1100px){
+ #page-character .v208-window-canvas{min-height:900px!important}
+}
+@media(max-width:1050px){
+ #page-character .v208-window-canvas{
+   min-width:0!important;width:calc(100vw - 18px)!important;min-height:1250px!important
+ }
+ #page-character .v208-character-window{width:min(590px,calc(100vw - 32px))!important;min-width:0!important}
+ #page-character .inventory-tools-v163.v210-equipment-open{
+   width:min(560px,calc(100vw - 32px))!important;min-width:0!important
+ }
+}

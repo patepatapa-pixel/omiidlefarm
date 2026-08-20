@@ -2805,3 +2805,265 @@ document.addEventListener("click",e=>{
     }
   },true);
 })();
+
+/* ================= V21.3 PVP + PET REROLL + SKILL VALUES ================= */
+(function(){
+  const REROLL_DUPES = 3;
+
+  function S(){ return (typeof save!=="undefined" && save) ? save : {}; }
+  function F(n){ return typeof fmt==="function" ? fmt(Number(n||0)) : Math.floor(Number(n||0)).toLocaleString("hu-HU"); }
+
+  /* ---------- PvP meaningful rewards ---------- */
+  function ensurePvpRewardInfo(){
+    const p=document.getElementById("page-pvp");
+    if(!p)return;
+    const arena=p.querySelector(".pvp-arena-v165, .pvp-arena, [class*='pvp-arena']");
+    if(!arena)return;
+    let box=p.querySelector(".v213-pvp-rewards");
+    if(!box){
+      box=document.createElement("div");
+      box.className="v213-pvp-rewards";
+      arena.appendChild(box);
+    }
+    box.innerHTML=`
+      <div class="v213-reward-title">🏆 PvP győzelmi jutalom</div>
+      <div class="v213-reward-grid">
+        <span>💰 <b>Arany</b><strong>500–2 500</strong></span>
+        <span>⛏️ <b>Érc</b><strong>1–4</strong></span>
+        <span>🎫 <b>Dungeon token</b><strong>5–15% esély</strong></span>
+      </div>
+      <small>Magasabb ellenfél / rating esetén jobb jutalom.</small>`;
+  }
+
+  function awardExtraPvpRewards(opponent){
+    const s=S();
+    const rating=Number(opponent?.rating||opponent?.pvpRating||0);
+    const bonus=Math.max(0,Math.min(4,Math.floor(rating/250)));
+    const ore=1+Math.floor(Math.random()*(2+bonus));
+    s.ore=Number(s.ore||0)+ore;
+
+    let token=0;
+    const tokenChance=Math.min(.15,.05+bonus*.025);
+    if(Math.random()<tokenChance){
+      token=1;
+      // Project calls these tickets in the current save.
+      s.tickets=Number(s.tickets||0)+1;
+    }
+    return {ore,token};
+  }
+
+  // Hook common PvP result functions without replacing the base combat.
+  ["pvpFight","fightPvp","doPvpFight","resolvePvpFight"].forEach(name=>{
+    const old=window[name];
+    if(typeof old!=="function" || old.__v213)return;
+    const wrapped=function(...args){
+      const beforeWins=Number(S().pvpWins||S().wins||0);
+      const result=old.apply(this,args);
+      const afterWins=Number(S().pvpWins||S().wins||0);
+      const won=(result===true || result?.win===true || result?.won===true || afterWins>beforeWins);
+      if(won){
+        const r=awardExtraPvpRewards(args[0]);
+        if(typeof toast==="function") toast(`🏆 PvP jutalom: +${r.ore} érc${r.token?` +${r.token} dungeon token`:""}`);
+        if(typeof renderAll==="function") renderAll();
+      }
+      return result;
+    };
+    wrapped.__v213=true;
+    window[name]=wrapped;
+  });
+
+  /* ---------- Pet: 3 identical copies -> stronger reroll ---------- */
+  function petKey(p){ return String(p?.id ?? p?.key ?? p?.name ?? ""); }
+  function petName(p){ return String(p?.name ?? p?.title ?? "Pet"); }
+  function petLevel(p){ return Number(p?.level ?? p?.lvl ?? 1); }
+
+  function petCollection(){
+    const s=S();
+    if(Array.isArray(s.pets)) return s.pets;
+    if(Array.isArray(s.petInventory)) return s.petInventory;
+    if(Array.isArray(s.ownedPets)) return s.ownedPets;
+    return null;
+  }
+
+  function duplicateGroups(){
+    const arr=petCollection()||[];
+    const groups={};
+    arr.forEach((p,i)=>{
+      const k=petKey(p);
+      if(!k)return;
+      (groups[k] ||= []).push({p,i});
+    });
+    return Object.values(groups).filter(g=>g.length>=REROLL_DUPES);
+  }
+
+  function ensurePetReroll(){
+    const p=document.getElementById("page-pets");
+    if(!p)return;
+    const root=p.querySelector(".pet-grid, .pets-grid, [class*='pet-grid'], [class*='pet-system']") || p;
+    let panel=p.querySelector(".v213-pet-reroll");
+    if(!panel){
+      panel=document.createElement("div");
+      panel.className="v213-pet-reroll";
+      root.prepend(panel);
+    }
+    const groups=duplicateGroups();
+    panel.innerHTML=`
+      <div>
+        <b>♻️ Pet összeolvasztás / reroll</b>
+        <small>3 teljesen azonos petből 1 erősebb változat készíthető.</small>
+      </div>
+      <div class="v213-reroll-list">${
+        groups.length ? groups.map((g,n)=>`
+          <button type="button" data-v213-reroll="${n}">
+            ${petName(g[0].p)} ×${g.length} → Erősebb pet
+          </button>`).join("") :
+          `<span class="v213-muted">Nincs még 3 egyforma peted.</span>`
+      }</div>`;
+    panel.querySelectorAll("[data-v213-reroll]").forEach(btn=>{
+      btn.onclick=()=>{
+        const group=duplicateGroups()[Number(btn.dataset.v213Reroll)];
+        const arr=petCollection();
+        if(!group || !arr || group.length<3)return;
+        const selected=group.slice(0,3);
+        const base=JSON.parse(JSON.stringify(selected[0].p));
+        base.level=Math.max(...selected.map(x=>petLevel(x.p)))+1;
+        base.lvl=base.level;
+        base.rerollTier=Number(base.rerollTier||0)+1;
+        base.powerMultiplier=Number(base.powerMultiplier||1)*1.15;
+        base.bonusMultiplier=Number(base.bonusMultiplier||1)*1.15;
+        selected.map(x=>x.i).sort((a,b)=>b-a).forEach(i=>arr.splice(i,1));
+        arr.push(base);
+        if(typeof toast==="function") toast(`♻️ ${petName(base)} erősítve: +15% pet bónusz, Lv.${base.level}`);
+        if(typeof renderAll==="function") renderAll();
+        ensurePetReroll();
+      };
+    });
+  }
+
+  /* ---------- Skills: show exact gain per point ---------- */
+  const skillInfo = {
+    "Erő aura":       {per:"+2.0% sebzés / pont", next:"+2.0% DMG"},
+    "Aranyládás":     {per:"+3.0% arany / pont",  next:"+3.0% arany"},
+    "Kritikus ösztön":{per:"+0.5% krit / pont",   next:"+0.5% krit"},
+    "Kincsvadász":    {per:"+1.0% drop / pont",   next:"+1.0% drop"},
+    "Mély alvás farm":{per:"+5.0% offline farm / pont", next:"+5.0% offline"},
+    "Pet szinkron":   {per:"+2.0% pet bónusz / pont", next:"+2.0% pet bónusz"}
+  };
+
+  function ensureSkillValues(){
+    const p=document.getElementById("page-skills");
+    if(!p)return;
+    const cards=[...p.querySelectorAll("button")].filter(b=>b.textContent.includes("+1 pont")).map(b=>b.closest("div"));
+    cards.forEach(card=>{
+      if(!card)return;
+      const txt=card.textContent;
+      const found=Object.entries(skillInfo).find(([name])=>txt.includes(name));
+      if(!found)return;
+      const [name,info]=found;
+      let badge=card.querySelector(".v213-skill-value");
+      if(!badge){
+        badge=document.createElement("div");
+        badge.className="v213-skill-value";
+        const button=card.querySelector("button");
+        if(button) card.insertBefore(badge,button);
+        else card.appendChild(badge);
+      }
+      badge.innerHTML=`<span>${info.per}</span><b>Következő pont: ${info.next}</b>`;
+    });
+  }
+
+  function refresh(){
+    ensurePvpRewardInfo();
+    ensurePetReroll();
+    ensureSkillValues();
+  }
+  window.v213Refresh=refresh;
+  window.addEventListener("load",()=>{setTimeout(refresh,180);setTimeout(refresh,700)});
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.("[data-tab],button")) setTimeout(refresh,80);
+  },true);
+})();
+
+/* ================= V21.4 CHARACTER LAYOUT RECOVERY ================= */
+(function(){
+  const POSKEY="omi_v214_character_positions";
+
+  function page(){return document.getElementById("page-character")}
+  function canvas(){return page()?.querySelector(".v208-window-canvas")}
+  function charWin(){return page()?.querySelector(".v208-character-window")}
+  function equipWin(){return page()?.querySelector(".inventory-tools-v163")}
+  function adminWin(){
+    const p=page(); if(!p)return null;
+    return p.querySelector(".admin-game-studio, .admin-studio, [class*='admin-game'], [class*='admin-studio']");
+  }
+
+  function resetWindow(el,x,y){
+    if(!el)return;
+    el.style.setProperty("--v208-x",x+"px");
+    el.style.setProperty("--v208-y",y+"px");
+    el.style.left="0px";
+    el.style.top="0px";
+  }
+
+  function restoreCharacterContent(){
+    const cw=charWin();
+    if(!cw)return;
+    // Undo accidental clipping/collapse caused by older draggable rules.
+    cw.style.removeProperty("height");
+    cw.style.removeProperty("max-height");
+    cw.style.removeProperty("overflow");
+    cw.classList.add("v214-character-restored");
+  }
+
+  function arrange(force=false){
+    const p=page(), c=canvas(), cw=charWin(), ew=equipWin();
+    if(!p||!c||!cw)return;
+
+    restoreCharacterContent();
+
+    // Remove old saved coordinates once on this version: they are the source
+    // of the screenshot's scattered/collapsed layout.
+    if(force || !localStorage.getItem(POSKEY)){
+      ["omi_v208_positions","omi_v209_positions","omi_v208_window_positions",
+       "omi_character_window_positions","omi_window_positions"].forEach(k=>{
+        try{localStorage.removeItem(k)}catch(e){}
+      });
+
+      resetWindow(cw,30,25);
+      if(ew) resetWindow(ew,650,25);
+
+      const aw=adminWin();
+      if(aw) resetWindow(aw,30,610);
+
+      try{localStorage.setItem(POSKEY,"1")}catch(e){}
+    }
+  }
+
+  function addResetButton(){
+    const p=page(), cw=charWin();
+    if(!p||!cw||p.querySelector("#v214ResetLayout"))return;
+    const b=document.createElement("button");
+    b.id="v214ResetLayout";
+    b.type="button";
+    b.textContent="↺ Ablakok alaphelyzetbe";
+    b.title="Ha elhúztad az ablakokat, visszaállítja őket.";
+    const header=cw.querySelector(".v208-character-header")||cw;
+    header.appendChild(b);
+    b.onclick=e=>{
+      e.preventDefault();e.stopPropagation();
+      arrange(true);
+      if(window.v208Setup) setTimeout(window.v208Setup,0);
+    };
+  }
+
+  function fix(){
+    arrange(false);
+    addResetButton();
+  }
+
+  window.v214ResetCharacterLayout=()=>arrange(true);
+  window.addEventListener("load",()=>{setTimeout(fix,180);setTimeout(fix,700)});
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.('[data-tab="character"]'))setTimeout(fix,80);
+  },true);
+})();

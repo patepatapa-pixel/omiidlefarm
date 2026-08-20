@@ -298,3 +298,18 @@ V21.2
 - Dungeon: Dungeon jegy + Erő + Arany.
 - PvP/Statisztika: Erő + Arany.
 - Minden érték élőben frissül.
+
+V21.3
+- PvP győzelem: az arany mellett érc és esélyes Dungeon token jutalom.
+- Pet reroll: 3 teljesen azonos pet összeolvasztható 1 erősebb változattá (+15% pet bónusz, +1 szint).
+- Képességeknél látszik, hogy 1 pont pontosan hány %-ot ad és mit ad a következő pont.
+
+V21.4
+- Karakter fül szétesett/elcsúszott elrendezése javítva.
+- A Saját karakter teljes tartalma újra látható, nem csak a fejléc.
+- Saját karakter alaphelyzet: bal oldal.
+- Felszerelés kezelés alaphelyzet: közvetlenül mellette jobb oldalon.
+- Mindkét ablak továbbra is külön mozgatható.
+- Régi hibás mentett ablakpozíciók egyszer törlődnek.
+- Új „Ablakok alaphelyzetbe” gomb került a karakterhez.
+- A karakter workspace megfelelő magasságot kapott, így a statok sem lógnak bele.
