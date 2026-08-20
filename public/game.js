@@ -86,8 +86,8 @@ function normalizeV6Save(s){
  s.activeAura=s.activeAura||"none";
  s.playerHp=Number.isFinite(Number(s.playerHp))?Number(s.playerHp):0;
  s.hpRegenLevel=Math.max(0,Number(s.hpRegenLevel||0));
- s.combatSpeed=[1,2,3,10].includes(Number(s.combatSpeed))?Number(s.combatSpeed):(Number(s.combatSpeed)===4?1:1);
- s.speed10Unlocked=Boolean(s.speed10Unlocked||s.speed4Unlocked);
+ s.combatSpeed=[1,2,3,4].includes(Number(s.combatSpeed))?Number(s.combatSpeed):1;
+ s.speed4Unlocked=Boolean(s.speed4Unlocked);
  s.deaths=Math.max(0,Number(s.deaths||0));
  s.respawnUntil=Math.max(0,Number(s.respawnUntil||0));
  return s;
@@ -761,55 +761,6 @@ function renderDynamicEquipment(){
    : "Nincs felszerelt tárgy";
 }
 
-
-function renderV17QuickStats(){
- const set=(id,val)=>{const e=$("#"+id);if(e)e.textContent=val};
- set("v17Power",fmt(power()));
- set("v17Damage",fmt(damage()));
- const maxHp=(typeof v10MaxHp==="function")?v10MaxHp():0;
- set("v17HP",`${fmt(save.playerHp||0)} / ${fmt(maxHp)}`);
- set("v17Defense",(typeof v10Defense==="function")?fmt(v10Defense()):"0");
- set("v17Luck",fmt(save.base?.luck||0));
- set("v17Crit",(critChance()*100).toFixed(1)+"%");
- set("v17Drop",(dropBonus()*100).toFixed(1)+"%");
- set("v17Wave",save.wave||1);
-}
-
-
-function renderAuraPageV171(){
- const set=(id,val)=>{const e=$("#"+id);if(e)e.textContent=val};
- set("auraPagePrestige",save.prestigeLevel||0);
- set("auraPageTokens",save.auraTokens||0);
- set("auraPageParagon",save.paragonLevel||0);
-}
-
-
-function renderAuraPageV174(){
- const set=(id,val)=>{const e=$("#"+id);if(e)e.textContent=val};
- set("auraPagePrestige",save.prestigeLevel||0);
- set("auraPageTokens",save.auraTokens||0);
- set("auraPageParagon",save.paragonLevel||0);
-}
-
-
-function v183SyncCharacterStatus(){
- const charPage=$("#page-character");
- v183CharacterStatusVisibility(charPage&&charPage.classList.contains("active")?"character":"");
-}
-
-
-function v184SyncCharacterOnlyPanels(tabName){
-  const show = tabName === "character";
-  document.querySelectorAll(".character-only-panel").forEach(el=>{
-    el.style.setProperty("display", show ? (el.classList.contains("character-attributes") ? "grid" : "block") : "none", "important");
-  });
-}
-document.addEventListener("click",e=>{
-  const b=e.target.closest?.("[data-tab]");
-  if(!b)return;
-  setTimeout(()=>v184SyncCharacterOnlyPanels(b.dataset.tab),0);
-});
-
 function renderAll(){
  renderCore();
  renderV15ExactCharacter();
@@ -827,7 +778,7 @@ function renderAll(){
  renderQuests();
  renderStats();
  renderCharacterAttributes();
-;renderHpRegenAndOptions();renderCombatSpeed();renderDynamicEquipment();renderV17QuickStats();renderAuraPageV171();renderAuraPageV174();v183SyncCharacterStatus();v184SyncCharacterOnlyPanels($("#page-character")?.classList.contains("active")?"character":"");}
+;renderHpRegenAndOptions();renderCombatSpeed();renderDynamicEquipment();}
 $("#bossBtn").onclick=()=>toast("👹 A boss automatikusan jön minden wave végén.");
 $("#petSummon").onclick=summonPet;
 $("#sellNormal").onclick=()=>{let equipped=new Set(Object.values(save.equipped));let sold=0;save.inventory=save.inventory.filter(it=>{if(it.rarity==="normal"&&!equipped.has(it.id)){save.gold+=sellValue(it);sold++;return false}return true});persist();renderAll();toast(`${sold} normál tárgy eladva`)};
@@ -841,23 +792,6 @@ $("#importFile").onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new Fil
 
 // ===== ONLINE ACCOUNT / CLOUD SAVE V3 =====
 let currentUser=null,authMode="login",cloudReady=false,savingCloud=false;
-
-
-
-
-function v183CharacterStatusVisibility(tabName){
- const status=document.querySelector(".v182-character-status");
- if(!status)return;
- status.style.setProperty("display",tabName==="character"?"block":"none","important");
-}
-
-function openCharacterAfterLoginV18(){
-  const tab=document.querySelector('[data-tab="character"]');
-  if(tab)tab.click();
-  const page=$("#page-character");
-  if(page)page.scrollIntoView({behavior:"instant",block:"start"});
-  if(window.v191ActivatePage) window.v191ActivatePage("character");
-}
 
 
 function setAuthenticatedUI(user){
@@ -919,7 +853,6 @@ async function loadMe(){
    cloudReady=true;
    setAuthenticatedUI(currentUser);
    renderAll();
-   openCharacterAfterLoginV18();
    setTimeout(()=>{if(typeof v10LoadGameplay==="function")v10LoadGameplay()},50);
  }catch(e){
    currentUser=null;
@@ -969,7 +902,6 @@ $("#authSubmit").onclick=async()=>{
    enemyHp=ZONES[save.zone]?.hp||ZONES[0].hp;
    setAuthenticatedUI(currentUser);
    renderAll();
-   openCharacterAfterLoginV18();
    setTimeout(()=>{if(typeof v10LoadGameplay==="function")v10LoadGameplay()},50);
    toast("✅ Sikeres "+(authMode==="login"?"belépés":"regisztráció"));
  }catch(e){$("#authMsg").textContent="❌ "+e.message}
@@ -1023,7 +955,6 @@ async function landingLogin(){
    enemyHp=ZONES[save.zone]?.hp||ZONES[0].hp;
    setAuthenticatedUI(currentUser);
    renderAll();
-   openCharacterAfterLoginV18();
    showLandingMessage("");
    toast("✅ Sikeres belépés");
    setTimeout(()=>{if(typeof v10LoadGameplay==="function")v10LoadGameplay()},50);
@@ -1126,15 +1057,15 @@ function v10EnsurePlayerHp(){
 
 
 function effectiveCombatSpeed(){
- const n=[1,2,3,10].includes(Number(save.combatSpeed))?Number(save.combatSpeed):1;
- return n===10&&!save.speed10Unlocked?3:n;
+ const n=[1,2,3,4].includes(Number(save.combatSpeed))?Number(save.combatSpeed):1;
+ return n===4&&!save.speed4Unlocked?3:n;
 }
 function setCombatSpeed(n){
  n=Number(n);
- if(![1,2,3,10].includes(n))return;
+ if(![1,2,3,4].includes(n))return;
 
- if(n===10&&!save.speed10Unlocked){
-   toast("🔒 A 10× sebesség prémium. A Feltöltés / Discord fülön 3 €.");
+ if(n===4&&!save.speed4Unlocked){
+   toast("🔒 A 4× sebesség prémium. A Feltöltés / Discord fülön 3 €.");
    const tab=$('[data-tab="shop"]');
    if(tab)tab.click();
    return;
@@ -1150,14 +1081,14 @@ function renderCombatSpeed(){
  $$(".combat-speed-btn").forEach(b=>{
    const val=Number(b.dataset.speed);
    b.classList.toggle("active",val===n);
-   b.classList.toggle("locked",val===10&&!save.speed10Unlocked);
-   if(val===10)b.innerHTML=save.speed10Unlocked?"⚡ 10×":"🔒 10×";
+   b.classList.toggle("locked",val===4&&!save.speed4Unlocked);
+   if(val===4)b.innerHTML=save.speed4Unlocked?"⚡ 4×":"🔒 4×";
  });
  ["combatSpeedState","combatSpeedStateV163"].forEach(id=>{
    const e=$("#"+id);if(e)e.textContent=`Aktív: ${n}×`;
  });
- const premium=$("#speed10PurchaseState");
- if(premium)premium.textContent=save.speed10Unlocked?"✅ Aktiválva":"🔒 Nincs aktiválva";
+ const premium=$("#speed4PurchaseState");
+ if(premium)premium.textContent=save.speed4Unlocked?"✅ Aktiválva":"🔒 Nincs aktiválva";
 }
 document.addEventListener("click",e=>{
  const b=e.target.closest?.(".combat-speed-btn");
@@ -1561,62 +1492,3 @@ if(document.readyState==="loading"){
  document.addEventListener("DOMContentLoaded",bindAuthButtonsV153);
 }else bindAuthButtonsV153();
 setTimeout(bindAuthButtonsV153,250);
-
-
-document.addEventListener("click",e=>{
- const btn=e.target.closest("[data-tab]");
- if(!btn)return;
- setTimeout(()=>v183CharacterStatusVisibility(btn.dataset.tab),0);
-});
-
-
-
-/* V19.1 robust tab/page switch */
-(function v191PageSwitchFix(){
-  function activatePage(name){
-    if(!name)return;
-    const page=document.getElementById("page-"+name);
-    if(!page)return;
-
-    document.querySelectorAll("#gameShell .page").forEach(p=>p.classList.remove("active"));
-    page.classList.add("active");
-
-    document.querySelectorAll("[data-tab],[data-page]").forEach(b=>{
-      const n=b.dataset.tab||b.dataset.page||"";
-      b.classList.toggle("active",n===name);
-    });
-
-    if(name==="character"){
-      if(typeof renderDynamicEquipment==="function")renderDynamicEquipment();
-      if(typeof renderV17QuickStats==="function")renderV17QuickStats();
-      if(typeof renderCharacterAttributes==="function")renderCharacterAttributes();
-    }
-    if(name==="paragon" && typeof renderParagon==="function")renderParagon();
-  }
-
-  document.addEventListener("click",function(e){
-    const b=e.target.closest?.("[data-tab],[data-page]");
-    if(!b)return;
-    const name=b.dataset.tab||b.dataset.page;
-    if(!name)return;
-    setTimeout(()=>activatePage(name),0);
-  },true);
-
-  window.v191ActivatePage=activatePage;
-})();
-
-
-
-function v191CharacterFallbackCheck(){
- const page=$("#page-character");
- if(!page||!page.classList.contains("active"))return;
- const stage=page.querySelector(".v168-character-system");
- if(!stage)return;
- stage.style.display="block";
- const root=$("#dynamicEquipSlots");
- if(root && !root.innerHTML.trim() && typeof renderDynamicEquipment==="function"){
-   renderDynamicEquipment();
- }
-}
-setInterval(v191CharacterFallbackCheck,1000);
-
