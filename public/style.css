@@ -1152,3 +1152,283 @@ main{width:100%!important;max-width:100%!important}
 .v17-stat-grid small,.v17-stat-grid b{display:block}
 .v17-stat-grid small{font-size:9px;color:#97a2ad}
 .v17-stat-grid b{font-size:14px;margin-top:3px;color:#f1c14f}
+
+/* ================= V17.1 – 80% ZOOM CHARACTER LAYOUT =================
+   Optimized to look full and readable when browser zoom is set to 80%.
+*/
+@media (min-width:1200px){
+  #page-character{
+    width:min(1720px,calc(100vw - 24px))!important;
+    max-width:1720px!important;
+    padding-left:8px!important;
+    padding-right:8px!important;
+  }
+
+  #page-character .v15-main-grid{
+    grid-template-columns:minmax(290px,330px) minmax(680px,780px) minmax(330px,390px)!important;
+    max-width:1540px!important;
+    gap:16px!important;
+  }
+
+  #page-character .v15-character-stage{
+    height:720px!important;
+    min-height:720px!important;
+  }
+
+  #page-character .v168-avatar{
+    width:260px!important;
+    height:525px!important;
+  }
+
+  #page-character .v168-slot{
+    width:164px!important;
+    min-height:104px!important;
+    grid-template-columns:64px 1fr!important;
+  }
+
+  #page-character .v168-icon{
+    height:64px!important;
+  }
+
+  #page-character .v168-helmet,
+  #page-character .v168-armor,
+  #page-character .v168-boots{left:18px!important}
+
+  #page-character .v168-weapon,
+  #page-character .v168-gloves,
+  #page-character .v168-ring{right:18px!important}
+
+  #page-character .v168-helmet,
+  #page-character .v168-weapon{top:62px!important}
+
+  #page-character .v168-armor,
+  #page-character .v168-gloves{top:250px!important}
+
+  #page-character .v168-boots,
+  #page-character .v168-ring{top:438px!important}
+
+  #page-character .v17-stat-grid{
+    grid-template-columns:1fr 1fr!important;
+    gap:8px!important;
+  }
+
+  #page-character .v17-stat-grid>div{
+    padding:10px!important;
+  }
+
+  #page-character .v15-attributes,
+  #page-character .character-attributes{
+    max-width:1540px!important;
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    gap:8px!important;
+  }
+
+  #page-character .item-option-help{
+    max-width:1540px!important;
+  }
+}
+
+/* HP regen now belongs visually to Basic Upgrades */
+.farm-hp-regen-upgrade{
+  margin-top:12px;
+  padding:12px;
+  border:1px solid #853443;
+  border-radius:11px;
+  background:radial-gradient(circle at 90% 10%,rgba(197,54,72,.14),transparent 35%),#080b10;
+}
+.farm-hp-regen-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:14px;
+  margin-bottom:10px;
+}
+.farm-hp-regen-head b,
+.farm-hp-regen-head small{display:block}
+.farm-hp-regen-head>div:first-child>b{color:#ff6b78;font-size:13px}
+.farm-hp-regen-head small{color:#8f99a4;margin-top:3px}
+.farm-hp-regen-values{
+  display:flex;
+  gap:8px;
+}
+.farm-hp-regen-values span{
+  padding:7px 9px;
+  border:1px solid #3a424d;
+  border-radius:8px;
+  background:#06090d;
+  font-size:10px;
+}
+#hpRegenUpgradeBtn{width:100%;margin-bottom:6px}
+
+/* Separate Aura Shop page */
+.aura-page-shell{
+  width:min(1280px,100%);
+  margin:0 auto;
+  display:grid;
+  gap:12px;
+}
+.aura-page-hero{
+  display:grid;
+  grid-template-columns:1fr auto;
+  align-items:center;
+  gap:18px;
+  border-color:#8647b3!important;
+  background:
+    radial-gradient(circle at 88% 25%,rgba(132,50,190,.24),transparent 34%),
+    linear-gradient(145deg,#0b1017,#06080c)!important;
+}
+.aura-page-hero h2{font-size:28px;margin:3px 0 7px}
+.aura-page-hero p{max-width:760px;color:#9da8b2;line-height:1.55}
+.aura-page-counters{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(105px,1fr));
+  gap:8px;
+}
+.aura-page-counters>div{
+  padding:11px;
+  border:1px solid #4d3560;
+  border-radius:10px;
+  background:#080b10;
+}
+.aura-page-counters small,.aura-page-counters b{display:block}
+.aura-page-counters b{font-size:20px;color:#d18cff;margin-top:4px}
+.aura-shop-main{border-color:#754192!important}
+.aura-shop-grid{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:10px!important;
+}
+.aura-shop-grid .aura-card{
+  min-height:110px;
+  padding:12px!important;
+  border-radius:11px!important;
+}
+.aura-info-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+}
+.aura-info-grid>div{
+  display:grid;
+  grid-template-columns:30px 1fr;
+  gap:7px;
+  padding:10px;
+  border:1px solid #303945;
+  border-radius:9px;
+  background:#080b10;
+}
+.aura-info-grid b{color:#d28dff;font-size:18px}
+.aura-info-grid span{font-size:10px;color:#98a2ad;line-height:1.4}
+
+@media(max-width:900px){
+  .aura-page-hero{grid-template-columns:1fr}
+  .aura-shop-grid{grid-template-columns:1fr 1fr!important}
+  .aura-info-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:560px){
+  .farm-hp-regen-head{align-items:flex-start;flex-direction:column}
+  .aura-page-counters{grid-template-columns:1fr}
+  .aura-shop-grid{grid-template-columns:1fr!important}
+  .aura-info-grid{grid-template-columns:1fr}
+}
+
+/* ================= V17.2 CHARACTER BOTTOM BAR FIX =================
+   Aura / Pet / Wave / Paragon stays INSIDE the character panel.
+   It no longer stretches across the viewport or follows scrolling.
+*/
+#page-character .v15-character{
+  position:relative!important;
+}
+
+#page-character .v15-character-stage{
+  position:relative!important;
+  overflow:hidden!important;
+  padding-bottom:82px!important;
+}
+
+#page-character .v15-bottom-stats{
+  position:absolute!important;
+  left:14px!important;
+  right:14px!important;
+  bottom:12px!important;
+  top:auto!important;
+  width:auto!important;
+  max-width:none!important;
+  transform:none!important;
+  margin:0!important;
+  z-index:20!important;
+
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:8px!important;
+
+  background:transparent!important;
+  pointer-events:auto!important;
+}
+
+#page-character .v15-bottom-stats>div{
+  min-width:0!important;
+  width:auto!important;
+  padding:9px 10px!important;
+  border:1px solid #34404c!important;
+  border-radius:9px!important;
+  background:linear-gradient(145deg,rgba(7,11,16,.98),rgba(3,6,9,.98))!important;
+  box-shadow:0 5px 14px rgba(0,0,0,.45)!important;
+}
+
+#page-character .v15-bottom-stats span,
+#page-character .v15-bottom-stats b{
+  display:block!important;
+  width:auto!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+
+#page-character .v15-bottom-stats span{
+  font-size:8px!important;
+  color:#8f9aa5!important;
+}
+
+#page-character .v15-bottom-stats b{
+  margin-top:3px!important;
+  font-size:10px!important;
+  color:#f1f4f7!important;
+}
+
+/* The equipped-summary pill also belongs inside the character panel */
+#page-character .hero-equipped-label{
+  position:absolute!important;
+  left:50%!important;
+  right:auto!important;
+  bottom:94px!important;
+  top:auto!important;
+  transform:translateX(-50%)!important;
+  width:max-content!important;
+  max-width:76%!important;
+  margin:0!important;
+  z-index:21!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+
+/* Kill any old full-width / viewport-sticky behavior from previous versions */
+#page-character .v15-bottom-stats,
+#page-character .hero-equipped-label{
+  position:absolute!important;
+}
+
+@media(max-width:850px){
+  #page-character .v15-character-stage{
+    padding-bottom:132px!important;
+  }
+  #page-character .v15-bottom-stats{
+    grid-template-columns:1fr 1fr!important;
+    bottom:10px!important;
+  }
+  #page-character .hero-equipped-label{
+    bottom:138px!important;
+    max-width:82%!important;
+  }
+}
