@@ -723,7 +723,7 @@ async function loadMe(){
    const d=await api("/api/me");
    currentUser=d.user;
    if(d.save && Object.keys(d.save).length){
-     save=normalizeV6Save(d.save);v10EnsurePlayerHp();
+     save=normalizeV6Save(d.save);
      if(save.lastDaily!==new Date().toDateString()){save.dailyClaimed={};save.lastDaily=new Date().toDateString()}
      enemyHp=ZONES[save.zone]?.hp||ZONES[0].hp;
    }
@@ -773,7 +773,7 @@ $("#authSubmit").onclick=async()=>{
  try{
    const username=$("#authUsername").value.trim(),password=$("#authPassword").value,player_name=$("#authPlayerName")?.value.trim()||"";
    const d=await api(authMode==="login"?"/api/login":"/api/register",{method:"POST",body:JSON.stringify({username,password,player_name})});
-   currentUser=d.user;save=normalizeV6Save(d.save||save);v10EnsurePlayerHp();cloudReady=true;closeAuth();enemyHp=ZONES[save.zone]?.hp||ZONES[0].hp;renderAll();
+   currentUser=d.user;save=normalizeV6Save(d.save||save);cloudReady=true;closeAuth();enemyHp=ZONES[save.zone]?.hp||ZONES[0].hp;renderAll();
    $("#onlineUser").innerHTML=`<span class="online-badge">●</span> ${currentUser.player_name||currentUser.username}`;$("#authBtn").textContent="Kilépés";toast("✅ Sikeres "+(authMode==="login"?"belépés":"regisztráció"));
  }catch(e){$("#authMsg").textContent="❌ "+e.message}
 };
@@ -852,8 +852,9 @@ function v10Defense(){
 }
 function v10MaxHp(){
  const io=itemOptionBonuses();
+ const cfg=(typeof V10CFG!=="undefined"&&V10CFG)?V10CFG:V10_DEFAULTS;
  return Math.max(1,Math.floor(
-   (V10CFG.basePlayerHp+(save.level-1)*V10CFG.hpPerLevel+v10Defense()*2+save.paragonLevel*20)*(1+io.hpPct/100)
+   (cfg.basePlayerHp+(save.level-1)*cfg.hpPerLevel+v10Defense()*2+save.paragonLevel*20)*(1+io.hpPct/100)
  ));
 }
 function v10BossMaxHp(){
@@ -963,7 +964,8 @@ function v10EnemyAttack(){
 }
 function playerHpRegenPct(){
  const io=itemOptionBonuses();
- return Math.max(0,Number(V10CFG.playerRegenPct||0)+Number(save.hpRegenLevel||0)*0.35+io.hpRegen);
+ const cfg=(typeof V10CFG!=="undefined"&&V10CFG)?V10CFG:V10_DEFAULTS;
+ return Math.max(0,Number(cfg.playerRegenPct||0)+Number(save.hpRegenLevel||0)*0.35+io.hpRegen);
 }
 function hpRegenUpgradeCost(){
  return Math.floor(2500*Math.pow(1.42,Number(save.hpRegenLevel||0)));
