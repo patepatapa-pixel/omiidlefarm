@@ -1044,7 +1044,7 @@ async function loadLeaderboard(){
  try{
   const d=await api("/api/leaderboard");
   $("#leaderboard").innerHTML=`<div class="leader-row head"><span>HELY</span><span>JÁTÉKOS</span><span>ERŐ</span><span>SZINT</span><span>KILL</span></div>`+
-   d.rows.map(r=>`<div class="leader-row"><span class="leader-rank">${r.rank<=3?["🥇","🥈","🥉"][r.rank-1]:"#"+r.rank}</span><span class="leader-name">${r.player_name||r.username}</span><span>${fmt(r.power)}</span><span>Lv.${r.level}</span><span>${fmt(r.kills)}</span></div>`).join("");
+   d.rows.map(r=>{const pg=Math.max(0,Number(r.paragon_level||0));return `<div class="leader-row ${pg>0?"leader-paragon":""}"><span class="leader-rank">${r.rank<=3?["🥇","🥈","🥉"][r.rank-1]:"#"+r.rank}</span><span class="leader-name">${r.player_name||r.username}${pg>0?`<b class="paragon-rank-badge">✦ PARAGON ${pg}</b>`:""}</span><span>${fmt(r.power)}</span><span>Lv.${r.level}</span><span>${fmt(r.kills)}</span></div>`}).join("");
  }catch(e){$("#leaderboard").innerHTML=`<p class="muted">${e.message}</p>`}
 }
 $("#adminPanelBtn").onclick=()=>location.href="/admin";
