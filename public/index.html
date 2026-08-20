@@ -10,7 +10,7 @@
 <header class="topbar">
   <div class="brand"><span>⚔️ OMI</span> IDLE FARM <em>COMPLETE</em></div>
   <div class="top-actions">
-    <span id="onlineUser">👤 Vendég</span>
+    <span class="build-version" id="buildVersionBadge">V15.2</span><span id="onlineUser">👤 Vendég</span>
     <button class="ghost" id="leaderboardBtn">🏆 Ranglista</button>
     <button class="ghost admin-only-btn" id="adminPanelBtn">⚙️ Adminpanel</button><button class="ghost" id="authBtn">Belépés</button>
     <span id="saveState">💾 Mentve</span>
@@ -51,98 +51,113 @@
 
 <!-- FARM -->
 
+
 <section class="page active" id="page-character">
-<div class="character-page-grid">
-<section class="card hero-character-card">
-  <div class="title-row">
-    <div><div class="eyebrow">SAJÁT HŐSÖD</div><h2 style="font-size:22px;margin:5px 0">🧙 Karakter</h2><small>A felszerelt tárgyak, aura és pet vizuálisan is megjelennek.</small></div>
-    <div class="character-power-badge"><small>ÖSSZERŐ</small><b id="v5CharPower">0</b><span id="v5CharRank">Kezdő</span></div>
+  <div class="v15-main-grid">
+    <aside class="v15-left card">
+      <div class="v15-section-title">👥 ADMIN GAME STUDIO</div>
+      <small>Játékosok kezelése és moderálása</small>
+      <div class="v15-search">🔎 Játékos keresése...</div>
+      <div class="v15-player-head"><span>#</span><span>Játékos</span><span>Szint</span><span>Erő</span><span>Státusz</span><span>Művelet</span></div>
+      <div id="v15PlayerPreview" class="v15-player-preview">
+        <div><span>1.</span><b>OmiAdmin</b><span>⭐</span><span id="v15AdminPower">0</span><em>ADMIN</em><span>—</span></div>
+        <div><span>2.</span><b>Játékos</b><span>1</span><span>0</span><em class="online-pill">Online</em><button onclick="location.href='/admin'">👁</button></div>
+      </div>
+      <button class="v15-refresh" onclick="location.href='/admin'">↻ Adminpanel megnyitása</button>
+      <div class="v15-warning">⚠️ <b>Figyelem!</b><br><small>A játékos törlése végleges. A fiók, karakter, felszerelés és minden adat törlődik az adatbázisból.</small></div>
+    </aside>
+
+    <section class="v15-character card">
+      <div class="v15-character-top">
+        <div><h2>⚔️ Saját karakter</h2><small>Felszereld a tárgyakat, aurákat és peteket, hogy egyre erősebb legyél!</small></div>
+        <div class="v15-power-box"><small>ÖSSZERŐ</small><b id="v15Power">0</b></div>
+      </div>
+
+      <div class="v15-character-stage">
+        <div class="v15-approved-art">
+          <div class="hero-equip-layer hero-equip-helmet" id="heroEquipHelmet">🪖</div>
+          <div class="hero-equip-layer hero-equip-armor" id="heroEquipArmor">🛡️</div>
+          <div class="hero-equip-layer hero-equip-weapon" id="heroEquipWeapon">⚔️</div>
+          <div class="hero-equip-layer hero-equip-gloves hero-equip-glove-left" id="heroEquipGloveL">🧤</div>
+          <div class="hero-equip-layer hero-equip-gloves hero-equip-glove-right" id="heroEquipGloveR">🧤</div>
+          <div class="hero-equip-layer hero-equip-boots hero-equip-boot-left" id="heroEquipBootL">🥾</div>
+          <div class="hero-equip-layer hero-equip-boots hero-equip-boot-right" id="heroEquipBootR">🥾</div>
+          <div class="hero-equip-layer hero-equip-ring" id="heroEquipRing">💍</div>
+          <div class="hero-equipped-label" id="heroEquippedLabel">Felszerelés megjelenítése a karakteren</div>
+        </div>
+
+        <div class="v15-gear v15-helmet" data-slot-card="helmet">
+          <img src="/assets/approved_helmet.jpg" alt="Sisak">
+          <small>Sisak</small>
+          <b id="v15Helmet">Üres</b>
+        </div>
+        <div class="v15-gear v15-armor" data-slot-card="armor">
+          <img src="/assets/approved_armor.jpg" alt="Páncél">
+          <small>Páncél</small>
+          <b id="v15Armor">Üres</b>
+        </div>
+        <div class="v15-gear v15-boots" data-slot-card="boots">
+          <img src="/assets/approved_boots.jpg" alt="Csizma">
+          <small>Csizma</small>
+          <b id="v15Boots">Üres</b>
+        </div>
+
+        <div class="v15-gear v15-weapon" data-slot-card="weapon">
+          <img src="/assets/approved_weapon.jpg" alt="Fegyver">
+          <small>Fegyver</small>
+          <b id="v15Weapon">Üres</b>
+        </div>
+        <div class="v15-gear v15-gloves" data-slot-card="gloves">
+          <img src="/assets/approved_gloves.jpg" alt="Kesztyű">
+          <small>Kesztyű</small>
+          <b id="v15Gloves">Üres</b>
+        </div>
+        <div class="v15-gear v15-ring" data-slot-card="ring">
+          <img src="/assets/approved_ring.jpg" alt="Gyűrű">
+          <small>Gyűrű</small>
+          <b id="v15Ring">Üres</b>
+        </div>
+
+        <div class="v15-bottom-stats">
+          <div><span>✨ Aura</span><b id="v15Aura">Nincs aura</b></div>
+          <div><span>🐾 Pet</span><b id="v15Pet">Nincs</b></div>
+          <div><span>🌀 Wave</span><b id="v15Wave">1</b></div>
+          <div><span>🔥 Paragon</span><b id="v15Paragon">0</b></div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="v15-right">
+      <section class="card v15-sidebox">
+        <h3>👑 Paragon / Prestige</h3>
+        <div class="v15-four">
+          <div><small>Prestige</small><b id="v15Prestige">0</b></div>
+          <div><small>Paragon</small><b id="v15ParagonTop">0</b></div>
+          <div><small>Statpont</small><b id="v15StatPoints">0</b></div>
+          <div><small>Aura token</small><b id="v15AuraTokens">0</b></div>
+        </div>
+        <div class="prestige-progress"><div id="prestigeProgress"></div></div>
+        <small id="prestigeText">200-as szinten prestigelhetsz.</small>
+        <button id="prestigeBtn" class="prestige-btn">👑 PRESTIGE</button>
+      </section>
+
+      <section class="card v15-sidebox">
+        <h3>⚔️ Paragon statpontok</h3>
+        <div id="paragonStats" class="paragon-stat-list"></div>
+      </section>
+
+      <section class="card v15-sidebox">
+        <h3>⭐ Prestige Aura Shop</h3>
+        <div id="auraShop" class="aura-shop"></div>
+      </section>
+    </aside>
   </div>
-  <div class="v5-character-scene">
-    <div class="v5-scene-bg" id="v5SceneBg"></div>
-    <div class="v5-aura" id="v5Aura"></div>
 
-    <div class="v5-slot v5-slot-head"><span>🪖</span><small>SISAK</small><b id="v5Helmet">Üres</b></div>
-    <div class="v5-slot v5-slot-weapon"><span>⚔️</span><small>FEGYVER</small><b id="v5Weapon">Üres</b></div>
-    <div class="v5-slot v5-slot-armor"><span>🛡️</span><small>PÁNCÉL</small><b id="v5Armor">Üres</b></div>
-    <div class="v5-slot v5-slot-gloves"><span>🧤</span><small>KESZTYŰ</small><b id="v5Gloves">Üres</b></div>
-    <div class="v5-slot v5-slot-boots"><span>🥾</span><small>CSIZMA</small><b id="v5Boots">Üres</b></div>
-    <div class="v5-slot v5-slot-ring"><span>💍</span><small>GYŰRŰ</small><b id="v5Ring">Üres</b></div>
-
-    
-<div class="v5-hero">
-  <div class="v5-hero-shadow"></div>
-
-  <svg class="hero-svg dark-warrior-svg" viewBox="0 0 300 470" aria-label="Sötét fantasy harcos">
-    <defs>
-      <linearGradient id="metalG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#59606d"/><stop offset=".32" stop-color="#1d2028"/><stop offset=".7" stop-color="#08090d"/><stop offset="1" stop-color="#29202d"/></linearGradient>
-      <linearGradient id="clothG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#381148"/><stop offset=".5" stop-color="#17091f"/><stop offset="1" stop-color="#050508"/></linearGradient>
-      <linearGradient id="goldG"><stop offset="0" stop-color="#ffe084"/><stop offset=".45" stop-color="#b98019"/><stop offset="1" stop-color="#5a3407"/></linearGradient>
-      <radialGradient id="voidG"><stop offset="0" stop-color="#9d38ff"/><stop offset=".35" stop-color="#42116d"/><stop offset="1" stop-color="#050208"/></radialGradient>
-      <filter id="heroShadow"><feDropShadow dx="0" dy="10" stdDeviation="8" flood-opacity=".9"/></filter>
-      <filter id="purpleGlow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-    </defs>
-    <g filter="url(#heroShadow)">
-      <!-- spectral aura -->
-      <path d="M57 355 Q18 278 59 199 Q35 122 108 92 Q148 45 194 91 Q270 128 239 207 Q281 286 226 370 Q174 422 82 389Z" fill="url(#voidG)" opacity=".24" filter="url(#purpleGlow)"/>
-      <!-- tattered cloak -->
-      <path id="svgCloak" d="M73 159 Q150 113 227 159 L253 342 L218 326 L201 376 L174 348 L149 394 L123 348 L91 377 L78 329 L46 346Z" fill="#0b0710" stroke="#48235d" stroke-width="5"/>
-      <!-- armored legs -->
-      <path d="M101 300 L145 300 L138 432 L84 432 L91 366Z" fill="url(#metalG)" stroke="#4b4055" stroke-width="5"/>
-      <path d="M155 300 L199 300 L216 432 L162 432 Z" fill="url(#metalG)" stroke="#4b4055" stroke-width="5"/>
-      <path id="svgBootL" d="M82 410 L141 410 L143 454 L67 454 Q67 429 82 410Z" fill="#101218" stroke="#7040a0" stroke-width="5"/>
-      <path id="svgBootR" d="M159 410 L218 410 Q235 431 232 454 L157 454Z" fill="#101218" stroke="#7040a0" stroke-width="5"/>
-      <!-- torso -->
-      <path id="svgArmor" d="M91 151 L119 128 L150 142 L181 128 L209 151 L220 286 Q150 321 80 286Z" fill="url(#metalG)" stroke="#786187" stroke-width="5"/>
-      <path d="M112 163 L150 150 L188 163 L180 267 L150 287 L120 267Z" fill="url(#clothG)" stroke="#522a63" stroke-width="3"/>
-      <path d="M150 158 L168 205 L150 249 L132 205Z" fill="#7c27ba" opacity=".7" filter="url(#purpleGlow)"/>
-      <!-- spiked shoulders -->
-      <path id="svgShoulderL" d="M91 149 L54 142 L27 178 L67 175 L42 201 L101 190Z" fill="url(#metalG)" stroke="#73558b" stroke-width="5"/>
-      <path id="svgShoulderR" d="M209 149 L246 142 L273 178 L233 175 L258 201 L199 190Z" fill="url(#metalG)" stroke="#73558b" stroke-width="5"/>
-      <!-- armored arms -->
-      <path d="M64 181 L98 188 L87 275 L53 268Z" fill="url(#metalG)" stroke="#55445f" stroke-width="4"/>
-      <path d="M236 181 L202 188 L213 275 L247 268Z" fill="url(#metalG)" stroke="#55445f" stroke-width="4"/>
-      <path id="svgGloveL" d="M48 259 L86 259 L82 298 L47 291Z" fill="#17111d" stroke="#8d49ba" stroke-width="5"/>
-      <path id="svgGloveR" d="M214 259 L252 259 L253 291 L218 298Z" fill="#17111d" stroke="#8d49ba" stroke-width="5"/>
-      <!-- hood + helmet, no childish face -->
-      <path d="M103 115 Q91 53 119 22 L150 4 L181 22 Q209 53 197 115 L177 143 L123 143Z" fill="#090a0f" stroke="#493557" stroke-width="5"/>
-      <path id="svgHelmet" d="M111 100 L105 55 L129 22 L150 9 L171 22 L195 55 L189 100 L170 128 L130 128Z" fill="url(#metalG)" stroke="#7b6689" stroke-width="5" opacity="1"/>
-      <path d="M122 65 L145 78 L132 88 L114 82Z" fill="#ff9d2e" filter="url(#purpleGlow)"/>
-      <path d="M178 65 L155 78 L168 88 L186 82Z" fill="#ff9d2e" filter="url(#purpleGlow)"/>
-      <path d="M145 78 L150 119 L155 78 L168 88 L160 111 L150 127 L140 111 L132 88Z" fill="#08090d" stroke="#5c4b67" stroke-width="3"/>
-      <path d="M104 55 L84 34 L111 39 M196 55 L216 34 L189 39" fill="none" stroke="url(#goldG)" stroke-width="7"/>
-      <!-- belt/skull -->
-      <path d="M83 281 L217 281 L208 313 L92 313Z" fill="#17131a" stroke="#775722" stroke-width="4"/>
-      <circle cx="150" cy="297" r="18" fill="url(#goldG)"/><path d="M141 294 L147 289 L150 296 L153 289 L159 294 L156 303 L144 303Z" fill="#171016"/>
-      <!-- giant cursed blade -->
-      <g id="svgWeapon" transform="translate(220 151) rotate(-15)">
-        <path d="M13 -8 L39 39 L27 174 L15 210 L3 174 L-9 39Z" fill="#211028" stroke="#d28cff" stroke-width="4" filter="url(#purpleGlow)"/>
-        <path d="M15 4 L24 45 L15 162 L6 45Z" fill="#9a34e8"/>
-        <rect x="-15" y="184" width="60" height="13" rx="4" fill="url(#goldG)"/>
-        <rect x="9" y="196" width="13" height="65" rx="5" fill="#241414" stroke="#8d6421" stroke-width="3"/>
-      </g>
-      <circle id="svgRingGlow" cx="238" cy="276" r="15" fill="none" stroke="#b745ff" stroke-width="6" opacity=".8" filter="url(#purpleGlow)"/>
-    </g>
-  </svg>
-
-  <div class="v5-pet" id="v5Pet">🐾</div>
-</div>
-
-    <div class="v5-character-footer">
-      <div><small>AURA</small><b id="v5AuraName">Nincs</b></div>
-      <div><small>PET</small><b id="v5PetName">Nincs</b></div>
-      <div><small>WAVE</small><b id="v5WaveLabel">1</b></div>
-      <div><small>PARAGON</small><b id="v5ParagonLabel">0</b></div>
-    </div>
-  </div>
-  <button id="equipBestBtn" class="equip-best-btn">✨ EQUIP BEST – Legjobb felszerelés automatikusan</button>
-
-  <div class="character-attributes">
+  <div class="character-attributes v15-attributes">
     <div class="char-attr"><span>💪 Erő</span><b id="charStatPower">0</b></div>
     <div class="char-attr"><span>⚔️ Sebzés</span><b id="charStatDamage">0</b></div>
     <div class="char-attr"><span>❤️ Életerő</span><b id="charStatHP">0 / 0</b></div>
     <div class="char-attr"><span>🛡️ Védelem</span><b id="charStatDefense">0</b></div>
-    <div class="char-attr"><span>💀 Halál</span><b id="charStatDeaths">0</b></div>
     <div class="char-attr"><span>🍀 Szerencse</span><b id="charStatLuck">0</b></div>
     <div class="char-attr"><span>🎯 Krit esély</span><b id="charStatCrit">0%</b></div>
     <div class="char-attr"><span>🎁 Drop bónusz</span><b id="charStatDrop">0%</b></div>
@@ -153,34 +168,8 @@
     <div class="char-attr"><span>✨ Aura token</span><b id="charStatAuraTokens">0</b></div>
     <div class="char-attr"><span>🌊 Wave</span><b id="charStatWave">1</b></div>
     <div class="char-attr"><span>☠️ Összes kill</span><b id="charStatKills">0</b></div>
+    <div class="char-attr"><span>💀 Halál</span><b id="charStatDeaths">0</b></div>
   </div>
-</section>
-
-<aside class="stack">
-<section class="card">
-  <h2>🌟 Paragon / Prestige</h2>
-  <div class="prestige-summary">
-    <div><small>Prestige</small><b id="prestigeLevel">0</b></div>
-    <div><small>Paragon</small><b id="paragonLevel">0</b></div>
-    <div><small>Statpont</small><b id="paragonPoints">0</b></div>
-    <div><small>Aura token</small><b id="auraTokens">0</b></div>
-  </div>
-  <div class="prestige-progress"><div id="prestigeProgress"></div></div>
-  <small id="prestigeText">200-as szinten prestigelhetsz.</small>
-  <button id="prestigeBtn" class="prestige-btn" disabled>🌟 PRESTIGE</button>
-</section>
-
-<section class="card">
-  <h2>📌 Paragon statpontok</h2>
-  <div id="paragonStats" class="paragon-stat-list"></div>
-</section>
-
-<section class="card">
-  <h2>✨ Prestige Aura Shop</h2>
-  <div id="auraShop" class="aura-shop"></div>
-</section>
-</aside>
-</div>
 </section>
 
 <section class="page" id="page-farm">
