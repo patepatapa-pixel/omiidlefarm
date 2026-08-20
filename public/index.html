@@ -10,7 +10,7 @@
 <header class="topbar">
   <div class="brand"><span>⚔️ OMI</span> IDLE FARM <em>COMPLETE</em></div>
   <div class="top-actions">
-    <span class="build-version" id="buildVersionBadge">V18.9</span><span id="onlineUser">👤 Vendég</span>
+    <span class="build-version" id="buildVersionBadge">V19.1</span><span id="onlineUser">👤 Vendég</span>
     <button class="ghost" id="leaderboardBtn">🏆 Ranglista</button>
     <button class="ghost admin-only-btn" id="adminPanelBtn" style="display:none">⚙️ Adminpanel</button><button class="ghost" id="authBtn">Belépés</button>
     <span id="saveState">💾 Mentve</span>
@@ -25,7 +25,8 @@
   <button class="tab" data-tab="upgrade">🔨 Fejlesztés</button>
   <button class="tab" data-tab="skills">✨ Képességek</button>
   <button class="tab" data-tab="pets">🐾 Petek</button>
-  <button class="tab" data-tab="aurashop">✨ Aura Shop</button>
+  <button class="tab" data-tab="paragon">👑 Paragon / Prestige</button>
+<button class="tab" data-tab="aurashop">✨ Aura Shop</button>
   <button class="tab" data-tab="dungeon">🏰 Dungeon</button>
   <button class="tab" data-tab="quests">📜 Küldetések</button>
   <button class="tab" data-tab="pvp">⚔️ PvP</button><button class="tab" data-tab="shop">💳 Shop / Discord</button><button class="tab" data-tab="stats">📊 Statisztika</button>
@@ -41,6 +42,35 @@
 
 
 <!-- PRESTIGE AURA SHOP -->
+
+<section class="page" id="page-paragon">
+ <div class="paragon-page-v19">
+  <section class="card paragon-header-v19">
+   <small>👑 KARAKTER FEJLŐDÉS</small>
+   <h2>Paragon / Prestige</h2>
+   <p>Itt találod a Paragon, Prestige és Paragon statpont fejlesztéseket.</p>
+  </section>
+  <div class="paragon-grid-v19">
+   <section class="card v15-sidebox character-only-panel character-paragon-panel">
+        <h3>👑 Paragon / Prestige</h3>
+        <div class="v15-four">
+          <div><small>Prestige</small><b id="v15Prestige">0</b></div>
+          <div><small>Paragon</small><b id="v15ParagonTop">0</b></div>
+          <div><small>Statpont</small><b id="v15StatPoints">0</b></div>
+          <div><small>Aura token</small><b id="v15AuraTokens">0</b></div>
+        </div>
+        <div class="prestige-progress"><div id="prestigeProgress"></div></div>
+        <small id="prestigeText">200-as szinten prestigelhetsz.</small>
+        <button id="prestigeBtn" class="prestige-btn">👑 PRESTIGE</button>
+      </section>
+   <section class="card v15-sidebox character-only-panel character-paragon-stats-panel">
+        <h3>⚔️ Paragon statpontok</h3>
+        <div id="paragonStats" class="paragon-stat-list"></div>
+      </section>
+  </div>
+ </div>
+</section>
+
 <section class="page" id="page-aurashop">
   <div class="aura-page-shell">
     <section class="card aura-page-hero">
@@ -309,23 +339,9 @@
           <div><small>🌊 Wave</small><b id="v17Wave">1</b></div>
         </div>
       </section>
-      <section class="card v15-sidebox character-only-panel character-paragon-panel">
-        <h3>👑 Paragon / Prestige</h3>
-        <div class="v15-four">
-          <div><small>Prestige</small><b id="v15Prestige">0</b></div>
-          <div><small>Paragon</small><b id="v15ParagonTop">0</b></div>
-          <div><small>Statpont</small><b id="v15StatPoints">0</b></div>
-          <div><small>Aura token</small><b id="v15AuraTokens">0</b></div>
-        </div>
-        <div class="prestige-progress"><div id="prestigeProgress"></div></div>
-        <small id="prestigeText">200-as szinten prestigelhetsz.</small>
-        <button id="prestigeBtn" class="prestige-btn">👑 PRESTIGE</button>
-      </section>
+      
 
-      <section class="card v15-sidebox character-only-panel character-paragon-stats-panel">
-        <h3>⚔️ Paragon statpontok</h3>
-        <div id="paragonStats" class="paragon-stat-list"></div>
-      </section>
+      
 </aside>
   </div>
 

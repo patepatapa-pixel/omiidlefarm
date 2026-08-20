@@ -207,3 +207,12 @@ V18.9
 - Dinamikus karakter/felszerelés rendszer visszaállítva.
 - Karakter státusz, Paragon/Prestige és Paragon statpontok visszaállítva.
 - A tárgyak rarity és +szintje továbbra is a tényleges equipped itemekből jön.
+
+V19.0: Paragon / Prestige és Paragon statpontok új külön felső fülre kerültek.
+
+V19.1
+- Karakter fül láthatósági hiba javítva.
+- Egységes oldalváltás data-tab / data-page esetén is.
+- Belépés után mindig a Karakter oldal aktiválódik.
+- Régi CSS rejtések többé nem tudják elrejteni a karaktert.
+- Dinamikus felszerelés és karakter státusz újrarenderelődik a Karakter fül megnyitásakor.

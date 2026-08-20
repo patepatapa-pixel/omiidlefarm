@@ -2109,3 +2109,74 @@ nav.tabs{
   .character-main-v189 .v15-character-stage{height:560px!important;min-height:560px!important}
   .character-attributes{grid-template-columns:1fr 1fr!important}
 }
+
+/* V19 separate Paragon / Prestige tab */
+#page-paragon{display:none!important}
+#page-paragon.active{display:block!important}
+.paragon-page-v19{width:min(1180px,calc(100vw - 28px));margin:0 auto;display:grid;gap:12px}
+.paragon-header-v19{border-color:#8e6828!important}
+.paragon-header-v19 h2{margin:4px 0;color:#f2c24f}
+.paragon-header-v19 p{margin:5px 0 0;color:#929da8}
+.paragon-grid-v19{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+#page-paragon .character-paragon-panel,#page-paragon .character-paragon-stats-panel{display:block!important}
+@media(max-width:850px){.paragon-grid-v19{grid-template-columns:1fr}}
+
+/* ================= V19.1 CHARACTER VISIBILITY FIX =================
+   One source of truth for page visibility.
+*/
+#gameShell .page{
+  display:none!important;
+}
+#gameShell .page.active{
+  display:block!important;
+}
+
+/* Character page must render normally when active */
+#gameShell #page-character.active{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  position:relative!important;
+  width:100%!important;
+  min-height:500px!important;
+  overflow:visible!important;
+}
+
+/* Restore all character containers that older cleanup CSS may have hidden */
+#page-character.active .character-page-shell-v189{
+  display:grid!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+#page-character.active .character-layout-v189{
+  display:grid!important;
+}
+#page-character.active .character-main-v189,
+#page-character.active .character-side-v189,
+#page-character.active .v15-character-stage,
+#page-character.active .v168-character-system,
+#page-character.active .v168-avatar,
+#page-character.active .v168-slots{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+#page-character.active .character-side-v189{
+  display:grid!important;
+}
+
+/* Character status remains character-only */
+#page-character.active .v182-character-status,
+#page-character.active .v17-quick-stats{
+  display:block!important;
+}
+#page-character:not(.active) .v182-character-status,
+#page-character:not(.active) .v17-quick-stats{
+  display:none!important;
+}
+
+/* Do not let old "character-only-panel" rules hide the whole character page.
+   Only the status/attribute panels use that behavior. */
+#page-character.active .character-attributes.character-only-panel{
+  display:grid!important;
+}

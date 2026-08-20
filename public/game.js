@@ -856,7 +856,9 @@ function openCharacterAfterLoginV18(){
   if(tab)tab.click();
   const page=$("#page-character");
   if(page)page.scrollIntoView({behavior:"instant",block:"start"});
+  if(window.v191ActivatePage) window.v191ActivatePage("character");
 }
+
 
 function setAuthenticatedUI(user){
  const logged=!!user;
@@ -1566,4 +1568,55 @@ document.addEventListener("click",e=>{
  if(!btn)return;
  setTimeout(()=>v183CharacterStatusVisibility(btn.dataset.tab),0);
 });
+
+
+
+/* V19.1 robust tab/page switch */
+(function v191PageSwitchFix(){
+  function activatePage(name){
+    if(!name)return;
+    const page=document.getElementById("page-"+name);
+    if(!page)return;
+
+    document.querySelectorAll("#gameShell .page").forEach(p=>p.classList.remove("active"));
+    page.classList.add("active");
+
+    document.querySelectorAll("[data-tab],[data-page]").forEach(b=>{
+      const n=b.dataset.tab||b.dataset.page||"";
+      b.classList.toggle("active",n===name);
+    });
+
+    if(name==="character"){
+      if(typeof renderDynamicEquipment==="function")renderDynamicEquipment();
+      if(typeof renderV17QuickStats==="function")renderV17QuickStats();
+      if(typeof renderCharacterAttributes==="function")renderCharacterAttributes();
+    }
+    if(name==="paragon" && typeof renderParagon==="function")renderParagon();
+  }
+
+  document.addEventListener("click",function(e){
+    const b=e.target.closest?.("[data-tab],[data-page]");
+    if(!b)return;
+    const name=b.dataset.tab||b.dataset.page;
+    if(!name)return;
+    setTimeout(()=>activatePage(name),0);
+  },true);
+
+  window.v191ActivatePage=activatePage;
+})();
+
+
+
+function v191CharacterFallbackCheck(){
+ const page=$("#page-character");
+ if(!page||!page.classList.contains("active"))return;
+ const stage=page.querySelector(".v168-character-system");
+ if(!stage)return;
+ stage.style.display="block";
+ const root=$("#dynamicEquipSlots");
+ if(root && !root.innerHTML.trim() && typeof renderDynamicEquipment==="function"){
+   renderDynamicEquipment();
+ }
+}
+setInterval(v191CharacterFallbackCheck,1000);
 
