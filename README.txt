@@ -82,3 +82,21 @@ V7 KARAKTER ADOTTSÁGOK:
 - A Karakter fülön külön stat panel mutatja:
   Erő, Sebzés, Szerencse, Krit esély, Drop bónusz,
   Szint, Paragon, Prestige, Paragon pont, Aura token, Wave, Összes kill.
+
+V9 ADMIN LINK FIX
+- Admin belépés után a játék felső sávjában megjelenik a ⚙️ Adminpanel gomb.
+- A gomb közvetlenül a /admin oldalra visz.
+- Normál játékosok nem látják az admin gombot.
+- Közvetlen admin cím továbbra is: /admin
+
+V10 TELJES HARC / ADMIN FIX:
+- Adminpanel HTML betöltési sorrend javítva: az Admin Game Studio most ténylegesen megjelenik és működik.
+- Admin gomb mindig látható a felső sávban; a /admin oldal továbbra is jogosultsággal védett.
+- Játékos saját HP-val és védelemmel rendelkezik.
+- Mobok és bossok automatikusan visszatámadnak.
+- Halál után a farm megáll a beállított respawn ideig.
+- Játékos HP regeneráció állítható.
+- Boss HP regeneráció %-osan adminból állítható.
+- Normál mob HP regen külön állítható.
+- Játékos/mob támadási idő, boss sebzés, mob sebzés, respawn, boss reward, wave kill és boss HP growth adminból állítható.
+- Wave boss továbbra is blokkolja a továbbhaladást, amíg él.
