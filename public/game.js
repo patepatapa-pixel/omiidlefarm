@@ -455,8 +455,8 @@ function buyOrEquipAura(id){
  }
  save.activeAura=id;persist();renderAll();toast("✨ Aura aktiválva: "+a.name);
 }
-$("#equipBestBtn").onclick=equipBest;
-$("#prestigeBtn").onclick=doPrestige;
+$("#equipBestBtn")?.addEventListener("click",equipBest);
+$("#prestigeBtn")?.addEventListener("click",doPrestige);
 
 
 
@@ -581,6 +581,19 @@ function openAuth(mode="login"){
  $("#authMsg").textContent="";
 }
 function closeAuth(){$("#authModal").classList.remove("open")}
+
+document.addEventListener("click",function(e){
+  const btn=e.target.closest?.("#authBtn");
+  if(!btn)return;
+  e.preventDefault();
+  e.stopPropagation();
+  if(currentUser){
+    logout();
+  }else{
+    openAuth("login");
+  }
+},true);
+
 async function loadMe(){
  try{
    const d=await api("/api/me");
@@ -1027,3 +1040,23 @@ document.addEventListener("click",e=>{
  const t=e.target.closest('[data-tab="pvp"]');if(t)setTimeout(loadPvp,50);
  const s=e.target.closest('[data-tab="shop"]');if(s)setTimeout(renderStore,50);
 });
+
+
+// V15.3 - login/register click safety
+function bindAuthButtonsV153(){
+ const login=$("#loginBtn"), reg=$("#registerBtn");
+ if(login){
+   login.style.pointerEvents="auto";
+   login.style.cursor="pointer";
+ }
+ if(reg){
+   reg.style.pointerEvents="auto";
+   reg.style.cursor="pointer";
+ }
+ const overlay=$("#authOverlay")||$(".auth-overlay")||$(".login-overlay");
+ if(overlay)overlay.style.pointerEvents="auto";
+}
+if(document.readyState==="loading"){
+ document.addEventListener("DOMContentLoaded",bindAuthButtonsV153);
+}else bindAuthButtonsV153();
+setTimeout(bindAuthButtonsV153,250);

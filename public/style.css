@@ -514,3 +514,57 @@ button.primary:hover,.gold-btn:hover,#prestigeBtn:hover{filter:brightness(1.08);
  .hero-equip-gloves{font-size:31px}
  .hero-equip-boots{font-size:34px}
 }
+
+/* V15.3 LOGIN CLICK FIX
+   Character/equipment visual layers must never intercept login controls. */
+#authOverlay,.auth-overlay,.login-overlay{
+ z-index:999999!important;
+ pointer-events:auto!important;
+}
+#authOverlay *, .auth-overlay *, .login-overlay *{
+ pointer-events:auto!important;
+}
+.auth-card,.login-card,#authCard{
+ position:relative!important;
+ z-index:1000000!important;
+ pointer-events:auto!important;
+}
+.auth-card input,.auth-card button,.login-card input,.login-card button,
+#authCard input,#authCard button,#loginBtn,#registerBtn{
+ position:relative!important;
+ z-index:1000001!important;
+ pointer-events:auto!important;
+ cursor:pointer!important;
+}
+.v15-approved-art,.v15-approved-art:after,
+.hero-equip-layer,.hero-equipped-label,
+.dark-stage-sigil,.dark-stage-smoke,.dark-stage-embers{
+ pointer-events:none!important;
+}
+body.auth-open .topbar,body.auth-open .nav,body.auth-open main{
+ pointer-events:none!important;
+}
+
+/* V15.4 - definitive login click fix */
+.topbar,.top-actions{
+ position:relative!important;
+ z-index:2000000!important;
+ pointer-events:auto!important;
+}
+.top-actions>*{
+ position:relative!important;
+ z-index:2000001!important;
+ pointer-events:auto!important;
+}
+#authBtn{
+ cursor:pointer!important;
+ pointer-events:auto!important;
+ z-index:2000002!important;
+}
+#authModal{
+ z-index:3000000!important;
+ pointer-events:auto!important;
+}
+#authModal.open{
+ display:flex!important;
+}
