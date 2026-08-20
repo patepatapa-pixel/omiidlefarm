@@ -133,3 +133,12 @@ V15 EXACT SCREEN LAYOUT
 - Jobb oldalon Prestige / Paragon / Aura Shop.
 - A tárgyak valós +0 ... +15 szintje automatikusan megjelenik.
 - A tárgykártyák ritkaság szerinti keretet/glow-t kapnak.
+
+V15.5 WAVE / BOSS / PARAGON
+- Minden 10. wave után automatikusan Boss jön.
+- Ha a Boss megöli a játékost, az aktuális wave újraindul.
+- Paragon 1 követelmény: Wave 500.
+- Paragon 2 követelmény: Wave 510.
+- Paragon 3 követelmény: Wave 520.
+- Minden további Paragon +10 wave követelményt ad.
+- Paragon szintlépés nem nullázza a wave-et.

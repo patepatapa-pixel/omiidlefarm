@@ -394,7 +394,8 @@ function renderWave(){
  pairs.forEach(([id,val])=>{const el=$("#"+id);if(el)el.textContent=val});
 }
 function renderParagon(){
- const eligible=save.level>=200;
+ const req=paragonWaveRequirement();
+ const eligible=save.wave>=req;
  const setText=(id,val)=>{const e=$("#"+id);if(e)e.textContent=val};
 
  setText("prestigeLevel",save.prestigeLevel);
@@ -408,13 +409,18 @@ function renderParagon(){
  setText("v15AuraTokens",save.auraTokens);
 
  const prog=$("#prestigeProgress");
- if(prog)prog.style.width=Math.min(100,save.level/200*100)+"%";
+ if(prog)prog.style.width=Math.min(100,(save.wave/req)*100)+"%";
+
  const text=$("#prestigeText");
  if(text)text.textContent=eligible
-   ?`Prestige elérhető! Lv.${save.level} → +1 Prestige, +1 Paragon, +5 statpont, +1 aura token.`
-   :`Még ${Math.max(0,200-save.level)} szint kell a következő Prestige-hez.`;
+   ?`Paragon szintlépés elérhető! Wave ${save.wave} / ${req}.`
+   :`Még ${Math.max(0,req-save.wave)} wave kell a következő Paragon szinthez. Követelmény: Wave ${req}.`;
+
  const btn=$("#prestigeBtn");
- if(btn)btn.disabled=!eligible;
+ if(btn){
+   btn.disabled=!eligible;
+   btn.textContent=eligible?`🌟 PARAGON SZINTLÉPÉS`:`🌟 PARAGON · WAVE ${req}`;
+ }
 
  const stats=[
   ["damage","⚔️ Sebzés","+2% / pont"],
@@ -438,13 +444,18 @@ function renderParagon(){
  }
 }
 function doPrestige(){
- if(save.level<200)return;
- if(!confirm("Prestige után a normál szinted, XP-d és alap fejlesztéseid újraindulnak. Inventory, felszerelés, petek, paragon és prestige megmarad. Folytatod?"))return;
- save.prestigeLevel++;save.paragonLevel++;save.paragonPoints+=5;save.auraTokens++;
- save.level=1;save.xp=0;save.zone=0;save.wave=1;save.waveKills=0;save.waveGoal=10;save.waveBoss=false;
- save.base={weaponTraining:1,armorTraining:1,mining:1,luck:1};
- enemyHp=ZONES[0].hp;
- persist();renderAll();toast("🌟 PRESTIGE! +1 Paragon · +5 statpont · +1 aura token");
+ const req=paragonWaveRequirement();
+ if(save.wave<req)return toast(`🔒 Következő Paragon követelmény: Wave ${req}.`);
+
+ if(!confirm(`Paragon szintlépés?\n\nJelenlegi Paragon: ${save.paragonLevel}\nÚj Paragon: ${save.paragonLevel+1}\nKövetkező követelmény: Wave ${req+10}\n\nA wave-ed NEM nullázódik.`))return;
+
+ save.paragonLevel++;
+ save.paragonPoints+=5;
+ save.auraTokens++;
+
+ persist();
+ renderAll();
+ toast(`🌟 Paragon ${save.paragonLevel}! +5 statpont · +1 aura token`);
 }
 function buyOrEquipAura(id){
  const a=AURAS.find(x=>x.id===id);if(!a)return;
@@ -694,6 +705,23 @@ setInterval(()=>{save.stats.playSeconds++;if(save.stats.playSeconds%5===0)persis
 window.OMI_CONTENT={bosses:[],items:[],pets:[],auras:[],zones:[]};fetch("/api/content-config").then(r=>r.json()).then(d=>window.OMI_CONTENT={...window.OMI_CONTENT,...(d.config||{})}).catch(()=>{});
 
 
+
+// ================= V15.5 WAVE / BOSS / PARAGON RULES =================
+function paragonWaveRequirement(){
+  // Paragon 1 = wave 500, Paragon 2 = 510, Paragon 3 = 520...
+  return 500 + Math.max(0,Number(save.paragonLevel||0))*10;
+}
+function isBossCheckpointWave(wave){
+  return Number(wave||1)%10===0;
+}
+function restartCurrentBossWave(){
+  save.waveBoss=false;
+  save.bossHp=0;
+  save.waveKills=0;
+  // A játékos ugyanazon a wave-en marad és újra teljesíti.
+  enemyHp=ZONES[save.zone].hp;
+}
+
 // ================= V10 FULL COMBAT =================
 const V10_DEFAULTS={
  basePlayerHp:180,hpPerLevel:12,defenseEffectPct:1.15,
@@ -745,15 +773,27 @@ function v10AwardNormalKill(){
  if(Math.random()<.006)save.tickets++;
  if(Math.random()<z.drop+dropBonus())addItem(createItem());
  while(save.xp>=needXp()){save.xp-=needXp();save.level++;save.skillPoints++;toast(`⭐ Szintlépés! Lv.${save.level}`)}
+
  save.waveKills++;
  if(save.waveKills>=save.waveGoal){
-   save.waveBoss=true;
-   save.bossHp=v10BossMaxHp();
-   enemyHp=save.bossHp;
-   $("#combatLog").textContent=`👹 Wave ${save.wave} BOSS érkezett! Addig nem haladsz tovább, amíg le nem győzöd.`;
+   // A normál wave teljesítve.
+   if(isBossCheckpointWave(save.wave)){
+     // Minden 10. wave után automatikusan boss jön.
+     save.waveBoss=true;
+     save.bossHp=v10BossMaxHp();
+     enemyHp=save.bossHp;
+     $("#combatLog").textContent=`👹 Wave ${save.wave} BOSS érkezett! Ha legyőz, ezt a wave-et újra kell kezdened.`;
+   }else{
+     const old=save.wave;
+     save.wave++;
+     save.waveKills=0;
+     save.waveGoal=Math.max(1,Number(V10CFG.waveKills||10));
+     enemyHp=z.hp;
+     $("#combatLog").textContent=`✅ Wave ${old} teljesítve! Következő: Wave ${save.wave}.`;
+   }
  }else{
    enemyHp=z.hp;
-   $("#combatLog").textContent=`${z.enemy} legyőzve · +${fmt(g)} arany · ${save.waveKills}/${save.waveGoal} kill`;
+   $("#combatLog").textContent=`${z.enemy} legyőzve · +${fmt(g)} arany · Wave ${save.wave}: ${save.waveKills}/${save.waveGoal}`;
  }
 }
 function v10AwardBossKill(){
@@ -761,12 +801,17 @@ function v10AwardBossKill(){
  const reward=Math.floor(z.gold*(20+save.wave)*goldBonus()*V10CFG.bossRewardMult);
  save.gold+=reward;save.stats.goldEarned+=reward;save.gems++;save.soul++;save.stats.bosses++;
  if(Math.random()<.80)addItem(createItem());
+
  const oldWave=save.wave;
- save.waveBoss=false;save.wave++;save.waveKills=0;
- save.waveGoal=Math.max(1,Math.floor(V10CFG.waveKills+Math.floor(save.wave/5)*2));
- save.bossHp=0;enemyHp=z.hp;
+ save.waveBoss=false;
+ save.bossHp=0;
+ save.wave++;
+ save.waveKills=0;
+ save.waveGoal=Math.max(1,Number(V10CFG.waveKills||10));
+ enemyHp=z.hp;
+
  $("#combatLog").textContent=`🏆 Wave ${oldWave} Boss legyőzve! +${fmt(reward)} arany. Wave ${save.wave} indul.`;
- toast(`🏆 Wave ${oldWave} teljesítve!`);
+ toast(`🏆 Wave ${oldWave} Boss legyőzve!`);
 }
 function v10PlayerAttack(){
  if(!v10IsAlive())return;
@@ -786,9 +831,16 @@ function v10EnemyAttack(){
  v10EnsurePlayerHp();
  save.playerHp=Math.max(0,save.playerHp-v10EnemyHit());
  if(save.playerHp<=0){
+   const diedToBoss=Boolean(save.waveBoss);
    save.deaths++;
    save.respawnUntil=Date.now()+Math.max(1,V10CFG.respawnSec)*1000;
-   $("#combatLog").textContent=`💀 Meghaltál! Újraéledés ${V10CFG.respawnSec} másodperc múlva. A wave megáll.`;
+
+   if(diedToBoss){
+     restartCurrentBossWave();
+     $("#combatLog").textContent=`💀 A Boss legyőzött! Wave ${save.wave} újraindul a respawn után.`;
+   }else{
+     $("#combatLog").textContent=`💀 Meghaltál! Újraéledés ${V10CFG.respawnSec} másodperc múlva. A wave ugyanott folytatódik.`;
+   }
    persist();
  }
  v10Render();
@@ -932,9 +984,18 @@ v10AwardBossKill=function(){
  save.xp+=Number(b.xp||0);save.gems+=Number(b.gems||0);save.soul+=Number(b.soul||0);save.stats.bosses++;
  while(save.xp>=needXp()){save.xp-=needXp();save.level++;save.skillPoints++}
  if(Math.random()<(Number(b.dropChance||80)/100))addItem(createItem());
- const old=save.wave;save.waveBoss=false;save.wave++;save.waveKills=0;save.waveGoal=Math.max(1,Math.floor(V10CFG.waveKills+Math.floor(save.wave/5)*2));save.bossHp=0;enemyHp=ZONES[save.zone].hp;
+
+ const oldWave=save.wave;
+ save.waveBoss=false;
+ save.bossHp=0;
+ save.wave++;
+ save.waveKills=0;
+ save.waveGoal=Math.max(1,Number(V10CFG.waveKills||10));
+ enemyHp=ZONES[save.zone].hp;
+
  $("#combatLog").textContent=`🏆 ${b.name||"Boss"} legyőzve! +${fmt(reward)} arany · +${fmt(Number(b.xp||0))} XP · Wave ${save.wave}`;
- toast(`🏆 ${b.name||"Boss"} legyőzve!`);persist();
+ toast(`🏆 ${b.name||"Boss"} legyőzve!`);
+ persist();
 };
 const v11BaseRegen=v10Regen;
 v10Regen=function(){
