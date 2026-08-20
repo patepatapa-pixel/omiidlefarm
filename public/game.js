@@ -791,25 +791,6 @@ function renderAuraPageV174(){
  set("auraPageParagon",save.paragonLevel||0);
 }
 
-
-function v183SyncCharacterStatus(){
- const charPage=$("#page-character");
- v183CharacterStatusVisibility(charPage&&charPage.classList.contains("active")?"character":"");
-}
-
-
-function v184SyncCharacterOnlyPanels(tabName){
-  const show = tabName === "character";
-  document.querySelectorAll(".character-only-panel").forEach(el=>{
-    el.style.setProperty("display", show ? (el.classList.contains("character-attributes") ? "grid" : "block") : "none", "important");
-  });
-}
-document.addEventListener("click",e=>{
-  const b=e.target.closest?.("[data-tab]");
-  if(!b)return;
-  setTimeout(()=>v184SyncCharacterOnlyPanels(b.dataset.tab),0);
-});
-
 function renderAll(){
  renderCore();
  renderV15ExactCharacter();
@@ -827,7 +808,7 @@ function renderAll(){
  renderQuests();
  renderStats();
  renderCharacterAttributes();
-;renderHpRegenAndOptions();renderCombatSpeed();renderDynamicEquipment();renderV17QuickStats();renderAuraPageV171();renderAuraPageV174();v183SyncCharacterStatus();v184SyncCharacterOnlyPanels($("#page-character")?.classList.contains("active")?"character":"");}
+;renderHpRegenAndOptions();renderCombatSpeed();renderDynamicEquipment();renderV17QuickStats();renderAuraPageV171();renderAuraPageV174();}
 $("#bossBtn").onclick=()=>toast("👹 A boss automatikusan jön minden wave végén.");
 $("#petSummon").onclick=summonPet;
 $("#sellNormal").onclick=()=>{let equipped=new Set(Object.values(save.equipped));let sold=0;save.inventory=save.inventory.filter(it=>{if(it.rarity==="normal"&&!equipped.has(it.id)){save.gold+=sellValue(it);sold++;return false}return true});persist();renderAll();toast(`${sold} normál tárgy eladva`)};
@@ -843,13 +824,6 @@ $("#importFile").onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new Fil
 let currentUser=null,authMode="login",cloudReady=false,savingCloud=false;
 
 
-
-
-function v183CharacterStatusVisibility(tabName){
- const status=document.querySelector(".v182-character-status");
- if(!status)return;
- status.style.setProperty("display",tabName==="character"?"block":"none","important");
-}
 
 function openCharacterAfterLoginV18(){
   const tab=document.querySelector('[data-tab="character"]');
@@ -1559,11 +1533,3 @@ if(document.readyState==="loading"){
  document.addEventListener("DOMContentLoaded",bindAuthButtonsV153);
 }else bindAuthButtonsV153();
 setTimeout(bindAuthButtonsV153,250);
-
-
-document.addEventListener("click",e=>{
- const btn=e.target.closest("[data-tab]");
- if(!btn)return;
- setTimeout(()=>v183CharacterStatusVisibility(btn.dataset.tab),0);
-});
-
