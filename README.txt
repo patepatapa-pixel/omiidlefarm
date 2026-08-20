@@ -358,3 +358,11 @@ V21.9
 - Az első kazamata továbbra is biztonságos, nem tud megölni.
 - A második kazamatától a korábbi esélyalapú siker/bukás rendszer marad.
 - Bukás után teljes HP-val folytatod.
+
+V22.0
+- Dungeon vizuális aréna került a boss harc mögé.
+- Minden kazamata saját témájú hátteret kapott (barlang, bánya, erdő, kripta, démon, sárkány, vihar, void, mennyei, abyss).
+- Dungeon kártyákon mini boss jelenet látható.
+- Boss ikon animáltan lebeg.
+- Harc közben részecskék és ütés animációk látszanak.
+- Játékos/Boss HP csík rendszer változatlanul működik.

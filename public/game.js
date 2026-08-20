@@ -3331,6 +3331,8 @@ document.addEventListener("click",e=>{
   const DUNGEONS_V218 = [
     {
       id:"training_cave",
+      visualTheme:"cave",
+      visualDecor:["🪨","🌿"],
       name:"Kezdők barlangja",
       icon:"🪨",
       bossName:"Barlangi Gólem",
@@ -3344,6 +3346,8 @@ document.addEventListener("click",e=>{
     },
     {
       id:"forgotten_mine",
+      visualTheme:"mine",
+      visualDecor:["⛏️","💎"],
       name:"Elfeledett bánya",
       icon:"⛏️",
       bossName:"Bányarém",
@@ -3356,6 +3360,8 @@ document.addEventListener("click",e=>{
     },
     {
       id:"wolf_den",
+      visualTheme:"forest",
+      visualDecor:["🌲","🌕"],
       name:"Farkasverem",
       icon:"🐺",
       bossName:"Alfa Vérfarkas",
@@ -3368,6 +3374,8 @@ document.addEventListener("click",e=>{
     },
     {
       id:"crypt",
+      visualTheme:"crypt",
+      visualDecor:["🪦","🕯️"],
       name:"Elátkozott kripta",
       icon:"☠️",
       bossName:"Kripta Ura",
@@ -3380,6 +3388,8 @@ document.addEventListener("click",e=>{
     },
     {
       id:"demon_tower",
+      visualTheme:"demon",
+      visualDecor:["🔥","🩸"],
       name:"Démon torony",
       icon:"🔥",
       bossName:"Démon Hadúr",
@@ -3392,6 +3402,8 @@ document.addEventListener("click",e=>{
     },
     {
       id:"dragon_valley",
+      visualTheme:"dragon",
+      visualDecor:["🌋","🔥"],
       name:"Sárkány-völgy",
       icon:"🐉",
       bossName:"Ősi Sárkány",
@@ -3404,6 +3416,8 @@ document.addEventListener("click",e=>{
     },
     {
       id:"storm_keep",
+      visualTheme:"storm",
+      visualDecor:["⛈️","⚡"],
       name:"Vihartorony",
       icon:"🌩️",
       bossName:"Vihar Titán",
@@ -3416,6 +3430,8 @@ document.addEventListener("click",e=>{
     },
     {
       id:"void_temple",
+      visualTheme:"void",
+      visualDecor:["🕳️","🟣"],
       name:"Üresség temploma",
       icon:"🕳️",
       bossName:"Void Őrző",
@@ -3428,6 +3444,8 @@ document.addEventListener("click",e=>{
     },
     {
       id:"celestial_gate",
+      visualTheme:"celestial",
+      visualDecor:["☁️","✨"],
       name:"Isteni kapu",
       icon:"👁️",
       bossName:"Mennyei Bíró",
@@ -3440,6 +3458,8 @@ document.addEventListener("click",e=>{
     },
     {
       id:"abyss",
+      visualTheme:"abyss",
+      visualDecor:["🌊","🦑"],
       name:"Mélység ura",
       icon:"🦑",
       bossName:"A Mélység Ura",
@@ -3595,7 +3615,12 @@ document.addEventListener("click",e=>{
           const chance=Math.round(successChance(d)*100);
           const clears=Number(s.dungeonClears?.[d.id]||0);
           return `
-          <article class="v218-dungeon-card ${d.safe?"safe":""}">
+          <article class="v218-dungeon-card ${d.safe?"safe":""} theme-${d.visualTheme||"cave"}">
+            <div class="v220-card-scene">
+              <div class="v220-card-decor">${d.visualDecor?.[0]||"✦"} ${d.visualDecor?.[1]||"✦"}</div>
+              <div class="v220-card-boss">${d.bossIcon||"👹"}</div>
+              <div class="v220-card-shadow"></div>
+            </div>
             <div class="v218-dungeon-title">
               <span class="v218-dungeon-icon">${d.icon}</span>
               <div><h3>${d.name}</h3><small>${d.safe?"Biztonságos farm":"Kockázatos kazamata"}</small></div>
@@ -3709,7 +3734,15 @@ document.addEventListener("click",e=>{
         <div class="v219-battle-round">Kör ${b.round}</div>
       </div>
 
-      <div class="v219-fighters">
+      <div class="v220-arena theme-${b.dungeon.visualTheme||"cave"}">
+        <div class="v220-bg-decor left">${b.dungeon.visualDecor?.[0]||"✦"}</div>
+        <div class="v220-bg-decor right">${b.dungeon.visualDecor?.[1]||"✦"}</div>
+        <div class="v220-ground"></div>
+        <div class="v220-particles">
+          <i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+
+        <div class="v219-fighters">
         <div class="v219-fighter player">
           <div class="v219-fighter-icon">🧙</div>
           <div class="v219-fighter-main">
@@ -3728,6 +3761,7 @@ document.addEventListener("click",e=>{
             <div class="v219-hp boss"><div style="width:${bhp}%"></div></div>
             <small>☠️ Boss erő: ${F(b.dungeon.reqPower)}</small>
           </div>
+        </div>
         </div>
       </div>
 
@@ -3847,7 +3881,7 @@ document.addEventListener("click",e=>{
         b.playerHp=d.safe
           ? Math.max(Math.floor(b.playerMaxHp*.35),b.playerHp-incoming)
           : Math.max(1,b.playerHp-incoming);
-        b.log=`⚔️ ${F(bossDmg)} sebzés a bossnak · ☠️ ${F(incoming)} sebzés érkezett.`;
+        b.log=`⚔️ ${F(bossDmg)} sebzés a bossnak · ☠️ ${F(incoming)} sebzés érkezett.`; document.getElementById("v219DungeonBattle")?.classList.add("v220-hit"); setTimeout(()=>document.getElementById("v219DungeonBattle")?.classList.remove("v220-hit"),180);
 
         if(b.bossHp<=0 || b.round>=12){
           b.bossHp=0;
@@ -3859,7 +3893,7 @@ document.addEventListener("click",e=>{
         const incoming=Math.max(1,Math.floor(b.playerMaxHp*(.11+Math.random()*.09)));
         b.bossHp=Math.max(Math.floor(b.bossMaxHp*.18),b.bossHp-bossDmg);
         b.playerHp=Math.max(0,b.playerHp-incoming);
-        b.log=`⚔️ ${F(bossDmg)} sebzés a bossnak · 💥 ${F(incoming)} sebzést kaptál.`;
+        b.log=`⚔️ ${F(bossDmg)} sebzés a bossnak · 💥 ${F(incoming)} sebzést kaptál.`; document.getElementById("v219DungeonBattle")?.classList.add("v220-hit"); setTimeout(()=>document.getElementById("v219DungeonBattle")?.classList.remove("v220-hit"),180);
 
         if(b.playerHp<=0 || b.round>=10){
           b.playerHp=0;

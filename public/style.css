@@ -3147,3 +3147,154 @@ body.v202-is-admin .admin-studio-only-v202{
   .v219-fighters{grid-template-columns:1fr!important}
   .v219-versus{padding:2px!important}
 }
+
+/* ================= V22.0 DUNGEON VISUALS ================= */
+
+/* Mini scene on dungeon cards */
+.v220-card-scene{
+  position:relative;
+  height:92px;
+  margin:-2px -2px 9px;
+  border-radius:9px;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 42%,rgba(120,70,180,.28),transparent 34%),
+    linear-gradient(180deg,#111722,#080b10);
+  border:1px solid rgba(255,255,255,.05);
+}
+.v220-card-boss{
+  position:absolute;
+  left:50%;
+  bottom:14px;
+  transform:translateX(-50%);
+  font-size:46px;
+  filter:drop-shadow(0 0 14px rgba(0,0,0,.75));
+  animation:v220BossIdle 2.4s ease-in-out infinite;
+}
+.v220-card-shadow{
+  position:absolute;
+  left:50%;
+  bottom:9px;
+  width:72px;
+  height:12px;
+  transform:translateX(-50%);
+  border-radius:50%;
+  background:rgba(0,0,0,.55);
+  filter:blur(3px);
+}
+.v220-card-decor{
+  position:absolute;
+  inset:8px 10px auto;
+  display:flex;
+  justify-content:space-between;
+  opacity:.55;
+  font-size:20px;
+}
+@keyframes v220BossIdle{
+  0%,100%{transform:translateX(-50%) translateY(0) scale(1)}
+  50%{transform:translateX(-50%) translateY(-4px) scale(1.03)}
+}
+
+/* Theme backgrounds */
+.v218-dungeon-card.theme-cave .v220-card-scene{background:linear-gradient(180deg,#20241b,#0b0e09)}
+.v218-dungeon-card.theme-mine .v220-card-scene{background:linear-gradient(180deg,#171b25,#0a0c11)}
+.v218-dungeon-card.theme-forest .v220-card-scene{background:linear-gradient(180deg,#14231a,#080e0a)}
+.v218-dungeon-card.theme-crypt .v220-card-scene{background:linear-gradient(180deg,#1d1821,#0c0a0e)}
+.v218-dungeon-card.theme-demon .v220-card-scene{background:linear-gradient(180deg,#2b1111,#100707)}
+.v218-dungeon-card.theme-dragon .v220-card-scene{background:linear-gradient(180deg,#30170d,#120904)}
+.v218-dungeon-card.theme-storm .v220-card-scene{background:linear-gradient(180deg,#16233a,#090d16)}
+.v218-dungeon-card.theme-void .v220-card-scene{background:linear-gradient(180deg,#25133b,#0d0714)}
+.v218-dungeon-card.theme-celestial .v220-card-scene{background:linear-gradient(180deg,#26384d,#0c1219)}
+.v218-dungeon-card.theme-abyss .v220-card-scene{background:linear-gradient(180deg,#082b38,#041116)}
+
+/* Battle arena */
+.v220-arena{
+  position:relative;
+  padding:22px 12px 18px;
+  border:1px solid #394550;
+  border-radius:11px;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 20%,rgba(115,75,160,.22),transparent 32%),
+    linear-gradient(180deg,#111721 0%,#080c11 72%);
+  isolation:isolate;
+}
+.v220-ground{
+  position:absolute;
+  left:-8%;
+  right:-8%;
+  bottom:-28px;
+  height:92px;
+  border-radius:50% 50% 0 0;
+  background:radial-gradient(ellipse at center,#252a31 0,#10141a 54%,#06090d 75%);
+  border-top:1px solid rgba(255,255,255,.05);
+  z-index:-1;
+}
+.v220-bg-decor{
+  position:absolute;
+  top:16px;
+  font-size:58px;
+  opacity:.10;
+  filter:blur(.3px);
+  z-index:-1;
+}
+.v220-bg-decor.left{left:26px}
+.v220-bg-decor.right{right:26px}
+
+/* Arena themes */
+.v220-arena.theme-cave{background:radial-gradient(circle at 50% 12%,#27301f,#0d120b 68%)}
+.v220-arena.theme-mine{background:radial-gradient(circle at 50% 12%,#20283a,#0a0d13 68%)}
+.v220-arena.theme-forest{background:radial-gradient(circle at 50% 12%,#17321f,#080f0b 68%)}
+.v220-arena.theme-crypt{background:radial-gradient(circle at 50% 12%,#2a1e31,#0d0a10 68%)}
+.v220-arena.theme-demon{background:radial-gradient(circle at 50% 12%,#3a1717,#130707 68%)}
+.v220-arena.theme-dragon{background:radial-gradient(circle at 50% 12%,#462014,#160a05 68%)}
+.v220-arena.theme-storm{background:radial-gradient(circle at 50% 12%,#1a3155,#080e18 68%)}
+.v220-arena.theme-void{background:radial-gradient(circle at 50% 12%,#361a55,#100719 68%)}
+.v220-arena.theme-celestial{background:radial-gradient(circle at 50% 12%,#324c69,#0d151e 68%)}
+.v220-arena.theme-abyss{background:radial-gradient(circle at 50% 12%,#0d4052,#04151b 68%)}
+
+/* particles */
+.v220-particles i{
+  position:absolute;
+  width:4px;
+  height:4px;
+  border-radius:50%;
+  background:rgba(255,255,255,.25);
+  animation:v220Float 4s linear infinite;
+}
+.v220-particles i:nth-child(1){left:12%;top:78%;animation-delay:0s}
+.v220-particles i:nth-child(2){left:28%;top:62%;animation-delay:.8s}
+.v220-particles i:nth-child(3){left:47%;top:75%;animation-delay:1.5s}
+.v220-particles i:nth-child(4){left:65%;top:64%;animation-delay:2.1s}
+.v220-particles i:nth-child(5){left:82%;top:76%;animation-delay:2.8s}
+.v220-particles i:nth-child(6){left:91%;top:58%;animation-delay:3.4s}
+@keyframes v220Float{
+  0%{transform:translateY(20px) scale(.6);opacity:0}
+  25%{opacity:.45}
+  100%{transform:translateY(-90px) scale(1.2);opacity:0}
+}
+
+/* Make fighters feel like actual combatants */
+.v220-arena .v219-fighter{
+  backdrop-filter:blur(2px);
+  background:rgba(7,11,16,.78)!important;
+}
+.v220-arena .v219-fighter-icon,
+.v220-arena .v219-boss-icon{
+  transform:scale(1);
+  transition:transform .15s ease;
+}
+#v219DungeonBattle.v220-hit .v219-fighter-icon{
+  animation:v220PlayerHit .18s ease;
+}
+#v219DungeonBattle.v220-hit .v219-boss-icon{
+  animation:v220BossHit .18s ease;
+}
+@keyframes v220PlayerHit{
+  0%,100%{transform:translateX(0)}
+  50%{transform:translateX(-7px)}
+}
+@keyframes v220BossHit{
+  0%,100%{transform:translateX(0)}
+  50%{transform:translateX(7px)}
+}
