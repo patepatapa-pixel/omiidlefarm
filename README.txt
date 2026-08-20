@@ -186,3 +186,9 @@ V19.5 STABLE ROLLBACK
 - A későbbi V18/V19 oldal-átrendezések és hibás rejtések nincsenek benne.
 
 V19.6: Paragon / Prestige és Paragon statpontok a Farm oldalról külön Paragon / Prestige fülre kerültek. Karakter státuszhoz nem nyúltunk.
+
+V19.7
+- Karakter státusz átkerült a külön Paragon / Prestige fülre.
+- A Karakter fülön már nem jelenik meg ez a státuszblokk.
+- A státuszértékek továbbra is élőben frissülnek.
+- A működő karakter/felszerelés rendszerhez nem nyúltunk.

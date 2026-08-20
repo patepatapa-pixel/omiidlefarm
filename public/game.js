@@ -1533,3 +1533,13 @@ document.addEventListener("click",function(e){
   document.querySelectorAll("[data-tab]").forEach(x=>x.classList.toggle("active",x===b));
   if(typeof renderParagon==="function")renderParagon();
 },true);
+
+/* V19.7 - refresh moved Character Status on Paragon page */
+document.addEventListener("click",function(e){
+  const b=e.target.closest?.('[data-tab="paragon"]');
+  if(!b)return;
+  setTimeout(()=>{
+    if(typeof renderV17QuickStats==="function")renderV17QuickStats();
+    if(typeof renderParagon==="function")renderParagon();
+  },0);
+},true);

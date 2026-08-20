@@ -1520,3 +1520,49 @@ main{width:100%!important;max-width:100%!important}
 .paragon-title-v196 p{margin:0;color:#94a0ad}
 #page-paragon .character-paragon-panel,
 #page-paragon .character-paragon-stats-panel{display:block!important}
+
+/* ================= V19.7 PARAGON STATUS MOVE =================
+   Character Status is now part of the Paragon / Prestige page only.
+*/
+#page-character .v17-quick-stats,
+#page-character .v197-paragon-status{
+  display:none!important;
+}
+
+#page-paragon .v197-paragon-status,
+#page-paragon .v17-quick-stats{
+  display:block!important;
+  position:relative!important;
+  top:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  left:auto!important;
+  transform:none!important;
+  width:auto!important;
+  margin:0!important;
+}
+
+#page-paragon .v17-stat-grid{
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:8px!important;
+}
+#page-paragon .v17-stat-grid>div{
+  padding:9px!important;
+  border:1px solid #303a46!important;
+  border-radius:8px!important;
+  background:#080c11!important;
+}
+#page-paragon .v17-stat-grid small,
+#page-paragon .v17-stat-grid b{
+  display:block!important;
+}
+#page-paragon .v17-stat-grid small{
+  font-size:9px!important;
+  color:#919ca7!important;
+}
+#page-paragon .v17-stat-grid b{
+  margin-top:3px!important;
+  color:#f0c14f!important;
+  font-size:13px!important;
+}
