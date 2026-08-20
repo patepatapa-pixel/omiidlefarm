@@ -350,3 +350,125 @@ button.primary:hover,.gold-btn:hover,#prestigeBtn:hover{filter:brightness(1.08);
 .admin-player-row{background:#080c11!important;border-bottom:1px solid #26313d!important}
 .admin-player-row:hover{background:#0d141c!important}
 ::-webkit-scrollbar{width:10px}::-webkit-scrollbar-track{background:#05070a}::-webkit-scrollbar-thumb{background:#303b48;border-radius:10px}::-webkit-scrollbar-thumb:hover{background:#b07d2c}
+
+/* ==========================================================
+   V13 — APPROVED MOCKUP CHARACTER
+   Uses the actual approved dark-fantasy artwork as the character scene.
+   ========================================================== */
+.v5-character-scene{
+  min-height:690px!important;
+  background:
+    linear-gradient(180deg,rgba(0,0,0,.02),rgba(0,0,0,.20)),
+    url("/assets/dark_warrior_character.jpg") center 43% / cover no-repeat!important;
+  border:1px solid #c08a25!important;
+  box-shadow:
+    inset 0 0 65px rgba(0,0,0,.58),
+    0 0 0 1px rgba(103,61,12,.65),
+    0 18px 45px rgba(0,0,0,.72)!important;
+}
+.v5-character-scene::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index:2;
+  background:
+    linear-gradient(90deg,rgba(3,5,8,.66) 0%,rgba(3,5,8,.06) 25%,rgba(3,5,8,.02) 75%,rgba(3,5,8,.66) 100%),
+    linear-gradient(180deg,rgba(0,0,0,.04),transparent 55%,rgba(0,0,0,.30));
+}
+.dark-warrior-svg,
+.dark-stage-sigil,
+.dark-stage-smoke,
+.dark-stage-embers,
+.v5-aura{
+  display:none!important;
+}
+.v5-hero{
+  display:none!important;
+}
+.v5-slot{
+  pointer-events:none!important;
+  z-index:8!important;
+  width:132px!important;
+  min-height:104px!important;
+  padding:12px!important;
+  background:linear-gradient(145deg,rgba(8,11,16,.97),rgba(2,4,7,.95))!important;
+  backdrop-filter:blur(7px)!important;
+  border-radius:12px!important;
+}
+.v5-slot span{font-size:30px!important}
+.v5-slot small{font-size:9px!important;letter-spacing:.08em!important}
+.v5-slot b{font-size:11px!important;line-height:1.3!important;margin-top:5px!important}
+.v5-slot-head{left:22px!important;top:48px!important}
+.v5-slot-armor{left:22px!important;top:222px!important}
+.v5-slot-boots{left:22px!important;top:396px!important}
+.v5-slot-weapon{right:22px!important;top:48px!important}
+.v5-slot-gloves{right:22px!important;top:222px!important}
+.v5-slot-ring{right:22px!important;top:396px!important}
+.v5-character-footer{
+  left:18px!important;
+  right:18px!important;
+  bottom:16px!important;
+  z-index:9!important;
+  grid-template-columns:repeat(4,1fr)!important;
+}
+.v5-character-footer>div{
+  min-height:58px!important;
+  padding:10px 12px!important;
+  background:linear-gradient(145deg,rgba(8,12,17,.98),rgba(4,6,9,.97))!important;
+  border:1px solid #303b48!important;
+}
+.hero-character-card{
+  background:linear-gradient(145deg,#0a0f15,#05080c)!important;
+  border:1px solid #b77e21!important;
+  box-shadow:0 0 0 1px rgba(97,58,12,.5),0 18px 55px rgba(0,0,0,.62)!important;
+}
+.character-power-badge{
+  background:linear-gradient(145deg,#0a1016,#06090d)!important;
+  border-color:#c38b29!important;
+  box-shadow:inset 0 0 20px rgba(216,157,45,.06)!important;
+}
+.character-power-badge b{
+  color:#ffc94d!important;
+  font-size:31px!important;
+  text-shadow:0 0 16px rgba(255,174,37,.18)!important;
+}
+.character-attributes{
+  background:transparent!important;
+}
+.char-attr{
+  background:linear-gradient(145deg,#0a0f15,#06090d)!important;
+  border-color:#293440!important;
+}
+/* hide old visual pet because the approved artwork already includes the fantasy scene */
+#v5Pet{display:none!important}
+@media(max-width:760px){
+  .v5-character-scene{min-height:620px!important;background-position:center 42%!important}
+  .v5-slot{width:105px!important;min-height:90px!important;padding:9px!important}
+  .v5-slot-head,.v5-slot-armor,.v5-slot-boots{left:8px!important}
+  .v5-slot-weapon,.v5-slot-gloves,.v5-slot-ring{right:8px!important}
+}
+
+/* ================= V15 EXACT APPROVED SCREEN LAYOUT ================= */
+.v15-main-grid{display:grid;grid-template-columns:350px minmax(560px,1fr) 330px;gap:12px;align-items:start}
+.v15-left,.v15-character,.v15-sidebox{border-color:#a97620!important;background:linear-gradient(145deg,#0a0e13,#05070a)!important}
+.v15-section-title{font-size:15px;font-weight:1000;color:#f1bd4b}.v15-search{margin:12px 0;border:1px solid #34404d;border-radius:8px;padding:11px;color:#7d8792;background:#070a0e}
+.v15-player-head,.v15-player-preview>div{display:grid;grid-template-columns:30px 1fr 50px 78px 72px 58px;gap:7px;align-items:center;padding:9px;border-bottom:1px solid #27313d;font-size:10px}
+.v15-player-head{color:#87919b}.v15-player-preview b{font-size:11px}.v15-player-preview em{font-style:normal;font-size:9px;border-radius:20px;padding:5px 7px;background:#32244a;color:#d7a7ff;text-align:center}.online-pill{background:#124b2d!important;color:#82ecad!important}
+.v15-refresh{width:100%;margin:12px 0}.v15-warning{border:1px solid #771d26;background:#18080b;color:#ff5965;border-radius:9px;padding:10px;line-height:1.4}
+.v15-character-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}.v15-character-top h2{margin:0 0 5px;font-size:18px}
+.v15-power-box{border:1px solid #bc8424;border-radius:10px;padding:8px 14px;text-align:center;min-width:150px}.v15-power-box small,.v15-power-box b{display:block}.v15-power-box b{font-size:24px;color:#ffc94d;margin-top:3px}
+.v15-character-stage{position:relative;height:690px;border:1px solid #a97620;border-radius:12px;overflow:hidden;background:#030405}
+.v15-approved-art{position:absolute;inset:0;background:url("/assets/approved_character_scene.jpg") center 45% / cover no-repeat}
+.v15-approved-art:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#020407d9 0%,transparent 24%,transparent 76%,#020407d9 100%),linear-gradient(180deg,transparent 65%,#020304aa)}
+.v15-gear{position:absolute;width:105px;padding:7px;border-radius:10px;background:#06090ded;border:1px solid #b82bff;box-shadow:0 0 18px #9c2aff44;z-index:5}
+.v15-gear img{width:100%;height:82px;object-fit:cover;border-radius:7px;display:block;margin-bottom:6px}
+.v15-gear small,.v15-gear b{display:block}.v15-gear small{font-size:9px;color:#a8b0ba}.v15-gear b{font-size:10px;line-height:1.25;margin-top:2px;color:#fff}
+.v15-helmet{left:16px;top:55px}.v15-armor{left:16px;top:245px}.v15-boots{left:16px;top:435px;border-color:#1499ef;box-shadow:0 0 18px #1499ef44}
+.v15-weapon{right:16px;top:55px}.v15-gloves{right:16px;top:245px;border-color:#e4a62c;box-shadow:0 0 18px #e4a62c44}.v15-ring{right:16px;top:435px}
+.v15-bottom-stats{position:absolute;z-index:6;left:16px;right:16px;bottom:12px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.v15-bottom-stats>div{background:#070b10ef;border:1px solid #303a46;border-radius:9px;padding:9px}.v15-bottom-stats span,.v15-bottom-stats b{display:block}.v15-bottom-stats span{font-size:9px;color:#9aa3ad}.v15-bottom-stats b{font-size:11px;margin-top:3px}
+.v15-right{display:grid;gap:10px}.v15-sidebox h3{margin:0 0 10px}.v15-four{display:grid;grid-template-columns:1fr 1fr;gap:8px}.v15-four>div{border:1px solid #303a46;border-radius:8px;padding:9px;background:#080c11}.v15-four small,.v15-four b{display:block}.v15-four b{color:#ffc44f;font-size:17px;margin-top:3px}
+.v15-attributes{margin-top:12px}
+@media(max-width:1180px){.v15-main-grid{grid-template-columns:1fr}.v15-left{order:3}.v15-right{order:2}.v15-character{order:1}.v15-character-stage{height:720px}}
+@media(max-width:650px){.v15-character-stage{height:650px}.v15-gear{width:90px}.v15-gear img{height:68px}.v15-helmet,.v15-armor,.v15-boots{left:5px}.v15-weapon,.v15-gloves,.v15-ring{right:5px}.v15-bottom-stats{grid-template-columns:1fr 1fr}}

@@ -465,7 +465,46 @@ function buyOrEquipAura(id){
 $("#equipBestBtn").onclick=equipBest;
 $("#prestigeBtn").onclick=doPrestige;
 
-function renderAll(){renderCore();renderCharacterVisual();renderV5Character();renderWave();renderParagon();renderZones();renderBaseUpgrades();renderInventory();renderUpgrade();renderSkills();renderPets();renderDungeons();renderQuests();renderStats();renderCharacterAttributes();}
+
+function renderV15ExactCharacter(){
+ if(!$("#v15Power"))return;
+ $("#v15Power").textContent=fmt(power());
+ if($("#v15AdminPower"))$("#v15AdminPower").textContent=fmt(power());
+
+ const map={
+   helmet:["v15Helmet",".v15-helmet"],
+   armor:["v15Armor",".v15-armor"],
+   boots:["v15Boots",".v15-boots"],
+   weapon:["v15Weapon",".v15-weapon"],
+   gloves:["v15Gloves",".v15-gloves"],
+   ring:["v15Ring",".v15-ring"]
+ };
+ Object.entries(map).forEach(([slot,[id,sel]])=>{
+   const it=equipObj(slot),el=$("#"+id),box=$(sel);
+   if(el){
+     if(it){
+       const plus=Math.max(0,Math.min(15,Number(it.plus||0)));
+       el.textContent=`${rarityName(it.rarity)} ${SLOT_NAMES[slot]} +${plus}`;
+     }else el.textContent="Üres";
+   }
+   if(box){
+     box.classList.remove("rarity-normal","rarity-rare","rarity-epic","rarity-mythic","rarity-legendary");
+     if(it)box.classList.add("rarity-"+it.rarity);
+   }
+ });
+
+ const pet=petObj(),aura=AURAS.find(x=>x.id===save.activeAura)||AURAS[0];
+ $("#v15Aura").textContent=aura.name;
+ $("#v15Pet").textContent=pet?pet.name:"Nincs";
+ $("#v15Wave").textContent=save.wave;
+ $("#v15Paragon").textContent=save.paragonLevel;
+ $("#v15Prestige").textContent=save.prestigeLevel;
+ $("#v15ParagonTop").textContent=save.paragonLevel;
+ $("#v15StatPoints").textContent=save.paragonPoints;
+ $("#v15AuraTokens").textContent=save.auraTokens;
+}
+
+function renderAll(){renderCore();renderCharacterVisual();renderV5Character();renderWave();renderParagon();renderZones();renderBaseUpgrades();renderInventory();renderUpgrade();renderSkills();renderPets();renderDungeons();renderQuests();renderStats();renderCharacterAttributes();renderV15ExactCharacter();}
 $("#bossBtn").onclick=()=>toast("👹 A boss automatikusan jön minden wave végén.");
 $("#petSummon").onclick=summonPet;
 $("#sellNormal").onclick=()=>{let equipped=new Set(Object.values(save.equipped));let sold=0;save.inventory=save.inventory.filter(it=>{if(it.rarity==="normal"&&!equipped.has(it.id)){save.gold+=sellValue(it);sold++;return false}return true});persist();renderAll();toast(`${sold} normál tárgy eladva`)};

@@ -125,3 +125,11 @@ V13 MOCKUP CHARACTER
 - A korábbi rajzolt/SVG figura el van rejtve.
 - A felszerelés slotok, karakter statok, aura/pet/wave/paragon adatok funkcionálisan megmaradtak.
 - A teljes V12/V11.3 funkcionalitás megmaradt.
+
+V15 EXACT SCREEN LAYOUT
+- A Karakter oldal 3 oszlopos elrendezése az elfogadott mockupot követi.
+- Bal oldalon Admin Game Studio előnézet.
+- Középen a dark fantasy karakter, körülötte 6 tárgykártya valódi item képpel.
+- Jobb oldalon Prestige / Paragon / Aura Shop.
+- A tárgyak valós +0 ... +15 szintje automatikusan megjelenik.
+- A tárgykártyák ritkaság szerinti keretet/glow-t kapnak.
