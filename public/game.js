@@ -32,7 +32,9 @@ const SKILL_TREE=[
  {key:"boss",branch:"combat",name:"Bossvadász",icon:"🐲",max:5,req:["crit",3],desc:"Extra sebzés bossok ellen",effect:"+8% boss sebzés / pont"},
  {key:"gold",branch:"farm",name:"Aranyáldás",icon:"💰",max:5,req:["root",1],desc:"Több arany minden harcból",effect:"+8% arany / pont"},
  {key:"drop",branch:"farm",name:"Kincsvadász",icon:"🎁",max:5,req:["gold",3],desc:"Jobb tárgy- és ritka drop",effect:"+2% drop / pont"},
- {key:"offline",branch:"farm",name:"Álomfarm",icon:"🌙",max:5,req:["drop",3],desc:"Erősebb offline fejlődés",effect:"+15% offline farm / pont"},
+ {key:"afk",branch:"afk",name:"AFK kiképzés",icon:"💤",max:5,req:["root",1],desc:"Távollét alatt gyorsabban fejlődsz",effect:"+10% AFK farm / pont"},
+ {key:"offline",branch:"afk",name:"Álomfarm",icon:"🌙",max:5,req:["afk",3],desc:"További offline kill és jutalom",effect:"+15% AFK farm / pont"},
+ {key:"afkCap",branch:"afk",name:"Hosszú pihenő",icon:"⏳",max:5,req:["offline",3],desc:"Hosszabb távollétet számol el",effect:"+3 óra AFK idő / pont"},
  {key:"pet",branch:"pet",name:"Pet szinkron",icon:"🐾",max:5,req:["root",1],desc:"Felerősíti a petek bónuszait",effect:"+10% pet bónusz / pont"},
  {key:"pack",branch:"pet",name:"Falkavezér",icon:"👑",max:5,req:["pet",3],desc:"Minden felszerelt pet együtt erősödik",effect:"+10% pet bónusz / pont"}
 ];
@@ -43,7 +45,7 @@ function skillBonus(key){
  if(key==="boss")return skillRank("boss")*.08;
  if(key==="gold")return skillRank("gold")*.08;
  if(key==="drop")return skillRank("drop")*.02;
- if(key==="offline")return skillRank("offline")*.15;
+ if(key==="offline")return skillRank("afk")*.10+skillRank("offline")*.15;
  if(key==="pet")return skillRank("pet")*.10+skillRank("pack")*.10;
  return 0;
 }
@@ -87,10 +89,10 @@ function normalizeV6Save(s){
  s.gold=Number(s.gold||0);s.gems=Number(s.gems||10);s.ore=Number(s.ore||0);s.soul=Number(s.soul||0);s.tickets=Number(s.tickets||3);
  s.level=Math.max(1,Number(s.level||1));s.xp=Number(s.xp||0);s.skillPoints=Number(s.skillPoints||0);s.kills=Number(s.kills||0);s.zone=Math.max(0,Math.min(ZONES.length-1,Number(s.zone||0)));
  s.base={weaponTraining:1,armorTraining:1,mining:1,luck:1,...(s.base||{})};
- s.skills={root:0,power:0,crit:0,boss:0,gold:0,drop:0,offline:0,pet:0,pack:0,...(s.skills||{})};
+ s.skills={root:0,power:0,crit:0,boss:0,gold:0,drop:0,afk:0,offline:0,afkCap:0,pet:0,pack:0,...(s.skills||{})};
  if(Number(s.skillTreeVersion||0)<3){
    s.skillPoints=Math.max(0,Math.floor(s.level/5));
-   s.skills={root:0,power:0,crit:0,boss:0,gold:0,drop:0,offline:0,pet:0,pack:0};
+   s.skills={root:0,power:0,crit:0,boss:0,gold:0,drop:0,afk:0,offline:0,afkCap:0,pet:0,pack:0};
    s.skillTreeVersion=3;s.skillResetNotice=true;
 }else{
    SKILL_TREE.forEach(n=>s.skills[n.key]=Math.max(0,Math.min(n.max,Math.floor(Number(s.skills[n.key]||0)))));
@@ -480,7 +482,7 @@ function renderSkills(){
  const nodeHtml=n=>{const rank=skillRank(n.key),open=unlocked(n),maxed=rank>=n.max,can=open&&!maxed&&save.skillPoints>0,req=n.req?SKILL_TREE.find(x=>x.key===n.req[0]):null;return `<article class="skill-tree-node branch-${n.branch} ${open?"unlocked":"locked"} ${maxed?"maxed":""}"><div class="skill-tree-icon">${open?n.icon:"🔒"}</div><div class="skill-tree-copy"><h3>${n.name}</h3><p>${n.desc}</p><strong>${n.effect}</strong>${!open?`<small>Kell: ${req?.name||"Előfeltétel"} ${n.req[1]}/${req?.max||n.req[1]}</small>`:""}</div><div class="skill-tree-rank">${rank}/${n.max}</div><button data-tree-skill="${n.key}" ${can?"":"disabled"}>${maxed?"MAX":open?"+1 PONT":"ZÁROLVA"}</button></article>`};
  const root=SKILL_TREE.find(n=>n.branch==="root");
  const branch=(key,title)=>`<section class="skill-tree-branch branch-${key}"><h3>${title}</h3>${SKILL_TREE.filter(n=>n.branch===key).map(nodeHtml).join('<div class="skill-tree-line"></div>')}</section>`;
- $("#skills").innerHTML=`<div class="skill-tree-v217"><div class="skill-tree-root">${nodeHtml(root)}</div><div class="skill-tree-trunk"></div><div class="skill-tree-branches">${branch("combat","⚔️ Harci ág")}${branch("farm","💰 Farm ág")}${branch("pet","🐾 Pet ág")}</div></div>`;
+ $("#skills").innerHTML=`<div class="skill-tree-v217"><div class="skill-tree-root">${nodeHtml(root)}</div><div class="skill-tree-trunk"></div><div class="skill-tree-branches">${branch("combat","⚔️ Harci ág")}${branch("farm","💰 Farm ág")}${branch("afk","💤 AFK ág")}${branch("pet","🐾 Pet ág")}</div></div>`;
  $$("[data-tree-skill]").forEach(b=>b.onclick=()=>{const n=SKILL_TREE.find(x=>x.key===b.dataset.treeSkill);if(!n||save.skillPoints<=0||skillRank(n.key)>=n.max||!unlocked(n))return;save.skillPoints--;save.skills[n.key]=skillRank(n.key)+1;persist();renderAll();toast(`🌟 ${n.name}: ${save.skills[n.key]}/${n.max}`)});
 }
 function renderPets(){
@@ -1020,7 +1022,7 @@ document.addEventListener("click",e=>{
 });
 
 // Offline progress max 12h
-let away=Math.min(43200,Math.max(0,(Date.now()-save.last)/1000));
+let away=Math.min((12+skillRank("afkCap")*3)*3600,Math.max(0,(Date.now()-save.last)/1000));
 if(away>15){
  let z=ZONES[save.zone],eff=Math.min(3.5,.55+skillBonus("offline")),kills=Math.floor(away*damage()/z.hp*eff);
  if(kills>0){let g=Math.floor(kills*z.gold*goldBonus());save.gold+=g;save.stats.goldEarned+=g;save.kills+=kills;save.xp+=kills*z.xp;toast(`🌙 Offline farm: ${fmt(kills)} kill · ${fmt(g)} arany`)}
