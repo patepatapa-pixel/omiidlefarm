@@ -3917,3 +3917,110 @@ body.v202-is-admin .admin-studio-only-v202{
   cursor:default;
   opacity:.8;
 }
+
+/* V22.14 premium pet slots */
+.pet-slot-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:14px;
+  margin:16px 0 24px;
+}
+.pet-slot-card{
+  position:relative;
+  min-height:190px;
+  padding:16px;
+  overflow:hidden;
+  border:1px solid #303946;
+  border-radius:16px;
+  background:linear-gradient(145deg,#10151c,#080b10);
+  box-shadow:0 12px 28px rgba(0,0,0,.3);
+}
+.pet-slot-top{
+  position:relative;
+  z-index:2;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+}
+.pet-slot-number{
+  color:#f5d26d;
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+.pet-slot-status,.pet-slot-free,.pet-slot-lock{
+  padding:5px 8px;
+  border-radius:999px;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.04em;
+}
+.pet-slot-status{color:#7dffc5;background:rgba(31,196,128,.14);border:1px solid rgba(55,236,158,.35)}
+.pet-slot-free{color:#a9c9ff;background:rgba(72,126,230,.14);border:1px solid rgba(100,154,255,.3)}
+.pet-slot-lock{color:#ff9ea8;background:rgba(224,61,80,.12);border:1px solid rgba(255,88,108,.28)}
+.pet-slot-filled{
+  border-color:#dcb53e;
+  background:
+    radial-gradient(circle at 22% 58%,rgba(240,190,65,.24),transparent 38%),
+    linear-gradient(145deg,#211a0c,#0b0d12 70%);
+  box-shadow:0 0 0 1px rgba(243,196,64,.18),0 14px 34px rgba(0,0,0,.38),inset 0 0 35px rgba(227,173,36,.08);
+}
+.pet-slot-filled.rarity-epic{border-color:#985dff;background:radial-gradient(circle at 22% 58%,rgba(133,72,255,.3),transparent 42%),linear-gradient(145deg,#1b102d,#090b11 72%)}
+.pet-slot-filled.rarity-mythic{border-color:#ff557c;background:radial-gradient(circle at 22% 58%,rgba(255,64,112,.28),transparent 42%),linear-gradient(145deg,#2a0d18,#090b11 72%)}
+.pet-slot-filled.rarity-legendary{border-color:#ffc83d;background:radial-gradient(circle at 22% 58%,rgba(255,191,45,.34),transparent 44%),linear-gradient(145deg,#2b1d07,#090b11 72%)}
+.pet-slot-hero{
+  position:relative;
+  z-index:2;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  min-height:135px;
+}
+.pet-slot-icon{
+  display:grid;
+  place-items:center;
+  width:86px;
+  height:86px;
+  flex:0 0 86px;
+  border:1px solid rgba(255,217,108,.45);
+  border-radius:22px;
+  background:rgba(0,0,0,.32);
+  font-size:52px;
+  filter:drop-shadow(0 8px 15px rgba(0,0,0,.45));
+}
+.pet-slot-info{display:flex;flex-direction:column;gap:7px;min-width:0}
+.pet-slot-info strong{color:#fff;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pet-slot-info span{color:#ffe28b;font-size:13px;font-weight:800}
+.pet-slot-info small{width:max-content;padding:4px 7px;border-radius:6px;background:rgba(255,255,255,.08);color:#bfc8d3;text-transform:uppercase;font-size:9px;font-weight:900}
+.pet-slot-glow{position:absolute;right:-35px;bottom:-45px;width:130px;height:130px;border-radius:50%;background:rgba(246,190,54,.14);filter:blur(22px)}
+.pet-slot-empty{border-style:dashed;background:linear-gradient(145deg,#0d1218,#080b10)}
+.pet-slot-empty-body{display:flex;min-height:140px;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.pet-slot-empty-body div{color:#8da0b5;font-size:46px;line-height:1}
+.pet-slot-empty-body strong{margin-top:7px;color:#d4dbe3;font-size:13px;letter-spacing:.06em}
+.pet-slot-empty-body small{margin-top:5px;color:#738091}
+.pet-slot-locked{
+  display:flex;
+  flex-direction:column;
+  border-color:#563944;
+  background:radial-gradient(circle at 50% 55%,rgba(189,48,88,.12),transparent 46%),linear-gradient(145deg,#151016,#080b10);
+}
+.pet-slot-price{display:flex;flex:1;flex-direction:column;align-items:center;justify-content:center;padding:14px 0 10px}
+.pet-slot-price small{color:#8995a3;font-size:9px;font-weight:900;letter-spacing:.16em}
+.pet-slot-price strong{margin:5px 0 0;color:#ffdd72;font-size:30px;line-height:1.1;text-shadow:0 0 18px rgba(255,201,60,.25)}
+.pet-slot-price span{color:#b9c1cc;font-size:10px;font-weight:900;letter-spacing:.12em}
+.pet-slot-buy{
+  width:100%;
+  min-height:40px;
+  border:1px solid #e2b53c!important;
+  border-radius:10px!important;
+  background:linear-gradient(180deg,#f1c955,#bc8921)!important;
+  color:#171006!important;
+  font-size:11px!important;
+  font-weight:1000!important;
+  letter-spacing:.04em;
+  box-shadow:0 7px 18px rgba(208,150,27,.18);
+}
+.pet-slot-buy:hover{filter:brightness(1.12);transform:translateY(-1px)}
+@media(max-width:1050px){.pet-slot-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.pet-slot-grid{grid-template-columns:1fr}.pet-slot-card{min-height:175px}}
