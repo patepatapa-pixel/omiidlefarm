@@ -411,10 +411,11 @@ function sellInventoryByRarity(rarity){
 }
 
 function renderInventory(){
- $("#inventory").innerHTML=save.inventory.length?save.inventory.map(it=>{
+ const equippedIds=new Set(Object.values(save.equipped).filter(x=>x!==null));
+ const card=it=>{
    ensureItemOptions(it);
    const opts=it.options.slice(0,5).map(o=>`<div class="item-opt-line"><b>${itemOptionText(o)}</b><small>${ITEM_OPT_DEFS[o.key]?.desc||""}</small></div>`).join("");
-   const equipped=Object.values(save.equipped).includes(it.id);
+   const equipped=equippedIds.has(it.id);
    return `<div class="inventory-item rarity-${it.rarity}">
     <div class="icon">${SLOT_ICONS[it.slot]}</div>
     <b>${it.name} +${Math.max(0,Math.min(15,Number(it.plus||0)))}</b>
@@ -425,10 +426,14 @@ function renderInventory(){
     <div class="actions">
       <button data-equip="${it.id}">${equipped?"Felszerelve":"Felszerel"}</button>
       <button data-reroll="${it.id}">🎲 Opt forgatás · ${fmt(itemRerollCost(it))} 💰</button>
-      <button data-sell="${it.id}">Elad</button>
+      ${equipped?"":`<button data-sell="${it.id}">Elad</button>`}
     </div>
    </div>`
- }).join(""):'<p class="muted">Az inventory üres.</p>';
+ };
+ const equippedItems=Object.keys(save.equipped).map(slot=>save.inventory.find(it=>it.id===save.equipped[slot])).filter(Boolean);
+ const storedItems=save.inventory.filter(it=>!equippedIds.has(it.id));
+ if($("#equippedInventory"))$("#equippedInventory").innerHTML=equippedItems.length?equippedItems.map(card).join(""):'<p class="muted">Nincs felszerelt tárgy. Nyomd meg az EQUIP BEST gombot!</p>';
+ $("#inventory").innerHTML=storedItems.length?storedItems.map(card).join(""):'<p class="muted">Nincs további tárgy az inventoryban.</p>';
 
  $$("[data-equip]").forEach(b=>b.onclick=()=>{let it=save.inventory.find(x=>x.id==b.dataset.equip);save.equipped[it.slot]=it.id;persist();renderAll();toast("🛡️ Felszerelve: "+it.name)});
  $$("[data-reroll]").forEach(b=>b.onclick=()=>rerollItemOptions(+b.dataset.reroll));
@@ -1010,7 +1015,7 @@ $("#landingRegisterBtn")?.addEventListener("click",()=>openAuth("register"));
 
 
 document.addEventListener("click",e=>{
- const eb=e.target.closest?.("#equipBestV163");if(eb){e.preventDefault();equipBestItems();return}
+ const eb=e.target.closest?.("#equipBestV163, #equipBestInventory");if(eb){e.preventDefault();equipBestItems();return}
  const d=e.target.closest?.("[data-bulk-delete]");if(d){e.preventDefault();deleteInventoryByRarity(d.dataset.bulkDelete);return}
  const s=e.target.closest?.("[data-bulk-sell]");if(s){e.preventDefault();sellInventoryByRarity(s.dataset.bulkSell);return}
 });

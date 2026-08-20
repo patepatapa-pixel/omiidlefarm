@@ -3904,3 +3904,16 @@ body.v202-is-admin .admin-studio-only-v202{
  .v229-fighters{grid-template-columns:1fr!important}
  .v229-vs{padding:2px!important}
 }
+#equippedInventory{
+  padding:12px;
+  border:1px solid rgba(240,190,73,.4);
+  border-radius:14px;
+  background:linear-gradient(180deg,rgba(240,190,73,.08),rgba(0,0,0,.08));
+}
+#equippedInventory .inventory-item{
+  box-shadow:0 0 0 1px rgba(240,190,73,.22),0 10px 26px rgba(0,0,0,.22);
+}
+#equippedInventory [data-equip]{
+  cursor:default;
+  opacity:.8;
+}
