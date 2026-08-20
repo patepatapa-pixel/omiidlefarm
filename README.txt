@@ -184,3 +184,5 @@ V19.5 STABLE ROLLBACK
 - Prestige Aura Shop külön fül megmarad.
 - HP Regen Farm > Alap fejlesztések alatt marad.
 - A későbbi V18/V19 oldal-átrendezések és hibás rejtések nincsenek benne.
+
+V19.6: Paragon / Prestige és Paragon statpontok a Farm oldalról külön Paragon / Prestige fülre kerültek. Karakter státuszhoz nem nyúltunk.

@@ -1505,3 +1505,18 @@ main{width:100%!important;max-width:100%!important}
  .aura-page-counters{grid-template-columns:1fr!important}
  .aura-shop-grid{grid-template-columns:1fr!important}
 }
+
+/* V19.6 - standalone Paragon page */
+#page-paragon{display:none}
+#page-paragon.active{display:block}
+.paragon-standalone-v196{
+  width:min(1180px,calc(100vw - 24px));
+  margin:0 auto;
+  display:grid;
+  gap:10px;
+}
+.paragon-title-v196{padding:14px}
+.paragon-title-v196 h2{margin:3px 0 4px;color:#f0c44e}
+.paragon-title-v196 p{margin:0;color:#94a0ad}
+#page-paragon .character-paragon-panel,
+#page-paragon .character-paragon-stats-panel{display:block!important}

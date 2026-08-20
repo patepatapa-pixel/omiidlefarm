@@ -1522,3 +1522,14 @@ if(document.readyState==="loading"){
  document.addEventListener("DOMContentLoaded",bindAuthButtonsV153);
 }else bindAuthButtonsV153();
 setTimeout(bindAuthButtonsV153,250);
+
+/* V19.6 Paragon separate tab */
+document.addEventListener("click",function(e){
+  const b=e.target.closest?.('[data-tab="paragon"]');
+  if(!b)return;
+  document.querySelectorAll("#gameShell .page").forEach(p=>p.classList.remove("active"));
+  const p=document.getElementById("page-paragon");
+  if(p)p.classList.add("active");
+  document.querySelectorAll("[data-tab]").forEach(x=>x.classList.toggle("active",x===b));
+  if(typeof renderParagon==="function")renderParagon();
+},true);
