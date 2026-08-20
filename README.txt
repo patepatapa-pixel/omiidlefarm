@@ -298,8 +298,3 @@ V21.2
 - Dungeon: Dungeon jegy + Erő + Arany.
 - PvP/Statisztika: Erő + Arany.
 - Minden érték élőben frissül.
-
-V21.3
-- PvP győzelem: az arany mellett érc és esélyes Dungeon token jutalom.
-- Pet reroll: 3 teljesen azonos pet összeolvasztható 1 erősebb változattá (+15% pet bónusz, +1 szint).
-- Képességeknél látszik, hogy 1 pont pontosan hány %-ot ad és mit ad a következő pont.

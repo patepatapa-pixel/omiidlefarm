@@ -2630,37 +2630,3 @@ body.v202-is-admin .admin-studio-only-v202{
 @media(max-width:650px){
   .v212-resource{min-width:calc(50% - 5px);box-sizing:border-box}
 }
-
-/* ================= V21.3 ================= */
-.v213-pvp-rewards,.v213-pet-reroll{
-  margin-top:10px;padding:10px;border:1px solid #39434e;border-radius:9px;
-  background:#080d12
-}
-.v213-reward-title{font-weight:900;color:#f2c451;margin-bottom:7px}
-.v213-reward-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.v213-reward-grid span{padding:7px;border:1px solid #303a45;border-radius:7px;background:#0b1117}
-.v213-reward-grid b,.v213-reward-grid strong{display:block}
-.v213-reward-grid strong{color:#f1c34f;margin-top:2px}
-.v213-pvp-rewards small,.v213-pet-reroll small{display:block;color:#8795a4;margin-top:5px}
-
-.v213-pet-reroll{display:flex;justify-content:space-between;gap:12px;align-items:center}
-.v213-reroll-list{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
-.v213-reroll-list button{
-  border:1px solid #e0ad3f;background:#e6b94e;color:#080a0d;border-radius:7px;
-  padding:7px 10px;font-weight:900;cursor:pointer
-}
-.v213-muted{font-size:10px;color:#8995a1}
-
-.v213-skill-value{
-  display:flex;justify-content:space-between;gap:8px;margin:5px 0 7px;
-  padding:5px 7px;border:1px solid #303a45;border-radius:6px;background:#080d12;
-  font-size:9px
-}
-.v213-skill-value span{color:#aeb9c4}
-.v213-skill-value b{color:#b782ff}
-
-@media(max-width:700px){
- .v213-reward-grid{grid-template-columns:1fr}
- .v213-pet-reroll{display:block}
- .v213-reroll-list{margin-top:8px;justify-content:flex-start}
-}
