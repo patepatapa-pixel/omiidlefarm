@@ -177,21 +177,10 @@ V17.3: prémium 4× speed lecserélve 10× speedre. 1×/2×/3× ingyenes, 10× p
 
 V17.4: Prestige Aura Shop saját felső fülön; HP Regen áthelyezve Farm > Alap fejlesztések alá. V17.3 10x speed és minden korábbi funkció megmaradt.
 
-V18.0
-- Teljes oldal vizuálisan egyszerűsítve és egységesítve.
-- Minden meglévő funkció megmaradt.
-- Vendégként külön információs / kezdőoldal jelenik meg.
-- A kezdőoldalon részletes játékleírás és belépési felület található.
-- Sikeres belépés után automatikusan a Karakter oldal nyílik meg.
-
-V18.1: a duplikált HP Regeneráció és Prestige Aura Shop blokkok eltávolítva. HP Regen csak Farm > Alap fejlesztések alatt, Aura Shop csak a saját felső fülén jelenik meg.
-
-V18.2: Karakter státusz panel megtartva a Karakter fülön. Erő, Sebzés, HP, Védelem, Szerencse, Krit, Drop és Wave továbbra is ott látható és élőben frissül.
-
-V18.3: Karakter státusz szigorúan csak a Karakter fülön látható. Farm, Inventory, Fejlesztés, Aura Shop és minden más fül megnyitásakor eltűnik; nem sticky/fixed és nem követi a navigációt.
-
-V18.4: Karakter státusz, Paragon/Prestige, Paragon statpontok és alsó karakter statok kizárólag a Karakter fülön jelennek meg. Farm/Inventory/Fejlesztés/Petek/Aura Shop/Dungeon/Küldetések/PvP/Shop/Statisztika alatt rejtve vannak.
-
-V18.5: Az AUTOMATA FARM RPG információs blokk és a Felszerelés opciók blokk átkerült az Inventory fülre, és csak ott jelenik meg.
-
-V18.6: Arany/Kristály/Érc/Lélekkő/Dungeon jegy/Szint erőforrás-sáv átkerült a Farm fülre és csak ott jelenik meg.
+V19.5 STABLE ROLLBACK
+- Visszaállítva a V17.4 stabil állapot.
+- A karakteroldal régi, működő dinamikus felszerelés-rendszere visszaállt.
+- 10x Speed megmarad.
+- Prestige Aura Shop külön fül megmarad.
+- HP Regen Farm > Alap fejlesztések alatt marad.
+- A későbbi V18/V19 oldal-átrendezések és hibás rejtések nincsenek benne.
