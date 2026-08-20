@@ -252,3 +252,10 @@ V20.6
 - Dupla kattintás a címsoron visszaállítja az adott ablak alaphelyzetét.
 - Gombok továbbra is normálisan kattinthatók.
 - Mobil/keskeny kijelzőn a mozgatás automatikusan kikapcsol.
+
+V20.7
+- Saját karakter és Felszerelés kezelés teljesen külön, egymástól független mozgatható ablak.
+- Mindkettő külön pozíciót ment a böngészőben.
+- Egyik húzása nem mozgatja a másikat.
+- Dupla kattintás a saját címsorán csak az adott ablakot állítja vissza.
+- Régi közös grid elrendezés többé nem befolyásolja a két ablakot.

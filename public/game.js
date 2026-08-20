@@ -2074,3 +2074,144 @@ document.addEventListener("click",e=>{
     if(page)observer.observe(page,{childList:true,subtree:true});
   });
 })();
+
+/* ================= V20.7 INDEPENDENT CHARACTER WINDOWS ================= */
+(function(){
+  const KEY="omi_v207_independent_window_positions";
+
+  function load(){
+    try{return JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){return {}}
+  }
+  function save(v){
+    try{localStorage.setItem(KEY,JSON.stringify(v))}catch(e){}
+  }
+
+  function ensureCanvas(){
+    const page=document.getElementById("page-character");
+    if(!page)return null;
+
+    let canvas=page.querySelector(":scope > .v207-window-canvas");
+    if(!canvas){
+      canvas=document.createElement("div");
+      canvas.className="v207-window-canvas";
+      page.prepend(canvas);
+    }
+    return canvas;
+  }
+
+  function findCharacter(){
+    const page=document.getElementById("page-character");
+    return page?.querySelector(".v15-character");
+  }
+
+  function findEquipment(){
+    const page=document.getElementById("page-character");
+    return page?.querySelector(".inventory-tools-v163");
+  }
+
+  function makeWindow(el,key,defaultX,defaultY){
+    if(!el)return;
+    const canvas=ensureCanvas();
+    if(!canvas)return;
+
+    if(el.parentNode!==canvas) canvas.appendChild(el);
+
+    el.classList.add("v207-free-window");
+    el.dataset.v207Key=key;
+
+    const p=load()[key]||{x:defaultX,y:defaultY};
+    el.style.setProperty("--v207-x",(Number(p.x)||0)+"px");
+    el.style.setProperty("--v207-y",(Number(p.y)||0)+"px");
+
+    if(el.dataset.v207Ready==="1")return;
+    el.dataset.v207Ready="1";
+
+    let handle = key==="character"
+      ? el.querySelector(".v15-character-top")
+      : el.querySelector(".inventory-tools-head");
+
+    if(!handle) handle=el;
+    handle.classList.add("v207-drag-handle");
+
+    let dragging=false,startX=0,startY=0,baseX=0,baseY=0,pid=null;
+
+    const getNum=name=>parseFloat(getComputedStyle(el).getPropertyValue(name))||0;
+
+    handle.addEventListener("pointerdown",e=>{
+      if(e.button!==0)return;
+      if(e.target.closest("button,input,select,textarea,a"))return;
+      dragging=true;
+      pid=e.pointerId;
+      startX=e.clientX; startY=e.clientY;
+      baseX=getNum("--v207-x"); baseY=getNum("--v207-y");
+      el.classList.add("v207-dragging");
+      try{handle.setPointerCapture(pid)}catch(_){}
+      e.preventDefault();
+    });
+
+    handle.addEventListener("pointermove",e=>{
+      if(!dragging||e.pointerId!==pid)return;
+      let x=baseX+(e.clientX-startX);
+      let y=baseY+(e.clientY-startY);
+
+      // keep at least a piece of the window inside the canvas
+      const c=canvas.getBoundingClientRect();
+      const w=el.offsetWidth, h=el.offsetHeight;
+      x=Math.max(-w+120,Math.min(x,c.width-120));
+      y=Math.max(-40,Math.min(y,c.height-50));
+
+      el.style.setProperty("--v207-x",x+"px");
+      el.style.setProperty("--v207-y",y+"px");
+    });
+
+    function done(){
+      if(!dragging)return;
+      dragging=false;
+      el.classList.remove("v207-dragging");
+      const all=load();
+      all[key]={x:getNum("--v207-x"),y:getNum("--v207-y")};
+      save(all);
+    }
+    handle.addEventListener("pointerup",done);
+    handle.addEventListener("pointercancel",done);
+
+    handle.addEventListener("dblclick",e=>{
+      if(e.target.closest("button,input,select,textarea,a"))return;
+      const all=load();
+      delete all[key];
+      save(all);
+      el.style.setProperty("--v207-x",defaultX+"px");
+      el.style.setProperty("--v207-y",defaultY+"px");
+    });
+  }
+
+  function setup(){
+    const canvas=ensureCanvas();
+    if(!canvas)return;
+
+    // default positions are independent from each other
+    makeWindow(findCharacter(),"character",20,16);
+    makeWindow(findEquipment(),"equipment",680,70);
+
+    // Hide obsolete layout wrappers so they cannot affect positioning anymore.
+    document.querySelectorAll("#page-character .v200-character-inventory-layout,#page-character .v205-character-equipment-shell").forEach(x=>{
+      if(!x.contains(findCharacter()) && !x.contains(findEquipment())) x.classList.add("v207-obsolete-layout");
+    });
+  }
+
+  window.v207Setup=setup;
+  window.addEventListener("load",()=>{setTimeout(setup,80);setTimeout(setup,350)});
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.('[data-tab="character"]')) setTimeout(setup,60);
+  },true);
+
+  const obs=new MutationObserver(()=>{
+    if(document.getElementById("page-character")?.classList.contains("active")){
+      requestAnimationFrame(setup);
+    }
+  });
+  window.addEventListener("load",()=>{
+    const p=document.getElementById("page-character");
+    if(p)obs.observe(p,{childList:true,subtree:true});
+  });
+})();
