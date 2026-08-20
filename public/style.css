@@ -2842,3 +2842,22 @@ body.v202-is-admin .admin-studio-only-v202{
   .v216-switch{margin-top:8px!important;width:max-content!important}
   #v216AutoDeleteStatus{margin-left:0!important}
 }
+
+/* V21.7 — Silent autosave: saving continues, visual indicator never jumps/flickers */
+#saveStatus,
+#cloudSaveStatus,
+.save-status,
+.cloud-save-status,
+.saving-status,
+[data-save-status],
+[data-cloud-save-status] {
+  display:none !important;
+  visibility:hidden !important;
+  width:0 !important;
+  min-width:0 !important;
+  max-width:0 !important;
+  padding:0 !important;
+  margin:0 !important;
+  border:0 !important;
+  overflow:hidden !important;
+}

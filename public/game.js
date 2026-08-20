@@ -3297,3 +3297,31 @@ document.addEventListener("click",e=>{
   window.v216AutoDeleteCleanup=cleanup;
   window.v216AutoDeleteBind=bind;
 })();
+
+/* ================= V21.7 SILENT AUTOSAVE UI ================= */
+(function(){
+  function hideSaveIndicators(){
+    document.querySelectorAll(
+      '#saveStatus,#cloudSaveStatus,.save-status,.cloud-save-status,.saving-status,[data-save-status],[data-cloud-save-status]'
+    ).forEach(el=>{
+      el.style.setProperty('display','none','important');
+    });
+
+    document.querySelectorAll('span,small,div').forEach(el=>{
+      if(el.children.length) return;
+      const t=(el.textContent||'').trim();
+      if(/^(☁️\s*)?(Mentés\.{0,3}|Mentés…|Mentve|Felhőbe mentve)$/i.test(t)){
+        // Avoid hiding buttons/controls or large containers.
+        if(!el.closest('button,a,input,label')){
+          el.style.setProperty('display','none','important');
+        }
+      }
+    });
+  }
+
+  window.addEventListener('load',()=>{
+    hideSaveIndicators();
+    const obs=new MutationObserver(hideSaveIndicators);
+    obs.observe(document.body,{subtree:true,childList:true,characterData:true});
+  });
+})();

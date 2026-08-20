@@ -331,3 +331,8 @@ V21.6
 - Zárolt/kedvenc tárgyak külön védhetők.
 - Automatikusan fut, így az inventory nem telik meg a nem kívánt dropokkal.
 - Van külön „Törlés most” gomb is.
+
+V21.7
+- Az automatikus mentés továbbra is működik.
+- A „Mentés...” / „Mentve” állapotjelző el lett rejtve.
+- Emiatt a felső menü nem ugrál és nem változtat szélességet minden mentéskor.
