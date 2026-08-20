@@ -156,3 +156,5 @@ V16.3: Equip Best; tömeges rarity törlés/eladás; speed panel biztosan Farm f
 V16.4: karakter gear ikonok újraigazítva; ritkaság szerinti helyes keretek: Normal szürke, Rare kék, Epic magenta, Mythic lila, Legendary arany/sárga.
 
 V16.6: új saját karakter/felszerelés grafika beépítve; régi lila sárkány háttér eltávolítva; Mythic=lila, Legendary=arany rarity keretek; slotok újraigazítva.
+
+V16.7: karakter nézet kitisztítva; a kép mögötti/alatti duplikált felszerelés ikonok eltávolítva. Inventory, Equip Best, rarity és speed rendszer megmaradt.

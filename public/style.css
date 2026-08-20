@@ -901,3 +901,31 @@ body.is-authenticated #guestLanding{display:none!important}
  .v15-armor,.v15-gloves{top:220px!important}
  .v15-boots,.v15-ring{top:390px!important}
 }
+
+/* V16.7 CLEAN CHARACTER VIEW
+   The character artwork is the only visual in the center.
+   Old floating equipment cards are hidden here to prevent duplicated icons. */
+.v15-character-stage .v15-gear{
+  display:none!important;
+}
+.v166-character-art{
+  inset:0!important;
+  border-radius:12px!important;
+}
+.v166-character-art>img{
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  object-position:center top!important;
+}
+.v166-character-art:after{
+  background:linear-gradient(180deg,transparent 72%,rgba(2,3,5,.38) 88%,rgba(2,3,5,.78))!important;
+}
+.hero-equipped-label{
+  bottom:64px!important;
+  z-index:10!important;
+  max-width:82%!important;
+}
+.v15-character-stage .v15-bottom-stats{
+  z-index:12!important;
+}
