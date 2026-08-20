@@ -2185,3 +2185,156 @@ body.v202-is-admin .admin-studio-only-v202{
     max-width:none!important;
   }
 }
+
+/* ================= V20.8 COMPLETE CHARACTER WINDOW ================= */
+#page-character{
+  position:relative!important;
+  min-height:820px!important;
+}
+
+#page-character>.v208-window-canvas{
+  position:relative!important;
+  width:min(1500px,calc(100vw - 30px))!important;
+  min-height:790px!important;
+  margin:0 auto!important;
+  overflow:visible!important;
+}
+
+#page-character .v208-free-window{
+  position:absolute!important;
+  left:0!important;
+  top:0!important;
+  margin:0!important;
+  transform:translate(var(--v208-x),var(--v208-y))!important;
+  z-index:30!important;
+  will-change:transform!important;
+}
+
+#page-character .v208-free-window.v208-dragging{
+  z-index:999!important;
+  box-shadow:0 22px 60px rgba(0,0,0,.75),0 0 0 1px rgba(242,193,70,.75)!important;
+}
+
+#page-character .v208-drag-handle{
+  cursor:grab!important;
+  user-select:none!important;
+  touch-action:none!important;
+}
+#page-character .v208-dragging .v208-drag-handle{
+  cursor:grabbing!important;
+}
+
+/* Complete Character window */
+#page-character .v208-character-window{
+  width:650px!important;
+  min-width:650px!important;
+  max-width:650px!important;
+  padding:12px!important;
+  border:1px solid #8a6626!important;
+  border-radius:12px!important;
+  background:linear-gradient(145deg,#0c1117,#070a0f)!important;
+  box-sizing:border-box!important;
+}
+
+#page-character .v208-character-header{
+  display:flex!important;
+  justify-content:space-between!important;
+  align-items:center!important;
+  gap:14px!important;
+  margin-bottom:10px!important;
+}
+
+#page-character .v208-character-header h2{
+  margin:0 0 4px!important;
+  font-size:18px!important;
+}
+
+#page-character .v208-character-header small{
+  color:#8f9ba7!important;
+}
+
+#page-character .v208-power-box{
+  min-width:118px!important;
+  text-align:center!important;
+  padding:8px 12px!important;
+  border:1px solid #926b25!important;
+  border-radius:9px!important;
+  background:#080b10!important;
+}
+#page-character .v208-power-box small,
+#page-character .v208-power-box b{
+  display:block!important;
+}
+#page-character .v208-power-box b{
+  margin-top:3px!important;
+  color:#f0c24c!important;
+  font-size:22px!important;
+}
+
+#page-character .v208-character-body{
+  position:relative!important;
+  display:block!important;
+}
+
+#page-character .v208-character-body .v15-character-stage{
+  display:block!important;
+  position:relative!important;
+  width:100%!important;
+  min-height:610px!important;
+  height:610px!important;
+  overflow:hidden!important;
+}
+
+#page-character .v208-character-body .v168-character-system,
+#page-character .v208-character-body .v168-avatar,
+#page-character .v208-character-body .v168-slots{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+
+#page-character .v208-character-body .v15-bottom-stats{
+  position:relative!important;
+  left:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  margin-top:8px!important;
+  width:100%!important;
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:7px!important;
+}
+
+/* Equipment stays a separate independent window */
+#page-character .inventory-tools-v163.v208-free-window{
+  width:560px!important;
+  min-width:560px!important;
+  max-width:560px!important;
+}
+
+/* Remove ghost/old shells that caused the clipping seen in screenshot */
+#page-character .v208-hide-old-character-shell,
+#page-character .v208-obsolete{
+  display:none!important;
+}
+
+/* Disable old V20.7 positioning */
+#page-character .v207-free-window{
+  position:relative!important;
+  transform:none!important;
+}
+
+@media(max-width:1100px){
+  #page-character>.v208-window-canvas{
+    min-height:0!important;
+    display:grid!important;
+    gap:12px!important;
+  }
+  #page-character .v208-free-window{
+    position:relative!important;
+    transform:none!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+  }
+}

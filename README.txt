@@ -259,3 +259,10 @@ V20.7
 - Egyik húzása nem mozgatja a másikat.
 - Dupla kattintás a saját címsorán csak az adott ablakot állítja vissza.
 - Régi közös grid elrendezés többé nem befolyásolja a két ablakot.
+
+V20.8
+- Javítva a V20.7 karakterablak szétesése.
+- A teljes Saját karakter tartalom egyetlen mozgatható ablakba került:
+  karakterfigura, felszerelés slotok, felszerelt tárgy összegzés, Aura/Pet/Wave/Paragon.
+- Felszerelés kezelés továbbra is külön, függetlenül mozgatható ablak.
+- Régi V20.7 wrapper/pozicionálás kikapcsolva, így nem vágja le a karaktert.

@@ -2215,3 +2215,194 @@ document.addEventListener("click",e=>{
     if(p)obs.observe(p,{childList:true,subtree:true});
   });
 })();
+
+/* ================= V20.8 COMPLETE CHARACTER WINDOW FIX ================= */
+(function(){
+  const KEY="omi_v208_window_positions";
+
+  function loadPos(){
+    try{return JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){return {}}
+  }
+  function savePos(v){
+    try{localStorage.setItem(KEY,JSON.stringify(v))}catch(e){}
+  }
+
+  function ensureCanvas(){
+    const page=document.getElementById("page-character");
+    if(!page)return null;
+    let canvas=page.querySelector(":scope > .v208-window-canvas");
+    if(!canvas){
+      canvas=document.createElement("div");
+      canvas.className="v208-window-canvas";
+      page.prepend(canvas);
+    }
+    return canvas;
+  }
+
+  function buildCompleteCharacterWindow(){
+    const page=document.getElementById("page-character");
+    const canvas=ensureCanvas();
+    if(!page||!canvas)return null;
+
+    let win=canvas.querySelector(".v208-character-window");
+    if(!win){
+      win=document.createElement("section");
+      win.className="card v208-character-window";
+
+      const header=document.createElement("div");
+      header.className="v208-character-header";
+      header.innerHTML=`
+        <div>
+          <h2>⚔️ Saját karakter</h2>
+          <small>Felszereld a tárgyakat, aurákat és peteket, hogy egyre erősebb legyél!</small>
+        </div>
+        <div class="v208-power-box">
+          <small>ÖSSZERŐ</small>
+          <b id="v208PowerMirror">0</b>
+        </div>`;
+      win.appendChild(header);
+
+      const body=document.createElement("div");
+      body.className="v208-character-body";
+      win.appendChild(body);
+
+      canvas.appendChild(win);
+    }
+
+    const body=win.querySelector(".v208-character-body");
+
+    // Move the COMPLETE character visual stage into this window.
+    const stage=
+      page.querySelector(".v15-character-stage") ||
+      page.querySelector(".v168-character-system")?.parentElement ||
+      page.querySelector(".character-stage");
+
+    if(stage && !win.contains(stage)){
+      body.appendChild(stage);
+    }
+
+    // Move bottom mini stats with the character.
+    const bottom=page.querySelector(".v15-bottom-stats");
+    if(bottom && !win.contains(bottom)){
+      body.appendChild(bottom);
+    }
+
+    // Hide old character card shell if it became empty/duplicate.
+    page.querySelectorAll(".v15-character").forEach(old=>{
+      if(old!==win){
+        const hasStage=old.querySelector(".v15-character-stage,.v168-character-system");
+        if(!hasStage) old.classList.add("v208-hide-old-character-shell");
+      }
+    });
+
+    return win;
+  }
+
+  function getEquipment(){
+    return document.querySelector("#page-character .inventory-tools-v163");
+  }
+
+  function makeDraggable(el,key,dx,dy,handleSelector){
+    if(!el)return;
+    const canvas=ensureCanvas();
+    if(!canvas)return;
+
+    if(el.parentNode!==canvas) canvas.appendChild(el);
+    el.classList.add("v208-free-window");
+
+    if(!el.dataset.v208Init){
+      el.dataset.v208Init="1";
+      const saved=loadPos()[key]||{x:dx,y:dy};
+      el.style.setProperty("--v208-x",(Number(saved.x)||0)+"px");
+      el.style.setProperty("--v208-y",(Number(saved.y)||0)+"px");
+
+      let handle=el.querySelector(handleSelector)||el;
+      handle.classList.add("v208-drag-handle");
+
+      let dragging=false,pid=null,sx=0,sy=0,bx=0,by=0;
+      const num=n=>parseFloat(getComputedStyle(el).getPropertyValue(n))||0;
+
+      handle.addEventListener("pointerdown",e=>{
+        if(e.button!==0)return;
+        if(e.target.closest("button,input,select,textarea,a"))return;
+        dragging=true; pid=e.pointerId;
+        sx=e.clientX; sy=e.clientY;
+        bx=num("--v208-x"); by=num("--v208-y");
+        el.classList.add("v208-dragging");
+        try{handle.setPointerCapture(pid)}catch(_){}
+        e.preventDefault();
+      });
+
+      handle.addEventListener("pointermove",e=>{
+        if(!dragging||e.pointerId!==pid)return;
+        const rect=canvas.getBoundingClientRect();
+        const w=el.offsetWidth, h=el.offsetHeight;
+        let x=bx+(e.clientX-sx), y=by+(e.clientY-sy);
+        x=Math.max(-w+140,Math.min(x,rect.width-140));
+        y=Math.max(-30,Math.min(y,rect.height-60));
+        el.style.setProperty("--v208-x",x+"px");
+        el.style.setProperty("--v208-y",y+"px");
+      });
+
+      const done=()=>{
+        if(!dragging)return;
+        dragging=false;
+        el.classList.remove("v208-dragging");
+        const all=loadPos();
+        all[key]={x:num("--v208-x"),y:num("--v208-y")};
+        savePos(all);
+      };
+      handle.addEventListener("pointerup",done);
+      handle.addEventListener("pointercancel",done);
+
+      handle.addEventListener("dblclick",e=>{
+        if(e.target.closest("button,input,select,textarea,a"))return;
+        const all=loadPos(); delete all[key]; savePos(all);
+        el.style.setProperty("--v208-x",dx+"px");
+        el.style.setProperty("--v208-y",dy+"px");
+      });
+    }
+  }
+
+  function mirrorPower(){
+    const src=
+      document.querySelector("#v15Power") ||
+      document.querySelector(".v15-power-box b") ||
+      document.querySelector("[data-role='power']");
+    const dst=document.getElementById("v208PowerMirror");
+    if(src&&dst)dst.textContent=src.textContent;
+  }
+
+  function setup(){
+    const page=document.getElementById("page-character");
+    if(!page)return;
+    const charWin=buildCompleteCharacterWindow();
+    const eq=getEquipment();
+
+    makeDraggable(charWin,"character",40,20,".v208-character-header");
+    makeDraggable(eq,"equipment",720,55,".inventory-tools-head");
+
+    // Hide old V20.7 floating shells to stop clipping/ghost layout.
+    page.querySelectorAll(".v207-window-canvas,.v205-character-equipment-shell,.v200-character-inventory-layout").forEach(old=>{
+      if(!old.contains(charWin) && !old.contains(eq)) old.classList.add("v208-obsolete");
+    });
+
+    mirrorPower();
+    if(typeof renderDynamicEquipment==="function") renderDynamicEquipment();
+  }
+
+  window.v208Setup=setup;
+  window.addEventListener("load",()=>{setTimeout(setup,80);setTimeout(setup,400)});
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.('[data-tab="character"]')){
+      setTimeout(setup,60);
+      setTimeout(mirrorPower,120);
+    }
+  },true);
+
+  setInterval(()=>{
+    if(document.getElementById("page-character")?.classList.contains("active")){
+      mirrorPower();
+    }
+  },800);
+})();
