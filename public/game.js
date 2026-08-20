@@ -440,8 +440,8 @@ function renderUpgrade(){
 }
 function renderSkills(){
  $("#skillPoints").textContent=save.skillPoints;
- $("#skills").innerHTML=SKILLS.map(s=>`<div class="skill-card"><div style="font-size:28px">${s.icon}</div><h3>${s.name}</h3><small>${s.desc}</small><p>Lv.${fmt(save.skills[s.key])} · ∞</p><button data-skill="${s.key}" ${save.skillPoints<=0?"disabled":""}>+1 pont</button></div>`).join("");
- $$("[data-skill]").forEach(b=>b.onclick=()=>{let sk=SKILLS.find(x=>x.key===b.dataset.skill);if(save.skillPoints<=0)return;save.skillPoints--;save.skills[sk.key]++;persist();renderAll()})
+ $("#skills").innerHTML=SKILLS.map(s=>`<div class="skill-card"><div style="font-size:28px">${s.icon}</div><h3>${s.name}</h3><small>${s.desc}</small><p>Lv.${fmt(save.skills[s.key])} · ∞</p><div class="multi-point-actions"><button data-skill="${s.key}" data-amount="1" ${save.skillPoints<=0?"disabled":""}>+1</button><button data-skill="${s.key}" data-amount="5" ${save.skillPoints<=0?"disabled":""}>+5</button><button data-skill="${s.key}" data-amount="10" ${save.skillPoints<=0?"disabled":""}>+10</button><button data-skill="${s.key}" data-amount="max" ${save.skillPoints<=0?"disabled":""}>MAX</button></div></div>`).join("");
+ $$("[data-skill]").forEach(b=>b.onclick=()=>{let sk=SKILLS.find(x=>x.key===b.dataset.skill);if(save.skillPoints<=0)return;let raw=b.dataset.amount;let amount=raw==="max"?save.skillPoints:Math.min(save.skillPoints,Math.max(1,Number(raw)||1));save.skillPoints-=amount;save.skills[sk.key]+=amount;persist();renderAll()})
 }
 function renderPets(){
  $("#pets").innerHTML=save.pets.length?save.pets.map((p,i)=>`<div class="pet-card rarity-${p.rarity} ${save.activePet===i?"active":""}"><div style="font-size:30px">${p.icon}</div><h3>${p.name}</h3><small>${p.bonus==="damage"?"Sebzés":p.bonus==="gold"?"Arany":p.bonus==="drop"?"Drop":p.bonus==="crit"?"Krit":"Minden"} +${(p.value*100).toFixed(0)}%</small><button data-pet="${i}">${save.activePet===i?"Aktív":"Aktiválás"}</button></div>`).join(""):'<p class="muted">Még nincs peted.</p>';
@@ -577,8 +577,8 @@ function renderParagon(){
  ];
  const ps=$("#paragonStats");
  if(ps){
-   ps.innerHTML=stats.map(x=>`<div class="paragon-row"><div><b>${x[1]}</b><small>${x[2]} · Pont: ${save.paragonStats[x[0]]}</small></div><button data-paragon="${x[0]}" ${save.paragonPoints<=0?"disabled":""}>+1</button></div>`).join("");
-   $$("[data-paragon]").forEach(b=>b.onclick=()=>{if(save.paragonPoints<=0)return;save.paragonPoints--;save.paragonStats[b.dataset.paragon]++;persist();renderAll()});
+   ps.innerHTML=stats.map(x=>`<div class="paragon-row"><div><b>${x[1]}</b><small>${x[2]} · Pont: ${save.paragonStats[x[0]]}</small></div><div class="multi-point-actions"><button data-paragon="${x[0]}" data-amount="1" ${save.paragonPoints<=0?"disabled":""}>+1</button><button data-paragon="${x[0]}" data-amount="5" ${save.paragonPoints<=0?"disabled":""}>+5</button><button data-paragon="${x[0]}" data-amount="10" ${save.paragonPoints<=0?"disabled":""}>+10</button><button data-paragon="${x[0]}" data-amount="max" ${save.paragonPoints<=0?"disabled":""}>MAX</button></div></div>`).join("");
+   $$("[data-paragon]").forEach(b=>b.onclick=()=>{if(save.paragonPoints<=0)return;let raw=b.dataset.amount;let amount=raw==="max"?save.paragonPoints:Math.min(save.paragonPoints,Math.max(1,Number(raw)||1));save.paragonPoints-=amount;save.paragonStats[b.dataset.paragon]+=amount;persist();renderAll()});
  }
 
  const shop=$("#auraShop");

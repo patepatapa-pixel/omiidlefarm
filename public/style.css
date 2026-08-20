@@ -3593,3 +3593,9 @@ body.v202-is-admin .admin-studio-only-v202{
 @media(max-width:560px){
  .v222-editor-grid,.v222-premium-row{grid-template-columns:1fr}
 }
+
+/* V22.3 multi point spend */
+.multi-point-actions{display:grid!important;grid-template-columns:repeat(4,1fr)!important;gap:5px!important;width:100%!important;margin-top:7px!important}
+.multi-point-actions button{min-width:0!important;padding:8px 4px!important;font-size:10px!important;font-weight:900!important}
+.paragon-row .multi-point-actions{width:min(330px,100%)!important;margin-top:0!important}
+@media(max-width:600px){.multi-point-actions{grid-template-columns:repeat(2,1fr)!important}}

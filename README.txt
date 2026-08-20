@@ -392,3 +392,8 @@ V22.2
 - Admin beállíthatja az aktív 1x/2x/3x/10x sebességet.
 - Gyors Full HP gomb.
 - Minden admin módosítás szerveroldali auth+admin védelemmel fut.
+
+V22.3
+- Képességpontoknál +1 / +5 / +10 / MAX egyszerre.
+- Paragon statpontoknál +1 / +5 / +10 / MAX egyszerre.
+- A rendszer automatikusan csak annyi pontot költ, amennyi rendelkezésre áll.
