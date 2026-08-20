@@ -374,6 +374,61 @@
 
 <section class="page" id="page-inventory">
 
+<section class="card v216-auto-delete-panel">
+  <div class="v216-auto-delete-head">
+    <div>
+      <h3>🗑️ Automata item törlés</h3>
+      <small>Saját beállítás. A rendszer automatikusan törli a kiválasztott gyengébb tárgyakat, így nem telik meg az inventory.</small>
+    </div>
+    <label class="v216-switch">
+      <input type="checkbox" id="v216AutoDeleteEnabled">
+      <span>Bekapcsolva</span>
+    </label>
+  </div>
+
+  <div class="v216-grid">
+    <div class="v216-box">
+      <b>Rarity törlés</b>
+      <label><input type="checkbox" data-v216-rarity="normal"> Common / Normal</label>
+      <label><input type="checkbox" data-v216-rarity="rare"> Rare</label>
+      <label><input type="checkbox" data-v216-rarity="epic"> Epic</label>
+      <label><input type="checkbox" data-v216-rarity="mythic"> Mythic</label>
+      <label><input type="checkbox" data-v216-rarity="legendary"> Legendary</label>
+    </div>
+
+    <div class="v216-box">
+      <b>Erősség szűrő</b>
+      <label>Csak ez alatt töröljön:
+        <input type="number" id="v216MaxPowerDelete" min="0" step="1" value="0">
+      </label>
+      <small>0 = nincs erősség korlát. Példa: 500 → csak az 500 alatti, kijelölt rarity tárgyakat törli.</small>
+    </div>
+
+    <div class="v216-box">
+      <b>+ szint védelem</b>
+      <label>+ szinttől ne töröljön:
+        <input type="number" id="v216ProtectPlus" min="0" max="15" step="1" value="1">
+      </label>
+      <small>Példa: 5 → +5 vagy magasabb tárgyat soha nem töröl.</small>
+    </div>
+
+    <div class="v216-box">
+      <b>Biztonság</b>
+      <label><input type="checkbox" id="v216ProtectEquipped" checked disabled> Felszerelt tárgyak védve</label>
+      <label><input type="checkbox" id="v216ProtectLocked" checked> Zárolt / kedvenc tárgyak védve</label>
+      <small>A felszerelt tárgyakat az automata törlés soha nem törli.</small>
+    </div>
+  </div>
+
+  <div class="v216-actions">
+    <button type="button" id="v216SaveAutoDelete">💾 Beállítás mentése</button>
+    <button type="button" id="v216RunAutoDelete">🧹 Törlés most</button>
+    <span id="v216AutoDeleteStatus">Automata törlés: kikapcsolva</span>
+  </div>
+</section>
+
+
+
 <div class="v212-context-bar" data-context-bar data-context-page="page-inventory">
   <div class="v212-resource" data-res="gold"><span>💰 Arany</span><b data-val="gold">0</b></div>
   <div class="v212-resource" data-res="gems"><span>💎 Gyémánt</span><b data-val="gems">0</b></div>

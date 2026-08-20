@@ -2759,3 +2759,86 @@ body.v202-is-admin .admin-studio-only-v202{
    width:min(560px,calc(100vw - 32px))!important;min-width:0!important
  }
 }
+
+/* ================= V21.6 AUTO DELETE INVENTORY ================= */
+.v216-auto-delete-panel{
+  margin:0 auto 12px!important;
+  width:min(1150px,100%)!important;
+  border-color:#6d4f22!important;
+}
+.v216-auto-delete-head{
+  display:flex!important;
+  justify-content:space-between!important;
+  align-items:flex-start!important;
+  gap:12px!important;
+  margin-bottom:10px!important;
+}
+.v216-auto-delete-head h3{margin:0 0 4px!important}
+.v216-auto-delete-head small{color:#8f9aa6!important}
+.v216-switch{
+  display:flex!important;
+  align-items:center!important;
+  gap:6px!important;
+  padding:7px 10px!important;
+  border:1px solid #46515d!important;
+  border-radius:8px!important;
+  background:#080d12!important;
+  white-space:nowrap!important;
+}
+.v216-grid{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:8px!important;
+}
+.v216-box{
+  padding:9px!important;
+  border:1px solid #303a45!important;
+  border-radius:8px!important;
+  background:#080d12!important;
+}
+.v216-box>b{display:block!important;color:#f0c24f!important;margin-bottom:7px!important}
+.v216-box label{
+  display:block!important;
+  margin:5px 0!important;
+  font-size:10px!important;
+}
+.v216-box input[type="number"]{
+  display:block!important;
+  width:100%!important;
+  margin-top:5px!important;
+  box-sizing:border-box!important;
+}
+.v216-box small{display:block!important;color:#7f8b97!important;line-height:1.35!important}
+.v216-actions{
+  display:flex!important;
+  align-items:center!important;
+  gap:8px!important;
+  margin-top:10px!important;
+  flex-wrap:wrap!important;
+}
+.v216-actions button{
+  min-height:31px!important;
+  padding:6px 10px!important;
+}
+#v216AutoDeleteStatus{
+  margin-left:auto!important;
+  padding:6px 9px!important;
+  border:1px solid #414c58!important;
+  border-radius:7px!important;
+  background:#080d12!important;
+  color:#9ca8b5!important;
+  font-size:9px!important;
+}
+#v216AutoDeleteStatus.active{
+  border-color:#4f8b5d!important;
+  color:#6ee28b!important;
+}
+@media(max-width:950px){
+  .v216-grid{grid-template-columns:1fr 1fr!important}
+}
+@media(max-width:600px){
+  .v216-grid{grid-template-columns:1fr!important}
+  .v216-auto-delete-head{display:block!important}
+  .v216-switch{margin-top:8px!important;width:max-content!important}
+  #v216AutoDeleteStatus{margin-left:0!important}
+}

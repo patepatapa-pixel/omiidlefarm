@@ -320,3 +320,14 @@ V21.5
 - Foglalt játékosnév esetén 409 + érthető magyar üzenet.
 - Egyidejű regisztráció sem dob nyers adatbázis hibát.
 - ADMIN_USERNAME ütközésnél a meglévő felhasználó admin szerepet kap, nem próbál duplikált sort beszúrni.
+
+V21.6
+- Személyes Automata Item Törlés az Inventory oldalon.
+- Minden játékos saját maga kapcsolhatja be/ki.
+- Rarity külön választható: Common/Normal, Rare, Epic, Mythic, Legendary.
+- Beállítható maximális item erősség: csak az ez alatti tárgyak törlődnek.
+- Beállítható + szint védelem: pl. +5 felett soha ne töröljön.
+- Felszerelt tárgyak mindig védettek.
+- Zárolt/kedvenc tárgyak külön védhetők.
+- Automatikusan fut, így az inventory nem telik meg a nem kívánt dropokkal.
+- Van külön „Törlés most” gomb is.

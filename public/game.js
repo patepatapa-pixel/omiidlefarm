@@ -3067,3 +3067,233 @@ document.addEventListener("click",e=>{
     if(e.target.closest?.('[data-tab="character"]'))setTimeout(fix,80);
   },true);
 })();
+
+/* ================= V21.6 PERSONAL AUTO ITEM DELETE ================= */
+(function(){
+  const DEFAULTS={
+    enabled:false,
+    rarities:{normal:false,rare:false,epic:false,mythic:false,legendary:false},
+    maxPower:0,
+    protectPlus:1,
+    protectLocked:true
+  };
+  let cleanupLock=false;
+  let lastRemoved=0;
+
+  function cfg(){
+    const s=(typeof save!=="undefined"&&save)?save:null;
+    if(!s)return JSON.parse(JSON.stringify(DEFAULTS));
+    if(!s.autoDeleteSettings){
+      s.autoDeleteSettings=JSON.parse(JSON.stringify(DEFAULTS));
+    }
+    s.autoDeleteSettings.rarities={
+      ...DEFAULTS.rarities,
+      ...(s.autoDeleteSettings.rarities||{})
+    };
+    return s.autoDeleteSettings;
+  }
+
+  function normRarity(r){
+    r=String(r||"normal").toLowerCase();
+    if(r==="common")r="normal";
+    if(r==="mistic"||r==="mystic")r="mythic";
+    return ["normal","rare","epic","mythic","legendary"].includes(r)?r:"normal";
+  }
+
+  function inventoryArray(){
+    const s=(typeof save!=="undefined"&&save)?save:null;
+    if(!s)return null;
+    const candidates=["inventory","items","bag","equipmentInventory","itemInventory"];
+    for(const k of candidates){
+      if(Array.isArray(s[k]))return s[k];
+    }
+    // fallback: find an array that looks like items
+    for(const [k,v] of Object.entries(s)){
+      if(Array.isArray(v) && v.length && v.some(x=>x && typeof x==="object" && ("rarity" in x || "slot" in x || "plus" in x))){
+        if(!/pets?|quests?|logs?|history/i.test(k))return v;
+      }
+    }
+    return null;
+  }
+
+  function equippedRefs(){
+    const s=(typeof save!=="undefined"&&save)?save:null;
+    const refs=new Set();
+    if(!s)return refs;
+    const eqCandidates=[s.equipment,s.equipped,s.equip];
+    eqCandidates.forEach(eq=>{
+      if(!eq||typeof eq!=="object")return;
+      Object.values(eq).forEach(v=>{
+        if(!v)return;
+        if(typeof v==="object"){
+          if(v.id!=null)refs.add("id:"+v.id);
+          if(v.uid!=null)refs.add("uid:"+v.uid);
+          refs.add(v);
+        }else{
+          refs.add("id:"+v);
+        }
+      });
+    });
+    return refs;
+  }
+
+  function isEquipped(item,refs){
+    if(!item)return false;
+    if(item.equipped===true || item.isEquipped===true)return true;
+    if(refs.has(item))return true;
+    if(item.id!=null && refs.has("id:"+item.id))return true;
+    if(item.uid!=null && refs.has("uid:"+item.uid))return true;
+    return false;
+  }
+
+  function itemPower(item){
+    if(!item)return 0;
+    const direct=["power","score","strength","itemPower","combatPower"];
+    for(const k of direct){
+      if(Number.isFinite(Number(item[k])))return Number(item[k]);
+    }
+    // approximate score from common item fields when no explicit score exists
+    let n=0;
+    n += Number(item.atk||item.attack||item.damage||0);
+    n += Number(item.def||item.defense||0);
+    n += Number(item.hp||item.maxHp||0)/10;
+    n += Number(item.plus||0)*20;
+    if(Array.isArray(item.options)){
+      item.options.forEach(o=>{ n += Number(o?.value||o?.amount||0); });
+    }
+    return Math.floor(n);
+  }
+
+  function shouldDelete(item,settings,refs){
+    if(!item||typeof item!=="object")return false;
+    if(isEquipped(item,refs))return false;
+    if(settings.protectLocked && (item.locked===true || item.favorite===true || item.favourite===true || item.isLocked===true))return false;
+
+    const rarity=normRarity(item.rarity);
+    if(!settings.rarities[rarity])return false;
+
+    const plus=Number(item.plus||0);
+    const protectPlus=Math.max(0,Number(settings.protectPlus||0));
+    if(protectPlus>0 && plus>=protectPlus)return false;
+
+    const maxPower=Math.max(0,Number(settings.maxPower||0));
+    if(maxPower>0 && itemPower(item)>=maxPower)return false;
+
+    return true;
+  }
+
+  function cleanup(showToast=false){
+    if(cleanupLock)return 0;
+    const s=(typeof save!=="undefined"&&save)?save:null;
+    const settings=cfg();
+    const inv=inventoryArray();
+    if(!s||!inv||!settings.enabled)return 0;
+
+    cleanupLock=true;
+    try{
+      const refs=equippedRefs();
+      let removed=0;
+      for(let i=inv.length-1;i>=0;i--){
+        if(shouldDelete(inv[i],settings,refs)){
+          inv.splice(i,1);
+          removed++;
+        }
+      }
+      if(removed>0){
+        lastRemoved=removed;
+        if(typeof persist==="function")persist();
+        if(typeof renderInventory==="function")renderInventory();
+        if(typeof v212RenderContextBars==="function")v212RenderContextBars();
+        if(showToast && typeof toast==="function")toast(`🗑️ Automata törlés: ${removed} tárgy törölve.`);
+      }else if(showToast && typeof toast==="function"){
+        toast("🧹 Nincs törölhető tárgy a beállítások alapján.");
+      }
+      updateStatus();
+      return removed;
+    }finally{
+      cleanupLock=false;
+    }
+  }
+
+  function loadUI(){
+    const settings=cfg();
+    const enabled=document.getElementById("v216AutoDeleteEnabled");
+    if(!enabled)return;
+    enabled.checked=Boolean(settings.enabled);
+    document.querySelectorAll("[data-v216-rarity]").forEach(el=>{
+      el.checked=Boolean(settings.rarities[normRarity(el.dataset.v216Rarity)]);
+    });
+    const mp=document.getElementById("v216MaxPowerDelete");
+    if(mp)mp.value=Number(settings.maxPower||0);
+    const pp=document.getElementById("v216ProtectPlus");
+    if(pp)pp.value=Number(settings.protectPlus??1);
+    const lock=document.getElementById("v216ProtectLocked");
+    if(lock)lock.checked=settings.protectLocked!==false;
+    updateStatus();
+  }
+
+  function saveUI(){
+    const settings=cfg();
+    settings.enabled=Boolean(document.getElementById("v216AutoDeleteEnabled")?.checked);
+    document.querySelectorAll("[data-v216-rarity]").forEach(el=>{
+      settings.rarities[normRarity(el.dataset.v216Rarity)]=Boolean(el.checked);
+    });
+    settings.maxPower=Math.max(0,Number(document.getElementById("v216MaxPowerDelete")?.value||0));
+    settings.protectPlus=Math.max(0,Math.min(15,Number(document.getElementById("v216ProtectPlus")?.value||0)));
+    settings.protectLocked=Boolean(document.getElementById("v216ProtectLocked")?.checked);
+    if(typeof persist==="function")persist();
+    updateStatus();
+    if(typeof toast==="function")toast("💾 Automata törlés beállításai mentve.");
+    if(settings.enabled)cleanup(false);
+  }
+
+  function updateStatus(){
+    const el=document.getElementById("v216AutoDeleteStatus");
+    if(!el)return;
+    const s=cfg();
+    const selected=Object.entries(s.rarities).filter(([,v])=>v).map(([k])=>({
+      normal:"Common",rare:"Rare",epic:"Epic",mythic:"Mythic",legendary:"Legendary"
+    }[k])).join(", ");
+    el.textContent=s.enabled
+      ? `Automata törlés: AKTÍV · ${selected||"nincs rarity kiválasztva"}${s.maxPower>0?` · Erő < ${s.maxPower}`:""}`
+      : "Automata törlés: kikapcsolva";
+    el.classList.toggle("active",Boolean(s.enabled));
+  }
+
+  function bind(){
+    const saveBtn=document.getElementById("v216SaveAutoDelete");
+    const runBtn=document.getElementById("v216RunAutoDelete");
+    if(saveBtn && !saveBtn.dataset.bound216){
+      saveBtn.dataset.bound216="1";
+      saveBtn.onclick=saveUI;
+    }
+    if(runBtn && !runBtn.dataset.bound216){
+      runBtn.dataset.bound216="1";
+      runBtn.onclick=()=>{
+        // manual cleanup should obey the toggle; temporarily enable if needed
+        const settings=cfg();
+        const was=settings.enabled;
+        if(!was)settings.enabled=true;
+        cleanup(true);
+        settings.enabled=was;
+        updateStatus();
+      };
+    }
+    loadUI();
+  }
+
+  // Run periodically so freshly dropped items are removed automatically.
+  window.setInterval(()=>{
+    try{
+      if(cfg().enabled)cleanup(false);
+    }catch(e){console.warn("V21.6 auto-delete:",e)}
+  },1200);
+
+  window.addEventListener("load",()=>setTimeout(bind,200));
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.('[data-tab="inventory"]'))setTimeout(bind,80);
+  },true);
+
+  window.v216AutoDeleteCleanup=cleanup;
+  window.v216AutoDeleteBind=bind;
+})();
