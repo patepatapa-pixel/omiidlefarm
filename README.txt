@@ -438,3 +438,16 @@ V22.7 DISCORD
 - Csatlakozás gomb: https://discord.gg/kJscYgMtq
 - A link új lapon nyílik meg.
 - Panel minden játékoldalon elérhető, de nem tolja szét a meglévő UI-t.
+
+V22.9 PVP FIX + VISUAL
+- PvP párbaj gomb kezelése újraírva és stabil API hívásra kötve.
+- Több korábbi gomb/data attribútum variánst automatikusan felismer.
+- Régi hibás click handler nem fut kétszer.
+- PvP szerver oldali defender validáció szigorítva.
+- Vizuális PvP aréna bekerült.
+- Saját karakter + ellenfél HP csík.
+- ATK / DEF / KRIT kijelzés.
+- Körönként animált harc a szerver által visszaadott log alapján.
+- Ütés animáció, lebegő részecskék és külön kritikus effekt.
+- Győzelem/vereség vizuálisan megjelenik.
+- Rating/jutalom után PvP lista automatikusan frissül.

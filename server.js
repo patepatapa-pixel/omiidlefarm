@@ -105,6 +105,18 @@ async function init(){
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `);
+
+  await q(`
+    CREATE TABLE IF NOT EXISTS discord_links(
+      user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      discord_user_id TEXT UNIQUE,
+      link_code TEXT UNIQUE,
+      link_expires_at TIMESTAMPTZ,
+      linked_at TIMESTAMPTZ,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
   await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS player_name TEXT");
   await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS leaderboard_hidden BOOLEAN NOT NULL DEFAULT FALSE");
   await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS pvp_rating INTEGER NOT NULL DEFAULT 1000");
@@ -201,6 +213,135 @@ app.post("/api/login",async(req,res)=>{
 app.post("/api/logout",(req,res)=>{
   res.clearCookie("omi_token");
   res.json({ok:true});
+});
+
+
+// ================= V22.8 DISCORD ACCOUNT LINK + LEVEL RANKS =================
+function discordLevelRank(level){
+  level=Math.max(1,Math.floor(Number(level||1)));
+  const ranks=[
+    {min:250,key:"immortal",name:"♾️ Lv250 Immortal"},
+    {min:150,key:"legendary",name:"💎 Lv150 Legendás"},
+    {min:100,key:"master",name:"👑 Lv100 Mester"},
+    {min:75,key:"elite",name:"🌟 Lv75 Elit"},
+    {min:50,key:"veteran",name:"🔥 Lv50 Veterán"},
+    {min:25,key:"warrior",name:"⚔️ Lv25 Harcos"},
+    {min:10,key:"adventurer",name:"🗡️ Lv10 Kalandor"},
+    {min:1,key:"newcomer",name:"🌱 Újonc"}
+  ];
+  return ranks.find(r=>level>=r.min)||ranks[ranks.length-1];
+}
+
+function makeDiscordLinkCode(){
+  const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let out="";
+  for(let i=0;i<8;i++)out+=chars[Math.floor(Math.random()*chars.length)];
+  return out;
+}
+
+app.post("/api/discord/link-code",auth,async(req,res)=>{
+  try{
+    let code;
+    for(let i=0;i<8;i++){
+      code=makeDiscordLinkCode();
+      const exists=(await q("SELECT 1 FROM discord_links WHERE link_code=$1",[code])).rows[0];
+      if(!exists)break;
+    }
+    const expires=new Date(Date.now()+15*60*1000);
+    await q(`
+      INSERT INTO discord_links(user_id,link_code,link_expires_at,updated_at)
+      VALUES($1,$2,$3,NOW())
+      ON CONFLICT(user_id) DO UPDATE SET
+        link_code=EXCLUDED.link_code,
+        link_expires_at=EXCLUDED.link_expires_at,
+        updated_at=NOW()
+    `,[req.user.id,code,expires]);
+    res.json({ok:true,code,expiresAt:expires.toISOString(),command:`/link code:${code}`});
+  }catch(e){
+    console.error("discord link-code",e);
+    res.status(500).json({error:"Nem sikerült Discord összekötő kódot készíteni."});
+  }
+});
+
+app.get("/api/discord/link-status",auth,async(req,res)=>{
+  try{
+    const link=(await q("SELECT discord_user_id,linked_at FROM discord_links WHERE user_id=$1",[req.user.id])).rows[0]||null;
+    const gs=(await q("SELECT level FROM game_saves WHERE user_id=$1",[req.user.id])).rows[0];
+    const level=Math.max(1,Number(gs?.level||1));
+    res.json({ok:true,linked:Boolean(link?.discord_user_id),discordUserId:link?.discord_user_id||null,level,rank:discordLevelRank(level)});
+  }catch(e){res.status(500).json({error:"Discord státusz nem kérhető le."})}
+});
+
+app.post("/api/discord/unlink",auth,async(req,res)=>{
+  try{
+    await q("UPDATE discord_links SET discord_user_id=NULL,link_code=NULL,link_expires_at=NULL,linked_at=NULL,updated_at=NOW() WHERE user_id=$1",[req.user.id]);
+    res.json({ok:true});
+  }catch(e){res.status(500).json({error:"Nem sikerült leválasztani a Discord fiókot."})}
+});
+
+// Bot claims a short-lived one-time code. No password/user secret is exposed.
+app.post("/api/discord/claim",async(req,res)=>{
+  try{
+    const code=String(req.body?.code||"").trim().toUpperCase();
+    const discordUserId=String(req.body?.discordUserId||"").trim();
+    if(!/^[A-Z2-9]{8}$/.test(code) || !/^\d{15,25}$/.test(discordUserId))
+      return res.status(400).json({error:"Hibás összekötő kód vagy Discord ID."});
+
+    const row=(await q(`
+      SELECT dl.user_id,u.username,u.player_name,g.level
+      FROM discord_links dl
+      JOIN users u ON u.id=dl.user_id
+      LEFT JOIN game_saves g ON g.user_id=u.id
+      WHERE dl.link_code=$1 AND dl.link_expires_at>NOW()
+      LIMIT 1
+    `,[code])).rows[0];
+    if(!row)return res.status(404).json({error:"A kód hibás vagy lejárt. Kérj új kódot a weboldalon."});
+
+    const already=(await q("SELECT user_id FROM discord_links WHERE discord_user_id=$1 AND user_id<>$2",[discordUserId,row.user_id])).rows[0];
+    if(already)return res.status(409).json({error:"Ez a Discord fiók már másik játékfiókhoz van kapcsolva."});
+
+    await q(`
+      UPDATE discord_links SET
+        discord_user_id=$1,link_code=NULL,link_expires_at=NULL,linked_at=NOW(),updated_at=NOW()
+      WHERE user_id=$2
+    `,[discordUserId,row.user_id]);
+
+    const level=Math.max(1,Number(row.level||1));
+    res.json({
+      ok:true,
+      playerName:row.player_name||row.username,
+      level,
+      rank:discordLevelRank(level)
+    });
+  }catch(e){
+    console.error("discord claim",e);
+    res.status(500).json({error:"A Discord összekötés nem sikerült."});
+  }
+});
+
+// Read-only endpoint used by the bot for automatic rank sync.
+app.get("/api/discord/rank/:discordId",async(req,res)=>{
+  try{
+    const id=String(req.params.discordId||"");
+    if(!/^\d{15,25}$/.test(id))return res.status(400).json({error:"Hibás Discord ID."});
+    const row=(await q(`
+      SELECT u.username,u.player_name,g.level,g.power
+      FROM discord_links dl
+      JOIN users u ON u.id=dl.user_id
+      LEFT JOIN game_saves g ON g.user_id=u.id
+      WHERE dl.discord_user_id=$1
+      LIMIT 1
+    `,[id])).rows[0];
+    if(!row)return res.status(404).json({linked:false});
+    const level=Math.max(1,Number(row.level||1));
+    res.json({
+      linked:true,
+      playerName:row.player_name||row.username,
+      level,
+      power:Math.max(0,Number(row.power||0)),
+      rank:discordLevelRank(level)
+    });
+  }catch(e){res.status(500).json({error:"A Discord rang nem kérhető le."})}
 });
 
 app.get("/api/me",auth,async(req,res)=>{
@@ -421,7 +562,8 @@ app.get("/api/pvp/opponents",auth,async(req,res)=>{
 app.post("/api/pvp/fight",auth,async(req,res)=>{
   try{
     const defenderId=Number(req.body.defender_id);
-    if(!defenderId||defenderId===req.user.id)return res.status(400).json({error:"Hibás ellenfél."});
+    if(!Number.isInteger(defenderId)||defenderId<=0||defenderId===Number(req.user.id))
+      return res.status(400).json({error:"Hibás ellenfél."});
     const cfg=await mainConfig(),pc={minLevel:20,rewardGold:500,cooldownSec:10,ratingChange:18,...(cfg.pvp||{})};
     const last=(await q("SELECT created_at FROM pvp_fights WHERE challenger_id=$1 ORDER BY id DESC LIMIT 1",[req.user.id])).rows[0];
     if(last && (Date.now()-new Date(last.created_at).getTime())<pc.cooldownSec*1000)return res.status(429).json({error:`Várj ${pc.cooldownSec} másodpercet két párbaj között.`});
@@ -453,7 +595,13 @@ app.post("/api/pvp/fight",auth,async(req,res)=>{
     const wg=(await q("SELECT save_data FROM game_saves WHERE user_id=$1",[winnerId])).rows[0]?.save_data||{};
     wg.gold=Number(wg.gold||0)+Number(pc.rewardGold||0);
     await q("UPDATE game_saves SET save_data=$1,gold=$2,updated_at=NOW() WHERE user_id=$3",[wg,Math.floor(wg.gold),winnerId]);
-    const battle={a:{id:a.id,name:a.player_name||a.username,...A},b:{id:b.id,name:b.player_name||b.username,...B},winnerId,rewardGold:Number(pc.rewardGold||0),log:log.slice(0,80)};
+    const battle={
+      a:{id:a.id,name:a.player_name||a.username,...A},
+      b:{id:b.id,name:b.player_name||b.username,...B},
+      winnerId,
+      rewardGold:Number(pc.rewardGold||0),
+      log:log.slice(0,80)
+    };
     await q("INSERT INTO pvp_fights(challenger_id,defender_id,winner_id,battle_data) VALUES($1,$2,$3,$4)",[a.id,b.id,winnerId,battle]);
     res.json({ok:true,battle});
   }catch(e){console.error(e);res.status(500).json({error:"A párbaj nem sikerült."})}

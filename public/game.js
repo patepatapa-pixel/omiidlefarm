@@ -4398,3 +4398,275 @@ window.v222AdminSpeedSupported=true;
   }
   window.addEventListener("load",bindDiscord);
 })();
+
+/* ================= V22.8 DISCORD LEVEL RANK LINK ================= */
+(function(){
+  async function getLinkCode(){
+    const out=document.getElementById("v228DiscordLinkResult");
+    if(!out)return;
+    out.innerHTML="Kód készítése...";
+    try{
+      const r=await fetch("/api/discord/link-code",{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"}});
+      const d=await r.json();
+      if(!r.ok)throw new Error(d.error||"Hiba");
+      out.innerHTML=`
+        <span class="v228-code">${d.code}</span>
+        <small>Discordon írd be pontosan:</small>
+        <code>/link code:${d.code}</code>
+        <small>⏱️ A kód 15 percig érvényes.</small>`;
+    }catch(e){
+      out.innerHTML=`<span class="v228-error">❌ ${e.message}</span>`;
+    }
+  }
+  function bind(){
+    const b=document.getElementById("v228DiscordLinkCode");
+    if(b && !b.dataset.bound228){
+      b.dataset.bound228="1";
+      b.onclick=getLinkCode;
+    }
+  }
+  window.addEventListener("load",bind);
+})();
+
+
+/* ================= V22.9 PVP FIX + VISUAL BATTLE ================= */
+(function(){
+  let v229BattleTimer=null;
+  let v229Battle=null;
+
+  function page(){return document.getElementById("page-pvp");}
+  function F(n){return (typeof fmt==="function")?fmt(Number(n||0)):Math.floor(Number(n||0)).toLocaleString("hu-HU");}
+
+  async function api229(url,opt={}){
+    const r=await fetch(url,{
+      credentials:"include",
+      headers:{"Content-Type":"application/json",...(opt.headers||{})},
+      ...opt
+    });
+    let d={};
+    try{d=await r.json()}catch(e){}
+    if(!r.ok)throw new Error(d.error||d.message||`HTTP ${r.status}`);
+    return d;
+  }
+
+  function ensureArena(){
+    const p=page();
+    if(!p)return null;
+
+    let arena=p.querySelector("#v229PvpArena");
+    if(!arena){
+      arena=document.createElement("section");
+      arena.id="v229PvpArena";
+      arena.className="card v229-pvp-arena";
+      const anchor=p.querySelector(".pvp-arena-v165,.pvp-arena,[class*='pvp-arena']");
+      if(anchor?.parentNode)anchor.parentNode.insertBefore(arena,anchor);
+      else p.prepend(arena);
+    }
+    return arena;
+  }
+
+  function drawBattle(){
+    const arena=ensureArena();
+    if(!arena)return;
+
+    if(!v229Battle){
+      arena.classList.add("empty");
+      arena.innerHTML=`
+        <div class="v229-empty">
+          <span>⚔️</span>
+          <div><b>PvP Aréna</b><small>Válassz ellenfelet és indíts párbajt. A harc itt jelenik meg vizuálisan.</small></div>
+        </div>`;
+      return;
+    }
+
+    arena.classList.remove("empty");
+    const b=v229Battle;
+    const aPct=Math.max(0,Math.min(100,b.a.hp/b.a.maxHp*100));
+    const dPct=Math.max(0,Math.min(100,b.b.hp/b.b.maxHp*100));
+
+    arena.innerHTML=`
+      <div class="v229-head">
+        <div><small>⚔️ ÉLŐ PÁRBAJ</small><h2>${b.a.name} VS ${b.b.name}</h2></div>
+        <div class="v229-round">Kör ${b.round}</div>
+      </div>
+
+      <div class="v229-scene">
+        <div class="v229-bg-runes">✦ ✧ ⚔ ✧ ✦</div>
+        <div class="v229-ground"></div>
+        <div class="v229-effect-layer">
+          <i></i><i></i><i></i><i></i><i></i>
+        </div>
+
+        <div class="v229-fighters">
+          <div class="v229-fighter me">
+            <div class="v229-avatar">🧙</div>
+            <div class="v229-fighter-body">
+              <div class="v229-name"><b>${b.a.name}</b><span>${F(b.a.hp)} / ${F(b.a.maxHp)} HP</span></div>
+              <div class="v229-hp"><div style="width:${aPct}%"></div></div>
+              <small>⚔️ ATK ${F(b.a.atk)} · 🛡️ DEF ${F(b.a.def)} · 🎯 KRIT ${Math.round((b.a.crit||0)*100)}%</small>
+            </div>
+          </div>
+
+          <div class="v229-vs">VS</div>
+
+          <div class="v229-fighter enemy">
+            <div class="v229-avatar">🧛</div>
+            <div class="v229-fighter-body">
+              <div class="v229-name"><b>${b.b.name}</b><span>${F(b.b.hp)} / ${F(b.b.maxHp)} HP</span></div>
+              <div class="v229-hp enemy"><div style="width:${dPct}%"></div></div>
+              <small>⚔️ ATK ${F(b.b.atk)} · 🛡️ DEF ${F(b.b.def)} · 🎯 KRIT ${Math.round((b.b.crit||0)*100)}%</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="v229-combat-log">${b.log||"A párbaj elkezdődött..."}</div>
+    `;
+  }
+
+  function hitEffect(side,crit){
+    const arena=document.getElementById("v229PvpArena");
+    if(!arena)return;
+    arena.classList.remove("hit-me","hit-enemy","crit");
+    void arena.offsetWidth;
+    arena.classList.add(side==="a"?"hit-enemy":"hit-me");
+    if(crit)arena.classList.add("crit");
+    setTimeout(()=>arena.classList.remove("hit-me","hit-enemy","crit"),260);
+  }
+
+  function playBattle(battle){
+    clearInterval(v229BattleTimer);
+
+    const A=battle.a||{};
+    const B=battle.b||{};
+    const logs=Array.isArray(battle.log)?battle.log:[];
+
+    v229Battle={
+      a:{...A,hp:Number(A.hp||1),maxHp:Number(A.hp||1)},
+      b:{...B,hp:Number(B.hp||1),maxHp:Number(B.hp||1)},
+      round:0,
+      log:"⚔️ A párbaj elkezdődött..."
+    };
+    drawBattle();
+
+    let idx=0;
+    v229BattleTimer=setInterval(()=>{
+      if(!v229Battle || idx>=logs.length){
+        clearInterval(v229BattleTimer);
+        v229BattleTimer=null;
+        if(v229Battle){
+          const win=Number(battle.winnerId)===Number(A.id);
+          v229Battle.log=win
+            ? `🏆 Győzelem! +${F(battle.rewardGold||0)} arany`
+            : `💀 Vereség. Fejleszd tovább a karaktered és próbáld újra.`;
+          drawBattle();
+        }
+        return;
+      }
+
+      const step=logs[idx++];
+      v229Battle.round=Number(step.turn||Math.ceil(idx/2));
+      v229Battle.a.hp=Math.max(0,Number(step.aHp ?? v229Battle.a.hp));
+      v229Battle.b.hp=Math.max(0,Number(step.bHp ?? v229Battle.b.hp));
+      v229Battle.log=`${step.from==="a"?"⚔️ Te":"💥 Ellenfél"} ${F(step.damage)} sebzést okozott${step.crit?" · KRITIKUS!":""}`;
+      drawBattle();
+      hitEffect(step.from,Boolean(step.crit));
+    },420);
+  }
+
+  async function fight(defenderId,button){
+    if(!defenderId)return;
+    const old=button?.textContent;
+    try{
+      if(button){
+        button.disabled=true;
+        button.textContent="⚔️ Harc...";
+      }
+      const data=await api229("/api/pvp/fight",{
+        method:"POST",
+        body:JSON.stringify({defender_id:Number(defenderId)})
+      });
+      if(!data?.battle)throw new Error("A szerver nem adott vissza párbaj adatot.");
+      playBattle(data.battle);
+      if(typeof toast==="function"){
+        const meId=data.battle?.a?.id;
+        const won=Number(data.battle.winnerId)===Number(meId);
+        toast(won?"🏆 PvP győzelem!":"💀 PvP vereség.");
+      }
+      // refresh opponent/history views after server-side rating/reward update
+      if(typeof renderPvp==="function")setTimeout(renderPvp,800);
+      if(typeof renderAll==="function")setTimeout(renderAll,900);
+    }catch(e){
+      if(typeof toast==="function")toast("❌ "+e.message);
+      const arena=ensureArena();
+      if(arena)arena.innerHTML=`<div class="v229-error">❌ ${e.message}</div>`;
+    }finally{
+      if(button){
+        button.disabled=false;
+        if(old!=null)button.textContent=old;
+      }
+    }
+  }
+
+  function bindFightButtons(){
+    const p=page();
+    if(!p)return;
+
+    // Existing project has used several button/data naming variants over versions.
+    const selectors=[
+      "[data-pvp-fight]",
+      "[data-fight]",
+      "[data-defender]",
+      ".pvp-fight-btn",
+      ".fight-pvp-btn",
+      "button[data-player-id]"
+    ];
+
+    p.querySelectorAll(selectors.join(",")).forEach(btn=>{
+      if(btn.dataset.v229Bound==="1")return;
+
+      const id =
+        btn.dataset.pvpFight ||
+        btn.dataset.fight ||
+        btn.dataset.defender ||
+        btn.dataset.playerId ||
+        btn.closest("[data-player]")?.dataset.player ||
+        btn.closest("[data-opponent]")?.dataset.opponent;
+
+      if(!id)return;
+
+      btn.dataset.v229Bound="1";
+      // Capture phase + stopImmediatePropagation avoids old broken handler firing twice.
+      btn.addEventListener("click",e=>{
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        fight(id,btn);
+      },true);
+    });
+  }
+
+  function setup(){
+    ensureArena();
+    drawBattle();
+    bindFightButtons();
+  }
+
+  window.v229PvpFight=fight;
+  window.v229SetupPvp=setup;
+
+  window.addEventListener("load",()=>{setTimeout(setup,250);setTimeout(setup,800)});
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.('[data-tab="pvp"]')){
+      setTimeout(setup,100);
+      setTimeout(bindFightButtons,400);
+    }
+  },true);
+
+  const obs=new MutationObserver(()=>{
+    if(page()?.classList.contains("active"))requestAnimationFrame(bindFightButtons);
+  });
+  window.addEventListener("load",()=>{
+    const p=page();
+    if(p)obs.observe(p,{childList:true,subtree:true});
+  });
+})();

@@ -3787,3 +3787,120 @@ body.v202-is-admin .admin-studio-only-v202{
 .v227-discord-join:hover{filter:brightness(1.12);transform:translateY(-1px)}
 .v227-discord-note{display:block;text-align:center;margin-top:6px;color:#687286;font-size:7px}
 @media(max-width:600px){.v227-discord-widget{right:10px;bottom:10px}.v227-discord-toggle{padding:8px 10px}}
+
+/* ================= V22.8 DISCORD LINK ================= */
+.v228-link-box{margin-top:10px;padding:9px;border:1px solid #39436f;border-radius:8px;background:#090d18}
+.v228-link-box>b,.v228-link-box>small{display:block}
+.v228-link-box>b{color:#cbd1ff;margin-bottom:3px}
+.v228-link-box>small{color:#7f8aa4;font-size:8px;margin-bottom:7px}
+#v228DiscordLinkCode{width:100%;padding:8px;border:1px solid #5966d8;border-radius:7px;background:#151b38;color:#dce0ff;font-weight:900;cursor:pointer}
+#v228DiscordLinkResult{margin-top:7px;text-align:center}
+#v228DiscordLinkResult small,#v228DiscordLinkResult code{display:block;margin-top:4px}
+#v228DiscordLinkResult code{padding:6px;border-radius:6px;background:#05070d;color:#aeb8ff;user-select:all}
+.v228-code{display:block;font-size:20px;font-weight:1000;letter-spacing:2px;color:#f0c24f}
+.v228-error{color:#ff7a86}
+
+/* ================= V22.9 PVP VISUAL ARENA ================= */
+#v229PvpArena{
+  width:min(1180px,100%)!important;
+  margin:0 auto 12px!important;
+  border-color:#5a466f!important;
+  overflow:hidden!important;
+}
+#v229PvpArena.empty{padding:10px!important}
+.v229-empty{
+  display:flex!important;align-items:center!important;gap:10px!important;
+  color:#909ca8!important
+}
+.v229-empty>span{font-size:28px!important}
+.v229-empty b,.v229-empty small{display:block!important}
+.v229-empty b{color:#e2c04d!important}
+.v229-head{
+  display:flex!important;justify-content:space-between!important;align-items:center!important;
+  gap:10px!important;margin-bottom:10px!important
+}
+.v229-head h2{margin:2px 0 0!important;color:#f0c24f!important}
+.v229-round{
+  padding:6px 9px!important;border:1px solid #3c4652!important;border-radius:7px!important;
+  background:#070b10!important;color:#c1c8d0!important;font-weight:900!important
+}
+.v229-scene{
+  position:relative!important;overflow:hidden!important;padding:24px 12px 20px!important;
+  border:1px solid #3a4350!important;border-radius:11px!important;
+  background:
+    radial-gradient(circle at 50% 18%,rgba(114,61,153,.30),transparent 33%),
+    linear-gradient(180deg,#17111f,#090c12 72%)!important;
+}
+.v229-ground{
+  position:absolute!important;left:-10%!important;right:-10%!important;bottom:-42px!important;
+  height:120px!important;border-radius:50%!important;
+  background:radial-gradient(ellipse at center,#27222d,#0c0d12 65%)!important
+}
+.v229-bg-runes{
+  position:absolute!important;inset:13px 20px auto!important;
+  display:flex!important;justify-content:center!important;
+  color:#8b63bd!important;opacity:.14!important;font-size:30px!important;letter-spacing:20px!important
+}
+.v229-effect-layer{position:absolute!important;inset:0!important;pointer-events:none!important;z-index:4!important}
+.v229-effect-layer i{
+  position:absolute!important;width:5px!important;height:5px!important;border-radius:50%!important;
+  background:#a77bff!important;opacity:.18!important;animation:v229Float 4s linear infinite!important
+}
+.v229-effect-layer i:nth-child(1){left:12%;top:80%}
+.v229-effect-layer i:nth-child(2){left:30%;top:65%;animation-delay:.7s!important}
+.v229-effect-layer i:nth-child(3){left:50%;top:78%;animation-delay:1.4s!important}
+.v229-effect-layer i:nth-child(4){left:72%;top:64%;animation-delay:2.1s!important}
+.v229-effect-layer i:nth-child(5){left:88%;top:76%;animation-delay:2.8s!important}
+@keyframes v229Float{0%{transform:translateY(15px);opacity:0}25%{opacity:.3}100%{transform:translateY(-80px);opacity:0}}
+
+.v229-fighters{
+  position:relative!important;z-index:2!important;
+  display:grid!important;grid-template-columns:1fr 52px 1fr!important;gap:10px!important;align-items:center!important
+}
+.v229-fighter{
+  display:flex!important;align-items:center!important;gap:10px!important;
+  padding:11px!important;border:1px solid #38434f!important;border-radius:10px!important;
+  background:rgba(7,11,16,.82)!important;backdrop-filter:blur(3px)!important
+}
+.v229-fighter.enemy{border-color:#6b3440!important}
+.v229-avatar{
+  display:grid!important;place-items:center!important;width:60px!important;height:60px!important;flex:0 0 60px!important;
+  border-radius:11px!important;background:#111721!important;font-size:37px!important;
+  box-shadow:0 0 20px rgba(112,74,180,.14)!important
+}
+.v229-fighter.enemy .v229-avatar{background:#1a0b10!important;box-shadow:0 0 20px rgba(220,65,86,.16)!important}
+.v229-fighter-body{min-width:0!important;flex:1!important}
+.v229-name{display:flex!important;justify-content:space-between!important;gap:8px!important;margin-bottom:6px!important}
+.v229-name span{font-size:9px!important;color:#a5afb9!important}
+.v229-hp{
+  height:12px!important;overflow:hidden!important;border-radius:99px!important;
+  border:1px solid #47222b!important;background:#210e12!important;margin-bottom:5px!important
+}
+.v229-hp>div{
+  height:100%!important;background:linear-gradient(90deg,#d23c4e,#ff7180)!important;
+  transition:width .32s ease!important
+}
+.v229-hp.enemy>div{background:linear-gradient(90deg,#982136,#ec4e61)!important}
+.v229-vs{text-align:center!important;color:#f0c24f!important;font-size:17px!important;font-weight:1000!important}
+.v229-combat-log{
+  margin-top:9px!important;padding:7px 9px!important;border:1px solid #343e49!important;
+  border-radius:7px!important;background:#06090d!important;color:#a8b2bc!important;text-align:center!important
+}
+.v229-error{padding:12px!important;color:#ff7c88!important;text-align:center!important}
+
+/* hit / crit visual effects */
+#v229PvpArena.hit-enemy .v229-fighter.enemy .v229-avatar{animation:v229HitRight .25s ease!important}
+#v229PvpArena.hit-me .v229-fighter.me .v229-avatar{animation:v229HitLeft .25s ease!important}
+#v229PvpArena.crit .v229-scene::after{
+  content:"✦ KRITIKUS ✦";position:absolute!important;left:50%!important;top:18%!important;
+  transform:translateX(-50%)!important;color:#ffd865!important;font-weight:1000!important;font-size:18px!important;
+  text-shadow:0 0 18px #f0b82d!important;animation:v229Crit .26s ease-out!important;z-index:8!important
+}
+@keyframes v229HitRight{0%,100%{transform:none}45%{transform:translateX(10px) rotate(3deg);filter:brightness(1.8)}}
+@keyframes v229HitLeft{0%,100%{transform:none}45%{transform:translateX(-10px) rotate(-3deg);filter:brightness(1.8)}}
+@keyframes v229Crit{0%{opacity:0;transform:translateX(-50%) scale(.5)}40%{opacity:1;transform:translateX(-50%) scale(1.15)}100%{opacity:0;transform:translateX(-50%) scale(1.4)}}
+
+@media(max-width:760px){
+ .v229-fighters{grid-template-columns:1fr!important}
+ .v229-vs{padding:2px!important}
+}
