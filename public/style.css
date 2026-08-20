@@ -2861,3 +2861,163 @@ body.v202-is-admin .admin-studio-only-v202{
   border:0 !important;
   overflow:hidden !important;
 }
+
+/* ================= V21.8 DUNGEON SYSTEM ================= */
+#page-dungeon .v218-old-dungeon-hidden{
+  display:none!important;
+}
+
+.v218-dungeon-system{
+  width:min(1250px,100%)!important;
+  margin:0 auto!important;
+}
+
+.v218-dungeon-head{
+  display:flex!important;
+  justify-content:space-between!important;
+  align-items:flex-start!important;
+  gap:14px!important;
+  margin-bottom:12px!important;
+}
+
+.v218-dungeon-head h2{
+  margin:3px 0 5px!important;
+  color:#f0c24f!important;
+}
+
+.v218-dungeon-head p{
+  margin:0!important;
+  color:#94a0ac!important;
+  max-width:720px!important;
+}
+
+.v218-dungeon-summary{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(100px,1fr))!important;
+  gap:6px!important;
+  min-width:260px!important;
+}
+
+.v218-dungeon-summary>div{
+  padding:8px!important;
+  border:1px solid #34404c!important;
+  border-radius:8px!important;
+  background:#080d12!important;
+}
+
+.v218-dungeon-summary small,
+.v218-dungeon-summary b{
+  display:block!important;
+}
+.v218-dungeon-summary b{
+  color:#f0c24f!important;
+  margin-top:2px!important;
+}
+
+.v218-dungeon-grid{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:10px!important;
+}
+
+.v218-dungeon-card{
+  padding:11px!important;
+  border:1px solid #34404c!important;
+  border-radius:10px!important;
+  background:linear-gradient(145deg,#0b1016,#070a0f)!important;
+}
+
+.v218-dungeon-card.safe{
+  border-color:#39744b!important;
+  box-shadow:0 0 0 1px rgba(76,170,99,.08) inset!important;
+}
+
+.v218-dungeon-title{
+  display:flex!important;
+  align-items:center!important;
+  gap:9px!important;
+}
+.v218-dungeon-icon{
+  font-size:26px!important;
+}
+.v218-dungeon-title h3{
+  margin:0!important;
+}
+.v218-dungeon-title small{
+  color:#8d99a5!important;
+}
+
+.v218-dungeon-card p{
+  color:#8e9aa6!important;
+  min-height:38px!important;
+}
+
+.v218-dungeon-stats{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:5px!important;
+}
+
+.v218-dungeon-stats span{
+  padding:6px!important;
+  border:1px solid #2f3944!important;
+  border-radius:7px!important;
+  background:#080d12!important;
+}
+
+.v218-dungeon-stats small,
+.v218-dungeon-stats b{
+  display:block!important;
+}
+.v218-dungeon-stats small{
+  font-size:8px!important;
+  color:#85919d!important;
+}
+.v218-dungeon-stats b{
+  margin-top:2px!important;
+  color:#f1c34f!important;
+}
+
+.v218-chance{
+  height:6px!important;
+  margin:8px 0!important;
+  border-radius:99px!important;
+  overflow:hidden!important;
+  background:#202833!important;
+}
+.v218-chance>div{
+  height:100%!important;
+  background:linear-gradient(90deg,#8060ff,#f0c24f)!important;
+}
+
+.v218-rewards{
+  padding:7px!important;
+  border:1px solid #2e3843!important;
+  border-radius:7px!important;
+  background:#080d12!important;
+  margin-bottom:8px!important;
+}
+.v218-rewards small{
+  display:block!important;
+  color:#87939f!important;
+  margin-bottom:3px!important;
+}
+.v218-rewards div{
+  font-size:10px!important;
+  color:#d7dce2!important;
+}
+
+.v218-dungeon-card button{
+  width:100%!important;
+  min-height:32px!important;
+  font-weight:900!important;
+}
+
+@media(max-width:900px){
+  .v218-dungeon-grid{grid-template-columns:1fr!important}
+  .v218-dungeon-head{display:block!important}
+  .v218-dungeon-summary{margin-top:10px!important}
+}
+@media(max-width:560px){
+  .v218-dungeon-stats{grid-template-columns:1fr 1fr!important}
+}

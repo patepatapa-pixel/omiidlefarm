@@ -3325,3 +3325,305 @@ document.addEventListener("click",e=>{
     obs.observe(document.body,{subtree:true,childList:true,characterData:true});
   });
 })();
+
+/* ================= V21.8 DUNGEON SYSTEM ================= */
+(function(){
+  const DUNGEONS_V218 = [
+    {
+      id:"training_cave",
+      name:"Kezdők barlangja",
+      icon:"🪨",
+      reqPower:250,
+      ticketCost:1,
+      safe:true,
+      minWin:1.00,
+      rewards:{gold:[800,1400], ore:[1,3], gems:[0,1], soul:[0,0]},
+      desc:"Biztonságos kezdő kazamata. Ha van jegyed, mindig teljesíted. Farmolásra való."
+    },
+    {
+      id:"forgotten_mine",
+      name:"Elfeledett bánya",
+      icon:"⛏️",
+      reqPower:900,
+      ticketCost:1,
+      safe:false,
+      rewards:{gold:[1800,3200], ore:[3,7], gems:[0,1], soul:[0,1]},
+      desc:"Az első valódi kockázatos kazamata. A kiírt erő csak ajánlott érték, nem garantált siker."
+    },
+    {
+      id:"wolf_den",
+      name:"Farkasverem",
+      icon:"🐺",
+      reqPower:2200,
+      ticketCost:1,
+      safe:false,
+      rewards:{gold:[3500,6000], ore:[5,10], gems:[0,2], soul:[0,1]},
+      desc:"Gyors, agresszív ellenfelek. Kisebb eséllyel buksz, ha csak épp eléred az ajánlott erőt."
+    },
+    {
+      id:"crypt",
+      name:"Elátkozott kripta",
+      icon:"☠️",
+      reqPower:5200,
+      ticketCost:2,
+      safe:false,
+      rewards:{gold:[7000,12000], ore:[8,14], gems:[1,3], soul:[1,2]},
+      desc:"Komolyabb kihívás, jobb jutalommal."
+    },
+    {
+      id:"demon_tower",
+      name:"Démon torony",
+      icon:"🔥",
+      reqPower:11000,
+      ticketCost:2,
+      safe:false,
+      rewards:{gold:[14000,22000], ore:[12,20], gems:[1,4], soul:[1,3]},
+      desc:"Több szintes démon kazamata. Nem minden futás sikeres."
+    },
+    {
+      id:"dragon_valley",
+      name:"Sárkány-völgy",
+      icon:"🐉",
+      reqPower:24000,
+      ticketCost:3,
+      safe:false,
+      rewards:{gold:[28000,45000], ore:[18,30], gems:[2,5], soul:[2,4]},
+      desc:"Sárkányok és elit őrök. A túléléshez már valódi fejlődés kell."
+    },
+    {
+      id:"storm_keep",
+      name:"Vihartorony",
+      icon:"🌩️",
+      reqPower:50000,
+      ticketCost:3,
+      safe:false,
+      rewards:{gold:[55000,85000], ore:[28,42], gems:[3,7], soul:[3,5]},
+      desc:"Endgame előszoba, komoly bukási eséllyel."
+    },
+    {
+      id:"void_temple",
+      name:"Üresség temploma",
+      icon:"🕳️",
+      reqPower:100000,
+      ticketCost:4,
+      safe:false,
+      rewards:{gold:[100000,160000], ore:[40,60], gems:[4,9], soul:[4,7]},
+      desc:"Nagy erőt igénylő kazamata, ritkább nyersanyagokkal."
+    },
+    {
+      id:"celestial_gate",
+      name:"Isteni kapu",
+      icon:"👁️",
+      reqPower:200000,
+      ticketCost:5,
+      safe:false,
+      rewards:{gold:[200000,320000], ore:[60,90], gems:[6,12], soul:[6,10]},
+      desc:"Magas szintű végjáték kazamata. Az ajánlott erő felett sem garantált a siker."
+    },
+    {
+      id:"abyss",
+      name:"Mélység ura",
+      icon:"🦑",
+      reqPower:400000,
+      ticketCost:6,
+      safe:false,
+      rewards:{gold:[380000,600000], ore:[85,130], gems:[8,16], soul:[8,14]},
+      desc:"Nagyon nehéz endgame kazamata, nagy jutalommal és komoly kockázattal."
+    }
+  ];
+
+  function s218(){ return (typeof save!=="undefined"&&save)?save:{}; }
+  function p218(){ return (typeof power==="function")?Number(power()||0):0; }
+  function fmt218(n){ return (typeof fmt==="function")?fmt(n):Math.floor(n).toLocaleString("hu-HU"); }
+
+  function successChance(d){
+    if(d.safe) return 1;
+
+    const p=Math.max(1,p218());
+    const r=Math.max(1,Number(d.reqPower||1));
+    const ratio=p/r;
+
+    // Recommended power = ~70% chance, not guaranteed.
+    // Underpowered players still have a small chance; overpowered players approach 95%, never 100%.
+    let c;
+    if(ratio < .50) c = .08 + ratio*.20;       // ~8–18%
+    else if(ratio < .80) c = .20 + (ratio-.50)*.70; // ~20–41%
+    else if(ratio < 1.00) c = .45 + (ratio-.80)*1.25; // ~45–70%
+    else if(ratio < 1.50) c = .70 + (ratio-1.00)*.40; // 70–90%
+    else c = .90 + Math.min(.05,(ratio-1.50)*.03);    // max 95%
+
+    return Math.max(.05,Math.min(.95,c));
+  }
+
+  function rollRange([a,b]){
+    a=Number(a||0); b=Number(b||a);
+    return Math.floor(a+Math.random()*(b-a+1));
+  }
+
+  function ensureDungeonState(){
+    const s=s218();
+    if(!s.dungeonStats) s.dungeonStats={runs:0,wins:0,losses:0,streak:0};
+    if(!s.dungeonClears) s.dungeonClears={};
+  }
+
+  function applyRewards(d){
+    const s=s218();
+    const r=d.rewards||{};
+    const out={
+      gold:rollRange(r.gold||[0,0]),
+      ore:rollRange(r.ore||[0,0]),
+      gems:rollRange(r.gems||[0,0]),
+      soul:rollRange(r.soul||[0,0])
+    };
+    s.gold=Number(s.gold||0)+out.gold;
+    s.ore=Number(s.ore||0)+out.ore;
+    s.gems=Number(s.gems||0)+out.gems;
+    s.soul=Number(s.soul||0)+out.soul;
+    return out;
+  }
+
+  function runDungeon(d){
+    const s=s218();
+    ensureDungeonState();
+
+    const tickets=Number(s.tickets||0);
+    if(tickets<d.ticketCost){
+      if(typeof toast==="function") toast(`🎫 Nincs elég Dungeon jegyed. Kell: ${d.ticketCost}`);
+      return;
+    }
+
+    s.tickets=tickets-d.ticketCost;
+    s.dungeonStats.runs++;
+
+    const chance=successChance(d);
+    const win=d.safe || Math.random()<chance;
+
+    if(win){
+      const rw=applyRewards(d);
+      s.dungeonStats.wins++;
+      s.dungeonStats.streak++;
+      s.dungeonClears[d.id]=Number(s.dungeonClears[d.id]||0)+1;
+
+      const parts=[`+${fmt218(rw.gold)} arany`];
+      if(rw.ore) parts.push(`+${rw.ore} érc`);
+      if(rw.gems) parts.push(`+${rw.gems} gyémánt`);
+      if(rw.soul) parts.push(`+${rw.soul} lélekkő`);
+
+      if(typeof toast==="function") toast(`🏆 ${d.name} sikerült! ${parts.join(" · ")}`);
+    }else{
+      s.dungeonStats.losses++;
+      s.dungeonStats.streak=0;
+
+      // Dungeon death should not trap players: revive at full HP.
+      try{
+        if(typeof v10MaxHp==="function") s.playerHp=v10MaxHp();
+        else if(Number(s.maxHp)) s.playerHp=Number(s.maxHp);
+      }catch(e){}
+
+      if(typeof toast==="function") toast(`💀 ${d.name} sikertelen. A jegy elfogyott, de teljes HP-val folytatod.`);
+    }
+
+    if(typeof persist==="function") persist();
+    if(typeof renderAll==="function") renderAll();
+    renderDungeonV218();
+  }
+
+  function renderDungeonV218(){
+    const p=document.getElementById("page-dungeon");
+    if(!p)return;
+    ensureDungeonState();
+
+    let root=p.querySelector("#v218DungeonSystem");
+    if(!root){
+      root=document.createElement("section");
+      root.id="v218DungeonSystem";
+      root.className="card v218-dungeon-system";
+
+      // Hide old dungeon cards to avoid duplicate systems.
+      [...p.children].forEach(ch=>{
+        if(ch!==root && !ch.classList?.contains("v212-context-bar")){
+          const t=(ch.textContent||"").toLowerCase();
+          if(t.includes("kazamata") || t.includes("dungeon")){
+            ch.classList.add("v218-old-dungeon-hidden");
+          }
+        }
+      });
+
+      p.appendChild(root);
+    }
+
+    const s=s218();
+    const stats=s.dungeonStats||{runs:0,wins:0,losses:0,streak:0};
+
+    root.innerHTML=`
+      <div class="v218-dungeon-head">
+        <div>
+          <small>🏰 KAZAMATA RENDSZER</small>
+          <h2>Kazamaták</h2>
+          <p>Az első kazamata biztonságos farm. A többi kazamatánál az ajánlott erő csak esélyt jelent, nem garantált sikert.</p>
+        </div>
+        <div class="v218-dungeon-summary">
+          <div><small>🎫 Jegy</small><b>${fmt218(s.tickets||0)}</b></div>
+          <div><small>⚔️ Erő</small><b>${fmt218(p218())}</b></div>
+          <div><small>🏆 Siker</small><b>${stats.wins}</b></div>
+          <div><small>💀 Bukás</small><b>${stats.losses}</b></div>
+        </div>
+      </div>
+
+      <div class="v218-dungeon-grid">
+        ${DUNGEONS_V218.map(d=>{
+          const chance=Math.round(successChance(d)*100);
+          const clears=Number(s.dungeonClears?.[d.id]||0);
+          return `
+          <article class="v218-dungeon-card ${d.safe?"safe":""}">
+            <div class="v218-dungeon-title">
+              <span class="v218-dungeon-icon">${d.icon}</span>
+              <div><h3>${d.name}</h3><small>${d.safe?"Biztonságos farm":"Kockázatos kazamata"}</small></div>
+            </div>
+            <p>${d.desc}</p>
+
+            <div class="v218-dungeon-stats">
+              <span><small>Ajánlott erő</small><b>${fmt218(d.reqPower)}</b></span>
+              <span><small>Jegy</small><b>${d.ticketCost}</b></span>
+              <span><small>Siker esélyed</small><b>${d.safe?"100%":chance+"%"}</b></span>
+              <span><small>Teljesítve</small><b>${clears}×</b></span>
+            </div>
+
+            <div class="v218-chance">
+              <div style="width:${d.safe?100:chance}%"></div>
+            </div>
+
+            <div class="v218-rewards">
+              <small>Lehetséges jutalom</small>
+              <div>
+                💰 ${fmt218(d.rewards.gold[0])}–${fmt218(d.rewards.gold[1])}
+                · ⛏️ ${d.rewards.ore[0]}–${d.rewards.ore[1]}
+                ${d.rewards.gems[1]>0?` · 💎 ${d.rewards.gems[0]}–${d.rewards.gems[1]}`:""}
+                ${d.rewards.soul[1]>0?` · 🔵 ${d.rewards.soul[0]}–${d.rewards.soul[1]}`:""}
+              </div>
+            </div>
+
+            <button type="button" data-v218-dungeon="${d.id}">
+              ${d.safe?"🌾 Farmolás":"⚔️ Belépés"} · ${d.ticketCost} jegy
+            </button>
+          </article>`;
+        }).join("")}
+      </div>
+    `;
+
+    root.querySelectorAll("[data-v218-dungeon]").forEach(btn=>{
+      btn.onclick=()=>{
+        const d=DUNGEONS_V218.find(x=>x.id===btn.dataset.v218Dungeon);
+        if(d) runDungeon(d);
+      };
+    });
+  }
+
+  window.v218RenderDungeon=renderDungeonV218;
+  window.v218RunDungeon=runDungeon;
+
+  window.addEventListener("load",()=>setTimeout(renderDungeonV218,250));
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.('[data-tab="dungeon"]')) setTimeout(renderDungeonV218,80);
+  },true);
+})();

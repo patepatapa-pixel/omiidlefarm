@@ -336,3 +336,15 @@ V21.7
 - Az automatikus mentés továbbra is működik.
 - A „Mentés...” / „Mentve” állapotjelző el lett rejtve.
 - Emiatt a felső menü nem ugrál és nem változtat szélességet minden mentéskor.
+
+V21.8
+- Teljesen új kazamata rendszer.
+- 10 külön kazamata került be.
+- Az első kazamata (Kezdők barlangja) biztonságos: jeggyel mindig sikerül, nem öl meg.
+- A második kazamatától kezdve az ajánlott erő NEM garantált siker.
+- Ajánlott erő körül kb. 70% sikeresély.
+- Nagyon erős karakterrel is max. kb. 95% siker, tehát endgame-ben sincs automatikus 100%.
+- Sikertelen kazamatánál a jegy elfogy, de a játékos teljes HP-val folytatja.
+- Minden kazamata kiírja a saját aktuális sikeresélyedet.
+- Magasabb kazamaták jobb arany/érc/gyémánt/lélekkő jutalmakat adnak.
+- Futás/siker/bukás/teljesítésszám statisztika bekerült.
