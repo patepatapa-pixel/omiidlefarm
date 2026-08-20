@@ -4206,3 +4206,64 @@ body.v202-is-admin .admin-studio-only-v202{
   .v216-dungeon-controls>span{width:100%!important}
   .v218-dungeon-card .v216-dungeon-controls button.skip{flex:1!important}
 }
+
+/* V22.28: the overview belongs only to Character; duplicate stat tiles removed. */
+#page-character>.v228-character-summary,
+#page-character>.v228-character-resources{position:relative;z-index:2}
+#page-character>.v228-character-summary{display:flex;margin-bottom:12px}
+#page-character>.v228-character-resources{display:grid;margin-bottom:18px}
+#page-leaderboard .v228-character-summary,
+#page-leaderboard .v228-character-resources{display:none!important}
+@media(max-width:650px){#page-character>.v228-character-summary{display:block}}
+
+/* V22.28 compact Character layout: no oversized draggable gaps. */
+#page-character>.v208-window-canvas{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1.08fr)!important;
+  align-items:start!important;
+  gap:12px!important;
+  width:100%!important;
+  min-height:0!important;
+  height:auto!important;
+  margin:0 0 12px!important;
+  padding:0!important;
+  overflow:visible!important;
+}
+#page-character>.v208-window-canvas:not(:has(.inventory-tools-v163.v210-equipment-open)){
+  grid-template-columns:minmax(0,760px)!important;
+  justify-content:center!important;
+}
+#page-character .v208-window-canvas>.v208-free-window,
+#page-character .v208-window-canvas>.v208-character-window,
+#page-character .v208-window-canvas>.inventory-tools-v163{
+  position:relative!important;
+  inset:auto!important;
+  top:auto!important;
+  left:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:none!important;
+  height:auto!important;
+  min-height:0!important;
+  transform:none!important;
+  margin:0!important;
+}
+#page-character .v208-character-window,
+#page-character .inventory-tools-v163.v210-equipment-open{padding:14px!important}
+#page-character .v208-character-header{margin-bottom:10px!important;padding-bottom:9px!important}
+#page-character .v15-character-stage{min-height:430px!important;height:430px!important}
+#page-character .v15-bottom-stats{margin-top:8px!important;gap:6px!important}
+#page-character .character-attributes{gap:7px!important;margin:0 auto 12px!important}
+#page-character #v214ResetLayout{display:none!important}
+#page-character .v208-drag-handle{cursor:default!important}
+@media(max-width:1000px){
+  #page-character>.v208-window-canvas{grid-template-columns:1fr!important}
+  #page-character .v15-character-stage{min-height:400px!important;height:400px!important}
+}
+@media(max-width:650px){
+  #page-character>.v228-character-summary{padding:13px!important}
+  #page-character>.v228-character-summary h1{font-size:22px!important}
+  #page-character .v15-character-stage{min-height:360px!important;height:360px!important}
+}

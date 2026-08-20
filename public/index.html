@@ -10,7 +10,7 @@
 <header class="topbar">
   <div class="brand"><span>⚔️ OMI</span> IDLE FARM <em>COMPLETE</em></div>
   <div class="top-actions">
-    <span class="build-version" id="buildVersionBadge">V22.27</span><span id="onlineUser">👤 Vendég</span>
+    <span class="build-version" id="buildVersionBadge">V22.28</span><span id="onlineUser">👤 Vendég</span>
     <button class="ghost" id="leaderboardBtn">🏆 Ranglista</button>
     <button class="ghost admin-only-btn" id="adminPanelBtn" style="display:none">⚙️ Adminpanel</button><button class="ghost" id="authBtn">Belépés</button>
     <span id="saveState">💾 Mentve</span>
@@ -71,7 +71,8 @@
 
 <div id="gameShell" class="game-shell auth-locked">
 <main>
-<section class="hero card">
+<section class="page active" id="page-character">
+<section class="hero card v228-character-summary">
   <div>
     <div class="v200-character-header eyebrow">AUTOMATA FARM RPG</div>
     <h1>Farmolj automatikusan, építs egyre erősebb karaktert.</h1>
@@ -80,7 +81,7 @@
   <div class="hero-power"><small>ÖSSZERŐ</small><strong id="power">0</strong><span id="rankName">Kezdő</span></div>
 </section>
 
-<section class="resource-grid">
+<section class="resource-grid v228-character-resources">
   <div class="resource card"><span>💰 Arany</span><strong id="gold">0</strong><small id="gps">0 / mp</small></div>
   <div class="resource card"><span>💎 Kristály</span><strong id="gems">0</strong><small>ritka valuta</small></div>
   <div class="resource card"><span>⛏️ Érc</span><strong id="ore">0</strong><small>fejlesztéshez</small></div>
@@ -89,10 +90,7 @@
   <div class="resource card"><span>⭐ Szint</span><strong id="level">1</strong><small id="xpText">0 / 100 XP</small></div>
 </section>
 
-<!-- FARM -->
-
-
-<section class="page active" id="page-character">
+<!-- CHARACTER -->
   <div class="v15-main-grid">
     <aside class="v15-left card">
       <div class="admin-studio-only-v202 v15-section-title">👥 ADMIN GAME STUDIO</div>
@@ -110,7 +108,6 @@
     <section class="v15-character card">
       <div class="v15-character-top">
         <div><h2>⚔️ Saját karakter</h2><small>Felszereld a tárgyakat, aurákat és peteket, hogy egyre erősebb legyél!</small></div>
-        <div class="v15-power-box"><small>ÖSSZERŐ</small><b id="v15Power">0</b></div>
       </div>
 
       <div class="v15-character-stage">
@@ -147,19 +144,15 @@
   </div>
 
   <div class="character-attributes v15-attributes">
-    <div class="char-attr"><span>💪 Erő</span><b id="charStatPower">0</b></div>
     <div class="char-attr"><span>⚔️ Sebzés</span><b id="charStatDamage">0</b></div>
     <div class="char-attr"><span>❤️ Életerő</span><b id="charStatHP">0 / 0</b></div>
     <div class="char-attr"><span>🛡️ Védelem</span><b id="charStatDefense">0</b></div>
     <div class="char-attr"><span>🍀 Szerencse</span><b id="charStatLuck">0</b></div>
     <div class="char-attr"><span>🎯 Krit esély</span><b id="charStatCrit">0%</b></div>
     <div class="char-attr"><span>🎁 Drop bónusz</span><b id="charStatDrop">0%</b></div>
-    <div class="char-attr"><span>⭐ Szint</span><b id="charStatLevel">1</b></div>
-    <div class="char-attr"><span>🌟 Paragon</span><b id="charStatParagon">0</b></div>
     <div class="char-attr"><span>👑 Prestige</span><b id="charStatPrestige">0</b></div>
     <div class="char-attr"><span>📌 Paragon pont</span><b id="charStatPoints">0</b></div>
     <div class="char-attr"><span>✨ Aura token</span><b id="charStatAuraTokens">0</b></div>
-    <div class="char-attr"><span>🌊 Wave</span><b id="charStatWave">1</b></div>
     <div class="char-attr"><span>☠️ Összes kill</span><b id="charStatKills">0</b></div>
     <div class="char-attr"><span>💀 Halál</span><b id="charStatDeaths">0</b></div>
   </div>

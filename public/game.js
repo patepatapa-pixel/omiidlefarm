@@ -787,7 +787,7 @@ function renderHpRegenAndOptions(){
  if(g)g.innerHTML=Object.values(ITEM_OPT_DEFS).map(d=>`<div class="opt-help-row"><b>${d.name}</b><span>${d.min}–${d.max}${d.unit}</span><small>${d.desc}</small></div>`).join("");
 }
 function renderV15ExactCharacter(){
- if(!$("#v15Power"))return;
+ if(!$("#page-character"))return;
  renderVisibleHeroEquipment();
 
  const setText=(id,val)=>{const e=$("#"+id);if(e)e.textContent=val};
@@ -2375,7 +2375,8 @@ document.addEventListener("click",e=>{
     if(!canvas){
       canvas=document.createElement("div");
       canvas.className="v208-window-canvas";
-      page.prepend(canvas);
+      const overview=page.querySelector(":scope > .v228-character-resources");
+      if(overview)overview.after(canvas);else page.prepend(canvas);
     }
     return canvas;
   }
@@ -2396,10 +2397,6 @@ document.addEventListener("click",e=>{
         <div>
           <h2>⚔️ Saját karakter</h2>
           <small>Felszereld a tárgyakat, aurákat és peteket, hogy egyre erősebb legyél!</small>
-        </div>
-        <div class="v208-power-box">
-          <small>ÖSSZERŐ</small>
-          <b id="v208PowerMirror">0</b>
         </div>`;
       win.appendChild(header);
 
