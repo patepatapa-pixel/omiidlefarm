@@ -1808,3 +1808,34 @@ document.addEventListener("click",e=>{
   },true);
   setInterval(v202ApplyAdminStudioVisibility,1500);
 })();
+
+/* V20.4: force Equipment Management outside the character card */
+(function(){
+  function v204PlaceEquipmentBesideCharacter(){
+    const page=document.getElementById("page-character");
+    if(!page)return;
+    const layout=page.querySelector(".v200-character-inventory-layout");
+    if(!layout)return;
+    const left=layout.querySelector(".v200-character-left");
+    const right=layout.querySelector(".v200-inventory-right");
+    if(!left||!right)return;
+
+    // If equipment manager was accidentally rendered inside the character,
+    // physically move its containing inventory block to the right column.
+    const tool=page.querySelector(".inventory-tools-v163");
+    if(tool && left.contains(tool)){
+      let movable=tool;
+      // Prefer moving its inventory wrapper when one exists.
+      const wrapper=tool.closest(".inventory-layout,.inventory-shell,.inventory-wrap");
+      if(wrapper && wrapper!==layout && !wrapper.contains(left)) movable=wrapper;
+      right.appendChild(movable);
+    } else if(tool && !right.contains(tool)){
+      right.appendChild(tool);
+    }
+  }
+  window.addEventListener("load",()=>setTimeout(v204PlaceEquipmentBesideCharacter,80));
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.('[data-tab="character"]')) setTimeout(v204PlaceEquipmentBesideCharacter,40);
+  },true);
+  setTimeout(v204PlaceEquipmentBesideCharacter,100);
+})();

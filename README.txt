@@ -237,3 +237,10 @@ V20.3
 - Nagyobb fix rés van a Saját karakter és a Felszerelés kezelés között.
 - A két panel nem fedheti egymást.
 - Keskeny kijelzőn a Felszerelés kezelés automatikusan a karakter alá kerül.
+
+V20.4
+- Felszerelés kezelés fizikailag kikerült a Saját karakter kártyából.
+- Karakter külön bal oldali oszlop.
+- Felszerelés kezelés külön jobb oldali oszlop.
+- Nincs átfedés vagy belelógás.
+- Keskeny kijelzőn a jobb oldali blokk a karakter alá kerül.
