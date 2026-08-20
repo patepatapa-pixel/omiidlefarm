@@ -3537,3 +3537,59 @@ body.v202-is-admin .admin-studio-only-v202{
   40%{opacity:1}
   100%{opacity:0;transform:translateY(-22px)}
 }
+
+/* ================= V22.2 FULL PLAYER ADMIN EDITOR ================= */
+.v222-player-editor{
+  padding:10px 0 2px;
+}
+.v222-player-editor h3{margin:0 0 3px}
+.v222-player-editor small{color:#8f9aa6}
+.v222-editor-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:7px;
+  margin-top:9px;
+}
+.v222-editor-grid label,.v222-premium-row label{
+  font-size:9px;
+  color:#9aa6b2;
+}
+.v222-editor-grid input,.v222-premium-row select{
+  display:block;
+  width:100%;
+  box-sizing:border-box;
+  margin-top:4px;
+}
+.v222-premium-row{
+  display:grid;
+  grid-template-columns:1fr 180px;
+  gap:8px;
+  margin-top:9px;
+  padding:8px;
+  border:1px solid #4a3a1d;
+  border-radius:8px;
+  background:#0a0d11;
+}
+.v222-check{
+  display:flex!important;
+  align-items:center;
+  gap:7px;
+  font-weight:900;
+  color:#f0c24f!important;
+}
+.v222-check input{width:auto!important;margin:0!important}
+.v222-editor-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-top:9px;
+}
+#v222EditorStatus{
+  margin-top:8px;
+  min-height:20px;
+  color:#91a0ad;
+}
+@media(max-width:900px){.v222-editor-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){
+ .v222-editor-grid,.v222-premium-row{grid-template-columns:1fr}
+}

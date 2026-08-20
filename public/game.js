@@ -3980,3 +3980,6 @@ document.addEventListener("click",e=>{
     if(e.target.closest?.('[data-tab="dungeon"]'))setTimeout(enhancedRender,100);
   },true);
 })();
+
+/* V22.2 admin 10x compatibility: existing combat speed uses save.speed10Unlocked */
+window.v222AdminSpeedSupported=true;

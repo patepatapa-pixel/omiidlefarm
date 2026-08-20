@@ -380,3 +380,15 @@ V22.1
 - Isteni kapu: szent fényrobbanás.
 - Mélység ura: víz/tentacle hullám.
 - Minden ütésnél a saját dungeon effektje jelenik meg.
+
+V22.2
+- Admin játékosmodal teljes szerkesztőpanelt kapott.
+- Állítható: Arany, Kristály, Érc, Lélekkő, Dungeon jegy, Szint, XP, Wave.
+- Állítható: Paragon, Prestige, Paragon pont, Aura token.
+- Állítható: Skill pont, HP Regen, Kill, Halál.
+- Állítható: Fegyver/Páncél/Bányászat/Szerencse alapstat.
+- Állítható mind a 6 végtelen skill szint.
+- Admin adhat vagy elvehet 10x gyorsítást.
+- Admin beállíthatja az aktív 1x/2x/3x/10x sebességet.
+- Gyors Full HP gomb.
+- Minden admin módosítás szerveroldali auth+admin védelemmel fut.

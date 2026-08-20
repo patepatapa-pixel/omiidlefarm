@@ -238,3 +238,121 @@ document.addEventListener("click",e=>{
  if(e.target.closest("#refreshPlayers, #playersRefresh, [data-studio='players']"))setTimeout(enhancePlayerDeleteButtonsV112,250);
 });
 setInterval(enhancePlayerDeleteButtonsV112,1200);
+
+
+/* ================= V22.2 FULL PLAYER EDITOR ================= */
+function v222Set(id,val){
+  const e=document.getElementById(id);
+  if(e && val!==undefined && val!==null)e.value=val;
+}
+function v222Num(id){
+  const e=document.getElementById(id);
+  if(!e||e.value==="")return null;
+  const n=Number(e.value);
+  return Number.isFinite(n)?n:null;
+}
+function v222FillEditor(){
+  if(!selected)return;
+  const s=selected.game?.save_data||{};
+  v222Set("v222Gold",s.gold||0);
+  v222Set("v222Gems",s.gems||0);
+  v222Set("v222Ore",s.ore||0);
+  v222Set("v222Soul",s.soul||0);
+  v222Set("v222Tickets",s.tickets||0);
+  v222Set("v222Level",s.level||selected.game?.level||1);
+  v222Set("v222Xp",s.xp||0);
+  v222Set("v222Wave",s.wave||1);
+  v222Set("v222Paragon",s.paragonLevel??s.paragon??0);
+  v222Set("v222Prestige",s.prestigeLevel??s.prestige??0);
+  v222Set("v222ParagonPoints",s.paragonStatPoints??s.statPoints??0);
+  v222Set("v222AuraTokens",s.auraTokens||0);
+  v222Set("v222SkillPoints",s.skillPoints||0);
+  v222Set("v222HpRegen",s.hpRegenLevel||0);
+  v222Set("v222Kills",s.kills||selected.game?.kills||0);
+  v222Set("v222Deaths",s.deaths||0);
+
+  v222Set("v222WeaponTraining",s.base?.weaponTraining||0);
+  v222Set("v222ArmorTraining",s.base?.armorTraining||0);
+  v222Set("v222Mining",s.base?.mining||0);
+  v222Set("v222Luck",s.base?.luck||0);
+
+  v222Set("v222SkillPower",s.skills?.power||0);
+  v222Set("v222SkillGold",s.skills?.gold||0);
+  v222Set("v222SkillCrit",s.skills?.crit||0);
+  v222Set("v222SkillDrop",s.skills?.drop||0);
+  v222Set("v222SkillOffline",s.skills?.offline||0);
+  v222Set("v222SkillPet",s.skills?.pet||0);
+
+  const t=document.getElementById("v222Speed10");
+  if(t)t.checked=Boolean(s.speed10Unlocked);
+  v222Set("v222CombatSpeed",s.combatSpeed||1);
+}
+async function v222ReloadSelected(){
+  if(!selected?.user?.id)return;
+  selected=await api("/api/admin/player/"+selected.user.id);
+  v222FillEditor();
+}
+function v222Payload(){
+  return {
+    gold:v222Num("v222Gold"),gems:v222Num("v222Gems"),ore:v222Num("v222Ore"),
+    soul:v222Num("v222Soul"),tickets:v222Num("v222Tickets"),level:v222Num("v222Level"),
+    xp:v222Num("v222Xp"),wave:v222Num("v222Wave"),paragonLevel:v222Num("v222Paragon"),
+    prestigeLevel:v222Num("v222Prestige"),paragonStatPoints:v222Num("v222ParagonPoints"),
+    auraTokens:v222Num("v222AuraTokens"),skillPoints:v222Num("v222SkillPoints"),
+    hpRegenLevel:v222Num("v222HpRegen"),kills:v222Num("v222Kills"),deaths:v222Num("v222Deaths"),
+    base:{
+      weaponTraining:v222Num("v222WeaponTraining"),
+      armorTraining:v222Num("v222ArmorTraining"),
+      mining:v222Num("v222Mining"),
+      luck:v222Num("v222Luck")
+    },
+    skills:{
+      power:v222Num("v222SkillPower"),gold:v222Num("v222SkillGold"),
+      crit:v222Num("v222SkillCrit"),drop:v222Num("v222SkillDrop"),
+      offline:v222Num("v222SkillOffline"),pet:v222Num("v222SkillPet")
+    },
+    speed10Unlocked:Boolean(document.getElementById("v222Speed10")?.checked),
+    combatSpeed:Number(document.getElementById("v222CombatSpeed")?.value||1)
+  };
+}
+async function v222Save(){
+  if(!selected?.user?.id)return;
+  const st=document.getElementById("v222EditorStatus");
+  if(st)st.textContent="Mentés...";
+  try{
+    const d=await api(`/api/admin/player/${selected.user.id}/state`,{
+      method:"POST",
+      body:JSON.stringify(v222Payload())
+    });
+    selected=d;
+    v222FillEditor();
+    if(st)st.textContent="✅ Minden érték elmentve.";
+    toast("Játékos értékei frissítve.");
+    await loadPlayers();
+  }catch(e){
+    if(st)st.textContent="❌ "+e.message;
+  }
+}
+async function v222Quick(action){
+  if(!selected?.user?.id)return;
+  try{
+    selected=await api(`/api/admin/player/${selected.user.id}/quick`,{
+      method:"POST",body:JSON.stringify({action})
+    });
+    v222FillEditor();
+    toast("Admin művelet kész.");
+  }catch(e){alert(e.message)}
+}
+document.addEventListener("click",e=>{
+  if(e.target.id==="v222SavePlayer"){e.preventDefault();v222Save()}
+  if(e.target.id==="v222Give10x"){e.preventDefault();v222Quick("give10x")}
+  if(e.target.id==="v222Remove10x"){e.preventDefault();v222Quick("remove10x")}
+  if(e.target.id==="v222FullHp"){e.preventDefault();v222Quick("fullhp")}
+});
+
+/* Hook the existing openPlayer without replacing its current behavior. */
+const _v222OpenPlayer=openPlayer;
+openPlayer=async function(id){
+  await _v222OpenPlayer(id);
+  setTimeout(v222FillEditor,0);
+};

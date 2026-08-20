@@ -8,7 +8,72 @@
 <section class="page active" id="a-players"><section class="card"><div class="title-row"><h2>👥 Játékosok</h2><button id="refreshPlayers">↻ Frissítés</button></div><div id="players"></div></section></section>
 <section class="page" id="a-logs"><section class="card"><h2>📜 Admin műveletek</h2><div id="logs"></div></section></section>
 </main>
-<div class="modal" id="playerModal"><div class="modal-box" style="width:min(650px,100%)"><button class="modal-x" id="playerClose">×</button><h2 id="pmName">Játékos</h2><div id="pmStats" class="stats-panel"></div><hr><h3>🎁 Jutalom hozzáadása</h3><div style="display:grid;grid-template-columns:1fr 1fr auto;gap:7px"><select id="grantType"><option value="gold">Arany</option><option value="gems">Kristály</option><option value="ore">Érc</option><option value="soul">Lélekkő</option><option value="tickets">Dungeon jegy</option></select><input id="grantAmount" type="number" min="0" value="1000"><button id="grantBtn">Hozzáadás</button></div><hr><div style="display:flex;gap:7px;flex-wrap:wrap"><button id="banBtn" class="danger">Tiltás</button><button id="resetBtn" class="danger">Mentés teljes reset</button></div></div></div>
+<div class="modal" id="playerModal"><div class="modal-box" style="width:min(650px,100%)"><button class="modal-x" id="playerClose">×</button><h2 id="pmName">Játékos</h2>
+<div id="pmStats" class="stats-panel"></div>
+
+<hr>
+<section class="v222-player-editor">
+  <div class="title-row">
+    <div>
+      <h3>🛠️ Teljes játékos szerkesztés</h3>
+      <small>Értékek, fejlődés, statok és prémium funkciók közvetlen kezelése.</small>
+    </div>
+  </div>
+
+  <div class="v222-editor-grid">
+    <label>💰 Arany<input id="v222Gold" type="number" min="0"></label>
+    <label>💎 Kristály<input id="v222Gems" type="number" min="0"></label>
+    <label>⛏️ Érc<input id="v222Ore" type="number" min="0"></label>
+    <label>🔵 Lélekkő<input id="v222Soul" type="number" min="0"></label>
+    <label>🎫 Dungeon jegy<input id="v222Tickets" type="number" min="0"></label>
+    <label>⭐ Szint<input id="v222Level" type="number" min="1"></label>
+    <label>✨ XP<input id="v222Xp" type="number" min="0"></label>
+    <label>🌊 Wave<input id="v222Wave" type="number" min="1"></label>
+
+    <label>🌟 Paragon<input id="v222Paragon" type="number" min="0"></label>
+    <label>👑 Prestige<input id="v222Prestige" type="number" min="0"></label>
+    <label>📌 Paragon pont<input id="v222ParagonPoints" type="number" min="0"></label>
+    <label>✨ Aura token<input id="v222AuraTokens" type="number" min="0"></label>
+
+    <label>📚 Skill pont<input id="v222SkillPoints" type="number" min="0"></label>
+    <label>❤️ HP Regen szint<input id="v222HpRegen" type="number" min="0"></label>
+    <label>☠️ Kill<input id="v222Kills" type="number" min="0"></label>
+    <label>💀 Halál<input id="v222Deaths" type="number" min="0"></label>
+
+    <label>💪 Fegyver edzés<input id="v222WeaponTraining" type="number" min="0"></label>
+    <label>🛡️ Páncél edzés<input id="v222ArmorTraining" type="number" min="0"></label>
+    <label>⛏️ Bányászat<input id="v222Mining" type="number" min="0"></label>
+    <label>🍀 Szerencse<input id="v222Luck" type="number" min="0"></label>
+
+    <label>🔥 Erő aura skill<input id="v222SkillPower" type="number" min="0"></label>
+    <label>💰 Arany skill<input id="v222SkillGold" type="number" min="0"></label>
+    <label>🎯 Krit skill<input id="v222SkillCrit" type="number" min="0"></label>
+    <label>🎁 Drop skill<input id="v222SkillDrop" type="number" min="0"></label>
+    <label>🌙 Offline skill<input id="v222SkillOffline" type="number" min="0"></label>
+    <label>🐾 Pet skill<input id="v222SkillPet" type="number" min="0"></label>
+  </div>
+
+  <div class="v222-premium-row">
+    <label class="v222-check"><input id="v222Speed10" type="checkbox"> ⚡ 10× gyorsítás feloldva</label>
+    <label>Aktív speed
+      <select id="v222CombatSpeed">
+        <option value="1">1×</option>
+        <option value="2">2×</option>
+        <option value="3">3×</option>
+        <option value="10">10×</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="v222-editor-actions">
+    <button id="v222SavePlayer" class="gold-btn">💾 MINDEN MENTÉSE</button>
+    <button id="v222Give10x">⚡ 10× AZONNALI FELoldás</button>
+    <button id="v222Remove10x">🔒 10× ELVÉTELE</button>
+    <button id="v222FullHp">❤️ FULL HP</button>
+  </div>
+  <div id="v222EditorStatus"></div>
+</section>
+<hr><h3>🎁 Jutalom hozzáadása</h3><div style="display:grid;grid-template-columns:1fr 1fr auto;gap:7px"><select id="grantType"><option value="gold">Arany</option><option value="gems">Kristály</option><option value="ore">Érc</option><option value="soul">Lélekkő</option><option value="tickets">Dungeon jegy</option></select><input id="grantAmount" type="number" min="0" value="1000"><button id="grantBtn">Hozzáadás</button></div><hr><div style="display:flex;gap:7px;flex-wrap:wrap"><button id="banBtn" class="danger">Tiltás</button><button id="resetBtn" class="danger">Mentés teljes reset</button></div></div></div>
 <div id="toast"></div>
 <section class="card admin-studio">
 <h2>🛠️ ADMIN GAME STUDIO</h2>

@@ -506,6 +506,113 @@ app.delete("/api/admin/player/:id",auth,admin,async(req,res)=>{
   }
 });
 
+
+
+// ================= V22.2 FULL PLAYER ADMIN CONTROL =================
+app.post("/api/admin/player/:id/state",auth,admin,async(req,res)=>{
+  try{
+    const id=Number(req.params.id);
+    const row=(await q("SELECT save_data FROM game_saves WHERE user_id=$1",[id])).rows[0];
+    if(!row)return res.status(404).json({error:"Mentés nem található."});
+
+    const s=row.save_data||{};
+    const b=req.body||{};
+    const setNum=(obj,key,val,min=0)=>{
+      if(val===null||val===undefined||val==="")return;
+      const n=Number(val);
+      if(Number.isFinite(n))obj[key]=Math.max(min,n);
+    };
+
+    setNum(s,"gold",b.gold);
+    setNum(s,"gems",b.gems);
+    setNum(s,"ore",b.ore);
+    setNum(s,"soul",b.soul);
+    setNum(s,"tickets",b.tickets);
+    setNum(s,"level",b.level,1);
+    setNum(s,"xp",b.xp);
+    setNum(s,"wave",b.wave,1);
+    setNum(s,"paragonLevel",b.paragonLevel);
+    s.paragon=s.paragonLevel||0;
+    setNum(s,"prestigeLevel",b.prestigeLevel);
+    s.prestige=s.prestigeLevel||0;
+    setNum(s,"paragonStatPoints",b.paragonStatPoints);
+    setNum(s,"auraTokens",b.auraTokens);
+    setNum(s,"skillPoints",b.skillPoints);
+    setNum(s,"hpRegenLevel",b.hpRegenLevel);
+    setNum(s,"kills",b.kills);
+    setNum(s,"deaths",b.deaths);
+
+    s.base=s.base||{};
+    for(const k of ["weaponTraining","armorTraining","mining","luck"]){
+      if(b.base && b.base[k]!==null && b.base[k]!==undefined){
+        setNum(s.base,k,b.base[k]);
+      }
+    }
+
+    s.skills=s.skills||{};
+    for(const k of ["power","gold","crit","drop","offline","pet"]){
+      if(b.skills && b.skills[k]!==null && b.skills[k]!==undefined){
+        setNum(s.skills,k,b.skills[k]);
+      }
+    }
+
+    s.speed10Unlocked=Boolean(b.speed10Unlocked);
+    const spd=Number(b.combatSpeed||1);
+    s.combatSpeed=[1,2,3,10].includes(spd) ? (spd===10 && !s.speed10Unlocked ? 3 : spd) : 1;
+
+    await q(
+      "UPDATE game_saves SET save_data=$1,level=$2,kills=$3,gold=$4,updated_at=NOW() WHERE user_id=$5",
+      [s,Math.floor(Number(s.level||1)),Math.floor(Number(s.kills||0)),Math.floor(Number(s.gold||0)),id]
+    );
+    await q("INSERT INTO admin_logs(admin_id,target_user_id,action) VALUES($1,$2,$3)",
+      [req.user.id,id,"FULL_PLAYER_EDIT"]).catch(()=>{});
+
+    const u=(await q("SELECT id,username,player_name,role,banned,leaderboard_hidden,pvp_rating,created_at,last_login_at,last_save_at FROM users WHERE id=$1",[id])).rows[0];
+    const g=(await q("SELECT * FROM game_saves WHERE user_id=$1",[id])).rows[0];
+    res.json({user:u,game:g||null});
+  }catch(e){
+    console.error("FULL PLAYER EDIT ERROR:",e);
+    res.status(500).json({error:"A játékos módosítása nem sikerült."});
+  }
+});
+
+app.post("/api/admin/player/:id/quick",auth,admin,async(req,res)=>{
+  try{
+    const id=Number(req.params.id);
+    const row=(await q("SELECT save_data FROM game_saves WHERE user_id=$1",[id])).rows[0];
+    if(!row)return res.status(404).json({error:"Mentés nem található."});
+    const s=row.save_data||{};
+    const action=String(req.body.action||"");
+
+    if(action==="give10x"){
+      s.speed10Unlocked=true;
+      s.combatSpeed=10;
+    }else if(action==="remove10x"){
+      s.speed10Unlocked=false;
+      if(Number(s.combatSpeed)===10)s.combatSpeed=3;
+    }else if(action==="fullhp"){
+      const baseHp=Math.max(100,1000+Number(s.level||1)*80+Number(s.paragonLevel||0)*20);
+      s.playerHp=Math.max(Number(s.playerHp||0),baseHp);
+    }else{
+      return res.status(400).json({error:"Ismeretlen admin művelet."});
+    }
+
+    await q(
+      "UPDATE game_saves SET save_data=$1,level=$2,kills=$3,gold=$4,updated_at=NOW() WHERE user_id=$5",
+      [s,Math.floor(Number(s.level||1)),Math.floor(Number(s.kills||0)),Math.floor(Number(s.gold||0)),id]
+    );
+    await q("INSERT INTO admin_logs(admin_id,target_user_id,action) VALUES($1,$2,$3)",
+      [req.user.id,id,"QUICK_"+action.toUpperCase()]).catch(()=>{});
+
+    const u=(await q("SELECT id,username,player_name,role,banned,leaderboard_hidden,pvp_rating,created_at,last_login_at,last_save_at FROM users WHERE id=$1",[id])).rows[0];
+    const g=(await q("SELECT * FROM game_saves WHERE user_id=$1",[id])).rows[0];
+    res.json({user:u,game:g||null});
+  }catch(e){
+    console.error("QUICK ADMIN ERROR:",e);
+    res.status(500).json({error:"Az admin művelet nem sikerült."});
+  }
+});
+
 app.use(express.static(path.join(__dirname,"public")));
 app.get("/admin",(req,res)=>res.sendFile(path.join(__dirname,"public","admin.html")));
 app.get("*",(req,res)=>res.sendFile(path.join(__dirname,"public","index.html")));
