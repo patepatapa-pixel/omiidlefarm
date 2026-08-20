@@ -217,3 +217,11 @@ V20.0
 - Az Inventory saját fülön továbbra is használható.
 - A jelenlegi Equip működés megmarad.
 - A Felhőbe mentve/Mentés kijelzés fix szélességet kapott, így nem tolja arrébb a felső menüket.
+
+V20.1
+- Karakter + Inventory oldal vizuálisan újrarendezve.
+- Karakter bal oldalon, Inventory / Equip kezelés jobb oldalon.
+- Felszerelés slotok szimmetrikusabban elhelyezve.
+- Inventory jobb oldali része kompaktabb és görgethető.
+- Felszerelés opciók kizárólag a Fejlesztés fülön jelenik meg.
+- Equip Best és tömeges rarity kezelés megmaradt.

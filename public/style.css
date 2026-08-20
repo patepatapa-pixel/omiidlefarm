@@ -1636,3 +1636,226 @@ body:not(.v200-character-tab) .v200-character-only{
   white-space:nowrap!important;
   text-overflow:ellipsis!important;
 }
+
+/* ================= V20.1 CHARACTER + INVENTORY POLISH ================= */
+
+/* Character page overall */
+#page-character.active{
+  display:block!important;
+}
+#page-character{
+  padding:12px!important;
+}
+
+/* The runtime-created character/inventory side-by-side layout */
+#page-character .v200-character-inventory-layout{
+  width:min(1220px,calc(100vw - 28px))!important;
+  margin:0 auto!important;
+  display:grid!important;
+  grid-template-columns:minmax(520px,1.05fr) minmax(430px,.95fr)!important;
+  gap:16px!important;
+  align-items:start!important;
+}
+
+/* Left: character */
+#page-character .v200-character-left{
+  min-width:0!important;
+}
+#page-character .v15-character,
+#page-character .character-card,
+#page-character .v15-character-stage{
+  width:100%!important;
+  box-sizing:border-box!important;
+}
+#page-character .v15-character{
+  border:1px solid #8a6626!important;
+  border-radius:12px!important;
+  background:linear-gradient(145deg,#0c1117,#070a0f)!important;
+  padding:12px!important;
+}
+#page-character .v15-character-top{
+  display:flex!important;
+  justify-content:space-between!important;
+  align-items:center!important;
+  gap:12px!important;
+  margin-bottom:10px!important;
+}
+#page-character .v15-character-top h2{
+  margin:0 0 4px!important;
+  font-size:18px!important;
+}
+#page-character .v15-character-stage{
+  position:relative!important;
+  min-height:610px!important;
+  height:610px!important;
+  overflow:hidden!important;
+  border:1px solid #39434e!important;
+  border-radius:10px!important;
+  background:radial-gradient(circle at 50% 38%,#171e28 0,#090d13 46%,#040608 78%)!important;
+}
+#page-character .v168-character-system{
+  inset:0!important;
+}
+#page-character .v168-avatar{
+  transform:translate(-50%,-50%) scale(.92)!important;
+}
+
+/* Equipment slots aligned symmetrically */
+#page-character .v168-slot{
+  width:138px!important;
+  min-height:92px!important;
+  grid-template-columns:54px 1fr!important;
+  gap:7px!important;
+  padding:7px!important;
+}
+#page-character .v168-icon{
+  height:54px!important;
+}
+#page-character .v168-helmet,
+#page-character .v168-armor,
+#page-character .v168-boots{
+  left:14px!important;
+}
+#page-character .v168-weapon,
+#page-character .v168-gloves,
+#page-character .v168-ring{
+  right:14px!important;
+}
+#page-character .v168-helmet,
+#page-character .v168-weapon{top:46px!important}
+#page-character .v168-armor,
+#page-character .v168-gloves{top:213px!important}
+#page-character .v168-boots,
+#page-character .v168-ring{top:380px!important}
+
+#page-character .hero-equipped-label{
+  left:50%!important;
+  bottom:64px!important;
+  transform:translateX(-50%)!important;
+  max-width:78%!important;
+}
+
+/* Bottom mini status inside character card */
+#page-character .v15-bottom-stats{
+  position:absolute!important;
+  left:12px!important;
+  right:12px!important;
+  bottom:10px!important;
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:7px!important;
+  width:auto!important;
+  z-index:25!important;
+}
+#page-character .v15-bottom-stats>div{
+  min-width:0!important;
+  padding:8px!important;
+  border-radius:8px!important;
+  border:1px solid #333e49!important;
+  background:#070b10f2!important;
+}
+#page-character .v15-bottom-stats span,
+#page-character .v15-bottom-stats b{
+  display:block!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+
+/* Right: inventory management */
+#page-character .v200-inventory-right{
+  min-width:0!important;
+  display:grid!important;
+  gap:10px!important;
+}
+#page-character .v200-inventory-right .card{
+  border-radius:11px!important;
+  background:linear-gradient(145deg,#0c1117,#080b10)!important;
+  border:1px solid #39444f!important;
+  padding:11px!important;
+}
+#page-character .inventory-tools-v163{
+  border-color:#8b6728!important;
+}
+#page-character .inventory-tools-head{
+  display:flex!important;
+  justify-content:space-between!important;
+  align-items:center!important;
+  gap:10px!important;
+  margin-bottom:10px!important;
+}
+#page-character .bulk-rarity-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:7px!important;
+}
+#page-character .bulk-rarity{
+  padding:8px!important;
+}
+#page-character .bulk-rarity-grid .legendary{
+  grid-column:1/-1!important;
+}
+#page-character #equipBestV163{
+  min-width:116px!important;
+}
+
+/* Actual inventory list on the right */
+#page-character .inventory-grid,
+#page-character #inventory,
+#page-character .inventory-list{
+  max-height:610px!important;
+  overflow:auto!important;
+  padding-right:4px!important;
+}
+
+/* Responsive */
+@media(max-width:1050px){
+  #page-character .v200-character-inventory-layout{
+    grid-template-columns:1fr!important;
+    width:min(760px,calc(100vw - 18px))!important;
+  }
+  #page-character .v200-inventory-right{
+    width:100%!important;
+  }
+}
+@media(max-width:620px){
+  #page-character .v15-character-stage{
+    min-height:540px!important;
+    height:540px!important;
+  }
+  #page-character .v168-slot{
+    width:108px!important;
+    grid-template-columns:40px 1fr!important;
+  }
+  #page-character .v168-icon{height:40px!important}
+  #page-character .bulk-rarity-grid{grid-template-columns:1fr!important}
+  #page-character .bulk-rarity-grid .legendary{grid-column:auto!important}
+}
+
+/* ================= V20.1 OPTIONS PAGE SEPARATION ================= */
+
+/* Felszerelés opciók only on Fejlesztés */
+.v201-options-upgrade-only{
+  display:none!important;
+}
+#page-upgrade.active .v201-options-upgrade-only,
+#page-upgrades.active .v201-options-upgrade-only{
+  display:block!important;
+  width:min(1100px,100%)!important;
+  margin:0 auto 12px!important;
+}
+
+/* Defensive hiding on all other pages */
+#page-character .item-option-help,
+#page-inventory .item-option-help,
+#page-farm .item-option-help,
+#page-skills .item-option-help,
+#page-pets .item-option-help,
+#page-paragon .item-option-help,
+#page-aurashop .item-option-help,
+#page-dungeon .item-option-help,
+#page-quests .item-option-help,
+#page-pvp .item-option-help,
+#page-shop .item-option-help,
+#page-stats .item-option-help{
+  display:none!important;
+}

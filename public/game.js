@@ -1761,3 +1761,15 @@ try{
     applyForTab(currentTab()||"character");
   },50);
 })();
+
+/* V20.1 polished character/inventory placement */
+document.addEventListener("click",e=>{
+  const b=e.target.closest?.("[data-tab]");
+  if(!b)return;
+  if(b.dataset.tab==="character"){
+    setTimeout(()=>{
+      if(typeof renderDynamicEquipment==="function")renderDynamicEquipment();
+      if(typeof renderInventory==="function")renderInventory();
+    },20);
+  }
+},true);
