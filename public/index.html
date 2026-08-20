@@ -20,7 +20,7 @@
 </header>
 
 <nav class="tabs">
-  <button class="tab active" data-tab="farm">⚔️ Farm</button>
+  <button class="tab active" data-tab="character">🧙 Karakter</button><button class="tab" data-tab="farm">⚔️ Farm</button>
   <button class="tab" data-tab="inventory">🎒 Inventory</button>
   <button class="tab" data-tab="upgrade">🔨 Fejlesztés</button>
   <button class="tab" data-tab="skills">✨ Képességek</button>
@@ -50,14 +50,88 @@
 </section>
 
 <!-- FARM -->
-<section class="page active" id="page-farm">
+
+<section class="page active" id="page-character">
+<div class="character-page-grid">
+<section class="card hero-character-card">
+  <div class="title-row">
+    <div><div class="eyebrow">SAJÁT HŐSÖD</div><h2 style="font-size:22px;margin:5px 0">🧙 Karakter</h2><small>A felszerelt tárgyak, aura és pet vizuálisan is megjelennek.</small></div>
+    <div class="character-power-badge"><small>ÖSSZERŐ</small><b id="v5CharPower">0</b><span id="v5CharRank">Kezdő</span></div>
+  </div>
+  <div class="v5-character-scene">
+    <div class="v5-scene-bg" id="v5SceneBg"></div>
+    <div class="v5-aura" id="v5Aura"></div>
+
+    <div class="v5-slot v5-slot-head"><span>🪖</span><small>SISAK</small><b id="v5Helmet">Üres</b></div>
+    <div class="v5-slot v5-slot-weapon"><span>⚔️</span><small>FEGYVER</small><b id="v5Weapon">Üres</b></div>
+    <div class="v5-slot v5-slot-armor"><span>🛡️</span><small>PÁNCÉL</small><b id="v5Armor">Üres</b></div>
+    <div class="v5-slot v5-slot-gloves"><span>🧤</span><small>KESZTYŰ</small><b id="v5Gloves">Üres</b></div>
+    <div class="v5-slot v5-slot-boots"><span>🥾</span><small>CSIZMA</small><b id="v5Boots">Üres</b></div>
+    <div class="v5-slot v5-slot-ring"><span>💍</span><small>GYŰRŰ</small><b id="v5Ring">Üres</b></div>
+
+    <div class="v5-hero">
+      <div class="v5-hero-shadow"></div>
+      <div class="v5-hero-head" id="v5HeroHead">🧑</div>
+      <div class="v5-hero-shoulders"></div>
+      <div class="v5-hero-chest" id="v5HeroChest"></div>
+      <div class="v5-hero-belt"></div>
+      <div class="v5-hero-legs"></div>
+      <div class="v5-hero-weapon" id="v5HeroWeapon">⚔️</div>
+      <div class="v5-hero-offhand" id="v5HeroOffhand"></div>
+      <div class="v5-pet" id="v5Pet">🐾</div>
+    </div>
+
+    <div class="v5-character-footer">
+      <div><small>AURA</small><b id="v5AuraName">Nincs</b></div>
+      <div><small>PET</small><b id="v5PetName">Nincs</b></div>
+      <div><small>WAVE</small><b id="v5WaveLabel">1</b></div>
+      <div><small>PARAGON</small><b id="v5ParagonLabel">0</b></div>
+    </div>
+  </div>
+  <button id="equipBestBtn" class="equip-best-btn">✨ EQUIP BEST – Legjobb felszerelés automatikusan</button>
+</section>
+
+<aside class="stack">
+<section class="card">
+  <h2>🌟 Paragon / Prestige</h2>
+  <div class="prestige-summary">
+    <div><small>Prestige</small><b id="prestigeLevel">0</b></div>
+    <div><small>Paragon</small><b id="paragonLevel">0</b></div>
+    <div><small>Statpont</small><b id="paragonPoints">0</b></div>
+    <div><small>Aura token</small><b id="auraTokens">0</b></div>
+  </div>
+  <div class="prestige-progress"><div id="prestigeProgress"></div></div>
+  <small id="prestigeText">200-as szinten prestigelhetsz.</small>
+  <button id="prestigeBtn" class="prestige-btn" disabled>🌟 PRESTIGE</button>
+</section>
+
+<section class="card">
+  <h2>📌 Paragon statpontok</h2>
+  <div id="paragonStats" class="paragon-stat-list"></div>
+</section>
+
+<section class="card">
+  <h2>✨ Prestige Aura Shop</h2>
+  <div id="auraShop" class="aura-shop"></div>
+</section>
+</aside>
+</div>
+</section>
+
+<section class="page" id="page-farm">
 <div class="layout">
   <div class="stack">
     <section class="card battle-card">
-      <div class="title-row"><h2>⚔️ Automata harc</h2><span class="online">● FARMOL</span></div>
+      <div class="title-row"><h2>⚔️ Automata harc</h2><span class="online">● AUTOMATA FARM</span></div>
+<div class="wave-panel">
+ <div><small>WAVE</small><b id="waveNumber">1</b></div>
+ <div><small>KILL</small><b><span id="waveKills">0</span>/<span id="waveGoal">10</span></b></div>
+ <div><small>ÁLLAPOT</small><b id="waveState">Farm</b></div>
+ <div><small>BOSS</small><b id="bossState">Várakozik</b></div>
+</div>
       <div class="zone-head">
         <div><small>AKTUÁLIS TERÜLET</small><h3 id="zoneName">Zöld mező</h3></div>
-        <button id="bossBtn">👹 Boss kihívása</button>
+        <button id="bossBtn" disabled>👹 Automata Boss</button>
       </div>
       <div class="enemy">
         <div class="enemy-icon" id="enemyIcon">🐗</div>

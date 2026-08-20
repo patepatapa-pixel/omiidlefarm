@@ -66,6 +66,20 @@ let save=JSON.parse(localStorage.getItem("omiIdleComplete")||"null")||{
  dailyClaimed:{},achClaimed:{},last:Date.now(),lastDaily:new Date().toDateString(),uid:1
 };
 if(save.lastDaily!==new Date().toDateString()){save.dailyClaimed={};save.lastDaily=new Date().toDateString()}
+
+save.wave=Number(save.wave||1);
+save.waveKills=Number(save.waveKills||0);
+save.waveGoal=Number(save.waveGoal||10);
+save.waveBoss=Boolean(save.waveBoss||false);
+save.bossHp=Number(save.bossHp||0);
+save.paragonLevel=Number(save.paragonLevel||0);
+save.prestigeLevel=Number(save.prestigeLevel||0);
+save.paragonPoints=Number(save.paragonPoints||0);
+save.auraTokens=Number(save.auraTokens||0);
+save.paragonStats=save.paragonStats||{damage:0,gold:0,drop:0,crit:0};
+save.ownedAuras=Array.isArray(save.ownedAuras)?save.ownedAuras:["none"];
+save.activeAura=save.activeAura||"none";
+
 let enemyHp=ZONES[save.zone].hp;
 
 function persist(){save.last=Date.now();localStorage.setItem("omiIdleComplete",JSON.stringify(save));$("#saveState").textContent="💾 Mentve"}
@@ -89,11 +103,11 @@ function bonuses(){
 }
 function damage(){
  let b=bonuses(),base=6+save.level*1.2+save.base.weaponTraining*4+b.atk;
- return Math.floor(base*(1+save.skills.power*.05))
+ return Math.floor(base*(1+save.skills.power*.05+save.paragonStats.damage*.02))
 }
-function critChance(){return Math.min(.65,.05+save.skills.crit*.015+bonuses().crit)}
-function goldBonus(){return 1+(save.base.armorTraining-1)*.05+save.skills.gold*.06+bonuses().gold}
-function dropBonus(){return save.skills.drop*.02+bonuses().drop+(save.base.luck-1)*.01}
+function critChance(){return Math.min(.75,.05+save.skills.crit*.015+bonuses().crit+save.paragonStats.crit*.005)}
+function goldBonus(){return 1+(save.base.armorTraining-1)*.05+save.skills.gold*.06+bonuses().gold+save.paragonStats.gold*.03}
+function dropBonus(){return save.skills.drop*.02+bonuses().drop+(save.base.luck-1)*.01+save.paragonStats.drop*.01}
 function power(){let b=bonuses();return Math.floor(damage()*11+b.def*7+save.level*20+save.base.mining*8+save.base.luck*8)}
 function rankName(){let p=power();return p<500?"Kezdő":p<2500?"Harcos":p<10000?"Elit":p<40000?"Mester":p<120000?"Hős":"Isteni"}
 function baseCost(d){return Math.floor(d.base*Math.pow(1.58,save.base[d.key]-1))}
@@ -135,14 +149,34 @@ function kill(){
  if(Math.random()<.006)save.tickets++;
  if(Math.random()<z.drop+dropBonus())addItem(createItem());
  while(save.xp>=needXp()){save.xp-=needXp();save.level++;save.skillPoints++;toast(`⭐ Szintlépés! Lv.${save.level}`)}
- $("#combatLog").textContent=`${z.enemy} legyőzve · +${fmt(g)} arany · +${z.xp} XP`;
- enemyHp=z.hp;persist()
+ save.waveKills++;
+ if(save.waveKills>=save.waveGoal){
+   save.waveBoss=true;
+   save.bossHp=Math.floor(z.hp*(6+save.wave*.18));
+   enemyHp=save.bossHp;
+   $("#combatLog").textContent=`👹 Wave ${save.wave} BOSS megjelent! Nem léphetsz tovább, amíg le nem győzöd.`;
+ }else{
+   $("#combatLog").textContent=`${z.enemy} legyőzve · +${fmt(g)} arany · +${z.xp} XP`;
+   enemyHp=z.hp;
+ }
+ persist()
 }
 function combatTick(){
  let hit=damage(),crit=Math.random()<critChance();
  if(crit){hit*=2;save.stats.critHits++}
  enemyHp-=hit;
- if(enemyHp<=0)kill();
+ if(enemyHp<=0){
+   if(save.waveBoss){
+     let z=ZONES[save.zone],reward=Math.floor(z.gold*(20+save.wave)*goldBonus());
+     save.gold+=reward;save.stats.goldEarned+=reward;save.gems+=1;save.soul+=1;save.stats.bosses++;
+     if(Math.random()<.80)addItem(createItem());
+     save.waveBoss=false;save.wave++;save.waveKills=0;save.waveGoal=Math.min(50,10+Math.floor(save.wave/5)*2);
+     enemyHp=z.hp;
+     $("#combatLog").textContent=`🏆 Wave Boss legyőzve! +${fmt(reward)} arany. Továbbjutottál a ${save.wave}. wave-re.`;
+     toast(`🏆 Wave ${save.wave-1} teljesítve!`);
+     persist();
+   }else kill();
+ }
  renderCore()
 }
 
@@ -282,8 +316,106 @@ function renderStats(){
   ["Összerő",fmt(power())],["Összes kill",fmt(save.kills)],["Összes arany",fmt(save.stats.goldEarned)],["Talált tárgy",fmt(save.stats.itemsFound)],["Legendás drop",fmt(save.stats.legendary)],["Boss kill",fmt(save.stats.bosses)],["Dungeon",fmt(save.stats.dungeons)],["Kritikus találat",fmt(save.stats.critHits)],["Játékidő",Math.floor(save.stats.playSeconds/60)+" perc"]
  ].map(x=>`<div class="statbox"><small>${x[0]}</small><b>${x[1]}</b></div>`).join("")
 }
-function renderAll(){renderCore();renderCharacterVisual();renderZones();renderBaseUpgrades();renderInventory();renderUpgrade();renderSkills();renderPets();renderDungeons();renderQuests();renderStats()}
-$("#bossBtn").onclick=()=>{let z=ZONES[save.zone],need=z.need*1.4;if(power()<need)return toast("👹 A boss még túl erős.");let reward=Math.floor(z.gold*30*goldBonus());save.gold+=reward;save.gems++;save.soul++;save.stats.bosses++;save.stats.goldEarned+=reward;if(Math.random()<.75)addItem(createItem());persist();renderAll();toast("🏆 Boss legyőzve!")};
+
+const AURAS=[
+ {id:"none",name:"Nincs aura",className:"",cost:0,need:0},
+ {id:"blue",name:"Kék energia aura",className:"aura-blue",cost:1,need:1},
+ {id:"purple",name:"Lila misztikus aura",className:"aura-purple",cost:2,need:2},
+ {id:"crimson",name:"Bíbor démon aura",className:"aura-crimson",cost:3,need:3},
+ {id:"gold",name:"Legendás arany aura",className:"aura-gold",cost:5,need:5},
+ {id:"void",name:"Void isteni aura",className:"aura-void",cost:8,need:8}
+];
+function itemScore(it){
+ if(!it)return -1;
+ const st=itemStats(it),rar={normal:1,rare:1.4,epic:2,mythic:3,legendary:4}[it.rarity]||1;
+ return (st.atk*8+st.def*5+st.gold*900+st.crit*1300+st.drop*1600)*(1+it.plus*.08)*rar;
+}
+function equipBest(){
+ Object.keys(SLOT_NAMES).forEach(slot=>{
+   const choices=save.inventory.filter(x=>x.slot===slot);
+   if(!choices.length)return;
+   choices.sort((a,b)=>itemScore(b)-itemScore(a));
+   save.equipped[slot]=choices[0].id;
+ });
+ persist();renderAll();toast("✨ A legjobb felszerelések felrakva!");
+}
+function renderV5Character(){
+ const map={helmet:["v5Helmet","🪖"],weapon:["v5Weapon","⚔️"],armor:["v5Armor","🛡️"],gloves:["v5Gloves","🧤"],boots:["v5Boots","🥾"],ring:["v5Ring","💍"]};
+ Object.entries(map).forEach(([slot,[id]])=>{
+   const it=equipObj(slot),el=$("#"+id);
+   if(el)el.textContent=it?`${rarityName(it.rarity)} +${it.plus}`:"Üres";
+ });
+ const weapon=equipObj("weapon"),armor=equipObj("armor"),helmet=equipObj("helmet"),pet=petObj();
+ $("#v5HeroHead").textContent=helmet?(helmet.rarity==="legendary"?"👑":"🧙"):"🧑";
+ $("#v5HeroWeapon").textContent=weapon?(weapon.rarity==="legendary"?"🗡️":"⚔️"):"";
+ $("#v5HeroOffhand").textContent=armor?"🛡️":"";
+ const armorColors={normal:["#2d343c","#15191e"],rare:["#24425a","#10283b"],epic:["#4a2c61","#251430"],mythic:["#63263d","#2f121d"],legendary:["#655021","#2c220d"]};
+ const c=armorColors[armor?.rarity||"normal"];
+ $("#v5HeroChest").style.background=`linear-gradient(${c[0]},${c[1]})`;
+ $("#v5Pet").textContent=pet?pet.icon:"🐾";$("#v5PetName").textContent=pet?pet.name:"Nincs";
+ $("#v5CharPower").textContent=fmt(power());$("#v5CharRank").textContent=rankName();
+ $("#v5WaveLabel").textContent=save.wave;$("#v5ParagonLabel").textContent=save.paragonLevel;
+
+ const aura=AURAS.find(x=>x.id===save.activeAura)||AURAS[0],ae=$("#v5Aura");
+ ae.className="v5-aura"+(aura.className?` on ${aura.className}`:"");
+ $("#v5AuraName").textContent=aura.name;
+
+ let themes=[
+  ["#224c2b","#07100a"],["#15362c","#050a08"],["#4d4032","#090807"],["#5b1f1d","#0d0505"],
+  ["#294c6d","#060b10"],["#513879","#08050e"],["#202c67","#03050d"],["#7b6322","#0b0903"]
+ ];
+ let t=themes[save.zone]||themes[0];
+ $("#v5SceneBg").style.background=`radial-gradient(circle at 50% 25%,${t[0]}88,transparent 30%),linear-gradient(180deg,${t[0]}55,${t[1]} 65%,#020303)`;
+}
+function renderWave(){
+ $("#waveNumber").textContent=save.wave;$("#waveKills").textContent=save.waveKills;$("#waveGoal").textContent=save.waveGoal;
+ $("#waveState").textContent=save.waveBoss?"BOSS HARC":"Normál farm";$("#bossState").textContent=save.waveBoss?`${fmt(Math.max(0,enemyHp))} HP`:"Wave végén";
+}
+function renderParagon(){
+ const eligible=save.level>=200;
+ $("#prestigeLevel").textContent=save.prestigeLevel;$("#paragonLevel").textContent=save.paragonLevel;$("#paragonPoints").textContent=save.paragonPoints;$("#auraTokens").textContent=save.auraTokens;
+ $("#prestigeProgress").style.width=Math.min(100,save.level/200*100)+"%";
+ $("#prestigeText").textContent=eligible?`Prestige elérhető! Lv.${save.level} → +1 Prestige, +1 Paragon, +5 statpont, +1 aura token.`:`Még ${200-save.level} szint kell a következő Prestige-hez.`;
+ $("#prestigeBtn").disabled=!eligible;
+
+ const stats=[
+  ["damage","⚔️ Sebzés","+2% / pont"],
+  ["gold","💰 Arany","+3% / pont"],
+  ["drop","🎁 Drop","+1% / pont"],
+  ["crit","🎯 Krit","+0.5% / pont"]
+ ];
+ $("#paragonStats").innerHTML=stats.map(x=>`<div class="paragon-row"><div><b>${x[1]}</b><small>${x[2]} · Pont: ${save.paragonStats[x[0]]}</small></div><button data-paragon="${x[0]}" ${save.paragonPoints<=0?"disabled":""}>+1</button></div>`).join("");
+ $$("[data-paragon]").forEach(b=>b.onclick=()=>{if(save.paragonPoints<=0)return;save.paragonPoints--;save.paragonStats[b.dataset.paragon]++;persist();renderAll()});
+
+ $("#auraShop").innerHTML=AURAS.map(a=>{
+   const owned=save.ownedAuras.includes(a.id),active=save.activeAura===a.id,locked=save.prestigeLevel<a.need;
+   return `<div class="aura-card ${active?"active":""}"><b>✨ ${a.name}</b><small>${a.id==="none"?"Alap":`Prestige ${a.need} · ${a.cost} Aura token`}</small><button data-aura="${a.id}" ${locked?"disabled":""}>${active?"Aktív":owned?"Aktiválás":"Megvásárlás"}</button></div>`
+ }).join("");
+ $$("[data-aura]").forEach(b=>b.onclick=()=>buyOrEquipAura(b.dataset.aura));
+}
+function doPrestige(){
+ if(save.level<200)return;
+ if(!confirm("Prestige után a normál szinted, XP-d és alap fejlesztéseid újraindulnak. Inventory, felszerelés, petek, paragon és prestige megmarad. Folytatod?"))return;
+ save.prestigeLevel++;save.paragonLevel++;save.paragonPoints+=5;save.auraTokens++;
+ save.level=1;save.xp=0;save.zone=0;save.wave=1;save.waveKills=0;save.waveGoal=10;save.waveBoss=false;
+ save.base={weaponTraining:1,armorTraining:1,mining:1,luck:1};
+ enemyHp=ZONES[0].hp;
+ persist();renderAll();toast("🌟 PRESTIGE! +1 Paragon · +5 statpont · +1 aura token");
+}
+function buyOrEquipAura(id){
+ const a=AURAS.find(x=>x.id===id);if(!a)return;
+ if(!save.ownedAuras.includes(id)){
+   if(save.prestigeLevel<a.need)return toast("🔒 Magasabb Prestige szint szükséges.");
+   if(save.auraTokens<a.cost)return toast("Nincs elég Aura token.");
+   save.auraTokens-=a.cost;save.ownedAuras.push(id);
+ }
+ save.activeAura=id;persist();renderAll();toast("✨ Aura aktiválva: "+a.name);
+}
+$("#equipBestBtn").onclick=equipBest;
+$("#prestigeBtn").onclick=doPrestige;
+
+function renderAll(){renderCore();renderCharacterVisual();renderV5Character();renderWave();renderParagon();renderZones();renderBaseUpgrades();renderInventory();renderUpgrade();renderSkills();renderPets();renderDungeons();renderQuests();renderStats()}
+$("#bossBtn").onclick=()=>toast("👹 A boss automatikusan jön minden wave végén.");
 $("#petSummon").onclick=summonPet;
 $("#sellNormal").onclick=()=>{let equipped=new Set(Object.values(save.equipped));let sold=0;save.inventory=save.inventory.filter(it=>{if(it.rarity==="normal"&&!equipped.has(it.id)){save.gold+=sellValue(it);sold++;return false}return true});persist();renderAll();toast(`${sold} normál tárgy eladva`)};
 $("#sortInventory").onclick=()=>{let r={legendary:5,mythic:4,epic:3,rare:2,normal:1};save.inventory.sort((a,b)=>r[b.rarity]-r[a.rarity]||b.plus-a.plus);persist();renderInventory()};

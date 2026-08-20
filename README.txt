@@ -53,3 +53,17 @@ V4 MODERN KARAKTER:
 - Az aktuális farmterület külön háttérhangulatot ad a karakter panelhez.
 - A játék minden V3 online funkciója megmaradt: account, cloud save, ranglista, adminpanel, PostgreSQL.
 - A megjelenés modern fantasy idle-RPG ihletésű, saját eredeti UI/ikon megoldással.
+
+V5:
+- Külön, alapból megnyíló Karakter fül.
+- A felszerelt sisak/fegyver/páncél/kesztyű/csizma/gyűrű látszik a karakter körül.
+- A karakter vizuálisan változik felszerelés és aura alapján.
+- EQUIP BEST gomb: slotonként automatikusan a legerősebb tárgyat rakja fel.
+- Automata wave rendszer.
+- Minden wave végén automatikus boss.
+- Amíg a bosst nem győzi le, nem lép tovább a következő wave-re.
+- 200-as szinten Prestige.
+- Prestige +1 Paragon szint, +5 Paragon statpont és +1 Aura token.
+- Paragon pontok: sebzés / arany / drop / krit.
+- Prestige Aura Shop.
+- Prestige alatt inventory, felszerelés, petek, paragon és prestige megmarad.
