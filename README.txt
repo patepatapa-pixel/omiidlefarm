@@ -146,3 +146,5 @@ V15.5 WAVE / BOSS / PARAGON
 V15.6: Full HP respawn; fejleszthető HP regen; max 5 item opt; rarity szerinti 1/2/3/4/5 opt; aranyért opt forgatás; opt magyarázat.
 
 V15.8: Javítva a 'Cannot access V10CFG before initialization' belépési hiba. A HP inicializálás csak a combat config betöltése után fut.
+
+V16.1: élő gold/wave/XP kijelzés frissítés nélkül; kezdő mob sebzésvédelem; halálkor azonnali MAX HP + respawn védelem.

@@ -902,11 +902,18 @@ function v10BossMaxHp(){
 }
 function v10EnemyMaxHp(){return save.waveBoss?v10BossMaxHp():ZONES[save.zone].hp}
 function v10RawEnemyDamage(){
- const z=ZONES[save.zone];
- let raw=v10MaxHp()*(V10CFG.mobDamageHpPct/100);
+ const z=ZONES[save.zone],mx=v10MaxHp();
+ let raw=mx*(V10CFG.mobDamageHpPct/100);
  raw += save.zone*5 + save.wave*.45 + z.gold*.0015;
  raw*=V10CFG.monsterDamageMult;
  if(save.waveBoss)raw*=V10CFG.bossDamageMult;
+
+ // Kezdővédelem: az első területen / alacsony szinten a normál mob
+ // veszélyes, de nem tud respawn-loopba zárni.
+ if(!save.waveBoss && save.zone===0 && save.level<=15){
+   const beginnerCap=mx*(save.level<=5?.055:.075);
+   raw=Math.min(raw,beginnerCap);
+ }
  return Math.max(1,Math.floor(raw));
 }
 function v10EnemyHit(){
@@ -917,10 +924,30 @@ function v10IsAlive(){return !save.respawnUntil || Date.now()>=save.respawnUntil
 function v10EnsurePlayerHp(){
  const mx=v10MaxHp();
  if(!Number.isFinite(mx)||mx<=0)return;
- if(!Number.isFinite(save.playerHp)||save.playerHp<=0&&!save.respawnUntil)save.playerHp=mx;
+ if(!Number.isFinite(save.playerHp)||save.playerHp<=0)save.playerHp=mx;
  if(save.playerHp>mx)save.playerHp=mx;
- if(save.playerHp<0)save.playerHp=0;
+ if(save.playerHp<0)save.playerHp=mx;
 }
+
+function v161LiveHud(){
+ const z=ZONES[save.zone]||ZONES[0];
+ const set=(sel,val)=>{const e=$(sel);if(e)e.textContent=val};
+ set("#gold",fmt(save.gold));
+ set("#gems",fmt(save.gems));
+ set("#ore",fmt(save.ore));
+ set("#soul",fmt(save.soul));
+ set("#tickets",fmt(save.tickets));
+ set("#level",save.level);
+ set("#xpText",`${fmt(save.xp)} / ${fmt(needXp())} XP`);
+ set("#power",fmt(power()));
+ set("#waveNumber",save.wave);
+ set("#waveKills",save.waveKills);
+ set("#waveGoal",save.waveGoal);
+ set("#waveState",save.waveBoss?"👹 BOSS":"Normál farm");
+ set("#gps",`~${fmt(z.gold*goldBonus()*damage()/Math.max(1,z.hp))} / mp`);
+ if($("#charWave"))$("#charWave").textContent=save.wave;
+}
+
 function v10AwardNormalKill(){
  const z=ZONES[save.zone],g=Math.floor(z.gold*goldBonus());
  save.gold+=g;save.stats.goldEarned+=g;save.xp+=z.xp;save.kills++;
@@ -951,6 +978,7 @@ function v10AwardNormalKill(){
    enemyHp=z.hp;
    $("#combatLog").textContent=`${z.enemy} legyőzve · +${fmt(g)} arany · Wave ${save.wave}: ${save.waveKills}/${save.waveGoal}`;
  }
+ v161LiveHud();
 }
 function v10AwardBossKill(){
  const z=ZONES[save.zone];
@@ -968,6 +996,7 @@ function v10AwardBossKill(){
 
  $("#combatLog").textContent=`🏆 Wave ${oldWave} Boss legyőzve! +${fmt(reward)} arany. Wave ${save.wave} indul.`;
  toast(`🏆 Wave ${oldWave} Boss legyőzve!`);
+ v161LiveHud();
 }
 function v10PlayerAttack(){
  if(!v10IsAlive())return;
@@ -989,15 +1018,17 @@ function v10EnemyAttack(){
  if(save.playerHp<=0){
    const diedToBoss=Boolean(save.waveBoss);
    save.deaths++;
+   save.playerHp=v10MaxHp(); // azonnal MAX HP
    save.respawnUntil=Date.now()+Math.max(1,V10CFG.respawnSec)*1000;
 
    if(diedToBoss){
      restartCurrentBossWave();
-     $("#combatLog").textContent=`💀 A Boss legyőzött! Wave ${save.wave} újraindul a respawn után.`;
+     $("#combatLog").textContent=`💀 A Boss legyőzött! Már MAX HP-n vagy; ${V10CFG.respawnSec} mp múlva újraindul a wave.`;
    }else{
-     $("#combatLog").textContent=`💀 Meghaltál! Újraéledés ${V10CFG.respawnSec} másodperc múlva. A wave ugyanott folytatódik.`;
+     $("#combatLog").textContent=`💀 Legyőztek! MAX HP-val éledtél újra; ${V10CFG.respawnSec} mp védelem után folytatódik a farm.`;
    }
    persist();
+   v161LiveHud();
  }
  v10Render();
 }
@@ -1038,6 +1069,7 @@ function v10Regen(){
 }
 function v10Render(){
  v10EnsurePlayerHp();
+ v161LiveHud();
  const mx=Math.max(1,Number(v10MaxHp()||1)),hp=Math.max(0,Number(save.playerHp||0)),em=Math.max(1,Number(v10EnemyMaxHp()||1));
  const pb=$("#playerHpBar");if(pb)pb.style.width=Math.min(100,hp/mx*100)+"%";
  if($("#playerHpText"))$("#playerHpText").textContent=`${fmt(Math.ceil(hp))} / ${fmt(mx)} HP`;
@@ -1047,7 +1079,7 @@ function v10Render(){
  if($("#enemyAttackSpeedText"))$("#enemyAttackSpeedText").textContent=`⏱️ ${V10CFG.enemyAttackSec} mp`;
  if($("#playerCombatState")){
    const left=Math.max(0,Math.ceil((save.respawnUntil-Date.now())/1000));
-   $("#playerCombatState").textContent=v10IsAlive()?"⚔️ Automatikusan harcol":`💀 Respawn: ${left} mp`;
+   $("#playerCombatState").textContent=v10IsAlive()?"⚔️ Automatikusan harcol":`🛡️ Újraéledési védelem: ${left} mp · MAX HP`;
  }
  if($("#charStatHP"))$("#charStatHP").textContent=`${fmt(Math.ceil(hp))} / ${fmt(mx)}`;
  if($("#charStatDefense"))$("#charStatDefense").textContent=fmt(v10Defense());
@@ -1080,7 +1112,7 @@ async function v10LoadGameplay(){
  }
  v10RestartTimers();v10Render();
 }
-setTimeout(v10LoadGameplay,700);
+// V16.1: combat config is loaded after authenticated session only.
 
 
 // ================= V11 PVP / SHOP / DYNAMIC CONTENT =================
