@@ -3298,3 +3298,242 @@ body.v202-is-admin .admin-studio-only-v202{
   0%,100%{transform:translateX(0)}
   50%{transform:translateX(7px)}
 }
+
+/* ================= V22.1 UNIQUE DUNGEON EFFECTS ================= */
+.v221-effect-layer{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index:4;
+  overflow:hidden;
+  opacity:.0;
+}
+#v219DungeonBattle.v221-cast .v221-effect-layer{
+  opacity:1;
+}
+.v221-effect-main{
+  position:absolute;
+  left:50%;
+  top:45%;
+  transform:translate(-50%,-50%) scale(.4);
+  font-size:68px;
+  opacity:0;
+  filter:drop-shadow(0 0 18px currentColor);
+}
+#v219DungeonBattle.v221-cast .v221-effect-main{
+  animation:v221Main .42s ease-out;
+}
+@keyframes v221Main{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(-12deg)}
+  35%{opacity:1;transform:translate(-50%,-50%) scale(1.15) rotate(4deg)}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(1.5) rotate(0)}
+}
+
+.v221-effect-layer i{
+  position:absolute;
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  opacity:0;
+}
+#v219DungeonBattle.v221-cast .v221-effect-layer i{
+  animation:v221Burst .42s ease-out forwards;
+}
+.v221-effect-layer i:nth-child(2){left:42%;top:45%}
+.v221-effect-layer i:nth-child(3){left:48%;top:38%;animation-delay:.03s}
+.v221-effect-layer i:nth-child(4){left:55%;top:44%;animation-delay:.05s}
+.v221-effect-layer i:nth-child(5){left:46%;top:54%;animation-delay:.07s}
+.v221-effect-layer i:nth-child(6){left:58%;top:52%;animation-delay:.09s}
+@keyframes v221Burst{
+  0%{opacity:0;transform:scale(.4)}
+  25%{opacity:1}
+  100%{opacity:0;transform:translate(var(--dx,30px),var(--dy,-30px)) scale(1.8)}
+}
+
+/* 1. Cave - falling rocks */
+.effect-rockfall .v221-effect-main{color:#b9a076}
+.effect-rockfall i{background:#8c7657}
+.effect-rockfall i:nth-child(2){--dx:-38px;--dy:42px}
+.effect-rockfall i:nth-child(3){--dx:-18px;--dy:55px}
+.effect-rockfall i:nth-child(4){--dx:14px;--dy:46px}
+.effect-rockfall i:nth-child(5){--dx:30px;--dy:60px}
+.effect-rockfall i:nth-child(6){--dx:48px;--dy:38px}
+
+/* 2. Mine - crystal burst */
+.effect-crystal_burst .v221-effect-main{color:#79d7ff}
+.effect-crystal_burst i{
+  background:#81e4ff;
+  box-shadow:0 0 10px #6fdcff;
+  border-radius:1px;
+}
+.effect-crystal_burst i:nth-child(2){--dx:-55px;--dy:-20px}
+.effect-crystal_burst i:nth-child(3){--dx:-35px;--dy:38px}
+.effect-crystal_burst i:nth-child(4){--dx:10px;--dy:-50px}
+.effect-crystal_burst i:nth-child(5){--dx:44px;--dy:30px}
+.effect-crystal_burst i:nth-child(6){--dx:58px;--dy:-12px}
+
+/* 3. Wolf - moon slash */
+.effect-moon_slash .v221-effect-main{color:#bcd7ff}
+.effect-moon_slash::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:48%;
+  width:180px;
+  height:14px;
+  border-radius:50%;
+  border-top:4px solid rgba(200,225,255,.95);
+  transform:translate(-50%,-50%) rotate(-22deg) scaleX(.2);
+  opacity:0;
+}
+#v219DungeonBattle.v221-cast .effect-moon_slash::after{
+  animation:v221Slash .38s ease-out;
+}
+@keyframes v221Slash{
+  0%{opacity:0;transform:translate(-50%,-50%) rotate(-22deg) scaleX(.2)}
+  35%{opacity:1}
+  100%{opacity:0;transform:translate(-50%,-50%) rotate(-22deg) scaleX(1.4)}
+}
+
+/* 4. Crypt - soul flame */
+.effect-soul_flame .v221-effect-main{color:#80ffd1}
+.effect-soul_flame i{
+  background:#79ffc8;
+  box-shadow:0 0 14px #72ffd0;
+}
+#v219DungeonBattle.v221-cast .effect-soul_flame i{
+  animation:v221Soul .55s ease-out forwards;
+}
+@keyframes v221Soul{
+  0%{opacity:0;transform:translateY(12px) scale(.5)}
+  30%{opacity:1}
+  100%{opacity:0;transform:translateY(-70px) scale(1.4)}
+}
+
+/* 5. Demon - hellfire */
+.effect-hellfire .v221-effect-main{color:#ff6b37}
+.effect-hellfire i{
+  background:#ff4d1f;
+  box-shadow:0 0 14px #ff3c00;
+}
+#v219DungeonBattle.v221-cast .effect-hellfire{
+  background:radial-gradient(circle at 50% 70%,rgba(255,65,10,.22),transparent 45%);
+}
+
+/* 6. Dragon - breath cone */
+.effect-dragon_breath .v221-effect-main{color:#ff9d3b}
+.effect-dragon_breath::before{
+  content:"";
+  position:absolute;
+  right:24%;
+  top:44%;
+  width:220px;
+  height:70px;
+  background:linear-gradient(90deg,rgba(255,220,90,.9),rgba(255,80,0,.35),transparent);
+  clip-path:polygon(100% 35%,0 0,0 100%);
+  opacity:0;
+  filter:blur(2px);
+}
+#v219DungeonBattle.v221-cast .effect-dragon_breath::before{
+  animation:v221Breath .42s ease-out;
+}
+@keyframes v221Breath{
+  0%{opacity:0;transform:scaleX(.2)}
+  30%{opacity:.95}
+  100%{opacity:0;transform:scaleX(1.1)}
+}
+
+/* 7. Storm - lightning */
+.effect-lightning .v221-effect-main{color:#bfe7ff}
+.effect-lightning::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:8%;
+  width:7px;
+  height:72%;
+  background:linear-gradient(#eefaff,#74c8ff);
+  box-shadow:0 0 18px #83d0ff,0 0 42px #4aa6ff;
+  clip-path:polygon(55% 0,100% 0,62% 40%,90% 40%,34% 100%,48% 55%,20% 55%);
+  opacity:0;
+}
+#v219DungeonBattle.v221-cast .effect-lightning::after{
+  animation:v221Lightning .30s ease-out;
+}
+@keyframes v221Lightning{
+  0%,100%{opacity:0}
+  15%,45%,70%{opacity:1}
+  30%,60%{opacity:.2}
+}
+
+/* 8. Void - rift */
+.effect-void_rift .v221-effect-main{color:#a96cff}
+.effect-void_rift::before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:120px;
+  height:120px;
+  border:4px solid rgba(168,90,255,.75);
+  border-radius:50%;
+  box-shadow:0 0 30px #7d3bff inset,0 0 35px #7d3bff;
+  transform:translate(-50%,-50%) scale(.2) rotate(0);
+  opacity:0;
+}
+#v219DungeonBattle.v221-cast .effect-void_rift::before{
+  animation:v221Rift .48s ease-out;
+}
+@keyframes v221Rift{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.2) rotate(0)}
+  40%{opacity:1}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(1.25) rotate(180deg)}
+}
+
+/* 9. Celestial - holy blast */
+.effect-holy_blast .v221-effect-main{color:#fff4a8}
+.effect-holy_blast::before,
+.effect-holy_blast::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
+  background:rgba(255,245,180,.9);
+  transform:translate(-50%,-50%);
+  opacity:0;
+}
+.effect-holy_blast::before{width:220px;height:8px}
+.effect-holy_blast::after{width:8px;height:220px}
+#v219DungeonBattle.v221-cast .effect-holy_blast::before,
+#v219DungeonBattle.v221-cast .effect-holy_blast::after{
+  animation:v221Holy .38s ease-out;
+}
+@keyframes v221Holy{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.2)}
+  35%{opacity:1}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(1.2)}
+}
+
+/* 10. Abyss - tentacle/water surge */
+.effect-tentacle_surge .v221-effect-main{color:#69d9e8}
+.effect-tentacle_surge::before{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:-20px;
+  height:95px;
+  background:
+    radial-gradient(circle at 15% 100%,rgba(80,210,230,.5),transparent 35%),
+    radial-gradient(circle at 45% 100%,rgba(55,160,210,.5),transparent 38%),
+    radial-gradient(circle at 78% 100%,rgba(80,210,230,.45),transparent 35%);
+  opacity:0;
+}
+#v219DungeonBattle.v221-cast .effect-tentacle_surge::before{
+  animation:v221Wave .5s ease-out;
+}
+@keyframes v221Wave{
+  0%{opacity:0;transform:translateY(45px)}
+  40%{opacity:1}
+  100%{opacity:0;transform:translateY(-22px)}
+}

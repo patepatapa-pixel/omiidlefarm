@@ -3331,6 +3331,8 @@ document.addEventListener("click",e=>{
   const DUNGEONS_V218 = [
     {
       id:"training_cave",
+      effectType:"rockfall",
+      effectIcon:"🪨",
       visualTheme:"cave",
       visualDecor:["🪨","🌿"],
       name:"Kezdők barlangja",
@@ -3346,6 +3348,8 @@ document.addEventListener("click",e=>{
     },
     {
       id:"forgotten_mine",
+      effectType:"crystal_burst",
+      effectIcon:"💎",
       visualTheme:"mine",
       visualDecor:["⛏️","💎"],
       name:"Elfeledett bánya",
@@ -3360,6 +3364,8 @@ document.addEventListener("click",e=>{
     },
     {
       id:"wolf_den",
+      effectType:"moon_slash",
+      effectIcon:"🌙",
       visualTheme:"forest",
       visualDecor:["🌲","🌕"],
       name:"Farkasverem",
@@ -3374,6 +3380,8 @@ document.addEventListener("click",e=>{
     },
     {
       id:"crypt",
+      effectType:"soul_flame",
+      effectIcon:"👻",
       visualTheme:"crypt",
       visualDecor:["🪦","🕯️"],
       name:"Elátkozott kripta",
@@ -3388,6 +3396,8 @@ document.addEventListener("click",e=>{
     },
     {
       id:"demon_tower",
+      effectType:"hellfire",
+      effectIcon:"🔥",
       visualTheme:"demon",
       visualDecor:["🔥","🩸"],
       name:"Démon torony",
@@ -3402,6 +3412,8 @@ document.addEventListener("click",e=>{
     },
     {
       id:"dragon_valley",
+      effectType:"dragon_breath",
+      effectIcon:"🐉",
       visualTheme:"dragon",
       visualDecor:["🌋","🔥"],
       name:"Sárkány-völgy",
@@ -3416,6 +3428,8 @@ document.addEventListener("click",e=>{
     },
     {
       id:"storm_keep",
+      effectType:"lightning",
+      effectIcon:"⚡",
       visualTheme:"storm",
       visualDecor:["⛈️","⚡"],
       name:"Vihartorony",
@@ -3430,6 +3444,8 @@ document.addEventListener("click",e=>{
     },
     {
       id:"void_temple",
+      effectType:"void_rift",
+      effectIcon:"🌀",
       visualTheme:"void",
       visualDecor:["🕳️","🟣"],
       name:"Üresség temploma",
@@ -3444,6 +3460,8 @@ document.addEventListener("click",e=>{
     },
     {
       id:"celestial_gate",
+      effectType:"holy_blast",
+      effectIcon:"✨",
       visualTheme:"celestial",
       visualDecor:["☁️","✨"],
       name:"Isteni kapu",
@@ -3458,6 +3476,8 @@ document.addEventListener("click",e=>{
     },
     {
       id:"abyss",
+      effectType:"tentacle_surge",
+      effectIcon:"🌊",
       visualTheme:"abyss",
       visualDecor:["🌊","🦑"],
       name:"Mélység ura",
@@ -3710,6 +3730,17 @@ document.addEventListener("click",e=>{
     return panel;
   }
 
+
+  function triggerDungeonEffect(type){
+    const panel=document.getElementById("v219DungeonBattle");
+    if(!panel)return;
+    panel.dataset.effect=String(type||"rockfall");
+    panel.classList.remove("v221-cast");
+    void panel.offsetWidth;
+    panel.classList.add("v221-cast");
+    setTimeout(()=>panel.classList.remove("v221-cast"),420);
+  }
+
   function drawBattle(){
     const root=document.getElementById("v218DungeonSystem");
     if(!root)return;
@@ -3740,6 +3771,10 @@ document.addEventListener("click",e=>{
         <div class="v220-ground"></div>
         <div class="v220-particles">
           <i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <div class="v221-effect-layer effect-${b.dungeon.effectType||"rockfall"}">
+          <span class="v221-effect-main">${b.dungeon.effectIcon||"✦"}</span>
+          <i></i><i></i><i></i><i></i><i></i>
         </div>
 
         <div class="v219-fighters">
@@ -3881,7 +3916,7 @@ document.addEventListener("click",e=>{
         b.playerHp=d.safe
           ? Math.max(Math.floor(b.playerMaxHp*.35),b.playerHp-incoming)
           : Math.max(1,b.playerHp-incoming);
-        b.log=`⚔️ ${F(bossDmg)} sebzés a bossnak · ☠️ ${F(incoming)} sebzés érkezett.`; document.getElementById("v219DungeonBattle")?.classList.add("v220-hit"); setTimeout(()=>document.getElementById("v219DungeonBattle")?.classList.remove("v220-hit"),180);
+        b.log=`⚔️ ${F(bossDmg)} sebzés a bossnak · ☠️ ${F(incoming)} sebzés érkezett.`; triggerDungeonEffect(b.dungeon.effectType); document.getElementById("v219DungeonBattle")?.classList.add("v220-hit"); setTimeout(()=>document.getElementById("v219DungeonBattle")?.classList.remove("v220-hit"),180);
 
         if(b.bossHp<=0 || b.round>=12){
           b.bossHp=0;
@@ -3893,7 +3928,7 @@ document.addEventListener("click",e=>{
         const incoming=Math.max(1,Math.floor(b.playerMaxHp*(.11+Math.random()*.09)));
         b.bossHp=Math.max(Math.floor(b.bossMaxHp*.18),b.bossHp-bossDmg);
         b.playerHp=Math.max(0,b.playerHp-incoming);
-        b.log=`⚔️ ${F(bossDmg)} sebzés a bossnak · 💥 ${F(incoming)} sebzést kaptál.`; document.getElementById("v219DungeonBattle")?.classList.add("v220-hit"); setTimeout(()=>document.getElementById("v219DungeonBattle")?.classList.remove("v220-hit"),180);
+        b.log=`⚔️ ${F(bossDmg)} sebzés a bossnak · 💥 ${F(incoming)} sebzést kaptál.`; triggerDungeonEffect(b.dungeon.effectType); document.getElementById("v219DungeonBattle")?.classList.add("v220-hit"); setTimeout(()=>document.getElementById("v219DungeonBattle")?.classList.remove("v220-hit"),180);
 
         if(b.playerHp<=0 || b.round>=10){
           b.playerHp=0;

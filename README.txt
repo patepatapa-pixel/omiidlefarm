@@ -366,3 +366,17 @@ V22.0
 - Boss ikon animáltan lebeg.
 - Harc közben részecskék és ütés animációk látszanak.
 - Játékos/Boss HP csík rendszer változatlanul működik.
+
+V22.1
+- Mind a 10 dungeon saját külön harci effektet kapott.
+- Kezdők barlangja: kőomlás.
+- Elfeledett bánya: kristályrobbanás.
+- Farkasverem: holdpenge/vágás.
+- Kripta: lélekláng.
+- Démon torony: pokoltűz.
+- Sárkány-völgy: sárkánylehelet.
+- Vihartorony: villámcsapás.
+- Üresség temploma: Void hasadék.
+- Isteni kapu: szent fényrobbanás.
+- Mélység ura: víz/tentacle hullám.
+- Minden ütésnél a saját dungeon effektje jelenik meg.
