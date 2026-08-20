@@ -62,7 +62,7 @@ let save=JSON.parse(localStorage.getItem("omiIdleComplete")||"null")||{
  gold:0,gems:10,ore:0,soul:0,tickets:3,level:1,xp:0,skillPoints:0,kills:0,zone:0,
  base:{weaponTraining:1,armorTraining:1,mining:1,luck:1},skills:{power:0,gold:0,crit:0,drop:0,offline:0,pet:0},
  inventory:[],equipped:{weapon:null,helmet:null,armor:null,gloves:null,boots:null,ring:null},
- pets:[],activePet:null,stats:{goldEarned:0,itemsFound:0,legendary:0,bosses:0,dungeons:0,critHits:0,playSeconds:0},
+ pets:[],activePet:null,activePets:[],petSlotsUnlocked:1,stats:{goldEarned:0,itemsFound:0,legendary:0,bosses:0,dungeons:0,critHits:0,playSeconds:0},
  dailyClaimed:{},achClaimed:{},last:Date.now(),lastDaily:new Date().toDateString(),uid:1
 };
 if(save.lastDaily!==new Date().toDateString()){save.dailyClaimed={};save.lastDaily=new Date().toDateString()}
@@ -76,7 +76,11 @@ function normalizeV6Save(s){
  s.skills={power:0,gold:0,crit:0,drop:0,offline:0,pet:0,...(s.skills||{})};
  s.inventory=Array.isArray(s.inventory)?s.inventory:[];
  s.equipped={weapon:null,helmet:null,armor:null,gloves:null,boots:null,ring:null,...(s.equipped||{})};
- s.pets=Array.isArray(s.pets)?s.pets:[];s.activePet=Number.isInteger(s.activePet)?s.activePet:null;
+ s.pets=Array.isArray(s.pets)?s.pets:[];
+ s.activePets=Array.isArray(s.activePets)?s.activePets.filter(i=>Number.isInteger(i)&&i>=0&&i<s.pets.length).slice(0,4):[];
+ if(!s.activePets.length&&Number.isInteger(s.activePet)&&s.activePet>=0&&s.activePet<s.pets.length)s.activePets=[s.activePet];
+ s.petSlotsUnlocked=Math.max(1,Math.min(4,Math.floor(Number(s.petSlotsUnlocked||1))));
+ s.activePets=s.activePets.slice(0,s.petSlotsUnlocked);s.activePet=s.activePets[0]??null;
  s.stats={goldEarned:0,itemsFound:0,legendary:0,bosses:0,dungeons:0,critHits:0,playSeconds:0,...(s.stats||{})};
  s.dailyClaimed=s.dailyClaimed||{};s.achClaimed=s.achClaimed||{};s.last=Number(s.last||Date.now());s.lastDaily=s.lastDaily||new Date().toDateString();s.uid=Math.max(1,Number(s.uid||1));
  s.wave=Math.max(1,Number(s.wave||1));s.waveKills=Math.max(0,Number(s.waveKills||0));s.waveGoal=Math.max(1,Number(s.waveGoal||10));s.waveBoss=Boolean(s.waveBoss);s.bossHp=Math.max(0,Number(s.bossHp||0));
@@ -119,13 +123,14 @@ function itemStats(item){
  let m=upgradeMult(item);
  return {atk:Math.floor((item.atk||0)*m),def:Math.floor((item.def||0)*m),gold:(item.gold||0)*m,crit:(item.crit||0)*m,drop:(item.drop||0)*m}
 }
-function petObj(){return save.pets.find((p,i)=>i===save.activePet)||null}
+function petObjs(){return (save.activePets||[]).map(i=>save.pets[i]).filter(Boolean).slice(0,save.petSlotsUnlocked||1)}
+function petObj(){return petObjs()[0]||null}
 function petScale(){return 1+infiniteSkillBonus(save.skills.pet,.035,40)}
 function bonuses(){
  let atk=0,def=0,gold=0,crit=0,drop=0;
  Object.keys(save.equipped).forEach(s=>{let it=equipObj(s);if(!it)return;let st=itemStats(it);atk+=st.atk;def+=st.def;gold+=st.gold;crit+=st.crit;drop+=st.drop});
- let pet=petObj(), ps=petScale();
- if(pet){if(pet.bonus==="damage")atk*=1+pet.value*ps;if(pet.bonus==="gold")gold+=pet.value*ps;if(pet.bonus==="crit")crit+=pet.value*ps;if(pet.bonus==="drop")drop+=pet.value*ps;if(pet.bonus==="all"){atk*=1+pet.value*ps;gold+=pet.value*ps;crit+=pet.value*.5*ps;drop+=pet.value*.5*ps}}
+ let pets=petObjs(), ps=petScale();
+ pets.forEach(pet=>{if(pet.bonus==="damage")atk*=1+pet.value*ps;if(pet.bonus==="gold")gold+=pet.value*ps;if(pet.bonus==="crit")crit+=pet.value*ps;if(pet.bonus==="drop")drop+=pet.value*ps;if(pet.bonus==="all"){atk*=1+pet.value*ps;gold+=pet.value*ps;crit+=pet.value*.5*ps;drop+=pet.value*.5*ps}});
  return {atk,def,gold,crit,drop}
 }
 function damage(){
@@ -444,8 +449,11 @@ function renderSkills(){
  $$("[data-skill]").forEach(b=>b.onclick=()=>{let sk=SKILLS.find(x=>x.key===b.dataset.skill);if(save.skillPoints<=0)return;let raw=b.dataset.amount;let amount=raw==="max"?save.skillPoints:Math.min(save.skillPoints,Math.max(1,Number(raw)||1));save.skillPoints-=amount;save.skills[sk.key]+=amount;persist();renderAll()})
 }
 function renderPets(){
- $("#pets").innerHTML=save.pets.length?save.pets.map((p,i)=>`<div class="pet-card rarity-${p.rarity} ${save.activePet===i?"active":""}"><div style="font-size:30px">${p.icon}</div><h3>${p.name}</h3><small>${p.bonus==="damage"?"Sebzés":p.bonus==="gold"?"Arany":p.bonus==="drop"?"Drop":p.bonus==="crit"?"Krit":"Minden"} +${(p.value*100).toFixed(0)}%</small><button data-pet="${i}">${save.activePet===i?"Aktív":"Aktiválás"}</button></div>`).join(""):'<p class="muted">Még nincs peted.</p>';
- $$("[data-pet]").forEach(b=>b.onclick=()=>{save.activePet=+b.dataset.pet;persist();renderAll();toast("🐾 Pet aktiválva")})
+ const costs=[0,25,75,150],active=save.activePets||[];
+ if($("#petSlots"))$("#petSlots").innerHTML=[0,1,2,3].map(i=>i<save.petSlotsUnlocked?`<div class="pet-card ${active[i]!==undefined?"active":""}"><div style="font-size:28px">${active[i]!==undefined?(save.pets[active[i]]?.icon||"🐾"):"➕"}</div><b>${i+1}. pet hely</b><small>${active[i]!==undefined?(save.pets[active[i]]?.name||"Pet"):"Üres, válassz lent petet"}</small></div>`:`<div class="pet-card"><div style="font-size:28px">🔒</div><b>${i+1}. pet hely</b><small>${costs[i]} 💎</small><button data-buy-pet-slot="${i}">Feloldás</button></div>`).join("");
+ $("#pets").innerHTML=save.pets.length?save.pets.map((p,i)=>`<div class="pet-card rarity-${p.rarity} ${active.includes(i)?"active":""}"><div style="font-size:30px">${p.icon}</div><h3>${p.name}</h3><small>${p.bonus==="damage"?"Sebzés":p.bonus==="gold"?"Arany":p.bonus==="drop"?"Drop":p.bonus==="crit"?"Krit":"Minden"} +${(p.value*100).toFixed(0)}%</small><button data-pet="${i}">${active.includes(i)?"Levétel":"Felszerelés"}</button></div>`).join(""):'<p class="muted">Még nincs peted.</p>';
+ $$("[data-pet]").forEach(b=>b.onclick=()=>{const i=+b.dataset.pet,pos=save.activePets.indexOf(i);if(pos>=0)save.activePets.splice(pos,1);else if(save.activePets.length>=save.petSlotsUnlocked)return toast("🔒 Nincs több szabad pet hely.");else save.activePets.push(i);save.activePet=save.activePets[0]??null;persist();renderAll();toast(pos>=0?"🐾 Pet levéve":"🐾 Pet felszerelve")});
+ $$("[data-buy-pet-slot]").forEach(b=>b.onclick=()=>{const slot=+b.dataset.buyPetSlot,cost=costs[slot];if(slot!==save.petSlotsUnlocked)return;if(save.gems<cost)return toast("Nincs elég gyémánt.");save.gems-=cost;save.petSlotsUnlocked++;persist();renderAll();toast(`🔓 ${slot+1}. pet hely feloldva!`)})
 }
 function summonPet(){if(save.gems<5)return toast("Nincs elég kristály.");save.gems-=5;let r=Math.random()*100,p=r<2?PET_POOL[4]:r<8?PET_POOL[3]:r<25?PET_POOL[2]:r<55?PET_POOL[1]:PET_POOL[0];save.pets.push({...p});persist();renderAll();toast(`🐾 ${p.name} érkezett!`)}
 function renderDungeons(){
@@ -1425,7 +1433,10 @@ v10AwardBossKill=function(){
  if(!b)return v11BaseAwardBoss();
  const reward=Math.floor(Number(b.gold||0)*goldBonus()*V10CFG.bossRewardMult);
  save.gold+=reward;save.stats.goldEarned+=reward;
- save.xp+=Number(b.xp||0);save.gems+=Number(b.gems||0);save.soul+=Number(b.soul||0);save.stats.bosses++;
+ save.xp+=Number(b.xp||0);
+ const bossGems=Math.max(0,Math.floor(Number(b.gems||0))),gemChance=Math.max(0,Math.min(100,Number(b.gemDropChance??100)));
+ const gemsWon=bossGems>0&&Math.random()*100<gemChance?bossGems:0;
+ save.gems+=gemsWon;save.soul+=Number(b.soul||0);save.stats.bosses++;
  while(save.xp>=needXp()){save.xp-=needXp();save.level++;save.skillPoints++}
  if(Math.random()<(Number(b.dropChance||80)/100))addItem(createItem());
 
@@ -1437,7 +1448,7 @@ v10AwardBossKill=function(){
  applyWaveGoal();
  enemyHp=ZONES[save.zone].hp;
 
- $("#combatLog").textContent=`🏆 ${b.name||"Boss"} legyőzve! +${fmt(reward)} arany · +${fmt(Number(b.xp||0))} XP · Wave ${save.wave}`;
+ $("#combatLog").textContent=`🏆 ${b.name||"Boss"} legyőzve! +${fmt(reward)} arany · +${fmt(Number(b.xp||0))} XP${gemsWon?` · +${gemsWon} gyémánt`:""} · Wave ${save.wave}`;
  toast(`🏆 ${b.name||"Boss"} legyőzve!`);
  persist();
 };
