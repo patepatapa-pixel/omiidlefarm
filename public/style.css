@@ -584,3 +584,37 @@ body.auth-open .topbar,body.auth-open .nav,body.auth-open main{
 .inventory-item.rarity-mythic{border-color:#ed477a!important;box-shadow:0 0 18px #ed477a36}
 .inventory-item.rarity-epic{border-color:#b83ae8!important}.inventory-item.rarity-rare{border-color:#218fd9!important}
 @media(max-width:800px){.option-glossary{grid-template-columns:1fr}}
+
+/* V15.7 definitive auth + interaction repair */
+.topbar,.top-actions,.nav{
+ position:relative!important;
+ z-index:2000000!important;
+ pointer-events:auto!important;
+}
+.topbar *, .top-actions *, .nav *{
+ pointer-events:auto!important;
+}
+#authBtn{
+ position:relative!important;
+ z-index:2000002!important;
+ pointer-events:auto!important;
+ cursor:pointer!important;
+}
+#authModal{
+ position:fixed!important;
+ inset:0!important;
+ z-index:4000000!important;
+ pointer-events:none!important;
+}
+#authModal.open{
+ display:flex!important;
+ pointer-events:auto!important;
+}
+#authModal.open *{
+ pointer-events:auto!important;
+}
+.v15-approved-art,.v15-approved-art:after,
+.hero-equip-layer,.hero-equipped-label,
+.dark-stage-sigil,.dark-stage-smoke,.dark-stage-embers{
+ pointer-events:none!important;
+}

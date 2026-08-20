@@ -203,8 +203,11 @@ function rerollItemOptions(id){
 function itemOptionBonuses(){
  const out={atkPct:0,hpPct:0,defPct:0,crit:0,gold:0,drop:0,hpRegen:0,bossDmg:0,pvpDmg:0};
  Object.keys(save.equipped||{}).forEach(slot=>{
-  const it=equipObj(slot);if(!it)return;ensureItemOptions(it);
-  (it.options||[]).forEach(o=>{if(out[o.key]!==undefined)out[o.key]+=Number(o.value||0)});
+  const it=equipObj(slot);if(!it)return;
+  ensureItemOptions(it);
+  (it.options||[]).slice(0,5).forEach(o=>{
+    if(o && out[o.key]!==undefined)out[o.key]+=Number(o.value||0);
+  });
  });
  return out;
 }
@@ -344,7 +347,7 @@ function itemSummary(it){let st=itemStats(it),a=[];if(st.atk)a.push("ATK "+fmt(s
 function renderBonuses(){let b=bonuses(),p=petObj();$("#activeBonuses").innerHTML=`<div><span>⚔️ Felszerelés ATK</span><b>${fmt(b.atk)}</b></div><div><span>💰 Arany bónusz</span><b>+${((goldBonus()-1)*100).toFixed(1)}%</b></div><div><span>🎯 Krit</span><b>${(critChance()*100).toFixed(1)}%</b></div><div><span>🎁 Drop</span><b>+${(dropBonus()*100).toFixed(1)}%</b></div><div><span>🐾 Aktív pet</span><b>${p?p.icon+" "+p.name:"Nincs"}</b></div>`}
 function renderInventory(){
  $("#inventory").innerHTML=save.inventory.length?save.inventory.map(it=>{
-   ensureItemOptions(it);if(!it.options.length)rollItemOptions(it);
+   ensureItemOptions(it);
    const opts=it.options.slice(0,5).map(o=>`<div class="item-opt-line"><b>${itemOptionText(o)}</b><small>${ITEM_OPT_DEFS[o.key]?.desc||""}</small></div>`).join("");
    const equipped=Object.values(save.equipped).includes(it.id);
    return `<div class="inventory-item rarity-${it.rarity}">
@@ -686,6 +689,23 @@ function openAuth(mode="login"){
 }
 function closeAuth(){$("#authModal").classList.remove("open")}
 
+// V15.7 - hard auth fallback
+document.addEventListener("click",function(e){
+  const btn=e.target.closest?.("#authBtn");
+  if(!btn)return;
+  e.preventDefault();
+  e.stopPropagation();
+  try{
+    if(currentUser) logout();
+    else openAuth("login");
+  }catch(err){
+    console.error("AUTH CLICK ERROR",err);
+    const modal=document.querySelector("#authModal");
+    if(modal)modal.classList.add("open");
+  }
+},true);
+
+
 document.addEventListener("click",function(e){
   const btn=e.target.closest?.("#authBtn");
   if(!btn)return;
@@ -703,7 +723,7 @@ async function loadMe(){
    const d=await api("/api/me");
    currentUser=d.user;
    if(d.save && Object.keys(d.save).length){
-     save=normalizeV6Save(d.save);
+     save=normalizeV6Save(d.save);v10EnsurePlayerHp();
      if(save.lastDaily!==new Date().toDateString()){save.dailyClaimed={};save.lastDaily=new Date().toDateString()}
      enemyHp=ZONES[save.zone]?.hp||ZONES[0].hp;
    }
@@ -753,7 +773,7 @@ $("#authSubmit").onclick=async()=>{
  try{
    const username=$("#authUsername").value.trim(),password=$("#authPassword").value,player_name=$("#authPlayerName")?.value.trim()||"";
    const d=await api(authMode==="login"?"/api/login":"/api/register",{method:"POST",body:JSON.stringify({username,password,player_name})});
-   currentUser=d.user;save=normalizeV6Save(d.save||save);cloudReady=true;closeAuth();enemyHp=ZONES[save.zone]?.hp||ZONES[0].hp;renderAll();
+   currentUser=d.user;save=normalizeV6Save(d.save||save);v10EnsurePlayerHp();cloudReady=true;closeAuth();enemyHp=ZONES[save.zone]?.hp||ZONES[0].hp;renderAll();
    $("#onlineUser").innerHTML=`<span class="online-badge">●</span> ${currentUser.player_name||currentUser.username}`;$("#authBtn").textContent="Kilépés";toast("✅ Sikeres "+(authMode==="login"?"belépés":"regisztráció"));
  }catch(e){$("#authMsg").textContent="❌ "+e.message}
 };
@@ -856,8 +876,10 @@ function v10EnemyHit(){
 function v10IsAlive(){return !save.respawnUntil || Date.now()>=save.respawnUntil}
 function v10EnsurePlayerHp(){
  const mx=v10MaxHp();
+ if(!Number.isFinite(mx)||mx<=0)return;
  if(!Number.isFinite(save.playerHp)||save.playerHp<=0&&!save.respawnUntil)save.playerHp=mx;
  if(save.playerHp>mx)save.playerHp=mx;
+ if(save.playerHp<0)save.playerHp=0;
 }
 function v10AwardNormalKill(){
  const z=ZONES[save.zone],g=Math.floor(z.gold*goldBonus());
@@ -975,7 +997,7 @@ function v10Regen(){
 }
 function v10Render(){
  v10EnsurePlayerHp();
- const mx=v10MaxHp(),hp=Math.max(0,save.playerHp),em=v10EnemyMaxHp();
+ const mx=Math.max(1,Number(v10MaxHp()||1)),hp=Math.max(0,Number(save.playerHp||0)),em=Math.max(1,Number(v10EnemyMaxHp()||1));
  const pb=$("#playerHpBar");if(pb)pb.style.width=Math.min(100,hp/mx*100)+"%";
  if($("#playerHpText"))$("#playerHpText").textContent=`${fmt(Math.ceil(hp))} / ${fmt(mx)} HP`;
  if($("#combatDefense"))$("#combatDefense").textContent=fmt(v10Defense());
