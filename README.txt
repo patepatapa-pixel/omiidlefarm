@@ -201,3 +201,11 @@ V18.8
 - Visszaállítva a V18.6 megjelenése.
 - A Karakter fül korábbi elrendezése és karaktermegjelenítése visszaállítva.
 - A V18.6-ig elkészült funkciók és áthelyezések megmaradtak.
+
+V18.9
+- Karakter fül teljesen újraépítve, mert a korábbi áthelyezések után üresen maradt.
+- Dinamikus karakter/felszerelés rendszer visszaállítva.
+- Karakter státusz, Paragon/Prestige és Paragon statpontok visszaállítva.
+- A tárgyak rarity és +szintje továbbra is a tényleges equipped itemekből jön.
+
+V19.0: Paragon / Prestige és Paragon statpontok új külön felső fülre kerültek.
