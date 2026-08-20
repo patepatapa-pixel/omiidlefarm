@@ -196,10 +196,8 @@ V18.5: Az AUTOMATA FARM RPG információs blokk és a Felszerelés opciók blokk
 
 V18.6: Arany/Kristály/Érc/Lélekkő/Dungeon jegy/Szint erőforrás-sáv átkerült a Farm fülre és csak ott jelenik meg.
 
-V18.7 COMPACT UI
-- A teljes játékfelület kompaktabb lett.
-- Kisebb panelek, gombok, margók és térközök.
-- Farm erőforrás-sáv jelentősen kisebb.
-- Karakter, Farm, Inventory, Fejlesztés, Aura Shop, Petek, Dungeon, Küldetések, PvP és Statisztika panelek tömörebbek.
-- A funkciók nem lettek eltávolítva.
-- Nagy monitoron sem húzza szét feleslegesen a tartalmat.
+V18.8
+- A V18.7 Compact UI teljesen visszavonva.
+- Visszaállítva a V18.6 megjelenése.
+- A Karakter fül korábbi elrendezése és karaktermegjelenítése visszaállítva.
+- A V18.6-ig elkészült funkciók és áthelyezések megmaradtak.
