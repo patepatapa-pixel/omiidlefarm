@@ -3832,7 +3832,11 @@ document.addEventListener("click",e=>{
       b.bossHp=0;
       b.log=`🏆 ${d.bossName} legyőzve! +${F(rw.gold)} arany${rw.ore?` · +${rw.ore} érc`:""}${rw.gems?` · +${rw.gems} gyémánt`:""}${rw.soul?` · +${rw.soul} lélekkő`:""}`;
       drawBattle();
-      if(typeof toast==="function")toast(`🏆 ${d.name} teljesítve!`);
+      const endgameDrop=window.v225TryDungeonGearDrop?.(d);
+      if(endgameDrop){
+        const rn=window.v225EndgameRarities?.[endgameDrop.rarity];
+        if(typeof toast==="function")toast(`${rn?.icon||"✨"} ${rn?.name||endgameDrop.rarity} DROP! ${endgameDrop.name}`);
+      }else if(typeof toast==="function")toast(`🏆 ${d.name} teljesítve!`);
     }else{
       s.dungeonStats.losses++;
       s.dungeonStats.streak=0;
@@ -3983,3 +3987,289 @@ document.addEventListener("click",e=>{
 
 /* V22.2 admin 10x compatibility: existing combat speed uses save.speed10Unlocked */
 window.v222AdminSpeedSupported=true;
+
+/* ================= V22.4 PET FUSION + GLOBAL BALANCE ================= */
+(function(){
+  const FUSION_REQ=3;
+  const FUSION_GAIN=0.18; // +18% pet effect per fusion tier
+
+  function S(){return (typeof save!=="undefined"&&save)?save:{};}
+  function pets(){
+    const s=S();
+    return Array.isArray(s.pets)?s.pets:(Array.isArray(s.petInventory)?s.petInventory:null);
+  }
+  function pkey(p){
+    // Same base pet means same species/name and same base bonus identity.
+    return String(p?.baseId ?? p?.species ?? p?.id ?? p?.name ?? "");
+  }
+  function pname(p){return String(p?.name||p?.title||"Pet");}
+  function petBasePct(p){
+    // Never re-roll the original value downward. Use the highest explicit base percentage.
+    const candidates=[p?.basePct,p?.bonusPct,p?.pct,p?.percent,p?.bonus,p?.value];
+    for(const v of candidates){
+      const n=Number(v);
+      if(Number.isFinite(n) && n>0)return n;
+    }
+    return 0;
+  }
+  function effectivePetPct(p){
+    const base=petBasePct(p);
+    const tier=Math.max(0,Number(p?.fusionLevel||0));
+    const mult=Number(p?.fusionMultiplier||Math.pow(1+FUSION_GAIN,tier));
+    return base*mult;
+  }
+  function fusionGroups(){
+    const arr=pets()||[];
+    const map={};
+    arr.forEach((p,i)=>{
+      const k=pkey(p);
+      if(!k)return;
+      (map[k] ||= []).push({p,i});
+    });
+    return Object.values(map).filter(g=>g.length>=FUSION_REQ);
+  }
+  function fuse(group){
+    const arr=pets();
+    if(!arr||!group||group.length<FUSION_REQ)return null;
+
+    const picked=group.slice(0,FUSION_REQ);
+    const strongest=picked
+      .map(x=>x.p)
+      .sort((a,b)=>effectivePetPct(b)-effectivePetPct(a))[0];
+
+    const out=JSON.parse(JSON.stringify(strongest));
+    const oldTier=Math.max(...picked.map(x=>Number(x.p.fusionLevel||0)));
+    out.fusionLevel=oldTier+1;
+    out.fusionMultiplier=Math.pow(1+FUSION_GAIN,out.fusionLevel);
+
+    // Preserve the best base roll; fusion only improves, never rerolls down.
+    const bestBase=Math.max(...picked.map(x=>petBasePct(x.p)));
+    if(bestBase>0){
+      out.basePct=bestBase;
+      out.bonusPct=bestBase;
+    }
+    out.level=Math.max(...picked.map(x=>Number(x.p.level||x.p.lvl||1)))+1;
+    out.lvl=out.level;
+
+    // Consume exactly 3 copies.
+    picked.map(x=>x.i).sort((a,b)=>b-a).forEach(i=>arr.splice(i,1));
+    arr.push(out);
+
+    return out;
+  }
+
+  function renderFusionPanel(){
+    const page=document.getElementById("page-pets");
+    if(!page)return;
+    let panel=page.querySelector("#v224PetFusion");
+    if(!panel){
+      panel=document.createElement("section");
+      panel.id="v224PetFusion";
+      panel.className="card v224-pet-fusion";
+      const anchor=page.querySelector(".pet-grid,.pets-grid,[class*='pet-grid'],[class*='pet-system']")||page.firstElementChild;
+      if(anchor?.parentNode)anchor.parentNode.insertBefore(panel,anchor);
+      else page.prepend(panel);
+    }
+
+    const groups=fusionGroups();
+    panel.innerHTML=`
+      <div class="v224-head">
+        <div>
+          <h3>🧬 Pet összeolvasztás</h3>
+          <small>3 teljesen azonos petből garantáltan erősebb pet készül. A bónusz nem újradobódik, hanem összeadódva erősödik.</small>
+        </div>
+        <div class="v224-rule">3× azonos → +18% pet hatás / fusion szint</div>
+      </div>
+      <div class="v224-groups">
+        ${
+          groups.length
+          ? groups.map((g,i)=>{
+              const sample=g[0].p;
+              const base=petBasePct(sample);
+              const cur=effectivePetPct(sample);
+              const next=base*Math.pow(1+FUSION_GAIN,Math.max(0,Number(sample.fusionLevel||0))+1);
+              return `<div class="v224-fuse-row">
+                <div><b>${pname(sample)} ×${g.length}</b><small>Jelenlegi: ${cur.toFixed(1)}% → Következő fusion: ${next.toFixed(1)}%</small></div>
+                <button data-v224-fuse="${i}">🧬 3 PET ÖSSZEOLVASZTÁSA</button>
+              </div>`;
+            }).join("")
+          : `<div class="v224-empty">Még nincs 3 teljesen azonos peted.</div>`
+        }
+      </div>
+    `;
+
+    panel.querySelectorAll("[data-v224-fuse]").forEach(btn=>{
+      btn.onclick=()=>{
+        const group=fusionGroups()[Number(btn.dataset.v224Fuse)];
+        const result=fuse(group);
+        if(!result)return;
+        if(typeof persist==="function")persist();
+        if(typeof renderAll==="function")renderAll();
+        if(typeof toast==="function"){
+          toast(`🧬 ${pname(result)} Fusion +${result.fusionLevel}: ${effectivePetPct(result).toFixed(1)}%`);
+        }
+        renderFusionPanel();
+      };
+    });
+  }
+
+  // Expose pet multiplier for PvE/PvP balance hooks.
+  function activePetFusionMultiplier(){
+    const s=S();
+    const arr=pets()||[];
+    const activeId=s.activePet;
+    const p=arr.find(x=>String(x.id??x.uid??x.name)===String(activeId)) || arr.find(x=>x.active===true);
+    return p ? Math.max(1, Number(p.fusionMultiplier||1)) : 1;
+  }
+  window.v224PetFusionMultiplier=activePetFusionMultiplier;
+  window.v224EffectivePetPct=effectivePetPct;
+
+  window.addEventListener("load",()=>setTimeout(renderFusionPanel,250));
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.('[data-tab="pets"]'))setTimeout(renderFusionPanel,80);
+  },true);
+})();
+
+/* V22.4 PvE balancing around pet fusion */
+(function(){
+  function petPressure(){
+    const m=window.v224PetFusionMultiplier?.()||1;
+    // only part of pet power feeds enemy scaling so fusion still feels rewarding
+    return 1 + Math.max(0,m-1)*0.42;
+  }
+
+  const oldNormal=window.normalEnemyMaxHp;
+  if(typeof oldNormal==="function"){
+    window.normalEnemyMaxHp=function(){
+      const base=oldNormal();
+      const wave=Math.max(1,Number(save?.wave||1));
+      const progression=1 + Math.pow(Math.max(0,wave-1),1.08)*0.0045;
+      return Math.floor(base*petPressure()*progression);
+    };
+  }
+
+  const oldBoss=window.v10BossMaxHp;
+  if(typeof oldBoss==="function"){
+    window.v10BossMaxHp=function(){
+      const base=oldBoss();
+      const wave=Math.max(1,Number(save?.wave||1));
+      const bossScale=1 + Math.pow(wave,1.10)*0.0035;
+      return Math.floor(base*petPressure()*bossScale);
+    };
+  }
+})();
+
+/* V22.4 pet labels */
+(function(){
+  function annotate(){
+    const p=document.getElementById("page-pets");
+    if(!p)return;
+    p.querySelectorAll("[data-pet],.pet-card").forEach(card=>{
+      const txt=card.textContent||"";
+      if(card.querySelector(".v224-fusion-badge"))return;
+      const name=[...(save?.pets||[])].find(x=>txt.includes(x.name||"___"));
+      if(!name)return;
+      const tier=Number(name.fusionLevel||0);
+      if(tier<=0)return;
+      const b=document.createElement("span");
+      b.className="v224-fusion-badge";
+      b.textContent=`Fusion +${tier} · ${window.v224EffectivePetPct?.(name)?.toFixed?.(1) ?? "?"}%`;
+      card.appendChild(b);
+    });
+  }
+  window.addEventListener("load",()=>setTimeout(annotate,400));
+  document.addEventListener("click",()=>setTimeout(annotate,120),true);
+})();
+
+
+/* ================= V22.5 ENDGAME DUNGEON GEAR ================= */
+(function(){
+  const ENDGAME_RARITIES={
+    immortal:{
+      name:"Immortal", icon:"♾️", minDungeonPower:55000,
+      gearMult:1.38, optionMult:1.25, dropBase:.035
+    },
+    celestial:{
+      name:"Celestial", icon:"🌌", minDungeonPower:150000,
+      gearMult:1.78, optionMult:1.50, dropBase:.020
+    },
+    eternal:{
+      name:"Eternal", icon:"🔥", minDungeonPower:300000,
+      gearMult:2.30, optionMult:1.85, dropBase:.010
+    }
+  };
+  const SLOTS=["weapon","helmet","armor","gloves","boots","ring"];
+  const SLOT_NAMES={weapon:"Fegyver",helmet:"Sisak",armor:"Páncél",gloves:"Kesztyű",boots:"Csizma",ring:"Gyűrű"};
+
+  function S(){return (typeof save!=="undefined"&&save)?save:{};}
+  function playerPower(){try{return typeof power==="function"?Number(power()||0):0}catch(e){return 0}}
+
+  function strongestEligibleRarity(dungeonPower){
+    if(dungeonPower>=ENDGAME_RARITIES.eternal.minDungeonPower)return "eternal";
+    if(dungeonPower>=ENDGAME_RARITIES.celestial.minDungeonPower)return "celestial";
+    if(dungeonPower>=ENDGAME_RARITIES.immortal.minDungeonPower)return "immortal";
+    return null;
+  }
+
+  function makeGear(rarity,dungeon){
+    const cfg=ENDGAME_RARITIES[rarity];
+    const slot=SLOTS[Math.floor(Math.random()*SLOTS.length)];
+    const dp=Math.max(cfg.minDungeonPower,Number(dungeon.reqPower||cfg.minDungeonPower));
+    const base=Math.max(1,Math.floor(Math.sqrt(dp)*10*cfg.gearMult));
+    const variance=.90+Math.random()*.21;
+    const strength=Math.floor(base*variance);
+
+    return {
+      id:"dg_"+Date.now()+"_"+Math.random().toString(36).slice(2,8),
+      name:`${cfg.name} ${SLOT_NAMES[slot]}`,
+      slot,
+      rarity,
+      level:0,
+      plus:0,
+      power:strength,
+      attack:slot==="weapon"?Math.floor(strength*1.10):Math.floor(strength*.22),
+      defense:slot!=="weapon"?Math.floor(strength*.62):Math.floor(strength*.12),
+      hp:Math.floor(strength*(slot==="armor"?5.2:2.0)),
+      optionMultiplier:cfg.optionMult,
+      dungeonOnly:true,
+      sourceDungeon:dungeon.id,
+      locked:false,
+      createdAt:Date.now()
+    };
+  }
+
+  function inv(){
+    const s=S();
+    if(Array.isArray(s.inventory))return s.inventory;
+    if(Array.isArray(s.items))return s.items;
+    s.inventory=[];
+    return s.inventory;
+  }
+
+  function tryDungeonGearDrop(dungeon){
+    const dp=Number(dungeon?.reqPower||0);
+
+    // HARD RULE: below 55,000 recommended dungeon power these rarities can NEVER drop.
+    if(dp<55000)return null;
+
+    const rarity=strongestEligibleRarity(dp);
+    if(!rarity)return null;
+    const cfg=ENDGAME_RARITIES[rarity];
+
+    // Player must also actually be at least 55k power.
+    if(playerPower()<55000)return null;
+
+    // Slightly better chance in harder dungeons while remaining rare.
+    const over=Math.max(0,dp/cfg.minDungeonPower-1);
+    const chance=Math.min(.12,cfg.dropBase+over*.012);
+
+    if(Math.random()>=chance)return null;
+
+    const item=makeGear(rarity,dungeon);
+    inv().push(item);
+    return item;
+  }
+
+  window.v225TryDungeonGearDrop=tryDungeonGearDrop;
+  window.v225EndgameRarities=ENDGAME_RARITIES;
+})();

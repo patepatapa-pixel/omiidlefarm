@@ -408,3 +408,17 @@ V22.4
 - A pet fusion továbbra is valódi előnyt ad, az ellenfél skálázás csak részleges.
 - PvP-ben a fusion pet növeli a támadást és HP-t, de csökkentett/diminishing hatással, így nem kizárólag a pet dönti el a párbajt.
 - PvP sebzés finomhangolva, hogy a magas fusion ne okozzon együtéses meccseket.
+
+V22.5 ENDGAME DUNGEON GEAR
+- 55 000 alatti ajánlott erősségű dungeonból SOHA nem eshet Immortal/Celestial/Eternal gear.
+- 55 000+ dungeon: Immortal gear indul.
+- 150 000+ dungeon: Celestial gear indul.
+- 300 000+ dungeon: Eternal gear indul.
+- A játékosnak is legalább 55 000 aktuális erővel kell rendelkeznie az endgame gear drophoz.
+- Immortal kb. 38%-kal erősebb gear-alapot kap.
+- Celestial kb. 78%-kal erősebb gear-alapot kap.
+- Eternal kb. 130%-kal erősebb gear-alapot kap.
+- Az új gearek kizárólag sikeresen teljesített megfelelő dungeonból esnek.
+- Magasabb dungeon fokozatosan jobb drop esélyt ad, de az endgame gear ritka marad.
+- Mind a 6 gear slothoz eshet: fegyver, sisak, páncél, kesztyű, csizma, gyűrű.
+- Saját rarity vizuál: Immortal / Celestial / Eternal.

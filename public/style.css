@@ -3599,3 +3599,77 @@ body.v202-is-admin .admin-studio-only-v202{
 .multi-point-actions button{min-width:0!important;padding:8px 4px!important;font-size:10px!important;font-weight:900!important}
 .paragon-row .multi-point-actions{width:min(330px,100%)!important;margin-top:0!important}
 @media(max-width:600px){.multi-point-actions{grid-template-columns:repeat(2,1fr)!important}}
+
+/* ================= V22.4 PET FUSION ================= */
+.v224-pet-fusion{
+  width:min(1150px,100%)!important;
+  margin:0 auto 12px!important;
+  border-color:#65508b!important;
+}
+.v224-head{
+  display:flex!important;
+  justify-content:space-between!important;
+  gap:12px!important;
+  align-items:flex-start!important;
+}
+.v224-head h3{margin:0 0 4px!important}
+.v224-head small{color:#98a4b0!important}
+.v224-rule{
+  padding:7px 9px!important;
+  border:1px solid #6c54a0!important;
+  border-radius:8px!important;
+  color:#caa8ff!important;
+  background:#0d0a13!important;
+  white-space:nowrap!important;
+}
+.v224-groups{display:grid!important;gap:7px!important;margin-top:10px!important}
+.v224-fuse-row{
+  display:flex!important;
+  justify-content:space-between!important;
+  align-items:center!important;
+  gap:10px!important;
+  padding:9px!important;
+  border:1px solid #3b4652!important;
+  border-radius:8px!important;
+  background:#080d12!important;
+}
+.v224-fuse-row b,.v224-fuse-row small{display:block!important}
+.v224-fuse-row small{margin-top:3px!important;color:#a893c7!important}
+.v224-fusion-badge{
+  display:inline-block!important;
+  margin-top:6px!important;
+  padding:4px 6px!important;
+  border:1px solid #704bb0!important;
+  border-radius:6px!important;
+  background:#120b1d!important;
+  color:#c997ff!important;
+  font-size:9px!important;
+  font-weight:900!important;
+}
+@media(max-width:700px){
+ .v224-head,.v224-fuse-row{display:block!important}
+ .v224-rule,.v224-fuse-row button{margin-top:8px!important;width:100%!important}
+}
+
+/* ================= V22.5 ENDGAME DUNGEON GEAR ================= */
+[data-rarity="immortal"],.rarity-immortal,.item.immortal,.gear.immortal{
+  border-color:#e34f63!important;
+  box-shadow:0 0 12px rgba(227,79,99,.22)!important;
+}
+[data-rarity="immortal"] .rarity,.rarity-immortal .rarity,.immortal .rarity{
+  color:#ff7385!important;
+}
+[data-rarity="celestial"],.rarity-celestial,.item.celestial,.gear.celestial{
+  border-color:#8e72ff!important;
+  box-shadow:0 0 15px rgba(142,114,255,.28)!important;
+}
+[data-rarity="celestial"] .rarity,.rarity-celestial .rarity,.celestial .rarity{
+  color:#b3a1ff!important;
+}
+[data-rarity="eternal"],.rarity-eternal,.item.eternal,.gear.eternal{
+  border-color:#ff9d3d!important;
+  box-shadow:0 0 18px rgba(255,115,25,.32)!important;
+}
+[data-rarity="eternal"] .rarity,.rarity-eternal .rarity,.eternal .rarity{
+  color:#ffb14d!important;
+}
