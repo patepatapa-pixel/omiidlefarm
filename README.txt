@@ -119,3 +119,9 @@ V11 SOCIAL / PVP / SHOP / CONTENT
 V11.2: Admin Játékosok listájából normál játékos végleg törölhető kétlépcsős megerősítéssel. Adminfiók nem törölhető innen.
 
 V12: teljes dark-fantasy vizuális frissítés a jóváhagyott mockup irányában; sötét harcos, arany/lila UI, karakter-színpad effektek. V11.3 játékostörlés megmaradt.
+
+V13 MOCKUP CHARACTER
+- A Karakter panel most ténylegesen a jóváhagyott sötét fantasy látványból készült raster artworköt használja.
+- A korábbi rajzolt/SVG figura el van rejtve.
+- A felszerelés slotok, karakter statok, aura/pet/wave/paragon adatok funkcionálisan megmaradtak.
+- A teljes V12/V11.3 funkcionalitás megmaradt.
