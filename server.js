@@ -249,10 +249,62 @@ app.get("/api/admin/logs",auth,admin,async(req,res)=>{
   res.json({rows});
 });
 
+
+// V8 ADMIN STUDIO
+app.get("/api/admin/players-full",auth,admin,async(req,res)=>{
+  try{
+    const rows=(await q(`
+      SELECT u.id,u.username,u.created_at,u.last_login,
+             COALESCE(g.save_data,'{}'::jsonb) save_data
+      FROM users u
+      LEFT JOIN game_saves g ON g.user_id=u.id
+      ORDER BY u.username
+    `)).rows;
+    res.json({ok:true,players:rows});
+  }catch(e){res.status(500).json({error:e.message})}
+});
+
+app.post("/api/admin/player-save",auth,admin,async(req,res)=>{
+  try{
+    const {id,save}=req.body||{};
+    if(!id||!save||typeof save!=="object")return res.status(400).json({error:"Hiányzó vagy hibás adat"});
+    const gold=Math.max(0,Math.floor(Number(save.gold||0)));
+    await q(`
+      INSERT INTO game_saves(user_id,save_data,gold,updated_at)
+      VALUES($1,$2,$3,NOW())
+      ON CONFLICT(user_id) DO UPDATE SET save_data=EXCLUDED.save_data,gold=EXCLUDED.gold,updated_at=NOW()
+    `,[id,save,gold]);
+    await q("INSERT INTO admin_logs(admin_id,target_user_id,action) VALUES($1,$2,$3)",[req.user.id,id,"FULL_SAVE_EDIT"]);
+    res.json({ok:true});
+  }catch(e){res.status(500).json({error:e.message})}
+});
+
+app.get("/api/content-config",async(req,res)=>{
+  try{
+    await q("CREATE TABLE IF NOT EXISTS game_content(key TEXT PRIMARY KEY,value JSONB NOT NULL DEFAULT '{}'::jsonb,updated_at TIMESTAMPTZ DEFAULT NOW())");
+    const row=(await q("SELECT value FROM game_content WHERE key='main'")).rows[0];
+    res.json({ok:true,config:row?.value||{}});
+  }catch(e){res.json({ok:true,config:{}})}
+});
+
+app.post("/api/admin/content-config",auth,admin,async(req,res)=>{
+  try{
+    const config=req.body?.config||{};
+    await q("CREATE TABLE IF NOT EXISTS game_content(key TEXT PRIMARY KEY,value JSONB NOT NULL DEFAULT '{}'::jsonb,updated_at TIMESTAMPTZ DEFAULT NOW())");
+    await q(`
+      INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW())
+      ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()
+    `,[config]);
+    await q("INSERT INTO admin_logs(admin_id,action) VALUES($1,$2)",[req.user.id,"GAME_CONTENT_EDIT"]);
+    res.json({ok:true});
+  }catch(e){res.status(500).json({error:e.message})}
+});
+
 app.use(express.static(path.join(__dirname,"public")));
 app.get("/admin",(req,res)=>res.sendFile(path.join(__dirname,"public","admin.html")));
 app.get("*",(req,res)=>res.sendFile(path.join(__dirname,"public","index.html")));
 
 const PORT=process.env.PORT||10000;
-init().then(()=>app.listen(PORT,"0.0.0.0",()=>console.log("OMI Idle Farm Online running on",PORT)))
+init().then(()=>
+app.listen(PORT,"0.0.0.0",()=>console.log("OMI Idle Farm Online running on",PORT)))
 .catch(e=>{console.error("INIT ERROR",e);process.exit(1)});

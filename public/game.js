@@ -600,3 +600,5 @@ while(save.xp>=needXp()){save.xp-=needXp();save.level++;save.skillPoints++}
 renderAll();persist();loadMe();
 setInterval(combatTick,1000);
 setInterval(()=>{save.stats.playSeconds++;if(save.stats.playSeconds%5===0)persist()},1000);
+
+window.OMI_CONTENT={bosses:[],items:[],pets:[],auras:[],zones:[]};fetch("/api/content-config").then(r=>r.json()).then(d=>window.OMI_CONTENT={...window.OMI_CONTENT,...(d.config||{})}).catch(()=>{});
