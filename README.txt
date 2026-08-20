@@ -266,3 +266,10 @@ V20.8
   karakterfigura, felszerelés slotok, felszerelt tárgy összegzés, Aura/Pet/Wave/Paragon.
 - Felszerelés kezelés továbbra is külön, függetlenül mozgatható ablak.
 - Régi V20.7 wrapper/pozicionálás kikapcsolva, így nem vágja le a karaktert.
+
+V20.9
+- A Felszerelés kezelés alaphelyzetben közvetlenül a Saját karakter mellett jelenik meg.
+- A két ablak külön DOM-elem és külön mozgatható.
+- A karakter mozgatása nem mozgatja a felszerelés ablakot.
+- A felszerelés mozgatása nem mozgatja a karaktert.
+- Mindkét ablak továbbra is külön menti a pozícióját.

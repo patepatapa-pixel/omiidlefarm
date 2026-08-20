@@ -2406,3 +2406,50 @@ document.addEventListener("click",e=>{
     }
   },800);
 })();
+
+/* ================= V20.9 EQUIPMENT BESIDE CHARACTER ================= */
+(function(){
+  function v209ArrangeDefaults(){
+    const page=document.getElementById("page-character");
+    if(!page)return;
+
+    const canvas=page.querySelector(".v208-window-canvas");
+    const charWin=page.querySelector(".v208-character-window");
+    const equip=page.querySelector(".inventory-tools-v163.v208-free-window, .inventory-tools-v163");
+
+    if(!canvas || !charWin || !equip)return;
+
+    // If this version has never been positioned before, give clean side-by-side defaults.
+    const key="omi_v208_window_positions";
+    let pos={};
+    try{pos=JSON.parse(localStorage.getItem(key)||"{}")}catch(e){}
+
+    if(!pos.character){
+      charWin.style.setProperty("--v208-x","30px");
+      charWin.style.setProperty("--v208-y","20px");
+    }
+
+    if(!pos.equipment){
+      equip.style.setProperty("--v208-x","720px");
+      equip.style.setProperty("--v208-y","20px");
+    }
+
+    // Make sure equipment remains a direct sibling in the same window canvas.
+    if(equip.parentNode!==canvas){
+      canvas.appendChild(equip);
+    }
+  }
+
+  window.v209ArrangeDefaults=v209ArrangeDefaults;
+
+  window.addEventListener("load",()=>{
+    setTimeout(v209ArrangeDefaults,120);
+    setTimeout(v209ArrangeDefaults,500);
+  });
+
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.('[data-tab="character"]')){
+      setTimeout(v209ArrangeDefaults,80);
+    }
+  },true);
+})();

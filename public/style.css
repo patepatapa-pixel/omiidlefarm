@@ -2338,3 +2338,66 @@ body.v202-is-admin .admin-studio-only-v202{
     max-width:none!important;
   }
 }
+
+/* ================= V20.9 SIDE-BY-SIDE FREE WINDOWS ================= */
+
+/* Larger canvas so both windows fit next to each other cleanly */
+#page-character>.v208-window-canvas{
+  width:min(1500px,calc(100vw - 24px))!important;
+  min-height:760px!important;
+  margin:0 auto!important;
+  position:relative!important;
+  overflow:visible!important;
+}
+
+/* Character stays its own free movable window */
+#page-character .v208-character-window.v208-free-window{
+  width:650px!important;
+  min-width:650px!important;
+  max-width:650px!important;
+}
+
+/* Equipment stays a completely separate free movable window */
+#page-character .inventory-tools-v163.v208-free-window{
+  width:560px!important;
+  min-width:560px!important;
+  max-width:560px!important;
+  position:absolute!important;
+  margin:0!important;
+  left:0!important;
+  top:0!important;
+  transform:translate(var(--v208-x),var(--v208-y))!important;
+  z-index:35!important;
+}
+
+/* Clear visual separation */
+#page-character .v208-character-window,
+#page-character .inventory-tools-v163.v208-free-window{
+  box-sizing:border-box!important;
+}
+
+#page-character .inventory-tools-v163.v208-free-window{
+  border:1px solid #8a6626!important;
+  border-radius:12px!important;
+  background:linear-gradient(145deg,#0c1117,#070a0f)!important;
+  box-shadow:0 10px 26px rgba(0,0,0,.32)!important;
+}
+
+/* Narrow screens: stack instead of overlapping */
+@media(max-width:1250px){
+  #page-character>.v208-window-canvas{
+    display:grid!important;
+    gap:14px!important;
+    width:min(760px,calc(100vw - 18px))!important;
+    min-height:0!important;
+  }
+
+  #page-character .v208-character-window.v208-free-window,
+  #page-character .inventory-tools-v163.v208-free-window{
+    position:relative!important;
+    transform:none!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+  }
+}
