@@ -2604,3 +2604,166 @@ document.addEventListener("click",e=>{
     if(p)obs.observe(p,{childList:true,subtree:true});
   });
 })();
+
+/* ================= V21.1 EQUIPMENT OPEN FIX ================= */
+(function(){
+  function page(){ return document.getElementById("page-character"); }
+  function canvas(){ return page()?.querySelector(".v208-window-canvas"); }
+
+  function equipment(){
+    const p=page();
+    if(!p)return null;
+    return p.querySelector(".inventory-tools-v163");
+  }
+
+  function ensureEquipmentWindow(){
+    const p=page();
+    const c=canvas();
+    const eq=equipment();
+    if(!p || !c || !eq)return null;
+
+    // Must be a direct child of the floating canvas.
+    if(eq.parentNode!==c){
+      c.appendChild(eq);
+    }
+
+    // Remove all old hiding classes from previous versions.
+    [
+      "v210-equipment-closed",
+      "v205-empty-hidden",
+      "v205-old-layout-hidden",
+      "v208-obsolete",
+      "v207-obsolete-layout"
+    ].forEach(cls=>eq.classList.remove(cls));
+
+    // Keep V20.8/V20.9 draggable behavior.
+    eq.classList.add("v208-free-window");
+
+    // Guarantee a usable default position.
+    const x=getComputedStyle(eq).getPropertyValue("--v208-x").trim();
+    const y=getComputedStyle(eq).getPropertyValue("--v208-y").trim();
+    if(!x)eq.style.setProperty("--v208-x","720px");
+    if(!y)eq.style.setProperty("--v208-y","55px");
+
+    return eq;
+  }
+
+  function openEquipment(){
+    const eq=ensureEquipmentWindow();
+    if(!eq)return;
+
+    eq.classList.remove("v210-equipment-closed");
+    eq.classList.add("v210-equipment-open");
+    eq.style.setProperty("display","block","important");
+    eq.style.setProperty("visibility","visible","important");
+    eq.style.setProperty("opacity","1","important");
+    eq.style.setProperty("pointer-events","auto","important");
+    eq.style.setProperty("z-index","999","important");
+
+    try{localStorage.setItem("omi_v210_equipment_open","1")}catch(e){}
+
+    // Re-run drag setup if available.
+    setTimeout(()=>{
+      if(window.v208Setup)window.v208Setup();
+      if(window.v209ArrangeDefaults)window.v209ArrangeDefaults();
+    },0);
+
+    const btn=document.getElementById("v210EquipmentToggleBtn");
+    if(btn){
+      btn.classList.add("active");
+      btn.textContent="🧰 Felszerelés kezelés ✓";
+    }
+  }
+
+  function closeEquipment(){
+    const eq=equipment();
+    if(!eq)return;
+    eq.classList.remove("v210-equipment-open");
+    eq.classList.add("v210-equipment-closed");
+    eq.style.setProperty("display","none","important");
+    try{localStorage.setItem("omi_v210_equipment_open","0")}catch(e){}
+
+    const btn=document.getElementById("v210EquipmentToggleBtn");
+    if(btn){
+      btn.classList.remove("active");
+      btn.textContent="🧰 Felszerelés kezelés";
+    }
+  }
+
+  function toggleEquipment(){
+    const eq=equipment();
+    if(!eq){
+      // layout may not be ready yet
+      setTimeout(openEquipment,60);
+      return;
+    }
+    const hidden =
+      eq.classList.contains("v210-equipment-closed") ||
+      getComputedStyle(eq).display==="none";
+    hidden ? openEquipment() : closeEquipment();
+  }
+
+  function bindButton(){
+    const btn=document.getElementById("v210EquipmentToggleBtn");
+    if(!btn || btn.dataset.v211Bound==="1")return;
+    btn.dataset.v211Bound="1";
+
+    // Replace old behavior with a guaranteed open/close handler.
+    btn.addEventListener("click",function(e){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      toggleEquipment();
+    },true);
+  }
+
+  function bindClose(){
+    const close=document.getElementById("v210EquipmentCloseBtn");
+    if(!close || close.dataset.v211Bound==="1")return;
+    close.dataset.v211Bound="1";
+    close.addEventListener("click",function(e){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      closeEquipment();
+    },true);
+  }
+
+  function setup(){
+    ensureEquipmentWindow();
+    bindButton();
+    bindClose();
+
+    // Default to closed unless saved open.
+    let saved=false;
+    try{saved=localStorage.getItem("omi_v210_equipment_open")==="1"}catch(e){}
+    saved ? openEquipment() : closeEquipment();
+  }
+
+  window.v211OpenEquipment=openEquipment;
+  window.v211CloseEquipment=closeEquipment;
+  window.v211ToggleEquipment=toggleEquipment;
+
+  window.addEventListener("load",()=>{
+    setTimeout(setup,150);
+    setTimeout(setup,600);
+  });
+
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.('[data-tab="character"]')){
+      setTimeout(setup,100);
+    }
+  },true);
+
+  const obs=new MutationObserver(()=>{
+    if(page()?.classList.contains("active")){
+      requestAnimationFrame(()=>{
+        bindButton();
+        bindClose();
+      });
+    }
+  });
+
+  window.addEventListener("load",()=>{
+    const p=page();
+    if(p)obs.observe(p,{childList:true,subtree:true});
+  });
+})();

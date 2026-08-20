@@ -281,3 +281,10 @@ V21.0
 - Az EQUIP BEST gomb bekerült a Saját karakter ablakba.
 - Az eredeti Equip Best funkció megmarad, mert ugyanaz a valódi gomb került át.
 - A Felszerelés kezelés saját X bezáró gombot kapott.
+
+V21.1
+- Javítva a Felszerelés kezelés gomb.
+- Kattintásra garantáltan megnyílik a külön mozgatható Felszerelés kezelés ablak.
+- Az ablak közvetlenül a floating canvasba kerül, így régi wrapper nem tudja elrejteni.
+- Régi hidden classok automatikusan törlődnek megnyitáskor.
+- Az X bezáró gomb továbbra is működik.

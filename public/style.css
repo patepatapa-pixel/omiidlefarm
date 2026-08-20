@@ -2508,3 +2508,35 @@ body.v202-is-admin .admin-studio-only-v202{
     justify-content:flex-start!important;
   }
 }
+
+/* ================= V21.1 EQUIPMENT OPEN FIX ================= */
+#page-character .inventory-tools-v163.v210-equipment-open{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  pointer-events:auto!important;
+  position:absolute!important;
+  left:0!important;
+  top:0!important;
+  transform:translate(var(--v208-x,720px),var(--v208-y,55px))!important;
+  z-index:999!important;
+}
+
+#page-character .inventory-tools-v163.v210-equipment-closed{
+  display:none!important;
+}
+
+/* Prevent older wrapper-hiding rules from hiding the actual equipment window */
+#page-character .v208-window-canvas > .inventory-tools-v163{
+  max-width:560px!important;
+  width:560px!important;
+  min-width:560px!important;
+}
+
+/* Make the opener clearly clickable */
+#page-character #v210EquipmentToggleBtn{
+  pointer-events:auto!important;
+  cursor:pointer!important;
+  position:relative!important;
+  z-index:50!important;
+}
