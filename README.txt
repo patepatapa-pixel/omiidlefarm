@@ -451,3 +451,9 @@ V22.9 PVP FIX + VISUAL
 - Ütés animáció, lebegő részecskék és külön kritikus effekt.
 - Győzelem/vereség vizuálisan megjelenik.
 - Rating/jutalom után PvP lista automatikusan frissül.
+
+V22.10 PVP HOTFIX
+- Javítva: TypeError: Assignment to constant variable a pvpStats() függvényben.
+- Az atk és hp változók const helyett let változók, mert a Pet Fusion PvP balance módosítja őket.
+- A PvP párbaj API emiatt most már nem dob 500-as hibát.
+- A V22.9 vizuális PvP aréna és effektek megmaradtak.

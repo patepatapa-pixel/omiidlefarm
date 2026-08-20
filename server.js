@@ -525,7 +525,7 @@ function pvpStats(save){
     const up=1+Number(it.plus||0)*.10;
     atk+=Number(it.atk||0)*up;def+=Number(it.def||0)*up;
   }
-  const hp=Math.floor(220+level*18+def*3+Number(save.paragonLevel||0)*30);
+  let hp=Math.floor(220+level*18+def*3+Number(save.paragonLevel||0)*30);
   const crit=Math.min(.55,.05+Number(save.skills?.crit||0)*.015+Number(ps.crit||0)*.005);
   const petPvP=1+Math.min(.60,(fusionMult-1)*.55);
   atk*=petPvP;
@@ -604,7 +604,10 @@ app.post("/api/pvp/fight",auth,async(req,res)=>{
     };
     await q("INSERT INTO pvp_fights(challenger_id,defender_id,winner_id,battle_data) VALUES($1,$2,$3,$4)",[a.id,b.id,winnerId,battle]);
     res.json({ok:true,battle});
-  }catch(e){console.error(e);res.status(500).json({error:"A párbaj nem sikerült."})}
+  }catch(e){
+    console.error("PVP FIGHT ERROR:",e);
+    res.status(500).json({error:"A párbaj nem sikerült."});
+  }
 });
 app.get("/api/pvp/history",auth,async(req,res)=>{
   const rows=(await q(`
