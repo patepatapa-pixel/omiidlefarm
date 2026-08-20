@@ -4024,3 +4024,84 @@ body.v202-is-admin .admin-studio-only-v202{
 .pet-slot-buy:hover{filter:brightness(1.12);transform:translateY(-1px)}
 @media(max-width:1050px){.pet-slot-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.pet-slot-grid{grid-template-columns:1fr}.pet-slot-card{min-height:175px}}
+
+/* V22.15 meaningful skill tree */
+.skill-card-v215{
+  position:relative;
+  overflow:hidden;
+  border-color:#384554!important;
+  background:linear-gradient(150deg,#10161e,#080b10)!important;
+}
+.skill-v215-head{display:flex;align-items:center;gap:12px;min-height:58px}
+.skill-v215-head h3{margin:0 0 4px!important}
+.skill-v215-head small{color:#8995a4!important}
+.skill-v215-icon{
+  display:grid;place-items:center;width:48px;height:48px;flex:0 0 48px;
+  border:1px solid rgba(237,190,63,.32);border-radius:13px;
+  background:rgba(238,183,42,.08);font-size:27px;
+}
+.skill-v215-effect{
+  display:grid;grid-template-columns:1fr auto;align-items:end;
+  margin:13px 0 10px;padding:10px 12px;border:1px solid rgba(238,188,56,.27);
+  border-radius:10px;background:rgba(225,168,35,.07);
+}
+.skill-v215-effect small{grid-column:1;color:#8e99a7;font-size:9px;font-weight:900;letter-spacing:.12em}
+.skill-v215-effect strong{grid-row:1/3;grid-column:2;color:#ffdc6c;font-size:24px;line-height:1;text-shadow:0 0 16px rgba(240,184,42,.2)}
+.skill-v215-effect span{color:#d6dde5;font-size:11px;font-weight:800}
+.skill-v215-level{display:flex;justify-content:space-between;gap:8px;margin-top:10px}
+.skill-v215-level b{color:#f2f5f8}
+.skill-v215-level span{color:#9aa6b4;font-size:10px}
+.skill-v215-bar{height:7px;margin:8px 0 13px;overflow:hidden;border-radius:999px;background:#202833}
+.skill-v215-bar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#b7801f,#f3ca52);box-shadow:0 0 12px rgba(241,192,57,.35)}
+.skill-card-v215 .multi-point-actions button:disabled{opacity:.32;cursor:not-allowed}
+
+/* V22.16 inline dungeon battle controls */
+.v218-dungeon-card>#v219DungeonBattle{
+  margin:-2px -2px 12px!important;
+  border-color:#d6a632!important;
+  box-shadow:0 0 0 1px rgba(239,186,50,.12),0 12px 28px rgba(0,0,0,.32)!important;
+}
+.v216-dungeon-controls{
+  display:flex!important;
+  align-items:center!important;
+  gap:6px!important;
+  margin:-2px 0 10px!important;
+  padding:7px!important;
+  border:1px solid #343f4b!important;
+  border-radius:9px!important;
+  background:#070b10!important;
+}
+.v216-dungeon-controls>span{
+  margin-right:auto!important;
+  color:#9da8b4!important;
+  font-size:10px!important;
+  font-weight:800!important;
+}
+.v218-dungeon-card .v216-dungeon-controls button{
+  width:auto!important;
+  min-width:42px!important;
+  min-height:30px!important;
+  padding:5px 9px!important;
+  border:1px solid #424e5b!important;
+  border-radius:7px!important;
+  background:#151b23!important;
+  color:#cbd3dc!important;
+  font-size:10px!important;
+}
+.v218-dungeon-card .v216-dungeon-controls button.active{
+  border-color:#e0b13b!important;
+  background:linear-gradient(180deg,#d6aa38,#9b701b)!important;
+  color:#100c05!important;
+  box-shadow:0 0 14px rgba(224,177,59,.18)!important;
+}
+.v218-dungeon-card .v216-dungeon-controls button.skip{
+  min-width:105px!important;
+  border-color:#dc5364!important;
+  background:linear-gradient(180deg,#b63b4c,#762431)!important;
+  color:#fff!important;
+}
+@media(max-width:560px){
+  .v216-dungeon-controls{flex-wrap:wrap!important}
+  .v216-dungeon-controls>span{width:100%!important}
+  .v218-dungeon-card .v216-dungeon-controls button.skip{flex:1!important}
+}

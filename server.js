@@ -26,7 +26,7 @@ const DEFAULT_SAVE={
  base:{weaponTraining:1,armorTraining:1,mining:1,luck:1},
  skills:{power:0,gold:0,crit:0,drop:0,offline:0,pet:0},
  inventory:[],equipped:{weapon:null,helmet:null,armor:null,gloves:null,boots:null,ring:null},
- pets:[],activePet:null,activePets:[],petSlotsUnlocked:1,
+ pets:[],activePet:null,activePets:[],petSlotsUnlocked:1,skillTreeVersion:2,
  stats:{goldEarned:0,itemsFound:0,legendary:0,bosses:0,dungeons:0,critHits:0,playSeconds:0},
  dailyClaimed:{},achClaimed:{},last:Date.now(),lastDaily:new Date().toDateString(),uid:1
 };
@@ -160,7 +160,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.14.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.16.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{
@@ -548,7 +548,10 @@ function pvpStats(save){
     atk+=Number(it.atk||0)*up;def+=Number(it.def||0)*up;
   }
   let hp=Math.floor(220+level*18+def*3+Number(save.paragonLevel||0)*30);
-  const crit=Math.min(.55,.05+Number(save.skills?.crit||0)*.015+Number(ps.crit||0)*.005);
+  const skillLv=k=>Math.max(0,Math.min(100,Math.floor(Number(save.skills?.[k]||0))));
+  const skillFx=(k,per,mile)=>skillLv(k)*per+Math.floor(skillLv(k)/25)*mile;
+  atk*=1+skillFx("power",.025,.10);
+  const crit=Math.min(.70,.05+skillFx("crit",.005,.025)+Number(ps.crit||0)*.005);
   const petPvP=1+Math.min(.60,(fusionMult-1)*.55);
   atk*=petPvP;
   hp=Math.floor(hp*(1+Math.min(.35,(fusionMult-1)*.30)));

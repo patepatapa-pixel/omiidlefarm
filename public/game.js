@@ -26,13 +26,19 @@ const BASE_UPS=[
  {key:"luck",name:"Szerencse",icon:"🍀",base:160,desc:"+ ritka drop"}
 ];
 const SKILLS=[
- {key:"power",name:"Erő aura",icon:"🔥",desc:"Végtelen fejlesztés · fokozatos sebzésnövekedés"},
- {key:"gold",name:"Aranyáldás",icon:"💰",desc:"Végtelen fejlesztés · több arany farmolásból"},
- {key:"crit",name:"Kritikus ösztön",icon:"🎯",desc:"Végtelen fejlesztés · krit esély + krit erő"},
- {key:"drop",name:"Kincsvadász",icon:"🎁",desc:"Végtelen fejlesztés · jobb drop és ritkaság"},
- {key:"offline",name:"Mély alvás farm",icon:"🌙",desc:"Végtelen fejlesztés · erősebb offline farm"},
- {key:"pet",name:"Pet szinkron",icon:"🐾",desc:"Végtelen fejlesztés · pet bónuszok erősítése"}
+ {key:"power",name:"Erő aura",icon:"🔥",desc:"Minden szint növeli a teljes sebzésed",per:.025,milestone:.10,unit:"sebzés"},
+ {key:"gold",name:"Aranyáldás",icon:"💰",desc:"Több arany minden farm- és bossjutalomból",per:.03,milestone:.15,unit:"arany"},
+ {key:"crit",name:"Kritikus ösztön",icon:"🎯",desc:"Növeli a kritikus találat esélyét",per:.005,milestone:.025,unit:"krit esély"},
+ {key:"drop",name:"Kincsvadász",icon:"🎁",desc:"Növeli a tárgyak és ritka loot esélyét",per:.006,milestone:.03,unit:"drop esély"},
+ {key:"offline",name:"Mély alvás farm",icon:"🌙",desc:"Több kill és jutalom offline állapotban",per:.02,milestone:.10,unit:"offline farm"},
+ {key:"pet",name:"Pet szinkron",icon:"🐾",desc:"Felerősíti az összes felszerelt pet bónuszát",per:.03,milestone:.15,unit:"pet bónusz"}
 ];
+const SKILL_CAP=100;
+function skillBonus(key,level=Number(save?.skills?.[key]||0)){
+ const meta=SKILLS.find(s=>s.key===key);
+ const lv=Math.max(0,Math.min(SKILL_CAP,Math.floor(Number(level||0))));
+ return meta?lv*meta.per+Math.floor(lv/25)*meta.milestone:0;
+}
 const PET_POOL=[
  {name:"Kis Farkas",icon:"🐺",bonus:"damage",value:.08,rarity:"normal"},
  {name:"Arany Róka",icon:"🦊",bonus:"gold",value:.12,rarity:"rare"},
@@ -62,7 +68,7 @@ let save=JSON.parse(localStorage.getItem("omiIdleComplete")||"null")||{
  gold:0,gems:10,ore:0,soul:0,tickets:3,level:1,xp:0,skillPoints:0,kills:0,zone:0,
  base:{weaponTraining:1,armorTraining:1,mining:1,luck:1},skills:{power:0,gold:0,crit:0,drop:0,offline:0,pet:0},
  inventory:[],equipped:{weapon:null,helmet:null,armor:null,gloves:null,boots:null,ring:null},
- pets:[],activePet:null,activePets:[],petSlotsUnlocked:1,stats:{goldEarned:0,itemsFound:0,legendary:0,bosses:0,dungeons:0,critHits:0,playSeconds:0},
+ pets:[],activePet:null,activePets:[],petSlotsUnlocked:1,skillTreeVersion:2,stats:{goldEarned:0,itemsFound:0,legendary:0,bosses:0,dungeons:0,critHits:0,playSeconds:0},
  dailyClaimed:{},achClaimed:{},last:Date.now(),lastDaily:new Date().toDateString(),uid:1
 };
 if(save.lastDaily!==new Date().toDateString()){save.dailyClaimed={};save.lastDaily=new Date().toDateString()}
@@ -74,6 +80,15 @@ function normalizeV6Save(s){
  s.level=Math.max(1,Number(s.level||1));s.xp=Number(s.xp||0);s.skillPoints=Number(s.skillPoints||0);s.kills=Number(s.kills||0);s.zone=Math.max(0,Math.min(ZONES.length-1,Number(s.zone||0)));
  s.base={weaponTraining:1,armorTraining:1,mining:1,luck:1,...(s.base||{})};
  s.skills={power:0,gold:0,crit:0,drop:0,offline:0,pet:0,...(s.skills||{})};
+ if(Number(s.skillTreeVersion||0)<2){
+   const legitimatePoints=Math.max(0,Math.min(600,Math.floor(s.level-1)));
+   const unusedPoints=Math.max(0,Math.min(600,Math.floor(Number(s.skillPoints||0))));
+   s.skillPoints=Math.max(legitimatePoints,unusedPoints);
+   s.skills={power:0,gold:0,crit:0,drop:0,offline:0,pet:0};
+   s.skillTreeVersion=2;s.skillResetNotice=true;
+ }else{
+   Object.keys(s.skills).forEach(k=>s.skills[k]=Math.max(0,Math.min(SKILL_CAP,Math.floor(Number(s.skills[k]||0)))));
+ }
  s.inventory=Array.isArray(s.inventory)?s.inventory:[];
  s.equipped={weapon:null,helmet:null,armor:null,gloves:null,boots:null,ring:null,...(s.equipped||{})};
  s.pets=Array.isArray(s.pets)?s.pets:[];
@@ -125,7 +140,7 @@ function itemStats(item){
 }
 function petObjs(){return (save.activePets||[]).map(i=>save.pets[i]).filter(Boolean).slice(0,save.petSlotsUnlocked||1)}
 function petObj(){return petObjs()[0]||null}
-function petScale(){return 1+infiniteSkillBonus(save.skills.pet,.035,40)}
+function petScale(){return 1+skillBonus("pet")}
 function bonuses(){
  let atk=0,def=0,gold=0,crit=0,drop=0;
  Object.keys(save.equipped).forEach(s=>{let it=equipObj(s);if(!it)return;let st=itemStats(it);atk+=st.atk;def+=st.def;gold+=st.gold;crit+=st.crit;drop+=st.drop});
@@ -135,18 +150,18 @@ function bonuses(){
 }
 function damage(){
  let b=bonuses(),io=itemOptionBonuses(),base=6+save.level*1.2+save.base.weaponTraining*4+b.atk;
- let total=base*(1+infiniteSkillBonus(save.skills.power,.04,50)+save.paragonStats.damage*.02)*(1+io.atkPct/100);
+ let total=base*(1+skillBonus("power")+save.paragonStats.damage*.02)*(1+io.atkPct/100);
  if(save.waveBoss)total*=1+io.bossDmg/100;
  return Math.floor(total)
 }
-function critChance(){let io=itemOptionBonuses();return Math.min(.85,.05+infiniteSkillBonus(save.skills.crit,.009,35)+bonuses().crit+save.paragonStats.crit*.005+io.crit/100)}
-function goldBonus(){let io=itemOptionBonuses();return 1+(save.base.armorTraining-1)*.05+infiniteSkillBonus(save.skills.gold,.045,50)+bonuses().gold+save.paragonStats.gold*.03+io.gold/100}
-function dropBonus(){let io=itemOptionBonuses();return infiniteSkillBonus(save.skills.drop,.012,40)+bonuses().drop+(save.base.luck-1)*.01+save.paragonStats.drop*.01+io.drop/100}
+function critChance(){let io=itemOptionBonuses();return Math.min(.85,.05+skillBonus("crit")+bonuses().crit+save.paragonStats.crit*.005+io.crit/100)}
+function goldBonus(){let io=itemOptionBonuses();return 1+(save.base.armorTraining-1)*.05+skillBonus("gold")+bonuses().gold+save.paragonStats.gold*.03+io.gold/100}
+function dropBonus(){let io=itemOptionBonuses();return skillBonus("drop")+bonuses().drop+(save.base.luck-1)*.01+save.paragonStats.drop*.01+io.drop/100}
 function power(){let b=bonuses();return Math.floor(damage()*11+b.def*7+save.level*20+save.base.mining*8+save.base.luck*8)}
 function rankName(){let p=power();return p<500?"Kezdő":p<2500?"Harcos":p<10000?"Elit":p<40000?"Mester":p<120000?"Hős":"Isteni"}
 function baseCost(d){return Math.floor(d.base*Math.pow(1.58,save.base[d.key]-1))}
 function rarityRoll(){
- let bonus=(save.base.luck-1)*.25+infiniteSkillBonus(save.skills.drop,.10,40);
+ let bonus=(save.base.luck-1)*.25+skillBonus("drop")*15;
  let r=Math.random()*100;
  if(r<1+bonus*.08)return RARITIES[4];
  if(r<5+bonus*.15)return RARITIES[3];
@@ -449,9 +464,13 @@ function renderUpgrade(){
  $$("[data-upgrade-item]").forEach(b=>b.onclick=()=>{let it=save.inventory.find(x=>x.id==b.dataset.upgradeItem),gc=upgradeCost(it),oc=oreCost(it);if(save.gold<gc||save.ore<oc)return toast("Nincs elég arany vagy érc.");save.gold-=gc;save.ore-=oc;let ok=Math.random()*100<upgradeChance(it.plus);if(ok){it.plus++;toast("✅ Fejlesztés sikeres! +"+it.plus)}else{toast("❌ Fejlesztés sikertelen.")}persist();renderAll()})
 }
 function renderSkills(){
+ if(save.skillResetNotice){
+   save.skillResetNotice=false;
+   setTimeout(()=>{toast("♻️ A régi képességpontok visszaállítva — oszd ki őket az új rendszerben!");persist()},80);
+ }
  $("#skillPoints").textContent=save.skillPoints;
- $("#skills").innerHTML=SKILLS.map(s=>`<div class="skill-card"><div style="font-size:28px">${s.icon}</div><h3>${s.name}</h3><small>${s.desc}</small><p>Lv.${fmt(save.skills[s.key])} · ∞</p><div class="multi-point-actions"><button data-skill="${s.key}" data-amount="1" ${save.skillPoints<=0?"disabled":""}>+1</button><button data-skill="${s.key}" data-amount="5" ${save.skillPoints<=0?"disabled":""}>+5</button><button data-skill="${s.key}" data-amount="10" ${save.skillPoints<=0?"disabled":""}>+10</button><button data-skill="${s.key}" data-amount="max" ${save.skillPoints<=0?"disabled":""}>MAX</button></div></div>`).join("");
- $$("[data-skill]").forEach(b=>b.onclick=()=>{let sk=SKILLS.find(x=>x.key===b.dataset.skill);if(save.skillPoints<=0)return;let raw=b.dataset.amount;let amount=raw==="max"?save.skillPoints:Math.min(save.skillPoints,Math.max(1,Number(raw)||1));save.skillPoints-=amount;save.skills[sk.key]+=amount;persist();renderAll()})
+ $("#skills").innerHTML=SKILLS.map(s=>{const lv=Math.min(SKILL_CAP,Number(save.skills[s.key]||0)),bonus=skillBonus(s.key,lv)*100,next=lv>=SKILL_CAP?null:Math.min(SKILL_CAP,Math.ceil((lv+1)/25)*25),room=SKILL_CAP-lv,disabled=save.skillPoints<=0||room<=0;return `<div class="skill-card skill-card-v215"><div class="skill-v215-head"><div class="skill-v215-icon">${s.icon}</div><div><h3>${s.name}</h3><small>${s.desc}</small></div></div><div class="skill-v215-effect"><small>AKTÍV BÓNUSZ</small><strong>+${bonus.toFixed(1)}%</strong><span>${s.unit}</span></div><div class="skill-v215-level"><b>Lv.${lv} / ${SKILL_CAP}</b><span>${next?`Következő mérföldkő: Lv.${next}`:"✓ MAXIMUM"}</span></div><div class="skill-v215-bar"><i style="width:${lv}%"></i></div><div class="multi-point-actions"><button data-skill="${s.key}" data-amount="1" ${disabled?"disabled":""}>+1</button><button data-skill="${s.key}" data-amount="5" ${disabled?"disabled":""}>+5</button><button data-skill="${s.key}" data-amount="10" ${disabled?"disabled":""}>+10</button><button data-skill="${s.key}" data-amount="max" ${disabled?"disabled":""}>MAX</button></div></div>`}).join("");
+ $$("[data-skill]").forEach(b=>b.onclick=()=>{let sk=SKILLS.find(x=>x.key===b.dataset.skill),room=SKILL_CAP-save.skills[sk.key];if(save.skillPoints<=0||room<=0)return;let raw=b.dataset.amount;let wanted=raw==="max"?room:Math.max(1,Number(raw)||1),amount=Math.min(save.skillPoints,room,wanted);save.skillPoints-=amount;save.skills[sk.key]+=amount;persist();renderAll();if(save.skills[sk.key]%25===0)toast(`🌟 ${sk.name} mérföldkő: Lv.${save.skills[sk.key]}!`)})
 }
 function renderPets(){
  const costs=[0,25,75,150],active=save.activePets||[];
@@ -992,7 +1011,7 @@ document.addEventListener("click",e=>{
 // Offline progress max 12h
 let away=Math.min(43200,Math.max(0,(Date.now()-save.last)/1000));
 if(away>15){
- let z=ZONES[save.zone],eff=Math.min(2.25,.55+infiniteSkillBonus(save.skills.offline,.035,45)),kills=Math.floor(away*damage()/z.hp*eff);
+ let z=ZONES[save.zone],eff=Math.min(3.5,.55+skillBonus("offline")),kills=Math.floor(away*damage()/z.hp*eff);
  if(kills>0){let g=Math.floor(kills*z.gold*goldBonus());save.gold+=g;save.stats.goldEarned+=g;save.kills+=kills;save.xp+=kills*z.xp;toast(`🌙 Offline farm: ${fmt(kills)} kill · ${fmt(g)} arany`)}
 }
 while(save.xp>=needXp()){save.xp-=needXp();save.level++;save.skillPoints++}
@@ -3753,8 +3772,12 @@ document.addEventListener("click",e=>{
       panel=document.createElement("section");
       panel.id="v219DungeonBattle";
       panel.className="v219-dungeon-battle hidden";
-      root.prepend(panel);
     }
+    const activeId=activeBattle?.dungeon?.id;
+    const activeButton=activeId?root.querySelector(`[data-v218-dungeon="${activeId}"]`):null;
+    const activeCard=activeButton?.closest(".v218-dungeon-card");
+    const target=activeCard||root;
+    if(panel.parentNode!==target)target.prepend(panel);
     return panel;
   }
 
@@ -3791,6 +3814,13 @@ document.addEventListener("click",e=>{
           <h3>${b.dungeon.name}</h3>
         </div>
         <div class="v219-battle-round">Kör ${b.round}</div>
+      </div>
+      <div class="v216-dungeon-controls">
+        <span>Harc gyorsítása</span>
+        <button type="button" data-v216-dungeon-speed="1" class="${(b.speed||1)===1?"active":""}">1×</button>
+        <button type="button" data-v216-dungeon-speed="2" class="${b.speed===2?"active":""}">2×</button>
+        <button type="button" data-v216-dungeon-speed="5" class="${b.speed===5?"active":""}">5×</button>
+        <button type="button" data-v216-dungeon-skip class="skip">⏭ SKIP HARC</button>
       </div>
 
       <div class="v220-arena theme-${b.dungeon.visualTheme||"cave"}">
@@ -3830,11 +3860,14 @@ document.addEventListener("click",e=>{
 
       <div class="v219-combat-log">${b.log||"A harc elkezdődött..."}</div>
     `;
+    panel.querySelectorAll("[data-v216-dungeon-speed]").forEach(btn=>btn.onclick=()=>{if(!activeBattle)return;activeBattle.speed=Number(btn.dataset.v216DungeonSpeed)||1;drawBattle()});
+    panel.querySelector("[data-v216-dungeon-skip]")?.addEventListener("click",()=>{if(activeBattle&&!activeBattle.finished)finishBattle(Boolean(activeBattle.win))});
   }
 
   function finishBattle(win){
-    if(!activeBattle)return;
+    if(!activeBattle||activeBattle.finished)return;
     const b=activeBattle;
+    b.finished=true;
     const d=b.dungeon;
     const s=S();
 
@@ -3925,6 +3958,7 @@ document.addEventListener("click",e=>{
       bossHp:bh,
       bossMaxHp:bh,
       round:1,
+      speed:1,
       win:predeterminedWin,
       log:`${d.bossIcon||"👹"} ${d.bossName||"Boss"} megjelent!`
     };
@@ -3932,7 +3966,9 @@ document.addEventListener("click",e=>{
     drawBattle();
 
     battleTimer=setInterval(()=>{
-      if(!activeBattle)return;
+      const steps=Math.max(1,Math.min(5,Number(activeBattle?.speed||1)));
+      for(let fastStep=0;fastStep<steps;fastStep++){
+      if(!activeBattle||!battleTimer)return;
       const b=activeBattle;
       b.round++;
 
@@ -3969,6 +4005,7 @@ document.addEventListener("click",e=>{
         }
       }
       drawBattle();
+      }
     },480);
   }
 
