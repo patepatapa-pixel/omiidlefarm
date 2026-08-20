@@ -674,8 +674,41 @@ $("#importFile").onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new Fil
 // ===== ONLINE ACCOUNT / CLOUD SAVE V3 =====
 let currentUser=null,authMode="login",cloudReady=false,savingCloud=false;
 
+
+function setAuthenticatedUI(user){
+ const logged=!!user;
+ document.body.classList.toggle("is-authenticated",logged);
+ document.body.classList.toggle("is-guest",!logged);
+
+ const landing=$("#guestLanding"),shell=$("#gameShell");
+ if(landing)landing.style.display=logged?"none":"block";
+ if(shell){
+   shell.classList.toggle("auth-locked",!logged);
+   shell.style.display=logged?"block":"none";
+ }
+ const nav=document.querySelector("nav.tabs");
+ if(nav)nav.style.display=logged?"flex":"none";
+
+ const online=$("#onlineUser"),auth=$("#authBtn"),adminBtn=$("#adminPanelBtn");
+ if(online)online.innerHTML=logged
+   ?`<span class="online-badge">●</span> ${user.player_name||user.username}`
+   :"👤 Vendég";
+ if(auth)auth.textContent=logged?"Kilépés":"Belépés";
+ if(adminBtn)adminBtn.style.display=logged&&user.role==="admin"?"inline-flex":"none";
+
+ const saveState=$("#saveState");
+ if(saveState)saveState.textContent=logged?"☁️ Felhő mentés":"🔒 Jelentkezz be";
+}
+
+function showLandingMessage(msg,isError=false){
+ const e=$("#landingMsg");
+ if(!e)return;
+ e.textContent=msg||"";
+ e.className=isError?"landing-error":"landing-ok";
+}
+
 async function api(url,opt={}){
- const r=await fetch(url,{headers:{"Content-Type":"application/json",...(opt.headers||{})},...opt});
+ const r=await fetch(url,{credentials:"same-origin",headers:{"Content-Type":"application/json",...(opt.headers||{})},...opt});
  const d=await r.json().catch(()=>({}));
  if(!r.ok)throw new Error(d.error||"Szerverhiba");
  return d;
@@ -689,35 +722,6 @@ function openAuth(mode="login"){
 }
 function closeAuth(){$("#authModal").classList.remove("open")}
 
-// V15.7 - hard auth fallback
-document.addEventListener("click",function(e){
-  const btn=e.target.closest?.("#authBtn");
-  if(!btn)return;
-  e.preventDefault();
-  e.stopPropagation();
-  try{
-    if(currentUser) logout();
-    else openAuth("login");
-  }catch(err){
-    console.error("AUTH CLICK ERROR",err);
-    const modal=document.querySelector("#authModal");
-    if(modal)modal.classList.add("open");
-  }
-},true);
-
-
-document.addEventListener("click",function(e){
-  const btn=e.target.closest?.("#authBtn");
-  if(!btn)return;
-  e.preventDefault();
-  e.stopPropagation();
-  if(currentUser){
-    logout();
-  }else{
-    openAuth("login");
-  }
-},true);
-
 async function loadMe(){
  try{
    const d=await api("/api/me");
@@ -728,16 +732,14 @@ async function loadMe(){
      enemyHp=ZONES[save.zone]?.hp||ZONES[0].hp;
    }
    cloudReady=true;
-   $("#onlineUser").innerHTML=`<span class="online-badge">●</span> ${currentUser.player_name||currentUser.username}`;
-   $("#authBtn").textContent="Kilépés";
-   
+   setAuthenticatedUI(currentUser);
    renderAll();
- }catch{
-   currentUser=null;cloudReady=false;
-   $("#onlineUser").textContent="👤 Vendég";
-   $("#authBtn").textContent="Belépés";
-   
-   openAuth("login");
+   setTimeout(()=>{if(typeof v10LoadGameplay==="function")v10LoadGameplay()},50);
+ }catch(e){
+   currentUser=null;
+   cloudReady=false;
+   setAuthenticatedUI(null);
+   showLandingMessage("");
  }
 }
 async function cloudSave(){
@@ -755,6 +757,7 @@ async function logout(){
  try{await api("/api/logout",{method:"POST",body:"{}"})}catch{}
  currentUser=null;cloudReady=false;
  localStorage.removeItem("omiIdleComplete");
+ setAuthenticatedUI(null);
  location.reload();
 }
 async function loadLeaderboard(){
@@ -773,8 +776,15 @@ $("#authSubmit").onclick=async()=>{
  try{
    const username=$("#authUsername").value.trim(),password=$("#authPassword").value,player_name=$("#authPlayerName")?.value.trim()||"";
    const d=await api(authMode==="login"?"/api/login":"/api/register",{method:"POST",body:JSON.stringify({username,password,player_name})});
-   currentUser=d.user;save=normalizeV6Save(d.save||save);cloudReady=true;closeAuth();enemyHp=ZONES[save.zone]?.hp||ZONES[0].hp;renderAll();
-   $("#onlineUser").innerHTML=`<span class="online-badge">●</span> ${currentUser.player_name||currentUser.username}`;$("#authBtn").textContent="Kilépés";toast("✅ Sikeres "+(authMode==="login"?"belépés":"regisztráció"));
+   currentUser=d.user;
+   save=normalizeV6Save(d.save||save);
+   cloudReady=true;
+   closeAuth();
+   enemyHp=ZONES[save.zone]?.hp||ZONES[0].hp;
+   setAuthenticatedUI(currentUser);
+   renderAll();
+   setTimeout(()=>{if(typeof v10LoadGameplay==="function")v10LoadGameplay()},50);
+   toast("✅ Sikeres "+(authMode==="login"?"belépés":"regisztráció"));
  }catch(e){$("#authMsg").textContent="❌ "+e.message}
 };
 $("#leaderboardBtn").onclick=()=>{$$(".tab").forEach(x=>x.classList.remove("active"));$$(".page").forEach(x=>x.classList.remove("active"));$("#page-leaderboard").classList.add("active");loadLeaderboard()};
@@ -811,7 +821,36 @@ if(away>15){
  if(kills>0){let g=Math.floor(kills*z.gold*goldBonus());save.gold+=g;save.stats.goldEarned+=g;save.kills+=kills;save.xp+=kills*z.xp;toast(`🌙 Offline farm: ${fmt(kills)} kill · ${fmt(g)} arany`)}
 }
 while(save.xp>=needXp()){save.xp-=needXp();save.level++;save.skillPoints++}
-renderAll();persist();loadMe();
+
+async function landingLogin(){
+ const username=$("#landingUsername")?.value.trim()||"";
+ const password=$("#landingPassword")?.value||"";
+ if(!username||!password)return showLandingMessage("Add meg a felhasználónevet és a jelszót.",true);
+ const btn=$("#landingLoginBtn");
+ if(btn){btn.disabled=true;btn.textContent="Belépés..."}
+ try{
+   const d=await api("/api/login",{method:"POST",body:JSON.stringify({username,password})});
+   currentUser=d.user;
+   save=normalizeV6Save(d.save||save);
+   cloudReady=true;
+   enemyHp=ZONES[save.zone]?.hp||ZONES[0].hp;
+   setAuthenticatedUI(currentUser);
+   renderAll();
+   showLandingMessage("");
+   toast("✅ Sikeres belépés");
+   setTimeout(()=>{if(typeof v10LoadGameplay==="function")v10LoadGameplay()},50);
+ }catch(e){
+   showLandingMessage("❌ "+e.message,true);
+ }finally{
+   if(btn){btn.disabled=false;btn.textContent="⚔️ BELÉPÉS"}
+ }
+}
+$("#landingLoginBtn")?.addEventListener("click",landingLogin);
+$("#landingPassword")?.addEventListener("keydown",e=>{if(e.key==="Enter")landingLogin()});
+$("#landingUsername")?.addEventListener("keydown",e=>{if(e.key==="Enter")$("#landingPassword")?.focus()});
+$("#landingRegisterBtn")?.addEventListener("click",()=>openAuth("register"));
+
+setAuthenticatedUI(null);loadMe();
 // V10 combat timers are started after gameplay config loads;
 setInterval(()=>{save.stats.playSeconds++;if(save.stats.playSeconds%5===0)persist()},1000);
 

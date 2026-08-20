@@ -618,3 +618,57 @@ body.auth-open .topbar,body.auth-open .nav,body.auth-open main{
 .dark-stage-sigil,.dark-stage-smoke,.dark-stage-embers{
  pointer-events:none!important;
 }
+
+/* ================= V16 LOGIN GATE ================= */
+body.is-guest #gameShell{display:none!important}
+body.is-guest nav.tabs{display:none!important}
+body.is-guest #leaderboardBtn,
+body.is-guest #adminPanelBtn,
+body.is-guest #exportBtn,
+body.is-guest #importBtn{display:none!important}
+body.is-authenticated #guestLanding{display:none!important}
+
+.guest-landing{
+ max-width:1180px;margin:46px auto;padding:0 18px 50px;
+}
+.guest-hero{
+ display:grid;grid-template-columns:minmax(0,1.45fr) 390px;gap:22px;align-items:stretch;
+}
+.guest-copy,.guest-login-card,.guest-info-grid>div{
+ background:linear-gradient(145deg,#0b1017,#05070a);
+ border:1px solid #303c49;border-radius:16px;
+ box-shadow:0 22px 55px #0008,inset 0 1px #ffffff08;
+}
+.guest-copy{
+ padding:38px;border-color:#9c6c20;
+ background:
+ radial-gradient(circle at 85% 20%,rgba(115,37,160,.22),transparent 30%),
+ linear-gradient(145deg,#0b1017,#05070a);
+}
+.guest-copy h1{font-size:36px;line-height:1.08;margin:12px 0 15px;max-width:760px}
+.guest-copy p{color:#a9b3be;line-height:1.65;max-width:720px}
+.guest-features{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+.guest-features span{padding:8px 10px;border:1px solid #37414d;border-radius:999px;background:#070b10;color:#e1e6eb;font-size:11px}
+.guest-login-card{padding:28px;border-color:#bd8426;text-align:center}
+.guest-login-logo{font-size:58px;filter:drop-shadow(0 0 15px #a67b25)}
+.guest-login-card h2{margin:5px 0}.guest-login-card p{color:#9da7b1}
+.guest-login-card input{
+ width:100%;box-sizing:border-box;margin:6px 0;padding:13px 12px;border-radius:9px;
+ background:#06090d;color:#f4f4f4;border:1px solid #34404c;outline:none;
+}
+.guest-login-card input:focus{border-color:#d6a13a;box-shadow:0 0 0 2px #d6a13a22}
+.landing-primary,.landing-secondary{width:100%;margin-top:8px;padding:12px!important;font-weight:1000}
+.landing-primary{background:linear-gradient(#f2c75a,#dca537)!important;color:#080808!important;border-color:#ffd86b!important}
+.landing-secondary{background:#0b1016!important;color:#c9d1d9!important;border:1px solid #394553!important}
+#landingMsg{min-height:22px;margin:9px 0;font-size:11px}
+.landing-error{color:#ff6976}.landing-ok{color:#65db91}
+.guest-login-card>small{display:block;color:#7f8994;line-height:1.45}
+.guest-info-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+.guest-info-grid>div{padding:16px}.guest-info-grid b,.guest-info-grid span{display:block}
+.guest-info-grid b{color:#efbd4f;margin-bottom:7px}.guest-info-grid span{font-size:11px;color:#949faa;line-height:1.5}
+.auth-locked{display:none!important}
+@media(max-width:900px){
+ .guest-hero{grid-template-columns:1fr}.guest-info-grid{grid-template-columns:1fr 1fr}
+ .guest-copy h1{font-size:29px}
+}
+@media(max-width:550px){.guest-info-grid{grid-template-columns:1fr}.guest-copy{padding:24px}}
