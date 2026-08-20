@@ -56,7 +56,7 @@ const schemas={
  items:[["id","ID"],["name","Név"],["icon","Ikon"],["slot","Slot: weapon/armor/helmet/gloves/boots/ring"],["rarity","normal/rare/epic/mythic/legendary"],["atk","Támadás","number"],["def","Védelem","number"],["goldBonus","Arany bónusz %","number"],["critBonus","Krit bónusz %","number"],["dropBonus","Drop bónusz %","number"],["minZone","Minimum terület index","number"]],
  pets:[["id","ID"],["name","Név"],["icon","Ikon"],["rarity","Ritkaság"],["bonus","damage/gold/drop/crit/all"],["value","Bónusz %","number"]],
  auras:[["id","ID"],["name","Név"],["className","CSS class"],["prestigeNeed","Prestige kell","number"],["cost","Aura token ár","number"]],
- zones:[["id","ID"],["name","Név"],["icon","Ikon"],["enemy","Szörny neve"],["hp","Szörny HP","number"],["gold","Arany / kill","number"],["xp","XP / kill","number"],["need","Ajánlott erő","number"],["dropChance","Tárgy drop %","number"]]
+ zones:[["id","ID"],["name","Név"],["icon","Ikon"],["enemy","Szörny neve"],["hp","Kezdő szörny HP","number"],["maxHp","Terület maximum mob HP","number"],["gold","Arany / kill","number"],["xp","XP / kill","number"],["need","Ajánlott erő","number"],["dropChance","Tárgy drop %","number"]]
 };
 const builderBase={bosses:"boss",items:"item",pets:"pet",auras:"aura",zones:"zone"};
 function renderBuildersV8(){
