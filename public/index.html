@@ -10,7 +10,7 @@
 <header class="topbar">
   <div class="brand"><span>⚔️ OMI</span> IDLE FARM <em>COMPLETE</em></div>
   <div class="top-actions">
-    <span class="build-version" id="buildVersionBadge">V22.19</span><span id="onlineUser">👤 Vendég</span>
+    <span class="build-version" id="buildVersionBadge">V22.20</span><span id="onlineUser">👤 Vendég</span>
     <button class="ghost" id="leaderboardBtn">🏆 Ranglista</button>
     <button class="ghost admin-only-btn" id="adminPanelBtn" style="display:none">⚙️ Adminpanel</button><button class="ghost" id="authBtn">Belépés</button>
     <span id="saveState">💾 Mentve</span>
@@ -614,9 +614,14 @@
   <div class="v212-resource" data-res="auratokens"><span>✨ Aura token</span><b data-val="auratokens">0</b></div>
 </div>
 
+<section class="card achievement-exchange-v220">
+ <div class="achievement-exchange-head"><div><div class="eyebrow">JUTALOMVÁLTÓ</div><h2>🏆 Achievement pont beváltás</h2><p>Teljesíts hosszú távú mérföldköveket, majd váltsd be a pontjaidat.</p></div><div class="achievement-point-balance"><small>EGYENLEG</small><strong><span id="achievementPoints">0</span> 🏆</strong></div></div>
+ <div id="achievementExchange" class="achievement-exchange-grid"></div>
+</section>
+
 <div class="layout">
-<section class="card"><h2>📜 Napi küldetések</h2><div id="dailyQuests"></div></section>
-<aside class="card"><h2>🏆 Achievementek</h2><div id="achievements"></div></aside>
+<section class="card"><div class="quest-section-title"><div><h2>📜 Napi küldetések</h2><small>Minden nap újra teljesíthetők</small></div><span>21 KÜLDETÉS</span></div><div id="dailyQuests"></div></section>
+<aside class="card"><div class="quest-section-title"><div><h2>🏆 Achievementek</h2><small>Egyszeri, hosszú távú mérföldkövek</small></div><span>33 ACHIEVEMENT</span></div><div id="achievements"></div></aside>
 </div>
 </section>
 

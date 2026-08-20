@@ -192,18 +192,19 @@ qs("#refreshShopRequests")?.addEventListener("click",loadShopRequests);
 setTimeout(()=>{fillPvpAdmin();renderShopAdmin();loadShopRequests();fillV11PlayerMeta()},1300);
 
 // V22.19 exchange market and pet economy
-const V219_ECONOMY_DEFAULTS={exchange:{gems:{gold:10000000,amount:25},ore:{gold:1000000,amount:10},tickets:{gold:5000000,amount:1}},petSummonCost:10,petSlotCosts:[50,150,300]};
+const V219_ECONOMY_DEFAULTS={exchange:{gems:{gold:10000000,amount:25},ore:{gold:1000000,amount:10},tickets:{gold:5000000,amount:1}},petSummonCost:10,petSlotCosts:[50,150,300],achievementExchange:{gems:{points:10,amount:5},ore:{points:5,amount:50},tickets:{points:8,amount:2}}};
 function economyAdminCfg(){
  const e=studioConfig.economy||{},x=e.exchange||{};
- return {exchange:{gems:{...V219_ECONOMY_DEFAULTS.exchange.gems,...(x.gems||{})},ore:{...V219_ECONOMY_DEFAULTS.exchange.ore,...(x.ore||{})},tickets:{...V219_ECONOMY_DEFAULTS.exchange.tickets,...(x.tickets||{})}},petSummonCost:Number(e.petSummonCost??10),petSlotCosts:Array.isArray(e.petSlotCosts)?e.petSlotCosts:[...V219_ECONOMY_DEFAULTS.petSlotCosts]};
+ const ax=e.achievementExchange||{};
+ return {exchange:{gems:{...V219_ECONOMY_DEFAULTS.exchange.gems,...(x.gems||{})},ore:{...V219_ECONOMY_DEFAULTS.exchange.ore,...(x.ore||{})},tickets:{...V219_ECONOMY_DEFAULTS.exchange.tickets,...(x.tickets||{})}},petSummonCost:Number(e.petSummonCost??10),petSlotCosts:Array.isArray(e.petSlotCosts)?e.petSlotCosts:[...V219_ECONOMY_DEFAULTS.petSlotCosts],achievementExchange:{gems:{...V219_ECONOMY_DEFAULTS.achievementExchange.gems,...(ax.gems||{})},ore:{...V219_ECONOMY_DEFAULTS.achievementExchange.ore,...(ax.ore||{})},tickets:{...V219_ECONOMY_DEFAULTS.achievementExchange.tickets,...(ax.tickets||{})}}};
 }
 function fillEconomyAdmin(){
- const e=economyAdminCfg(),map={cfgExchangeGemsGold:e.exchange.gems.gold,cfgExchangeGemsAmount:e.exchange.gems.amount,cfgExchangeOreGold:e.exchange.ore.gold,cfgExchangeOreAmount:e.exchange.ore.amount,cfgExchangeTicketsGold:e.exchange.tickets.gold,cfgExchangeTicketsAmount:e.exchange.tickets.amount,cfgPetSummonCost:e.petSummonCost,cfgPetSlot2Cost:e.petSlotCosts[0],cfgPetSlot3Cost:e.petSlotCosts[1],cfgPetSlot4Cost:e.petSlotCosts[2]};
+ const e=economyAdminCfg(),map={cfgExchangeGemsGold:e.exchange.gems.gold,cfgExchangeGemsAmount:e.exchange.gems.amount,cfgExchangeOreGold:e.exchange.ore.gold,cfgExchangeOreAmount:e.exchange.ore.amount,cfgExchangeTicketsGold:e.exchange.tickets.gold,cfgExchangeTicketsAmount:e.exchange.tickets.amount,cfgPetSummonCost:e.petSummonCost,cfgPetSlot2Cost:e.petSlotCosts[0],cfgPetSlot3Cost:e.petSlotCosts[1],cfgPetSlot4Cost:e.petSlotCosts[2],cfgAchGemsPoints:e.achievementExchange.gems.points,cfgAchGemsAmount:e.achievementExchange.gems.amount,cfgAchOrePoints:e.achievementExchange.ore.points,cfgAchOreAmount:e.achievementExchange.ore.amount,cfgAchTicketsPoints:e.achievementExchange.tickets.points,cfgAchTicketsAmount:e.achievementExchange.tickets.amount};
  Object.entries(map).forEach(([id,value])=>{const el=qs("#"+id);if(el)el.value=value});
 }
 qs("#saveEconomyConfig")?.addEventListener("click",async()=>{
  const positive=id=>Math.max(1,Math.floor(num("#"+id)));
- studioConfig.economy={exchange:{gems:{gold:positive("cfgExchangeGemsGold"),amount:positive("cfgExchangeGemsAmount")},ore:{gold:positive("cfgExchangeOreGold"),amount:positive("cfgExchangeOreAmount")},tickets:{gold:positive("cfgExchangeTicketsGold"),amount:positive("cfgExchangeTicketsAmount")}},petSummonCost:positive("cfgPetSummonCost"),petSlotCosts:[positive("cfgPetSlot2Cost"),positive("cfgPetSlot3Cost"),positive("cfgPetSlot4Cost")]};
+ studioConfig.economy={exchange:{gems:{gold:positive("cfgExchangeGemsGold"),amount:positive("cfgExchangeGemsAmount")},ore:{gold:positive("cfgExchangeOreGold"),amount:positive("cfgExchangeOreAmount")},tickets:{gold:positive("cfgExchangeTicketsGold"),amount:positive("cfgExchangeTicketsAmount")}},petSummonCost:positive("cfgPetSummonCost"),petSlotCosts:[positive("cfgPetSlot2Cost"),positive("cfgPetSlot3Cost"),positive("cfgPetSlot4Cost")],achievementExchange:{gems:{points:positive("cfgAchGemsPoints"),amount:positive("cfgAchGemsAmount")},ore:{points:positive("cfgAchOrePoints"),amount:positive("cfgAchOreAmount")},tickets:{points:positive("cfgAchTicketsPoints"),amount:positive("cfgAchTicketsAmount")}}};
  await saveConfigV8();fillEconomyAdmin();alert("✅ Váltópiac és pet árak elmentve.");
 });
 

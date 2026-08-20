@@ -28,7 +28,7 @@ const DEFAULT_SAVE={
  inventory:[],equipped:{weapon:null,helmet:null,armor:null,gloves:null,boots:null,ring:null},
  pets:[],activePet:null,activePets:[],petSlotsUnlocked:1,skillTreeVersion:3,
  stats:{goldEarned:0,itemsFound:0,legendary:0,bosses:0,dungeons:0,critHits:0,playSeconds:0},
- dailyClaimed:{},achClaimed:{},last:Date.now(),lastDaily:new Date().toDateString(),uid:1
+ dailyClaimed:{},achClaimed:{},achievementPoints:0,dailyBaseline:null,last:Date.now(),lastDaily:new Date().toDateString(),uid:1
 };
 
 function cleanName(v){return String(v||"").trim().slice(0,24)}
@@ -160,7 +160,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.19.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.20.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{
@@ -444,7 +444,7 @@ app.post("/api/admin/player/:id/reset",auth,admin,async(req,res)=>{
 app.post("/api/admin/player/:id/grant",auth,admin,async(req,res)=>{
   const type=String(req.body.type||"");
   const amount=Math.floor(Number(req.body.amount));
-  if(!["gold","gems","ore","soul","tickets","skillPoints","paragonStatPoints","auraTokens"].includes(type))return res.status(400).json({error:"Hibás jutalomtípus."});
+  if(!["gold","gems","ore","soul","tickets","achievementPoints","skillPoints","paragonStatPoints","auraTokens"].includes(type))return res.status(400).json({error:"Hibás jutalomtípus."});
   if(!Number.isFinite(amount)||amount<=0)return res.status(400).json({error:"Adj meg 0-nál nagyobb mennyiséget."});
   if(amount>1e12)return res.status(400).json({error:"Túl nagy mennyiség."});
   const g=(await q("SELECT save_data FROM game_saves WHERE user_id=$1",[req.params.id])).rows[0];

@@ -63,15 +63,39 @@ const DUNGEONS=[
  {id:"void",name:"Void Citadella",icon:"🌌",need:65000,hp:850000,rewardGold:2500000,rewardGems:8,tickets:5}
 ];
 const DAILY=[
- {id:"kill",name:"Ölj meg 500 ellenfelet",target:500,type:"kills",reward:{gold:25000}},
- {id:"gold",name:"Szerezz 250 000 aranyat",target:250000,type:"goldEarned",reward:{gems:2}},
- {id:"equip",name:"Szerezz 5 felszerelést",target:5,type:"itemsFound",reward:{ore:20}}
+ {id:"dk25",name:"Bemelegítés",desc:"Ölj meg 25 ellenfelet",target:25,type:"kills",reward:{gold:15000}},
+ {id:"dk100",name:"Harci lendület",desc:"Ölj meg 100 ellenfelet",target:100,type:"kills",reward:{ore:8}},
+ {id:"dk250",name:"Szörnyirtó",desc:"Ölj meg 250 ellenfelet",target:250,type:"kills",reward:{gold:125000}},
+ {id:"dk500",name:"Fáradhatatlan vadász",desc:"Ölj meg 500 ellenfelet",target:500,type:"kills",reward:{gems:2}},
+ {id:"dk1000",name:"Napi mészárlás",desc:"Ölj meg 1 000 ellenfelet",target:1000,type:"kills",reward:{tickets:1,gems:2}},
+ {id:"dg50k",name:"Első erszény",desc:"Szerezz 50 000 aranyat",target:50000,type:"goldEarned",reward:{ore:5}},
+ {id:"dg250k",name:"Aranygyűjtő",desc:"Szerezz 250 000 aranyat",target:250000,type:"goldEarned",reward:{gold:50000}},
+ {id:"dg1m",name:"Napi milliomos",desc:"Szerezz 1 000 000 aranyat",target:1000000,type:"goldEarned",reward:{gems:2}},
+ {id:"dg10m",name:"Aranybánya",desc:"Szerezz 10 000 000 aranyat",target:10000000,type:"goldEarned",reward:{gems:4,tickets:1}},
+ {id:"di3",name:"Kezdő kincsvadász",desc:"Találj 3 felszerelést",target:3,type:"itemsFound",reward:{ore:6}},
+ {id:"di10",name:"Felszerelésvadász",desc:"Találj 10 felszerelést",target:10,type:"itemsFound",reward:{ore:15}},
+ {id:"di25",name:"Teli hátizsák",desc:"Találj 25 felszerelést",target:25,type:"itemsFound",reward:{gems:2,ore:20}},
+ {id:"dc25",name:"Pontos csapások",desc:"Érj el 25 kritikus találatot",target:25,type:"critHits",reward:{gold:75000}},
+ {id:"dc100",name:"Kritikus vihar",desc:"Érj el 100 kritikus találatot",target:100,type:"critHits",reward:{ore:12}},
+ {id:"dc300",name:"Sebezhető pont",desc:"Érj el 300 kritikus találatot",target:300,type:"critHits",reward:{gems:3}},
+ {id:"db1",name:"Boss kihívó",desc:"Győzz le 1 bosst",target:1,type:"bosses",reward:{ore:10}},
+ {id:"db5",name:"Bossvadász",desc:"Győzz le 5 bosst",target:5,type:"bosses",reward:{gems:3,tickets:1}},
+ {id:"dd1",name:"Dungeon látogató",desc:"Teljesíts 1 dungeont",target:1,type:"dungeons",reward:{gold:100000}},
+ {id:"dd3",name:"Dungeon fosztogató",desc:"Teljesíts 3 dungeont",target:3,type:"dungeons",reward:{ore:20,gems:2}},
+ {id:"dt15",name:"Negyedórás kaland",desc:"Játssz 15 percet",target:900,type:"playSeconds",reward:{gold:50000}},
+ {id:"dt60",name:"Kitartó kalandor",desc:"Játssz 60 percet",target:3600,type:"playSeconds",reward:{gems:2,ore:15}}
 ];
 const ACH=[
- {id:"k1",name:"Első vér",type:"kills",target:1,reward:1},
- {id:"k1000",name:"Ezres vadász",type:"kills",target:1000,reward:3},
- {id:"p10k",name:"10 000 erő",type:"power",target:10000,reward:5},
- {id:"legend",name:"Legendás drop",type:"legendary",target:1,reward:5}
+ {id:"k1",name:"Első vér",type:"kills",target:1,points:1},{id:"k100",name:"Százados",type:"kills",target:100,points:2},{id:"k1k",name:"Ezres vadász",type:"kills",target:1000,points:3},{id:"k10k",name:"Tízezres sereg",type:"kills",target:10000,points:5},{id:"k100k",name:"Legendás szörnyirtó",type:"kills",target:100000,points:12},
+ {id:"g100k",name:"Teli erszény",type:"goldEarned",target:100000,points:2},{id:"g1m",name:"Első millió",type:"goldEarned",target:1000000,points:3},{id:"g10m",name:"Aranymágnás",type:"goldEarned",target:10000000,points:5},{id:"g100m",name:"Mesés vagyon",type:"goldEarned",target:100000000,points:10},{id:"g1b",name:"Aranycsászár",type:"goldEarned",target:1000000000,points:20},
+ {id:"p1k",name:"Erőre kapva",type:"power",target:1000,points:2},{id:"p10k",name:"10 000 erő",type:"power",target:10000,points:4},{id:"p100k",name:"Megállíthatatlan",type:"power",target:100000,points:8},{id:"p1m",name:"Világrengető erő",type:"power",target:1000000,points:15},
+ {id:"i10",name:"Gyűjtögető",type:"itemsFound",target:10,points:2},{id:"i100",name:"Kincstárnok",type:"itemsFound",target:100,points:5},{id:"i1000",name:"Felszerelésmester",type:"itemsFound",target:1000,points:12},
+ {id:"l1",name:"Legendás kezdet",type:"legendary",target:1,points:3},{id:"l10",name:"Legendavadász",type:"legendary",target:10,points:7},{id:"l100",name:"Legendák ura",type:"legendary",target:100,points:18},
+ {id:"b1",name:"Első boss",type:"bosses",target:1,points:2},{id:"b25",name:"Bossvadász",type:"bosses",target:25,points:6},{id:"b100",name:"Bossok réme",type:"bosses",target:100,points:15},
+ {id:"d1",name:"Első dungeon",type:"dungeons",target:1,points:2},{id:"d25",name:"Dungeon kalandor",type:"dungeons",target:25,points:7},{id:"d100",name:"Dungeon hódító",type:"dungeons",target:100,points:16},
+ {id:"c100",name:"Kritikus tanonc",type:"critHits",target:100,points:2},{id:"c10k",name:"Kritikus mester",type:"critHits",target:10000,points:10},
+ {id:"lv25",name:"Tapasztalt kalandor",type:"level",target:25,points:4},{id:"lv50",name:"Veterán",type:"level",target:50,points:8},{id:"lv100",name:"Századik szint",type:"level",target:100,points:16},
+ {id:"w100",name:"Wave 100",type:"wave",target:100,points:5},{id:"w500",name:"Wave 500",type:"wave",target:500,points:15}
 ];
 
 let save=JSON.parse(localStorage.getItem("omiIdleComplete")||"null")||{
@@ -79,9 +103,9 @@ let save=JSON.parse(localStorage.getItem("omiIdleComplete")||"null")||{
  base:{weaponTraining:1,armorTraining:1,mining:1,luck:1},skills:{power:0,gold:0,crit:0,drop:0,offline:0,pet:0},
  inventory:[],equipped:{weapon:null,helmet:null,armor:null,gloves:null,boots:null,ring:null},
  pets:[],activePet:null,activePets:[],petSlotsUnlocked:1,skillTreeVersion:3,stats:{goldEarned:0,itemsFound:0,legendary:0,bosses:0,dungeons:0,critHits:0,playSeconds:0},
- dailyClaimed:{},achClaimed:{},last:Date.now(),lastDaily:new Date().toDateString(),uid:1
+ dailyClaimed:{},achClaimed:{},achievementPoints:0,dailyBaseline:null,last:Date.now(),lastDaily:new Date().toDateString(),uid:1
 };
-if(save.lastDaily!==new Date().toDateString()){save.dailyClaimed={};save.lastDaily=new Date().toDateString()}
+if(save.lastDaily!==new Date().toDateString()){save.dailyClaimed={};save.dailyBaseline=null;save.lastDaily=new Date().toDateString()}
 
 
 function normalizeV6Save(s){
@@ -105,7 +129,7 @@ function normalizeV6Save(s){
  s.petSlotsUnlocked=Math.max(1,Math.min(4,Math.floor(Number(s.petSlotsUnlocked||1))));
  s.activePets=s.activePets.slice(0,s.petSlotsUnlocked);s.activePet=s.activePets[0]??null;
  s.stats={goldEarned:0,itemsFound:0,legendary:0,bosses:0,dungeons:0,critHits:0,playSeconds:0,...(s.stats||{})};
- s.dailyClaimed=s.dailyClaimed||{};s.achClaimed=s.achClaimed||{};s.last=Number(s.last||Date.now());s.lastDaily=s.lastDaily||new Date().toDateString();s.uid=Math.max(1,Number(s.uid||1));
+ s.dailyClaimed=s.dailyClaimed||{};s.achClaimed=s.achClaimed||{};s.achievementPoints=Math.max(0,Number(s.achievementPoints||0));s.dailyBaseline=s.dailyBaseline&&typeof s.dailyBaseline==="object"?s.dailyBaseline:null;s.last=Number(s.last||Date.now());s.lastDaily=s.lastDaily||new Date().toDateString();s.uid=Math.max(1,Number(s.uid||1));
  s.wave=Math.max(1,Number(s.wave||1));s.waveKills=Math.max(0,Number(s.waveKills||0));s.waveGoal=Math.max(1,Number(s.waveGoal||10));s.waveBoss=Boolean(s.waveBoss);s.bossHp=Math.max(0,Number(s.bossHp||0));
  s.paragonLevel=Math.max(0,Number(s.paragonLevel||0));s.prestigeLevel=Math.max(0,Number(s.prestigeLevel||0));s.paragonPoints=Math.max(0,Number(s.paragonPoints||0));s.auraTokens=Math.max(0,Number(s.auraTokens||0));
  s.paragonStats={damage:0,gold:0,drop:0,crit:0,...(s.paragonStats||{})};
@@ -527,14 +551,30 @@ function runDungeon(id){
  $("#dungeonBattle").innerHTML=`<div style="font-size:55px">${d.icon}</div><h3>${d.name}</h3><p>Harc folyamatban... ~${seconds} mp</p>`;
  setTimeout(()=>{save.gold+=d.rewardGold;save.gems+=d.rewardGems;save.stats.goldEarned+=d.rewardGold;save.stats.dungeons++;if(Math.random()<.65)addItem(createItem());persist();renderAll();$("#dungeonBattle").innerHTML=`✅ Győzelem!<br>+${fmt(d.rewardGold)} 💰 · +${d.rewardGems} 💎`;toast("🏰 Dungeon teljesítve!")},Math.min(seconds*1000,12000))
 }
-function questProgress(q){return q.type==="kills"?save.kills:q.type==="goldEarned"?save.stats.goldEarned:save.stats.itemsFound}
-function renderQuests(){
- $("#dailyQuests").innerHTML=DAILY.map(q=>{let p=Math.min(q.target,questProgress(q)),done=p>=q.target,claimed=save.dailyClaimed[q.id];return `<div class="quest"><div class="quest-head"><b>${q.name}</b><span>${fmt(p)} / ${fmt(q.target)}</span></div><div class="progress"><i style="width:${p/q.target*100}%"></i></div><button data-quest="${q.id}" ${!done||claimed?"disabled":""}>${claimed?"Átvéve":"Jutalom átvétele"}</button></div>`}).join("");
- $$("[data-quest]").forEach(b=>b.onclick=()=>claimQuest(b.dataset.quest));
- $("#achievements").innerHTML=ACH.map(a=>{let p=a.type==="power"?power():save.stats[a.type]??save[a.type]??0,done=p>=a.target,claimed=save.achClaimed[a.id];return `<div class="achievement"><b>${done?"🏆":"🔒"} ${a.name}</b><small>${fmt(Math.min(p,a.target))} / ${fmt(a.target)} · Jutalom: ${a.reward} 💎</small><button data-ach="${a.id}" ${!done||claimed?"disabled":""}>${claimed?"Átvéve":"Átvétel"}</button></div>`}).join("");
- $$("[data-ach]").forEach(b=>b.onclick=()=>{let a=ACH.find(x=>x.id===b.dataset.ach);save.achClaimed[a.id]=1;save.gems+=a.reward;persist();renderAll();toast("🏆 Achievement jutalom!")})
+function dailySnapshot(){return {kills:Number(save.kills||0),goldEarned:Number(save.stats.goldEarned||0),itemsFound:Number(save.stats.itemsFound||0),critHits:Number(save.stats.critHits||0),bosses:Number(save.stats.bosses||0),dungeons:Number(save.stats.dungeons||0),playSeconds:Number(save.stats.playSeconds||0)}}
+function ensureDailyBaseline(){if(!save.dailyBaseline)save.dailyBaseline=dailySnapshot()}
+function questProgress(q){ensureDailyBaseline();const now=q.type==="kills"?Number(save.kills||0):Number(save.stats[q.type]||0);return Math.max(0,now-Number(save.dailyBaseline[q.type]||0))}
+function rewardText(r={}){return [["gold","💰"],["gems","💎"],["ore","⛏️"],["tickets","🎫"]].filter(([k])=>r[k]).map(([k,icon])=>`${fmt(r[k])} ${icon}`).join(" · ")}
+function achievementProgress(a){return a.type==="power"?power():Number(save.stats[a.type]??save[a.type]??0)}
+function achievementExchangeCfg(){
+ const d={gems:{points:10,amount:5},ore:{points:5,amount:50},tickets:{points:8,amount:2}},raw=window.OMI_CONTENT?.economy?.achievementExchange||{};
+ return Object.fromEntries(Object.keys(d).map(k=>[k,{points:Math.max(1,Math.floor(Number(raw[k]?.points??d[k].points))),amount:Math.max(1,Math.floor(Number(raw[k]?.amount??d[k].amount)))}]));
 }
-function claimQuest(id){let q=DAILY.find(x=>x.id===id);if(save.dailyClaimed[id]||questProgress(q)<q.target)return;save.dailyClaimed[id]=1;if(q.reward.gold)save.gold+=q.reward.gold;if(q.reward.gems)save.gems+=q.reward.gems;if(q.reward.ore)save.ore+=q.reward.ore;persist();renderAll();toast("📜 Küldetés jutalom átvéve")}
+function renderQuests(){
+ ensureDailyBaseline();
+ $("#dailyQuests").innerHTML=DAILY.map(q=>{let p=Math.min(q.target,questProgress(q)),done=p>=q.target,claimed=save.dailyClaimed[q.id];return `<div class="quest quest-v220"><div class="quest-head"><div><b>${q.name}</b><small>${q.desc}</small></div><span>${fmt(p)} / ${fmt(q.target)}</span></div><div class="progress"><i style="width:${p/q.target*100}%"></i></div><div class="quest-reward"><span>Jutalom: ${rewardText(q.reward)}</span><button data-quest="${q.id}" ${!done||claimed?"disabled":""}>${claimed?"✓ Átvéve":done?"Átvétel":"Folyamatban"}</button></div></div>`}).join("");
+ $$("[data-quest]").forEach(b=>b.onclick=()=>claimQuest(b.dataset.quest));
+ $("#achievements").innerHTML=ACH.map(a=>{let p=achievementProgress(a),done=p>=a.target,claimed=save.achClaimed[a.id];return `<div class="achievement achievement-v220"><b>${done?"🏆":"🔒"} ${a.name}</b><small>${fmt(Math.min(p,a.target))} / ${fmt(a.target)} · Jutalom: ${a.points} achievement pont</small><button data-ach="${a.id}" ${!done||claimed?"disabled":""}>${claimed?"✓ Átvéve":done?`+${a.points} PONT`:"Folyamatban"}</button></div>`}).join("");
+ $$("[data-ach]").forEach(b=>b.onclick=()=>{let a=ACH.find(x=>x.id===b.dataset.ach);if(!a||save.achClaimed[a.id]||achievementProgress(a)<a.target)return;save.achClaimed[a.id]=1;save.achievementPoints+=a.points;persist();renderAll();toast(`🏆 +${a.points} achievement pont!`)});
+ renderAchievementExchange();
+}
+function renderAchievementExchange(){
+ const root=$("#achievementExchange");if(!root)return;const cfg=achievementExchangeCfg(),defs={gems:{name:"Gyémánt",icon:"💎",field:"gems"},ore:{name:"Érc",icon:"⛏️",field:"ore"},tickets:{name:"Dungeon ticket",icon:"🎫",field:"tickets"}};
+ if($("#achievementPoints"))$("#achievementPoints").textContent=fmt(save.achievementPoints);
+ root.innerHTML=Object.entries(defs).map(([key,d])=>{const o=cfg[key],can=save.achievementPoints>=o.points;return `<article><div>${d.icon}</div><b>${o.amount} ${d.name}</b><small>${o.points} achievement pont</small><button data-ach-exchange="${key}" ${can?"":"disabled"}>${can?"BEVÁLTÁS":"KEVÉS PONT"}</button></article>`}).join("");
+ $$('[data-ach-exchange]').forEach(b=>b.onclick=()=>{const key=b.dataset.achExchange,o=cfg[key],d=defs[key];if(!o||!d||save.achievementPoints<o.points)return toast("Nincs elég achievement pont.");save.achievementPoints-=o.points;save[d.field]=Number(save[d.field]||0)+o.amount;persist();renderAll();toast(`🏆 Beváltva: +${o.amount} ${d.name}`)});
+}
+function claimQuest(id){let q=DAILY.find(x=>x.id===id);if(!q||save.dailyClaimed[id]||questProgress(q)<q.target)return;save.dailyClaimed[id]=1;["gold","gems","ore","tickets"].forEach(k=>{if(q.reward[k])save[k]=Number(save[k]||0)+q.reward[k]});persist();renderAll();toast("📜 Küldetés jutalom átvéve")}
 function renderStats(){
  $("#statsPanel").innerHTML=[
   ["Összerő",fmt(power())],["Összes kill",fmt(save.kills)],["Összes arany",fmt(save.stats.goldEarned)],["Talált tárgy",fmt(save.stats.itemsFound)],["Legendás drop",fmt(save.stats.legendary)],["Boss kill",fmt(save.stats.bosses)],["Dungeon",fmt(save.stats.dungeons)],["Kritikus találat",fmt(save.stats.critHits)],["Játékidő",Math.floor(save.stats.playSeconds/60)+" perc"]
@@ -948,7 +988,7 @@ async function loadMe(){
    currentUser=d.user;
    if(d.save && Object.keys(d.save).length){
      save=normalizeV6Save(d.save);
-     if(save.lastDaily!==new Date().toDateString()){save.dailyClaimed={};save.lastDaily=new Date().toDateString()}
+     if(save.lastDaily!==new Date().toDateString()){save.dailyClaimed={};save.dailyBaseline=null;save.lastDaily=new Date().toDateString()}
      enemyHp=ZONES[save.zone]?.hp||ZONES[0].hp;
    }
    cloudReady=true;
