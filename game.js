@@ -459,8 +459,43 @@ $("#equipBestBtn").onclick=equipBest;
 $("#prestigeBtn").onclick=doPrestige;
 
 
+
+function renderVisibleHeroEquipment(){
+ const slots={
+  helmet:["heroEquipHelmet"],
+  armor:["heroEquipArmor"],
+  weapon:["heroEquipWeapon"],
+  gloves:["heroEquipGloveL","heroEquipGloveR"],
+  boots:["heroEquipBootL","heroEquipBootR"],
+  ring:["heroEquipRing"]
+ };
+ let equipped=[];
+ Object.entries(slots).forEach(([slot,ids])=>{
+   const it=equipObj(slot);
+   ids.forEach(id=>{
+     const el=$("#"+id);
+     if(!el)return;
+     el.classList.toggle("equipped",!!it);
+     if(it){
+       const plus=Math.max(0,Math.min(15,Number(it.plus||0)));
+       el.title=`${it.name} +${plus}`;
+       el.dataset.rarity=it.rarity||"normal";
+     }
+   });
+   if(it){
+     const plus=Math.max(0,Math.min(15,Number(it.plus||0)));
+     equipped.push(`${SLOT_NAMES[slot]} +${plus}`);
+   }
+ });
+ const label=$("#heroEquippedLabel");
+ if(label)label.innerHTML=equipped.length
+   ?`⚔️ Karakteren: <b>${equipped.join(" · ")}</b>`
+   :"Nincs felszerelt tárgy";
+}
+
 function renderV15ExactCharacter(){
  if(!$("#v15Power"))return;
+ renderVisibleHeroEquipment();
 
  const setText=(id,val)=>{const e=$("#"+id);if(e)e.textContent=val};
  setText("v15Power",fmt(power()));
@@ -992,3 +1027,23 @@ document.addEventListener("click",e=>{
  const t=e.target.closest('[data-tab="pvp"]');if(t)setTimeout(loadPvp,50);
  const s=e.target.closest('[data-tab="shop"]');if(s)setTimeout(renderStore,50);
 });
+
+
+// V15.3 - login/register click safety
+function bindAuthButtonsV153(){
+ const login=$("#loginBtn"), reg=$("#registerBtn");
+ if(login){
+   login.style.pointerEvents="auto";
+   login.style.cursor="pointer";
+ }
+ if(reg){
+   reg.style.pointerEvents="auto";
+   reg.style.cursor="pointer";
+ }
+ const overlay=$("#authOverlay")||$(".auth-overlay")||$(".login-overlay");
+ if(overlay)overlay.style.pointerEvents="auto";
+}
+if(document.readyState==="loading"){
+ document.addEventListener("DOMContentLoaded",bindAuthButtonsV153);
+}else bindAuthButtonsV153();
+setTimeout(bindAuthButtonsV153,250);
