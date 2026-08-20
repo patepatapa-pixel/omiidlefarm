@@ -3756,3 +3756,34 @@ body.v202-is-admin .admin-studio-only-v202{
 @media(max-width:750px){
  .v226-legend-grid{grid-template-columns:1fr!important}
 }
+
+/* ================= V22.7 DISCORD COMMUNITY ================= */
+.v227-discord-widget{position:fixed;right:18px;bottom:18px;z-index:9990;font-family:inherit}
+.v227-discord-toggle{
+  display:flex;align-items:center;gap:7px;padding:10px 13px;border-radius:10px;
+  border:1px solid #6874dc;background:#11162b;color:#cfd5ff;font-weight:1000;
+  box-shadow:0 8px 28px rgba(0,0,0,.35);cursor:pointer
+}
+.v227-discord-logo{font-size:18px}
+.v227-discord-panel{
+  position:absolute;right:0;bottom:48px;width:min(340px,calc(100vw - 28px));
+  padding:14px;border:1px solid #6874dc;border-radius:12px;background:#0b0e18;
+  box-shadow:0 15px 45px rgba(0,0,0,.55);display:none
+}
+.v227-discord-widget.open .v227-discord-panel{display:block;animation:v227Pop .16s ease-out}
+@keyframes v227Pop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+.v227-discord-close{position:absolute;right:8px;top:7px;border:0;background:transparent;color:#8991a6;font-size:20px;cursor:pointer}
+.v227-discord-icon{font-size:30px;margin-bottom:5px}
+.v227-discord-panel>div small{color:#7f89df;font-weight:900}
+.v227-discord-panel h3{margin:3px 0 6px;color:#eef0ff}
+.v227-discord-panel p{margin:0;color:#9aa3b7;font-size:10px;line-height:1.5}
+.v227-discord-tags{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0}
+.v227-discord-tags span{padding:4px 6px;border:1px solid #303958;border-radius:6px;background:#0e1322;color:#adb5ce;font-size:8px;font-weight:800}
+.v227-discord-join{
+  display:block;text-align:center;text-decoration:none;padding:10px;border-radius:8px;
+  background:#5865f2;color:white!important;font-size:10px;font-weight:1000;
+  box-shadow:0 0 18px rgba(88,101,242,.22)
+}
+.v227-discord-join:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.v227-discord-note{display:block;text-align:center;margin-top:6px;color:#687286;font-size:7px}
+@media(max-width:600px){.v227-discord-widget{right:10px;bottom:10px}.v227-discord-toggle{padding:8px 10px}}

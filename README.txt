@@ -431,3 +431,10 @@ V22.6
 - Minden Dungeon saját kártyáján kiírja, milyen endgame rarity-k eshetnek belőle.
 - 55 000 alatti Dungeon kártyán külön jelzi, hogy az endgame gear még zárolva van.
 - Az endgame itemek a rarityTier / rarityTierLabel adatot is megkapják.
+
+V22.7 DISCORD
+- Weboldal jobb alsó sarkában Discord közösségi gomb.
+- Kinyitható Discord információs panel.
+- Csatlakozás gomb: https://discord.gg/kJscYgMtq
+- A link új lapon nyílik meg.
+- Panel minden játékoldalon elérhető, de nem tolja szét a meglévő UI-t.

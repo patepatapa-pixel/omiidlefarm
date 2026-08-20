@@ -4383,3 +4383,18 @@ window.v222AdminSpeedSupported=true;
     if(e.target.closest?.('[data-tab="dungeon"]'))setTimeout(refresh,120);
   },true);
 })();
+
+/* ================= V22.7 DISCORD WIDGET ================= */
+(function(){
+  function bindDiscord(){
+    const w=document.getElementById("v227DiscordWidget");
+    const t=document.getElementById("v227DiscordToggle");
+    const c=document.getElementById("v227DiscordClose");
+    if(!w||!t||t.dataset.bound)return;
+    t.dataset.bound="1";
+    t.onclick=()=>w.classList.toggle("open");
+    if(c)c.onclick=()=>w.classList.remove("open");
+    document.addEventListener("keydown",e=>{if(e.key==="Escape")w.classList.remove("open")});
+  }
+  window.addEventListener("load",bindDiscord);
+})();
