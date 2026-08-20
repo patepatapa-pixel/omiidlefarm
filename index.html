@@ -10,7 +10,7 @@
 <header class="topbar">
   <div class="brand"><span>⚔️ OMI</span> IDLE FARM <em>COMPLETE</em></div>
   <div class="top-actions">
-    <span class="build-version" id="buildVersionBadge">V16.2</span><span id="onlineUser">👤 Vendég</span>
+    <span class="build-version" id="buildVersionBadge">V17.1</span><span id="onlineUser">👤 Vendég</span>
     <button class="ghost" id="leaderboardBtn">🏆 Ranglista</button>
     <button class="ghost admin-only-btn" id="adminPanelBtn" style="display:none">⚙️ Adminpanel</button><button class="ghost" id="authBtn">Belépés</button>
     <span id="saveState">💾 Mentve</span>
@@ -111,51 +111,22 @@
       </div>
 
       <div class="v15-character-stage">
-        <div class="v15-approved-art">
-          <div class="hero-equip-layer hero-equip-helmet" id="heroEquipHelmet">🪖</div>
-          <div class="hero-equip-layer hero-equip-armor" id="heroEquipArmor">🛡️</div>
-          <div class="hero-equip-layer hero-equip-weapon" id="heroEquipWeapon">⚔️</div>
-          <div class="hero-equip-layer hero-equip-gloves hero-equip-glove-left" id="heroEquipGloveL">🧤</div>
-          <div class="hero-equip-layer hero-equip-gloves hero-equip-glove-right" id="heroEquipGloveR">🧤</div>
-          <div class="hero-equip-layer hero-equip-boots hero-equip-boot-left" id="heroEquipBootL">🥾</div>
-          <div class="hero-equip-layer hero-equip-boots hero-equip-boot-right" id="heroEquipBootR">🥾</div>
-          <div class="hero-equip-layer hero-equip-ring" id="heroEquipRing">💍</div>
-          <div class="hero-equipped-label" id="heroEquippedLabel">Felszerelés megjelenítése a karakteren</div>
+        <div class="v168-character-system">
+          <div class="v168-avatar">
+            <div class="v168-aura" id="dynAura"></div>
+            <div class="v168-body">
+              <div class="v168-head"></div>
+              <div class="v168-torso"></div>
+              <div class="v168-arm left"></div><div class="v168-arm right"></div>
+              <div class="v168-leg left"></div><div class="v168-leg right"></div>
+              <div class="v168-hand-item" id="dynWeapon"></div>
+            </div>
+          </div>
+          <div class="v168-slots" id="dynamicEquipSlots"></div>
+          <div class="hero-equipped-label" id="heroEquippedLabel">Nincs felszerelt tárgy</div>
         </div>
-
-        <div class="v15-gear v15-helmet" data-slot-card="helmet">
-          <img src="/assets/approved_helmet.jpg" alt="Sisak">
-          <small>Sisak</small>
-          <b id="v15Helmet">Üres</b>
         </div>
-        <div class="v15-gear v15-armor" data-slot-card="armor">
-          <img src="/assets/approved_armor.jpg" alt="Páncél">
-          <small>Páncél</small>
-          <b id="v15Armor">Üres</b>
-        </div>
-        <div class="v15-gear v15-boots" data-slot-card="boots">
-          <img src="/assets/approved_boots.jpg" alt="Csizma">
-          <small>Csizma</small>
-          <b id="v15Boots">Üres</b>
-        </div>
-
-        <div class="v15-gear v15-weapon" data-slot-card="weapon">
-          <img src="/assets/approved_weapon.jpg" alt="Fegyver">
-          <small>Fegyver</small>
-          <b id="v15Weapon">Üres</b>
-        </div>
-        <div class="v15-gear v15-gloves" data-slot-card="gloves">
-          <img src="/assets/approved_gloves.jpg" alt="Kesztyű">
-          <small>Kesztyű</small>
-          <b id="v15Gloves">Üres</b>
-        </div>
-        <div class="v15-gear v15-ring" data-slot-card="ring">
-          <img src="/assets/approved_ring.jpg" alt="Gyűrű">
-          <small>Gyűrű</small>
-          <b id="v15Ring">Üres</b>
-        </div>
-
-        <div class="v15-bottom-stats">
+<div class="v15-bottom-stats">
           <div><span>✨ Aura</span><b id="v15Aura">Nincs aura</b></div>
           <div><span>🐾 Pet</span><b id="v15Pet">Nincs</b></div>
           <div><span>🌀 Wave</span><b id="v15Wave">1</b></div>
@@ -165,6 +136,19 @@
     </section>
 
     <aside class="v15-right">
+      <section class="card v15-sidebox v17-quick-stats">
+        <h3>📊 Karakter státusz</h3>
+        <div class="v17-stat-grid" id="v17QuickStats">
+          <div><small>💪 Erő</small><b id="v17Power">0</b></div>
+          <div><small>⚔️ Sebzés</small><b id="v17Damage">0</b></div>
+          <div><small>❤️ HP</small><b id="v17HP">0 / 0</b></div>
+          <div><small>🛡️ Védelem</small><b id="v17Defense">0</b></div>
+          <div><small>🍀 Szerencse</small><b id="v17Luck">0</b></div>
+          <div><small>🎯 Krit</small><b id="v17Crit">0%</b></div>
+          <div><small>🎁 Drop</small><b id="v17Drop">0%</b></div>
+          <div><small>🌊 Wave</small><b id="v17Wave">1</b></div>
+        </div>
+      </section>
       <section class="card v15-sidebox">
         <h3>👑 Paragon / Prestige</h3>
         <div class="v15-four">
@@ -223,11 +207,25 @@
   </section>
 </section>
 
+
 <section class="page" id="page-farm">
 <div class="layout">
   <div class="stack">
     <section class="card battle-card">
       <div class="title-row"><h2>⚔️ Automata harc</h2><span class="online">● AUTOMATA FARM</span></div>
+      <div class="combat-speed-panel-v165">
+        <div class="combat-speed-title">
+          <div><b>⚡ Harci / Wave sebesség</b><small>A saját ütéseidet gyorsítja, ezért gyorsabban haladsz a wave-ekkel.</small></div>
+          <strong id="combatSpeedState">Aktív: 1×</strong>
+        </div>
+        <div class="combat-speed-buttons-v165">
+          <button class="combat-speed-btn active" data-speed="1">1×</button>
+          <button class="combat-speed-btn" data-speed="2">⚡ 2×</button>
+          <button class="combat-speed-btn" data-speed="3">⚡ 3×</button>
+          <button class="combat-speed-btn locked" data-speed="4">🔒 4×</button>
+        </div>
+        <small class="speed-note-v165">1× / 2× / 3× ingyenes. A 4× prémium sebesség 3 €, a Feltöltés / Discord fülön érhető el.</small>
+      </div>
 <div class="wave-panel">
  <div><small>WAVE</small><b id="waveNumber">1</b></div>
  <div><small>KILL</small><b><span id="waveKills">0</span>/<span id="waveGoal">10</span></b></div>
@@ -295,7 +293,23 @@
 </section>
 
 <!-- INVENTORY -->
+
 <section class="page" id="page-inventory">
+  <section class="card inventory-tools-v163">
+    <div class="inventory-tools-head">
+      <div><h2>⚔️ Felszerelés kezelés</h2><small>Egy kattintással legjobb felszerelés, tömeges törlés vagy eladás.</small></div>
+      <button id="equipBestV163" class="gold-btn">⚡ EQUIP BEST</button>
+    </div>
+    <div class="bulk-rarity-grid">
+      <div class="bulk-rarity normal"><b>Common / Normal</b><button data-bulk-delete="normal">🗑️ Törlés</button><button data-bulk-sell="normal">💰 Eladás</button></div>
+      <div class="bulk-rarity rare"><b>Rare</b><button data-bulk-delete="rare">🗑️ Törlés</button><button data-bulk-sell="rare">💰 Eladás</button></div>
+      <div class="bulk-rarity epic"><b>Epic</b><button data-bulk-delete="epic">🗑️ Törlés</button><button data-bulk-sell="epic">💰 Eladás</button></div>
+      <div class="bulk-rarity mythic"><b>Mythic</b><button data-bulk-delete="mythic">🗑️ Törlés</button><button data-bulk-sell="mythic">💰 Eladás</button></div>
+      <div class="bulk-rarity legendary"><b>Legendary</b><button data-bulk-delete="legendary">🗑️ Törlés</button><button data-bulk-sell="legendary">💰 Eladás</button></div>
+    </div>
+    <small class="bulk-note">A felszerelt tárgyakat a rendszer soha nem törli és nem adja el tömeges művelettel.</small>
+  </section>
+
   <section class="card">
     <div class="title-row"><div><h2>🎒 Inventory</h2><small>Maximum 120 tárgy</small></div>
       <div class="inventory-actions"><button id="sellNormal">Normál eladása</button><button id="sortInventory">Rendezés</button></div>
@@ -376,6 +390,17 @@
 
 <!-- SHOP / DISCORD -->
 <section class="page" id="page-shop">
+  <section class="card premium-speed-v165">
+    <div class="premium-bolt">⚡</div>
+    <div>
+      <div class="eyebrow">PRÉMIUM</div>
+      <h2>4× Harci / Wave Sebesség</h2>
+      <p>A saját karaktered támadási sebességét 4×-re állíthatod, így gyorsabban haladsz a wave-ekkel.</p>
+      <div><b class="premium-price-v165">3 €</b> <span id="speed4PurchaseState">🔒 Nincs aktiválva</span></div>
+      <small>Vásárlás/aktiválás privátban: Discord <b>nervos11</b>.</small>
+    </div>
+  </section>
+
  <div class="layout">
   <section class="card">
    <div class="title-row"><div><h2>💳 Arany és támogatói csomagok</h2><small>A vásárlás privát egyeztetéssel történik.</small></div></div>

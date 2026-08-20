@@ -86,6 +86,8 @@ function normalizeV6Save(s){
  s.activeAura=s.activeAura||"none";
  s.playerHp=Number.isFinite(Number(s.playerHp))?Number(s.playerHp):0;
  s.hpRegenLevel=Math.max(0,Number(s.hpRegenLevel||0));
+ s.combatSpeed=[1,2,3,4].includes(Number(s.combatSpeed))?Number(s.combatSpeed):1;
+ s.speed4Unlocked=Boolean(s.speed4Unlocked);
  s.deaths=Math.max(0,Number(s.deaths||0));
  s.respawnUntil=Math.max(0,Number(s.respawnUntil||0));
  return s;
@@ -345,6 +347,64 @@ function renderEquipped(){
 }
 function itemSummary(it){let st=itemStats(it),a=[];if(st.atk)a.push("ATK "+fmt(st.atk));if(st.def)a.push("DEF "+fmt(st.def));if(st.gold)a.push("Arany +"+(st.gold*100).toFixed(1)+"%");if(st.crit)a.push("Krit +"+(st.crit*100).toFixed(1)+"%");if(st.drop)a.push("Drop +"+(st.drop*100).toFixed(1)+"%");return a.join(" · ")}
 function renderBonuses(){let b=bonuses(),p=petObj();$("#activeBonuses").innerHTML=`<div><span>⚔️ Felszerelés ATK</span><b>${fmt(b.atk)}</b></div><div><span>💰 Arany bónusz</span><b>+${((goldBonus()-1)*100).toFixed(1)}%</b></div><div><span>🎯 Krit</span><b>${(critChance()*100).toFixed(1)}%</b></div><div><span>🎁 Drop</span><b>+${(dropBonus()*100).toFixed(1)}%</b></div><div><span>🐾 Aktív pet</span><b>${p?p.icon+" "+p.name:"Nincs"}</b></div>`}
+
+function itemPowerScore(it){
+ if(!it)return -1;
+ ensureItemOptions(it);
+ const st=itemStats(it);
+ let score=
+   Number(st.atk||0)*5+
+   Number(st.def||0)*4+
+   Number(st.crit||0)*1000+
+   Number(st.gold||0)*450+
+   Number(st.drop||0)*700+
+   Number(it.plus||0)*30;
+
+ const rarityScore={normal:0,rare:80,epic:180,mythic:320,legendary:520}[it.rarity]||0;
+ score+=rarityScore;
+
+ const optWeight={atkPct:35,hpPct:22,defPct:25,crit:42,gold:15,drop:24,hpRegen:35,bossDmg:26,pvpDmg:20};
+ (it.options||[]).forEach(o=>score+=Number(o.value||0)*(optWeight[o.key]||10));
+ return score;
+}
+function equipBestItems(){
+ const slots=Object.keys(SLOT_NAMES);
+ let changed=0;
+ slots.forEach(slot=>{
+   const candidates=save.inventory.filter(it=>it.slot===slot);
+   if(!candidates.length)return;
+   candidates.sort((a,b)=>itemPowerScore(b)-itemPowerScore(a));
+   const best=candidates[0],current=equipObj(slot);
+   if(!current||itemPowerScore(best)>itemPowerScore(current)){
+     save.equipped[slot]=best.id;changed++;
+   }
+ });
+ persist();renderAll();
+ toast(changed?`⚔️ ${changed} sloton felraktam a legerősebb tárgyat.`:"✅ Már a legjobb felszerelések vannak rajtad.");
+}
+function deleteInventoryByRarity(rarity){
+ const equipped=new Set(Object.values(save.equipped));
+ const matches=save.inventory.filter(it=>it.rarity===rarity&&!equipped.has(it.id));
+ if(!matches.length)return toast(`Nincs törölhető ${rarityName(rarity)} tárgy.`);
+ if(!confirm(`Biztosan törlöd az összes NEM felszerelt ${rarityName(rarity)} tárgyat?\n\n${matches.length} db tárgy törlődik.`))return;
+ const ids=new Set(matches.map(x=>x.id));
+ save.inventory=save.inventory.filter(it=>!ids.has(it.id));
+ persist();renderAll();
+ toast(`🗑️ ${matches.length} db ${rarityName(rarity)} tárgy törölve.`);
+}
+function sellInventoryByRarity(rarity){
+ const equipped=new Set(Object.values(save.equipped));
+ const matches=save.inventory.filter(it=>it.rarity===rarity&&!equipped.has(it.id));
+ if(!matches.length)return toast(`Nincs eladható ${rarityName(rarity)} tárgy.`);
+ const total=matches.reduce((s,it)=>s+sellValue(it),0);
+ if(!confirm(`Eladod az összes NEM felszerelt ${rarityName(rarity)} tárgyat?\n\n${matches.length} db · ${fmt(total)} arany`))return;
+ const ids=new Set(matches.map(x=>x.id));
+ save.inventory=save.inventory.filter(it=>!ids.has(it.id));
+ save.gold+=total;
+ persist();renderAll();
+ toast(`💰 ${matches.length} db tárgy eladva · +${fmt(total)} arany`);
+}
+
 function renderInventory(){
  $("#inventory").innerHTML=save.inventory.length?save.inventory.map(it=>{
    ensureItemOptions(it);
@@ -577,7 +637,10 @@ function renderVisibleHeroEquipment(){
      if(it){
        const plus=Math.max(0,Math.min(15,Number(it.plus||0)));
        el.title=`${it.name} +${plus}`;
-       el.dataset.rarity=it.rarity||"normal";
+       el.dataset.rarity=["normal","rare","epic","mythic","legendary"].includes(it.rarity)?it.rarity:"normal";
+     }else{
+       delete el.dataset.rarity;
+       el.removeAttribute("title");
      }
    });
    if(it){
@@ -625,8 +688,13 @@ function renderV15ExactCharacter(){
      }else el.textContent="Üres";
    }
    if(box){
-     box.classList.remove("rarity-normal","rarity-rare","rarity-epic","rarity-mythic","rarity-legendary");
-     if(it)box.classList.add("rarity-"+it.rarity);
+     box.classList.remove("rarity-empty","rarity-normal","rarity-rare","rarity-epic","rarity-mythic","rarity-legendary");
+     if(it){
+       const rawRarity=String(it.rarity||"normal").toLowerCase(); const rarity=rawRarity==="mistic"||rawRarity==="mystic"?"mythic":(["normal","common","rare","epic","mythic","legendary"].includes(rawRarity)?(rawRarity==="common"?"normal":rawRarity):"normal");
+       box.classList.add("rarity-"+rarity);
+     }else{
+       box.classList.add("rarity-empty");
+     }
    }
  });
 
@@ -640,6 +708,79 @@ function renderV15ExactCharacter(){
  setText("v15ParagonTop",save.paragonLevel);
  setText("v15StatPoints",save.paragonPoints);
  setText("v15AuraTokens",save.auraTokens);
+}
+
+
+function normalizedRarity(r){
+ r=String(r||"normal").toLowerCase();
+ if(r==="common")return "normal";
+ if(r==="mistic"||r==="mystic")return "mythic";
+ return ["normal","rare","epic","mythic","legendary"].includes(r)?r:"normal";
+}
+function dynamicItemIcon(slot,it){
+ const icons={helmet:"🪖",armor:"🛡️",boots:"🥾",weapon:"⚔️",gloves:"🧤",ring:"💍"};
+ if(it&&it.icon)return `<img src="${it.icon}" alt="">`;
+ return `<span class="v168-fallback-icon">${icons[slot]||"◆"}</span>`;
+}
+function renderDynamicEquipment(){
+ const root=$("#dynamicEquipSlots"); if(!root)return;
+ const order=["helmet","armor","boots","weapon","gloves","ring"];
+ root.innerHTML=order.map(slot=>{
+   const it=equipObj(slot);
+   const rarity=it?normalizedRarity(it.rarity):"empty";
+   const plus=it?Math.max(0,Math.min(15,Number(it.plus||0))):0;
+   const rarityLabel={normal:"Common",rare:"Rare",epic:"Epic",mythic:"Mythic",legendary:"Legendary",empty:"Üres"}[rarity];
+   return `<div class="v168-slot v168-${slot} rarity-${rarity}">
+      <div class="v168-icon">${dynamicItemIcon(slot,it)}</div>
+      <div class="v168-slottext">
+        <small>${SLOT_NAMES[slot]||slot}</small>
+        <b>${it?it.name:"Üres"}</b>
+        <strong>${it?rarityLabel+" · +"+plus:"Nincs felszerelve"}</strong>
+      </div>
+    </div>`;
+ }).join("");
+
+ const weapon=equipObj("weapon");
+ const hand=$("#dynWeapon");
+ if(hand){
+   if(weapon){
+     const r=normalizedRarity(weapon.rarity);
+     hand.className=`v168-hand-item rarity-${r}`;
+     hand.textContent="⚔";
+     hand.title=`${weapon.name} +${Number(weapon.plus||0)}`;
+   }else{
+     hand.className="v168-hand-item empty";
+     hand.textContent="";
+     hand.removeAttribute("title");
+   }
+ }
+ const equipped=order.map(equipObj).filter(Boolean);
+ const label=$("#heroEquippedLabel");
+ if(label) label.textContent=equipped.length
+   ? equipped.map(it=>`${it.name} +${Math.max(0,Math.min(15,Number(it.plus||0)))}`).join(" · ")
+   : "Nincs felszerelt tárgy";
+}
+
+
+function renderV17QuickStats(){
+ const set=(id,val)=>{const e=$("#"+id);if(e)e.textContent=val};
+ set("v17Power",fmt(power()));
+ set("v17Damage",fmt(damage()));
+ const maxHp=(typeof v10MaxHp==="function")?v10MaxHp():0;
+ set("v17HP",`${fmt(save.playerHp||0)} / ${fmt(maxHp)}`);
+ set("v17Defense",(typeof v10Defense==="function")?fmt(v10Defense()):"0");
+ set("v17Luck",fmt(save.base?.luck||0));
+ set("v17Crit",(critChance()*100).toFixed(1)+"%");
+ set("v17Drop",(dropBonus()*100).toFixed(1)+"%");
+ set("v17Wave",save.wave||1);
+}
+
+
+function renderAuraPageV171(){
+ const set=(id,val)=>{const e=$("#"+id);if(e)e.textContent=val};
+ set("auraPagePrestige",save.prestigeLevel||0);
+ set("auraPageTokens",save.auraTokens||0);
+ set("auraPageParagon",save.paragonLevel||0);
 }
 
 function renderAll(){
@@ -659,7 +800,7 @@ function renderAll(){
  renderQuests();
  renderStats();
  renderCharacterAttributes();
-;renderHpRegenAndOptions();}
+;renderHpRegenAndOptions();renderCombatSpeed();renderDynamicEquipment();renderV17QuickStats();renderAuraPageV171();}
 $("#bossBtn").onclick=()=>toast("👹 A boss automatikusan jön minden wave végén.");
 $("#petSummon").onclick=summonPet;
 $("#sellNormal").onclick=()=>{let equipped=new Set(Object.values(save.equipped));let sold=0;save.inventory=save.inventory.filter(it=>{if(it.rarity==="normal"&&!equipped.has(it.id)){save.gold+=sellValue(it);sold++;return false}return true});persist();renderAll();toast(`${sold} normál tárgy eladva`)};
@@ -850,6 +991,13 @@ $("#landingPassword")?.addEventListener("keydown",e=>{if(e.key==="Enter")landing
 $("#landingUsername")?.addEventListener("keydown",e=>{if(e.key==="Enter")$("#landingPassword")?.focus()});
 $("#landingRegisterBtn")?.addEventListener("click",()=>openAuth("register"));
 
+
+document.addEventListener("click",e=>{
+ const eb=e.target.closest?.("#equipBestV163");if(eb){e.preventDefault();equipBestItems();return}
+ const d=e.target.closest?.("[data-bulk-delete]");if(d){e.preventDefault();deleteInventoryByRarity(d.dataset.bulkDelete);return}
+ const s=e.target.closest?.("[data-bulk-sell]");if(s){e.preventDefault();sellInventoryByRarity(s.dataset.bulkSell);return}
+});
+
 setAuthenticatedUI(null);loadMe();
 // V10 combat timers are started after gameplay config loads;
 setInterval(()=>{save.stats.playSeconds++;if(save.stats.playSeconds%5===0)persist()},1000);
@@ -928,6 +1076,48 @@ function v10EnsurePlayerHp(){
  if(save.playerHp>mx)save.playerHp=mx;
  if(save.playerHp<0)save.playerHp=mx;
 }
+
+
+function effectiveCombatSpeed(){
+ const n=[1,2,3,4].includes(Number(save.combatSpeed))?Number(save.combatSpeed):1;
+ return n===4&&!save.speed4Unlocked?3:n;
+}
+function setCombatSpeed(n){
+ n=Number(n);
+ if(![1,2,3,4].includes(n))return;
+
+ if(n===4&&!save.speed4Unlocked){
+   toast("🔒 A 4× sebesség prémium. A Feltöltés / Discord fülön 3 €.");
+   const tab=$('[data-tab="shop"]');
+   if(tab)tab.click();
+   return;
+ }
+ save.combatSpeed=n;
+ persist();
+ if(typeof v10RestartTimers==="function")v10RestartTimers();
+ renderCombatSpeed();
+ toast(`⚡ Harci / Wave sebesség: ${n}×`);
+}
+function renderCombatSpeed(){
+ const n=effectiveCombatSpeed();
+ $$(".combat-speed-btn").forEach(b=>{
+   const val=Number(b.dataset.speed);
+   b.classList.toggle("active",val===n);
+   b.classList.toggle("locked",val===4&&!save.speed4Unlocked);
+   if(val===4)b.innerHTML=save.speed4Unlocked?"⚡ 4×":"🔒 4×";
+ });
+ ["combatSpeedState","combatSpeedStateV163"].forEach(id=>{
+   const e=$("#"+id);if(e)e.textContent=`Aktív: ${n}×`;
+ });
+ const premium=$("#speed4PurchaseState");
+ if(premium)premium.textContent=save.speed4Unlocked?"✅ Aktiválva":"🔒 Nincs aktiválva";
+}
+document.addEventListener("click",e=>{
+ const b=e.target.closest?.(".combat-speed-btn");
+ if(!b)return;
+ e.preventDefault();
+ setCombatSpeed(b.dataset.speed);
+});
 
 function v161LiveHud(){
  const z=ZONES[save.zone]||ZONES[0];
@@ -1092,7 +1282,7 @@ function v10RestartTimers(){
  if(v10PlayerTimer)clearInterval(v10PlayerTimer);
  if(v10EnemyTimer)clearInterval(v10EnemyTimer);
  if(v10RegenTimer)clearInterval(v10RegenTimer);
- v10PlayerTimer=setInterval(v10PlayerAttack,Math.max(200,V10CFG.playerAttackSec*1000));
+ v10PlayerTimer=setInterval(v10PlayerAttack,Math.max(90,(V10CFG.playerAttackSec*1000)/effectiveCombatSpeed()));
  v10EnemyTimer=setInterval(v10EnemyAttack,Math.max(200,V10CFG.enemyAttackSec*1000));
  v10RegenTimer=setInterval(v10Regen,1000);
 }

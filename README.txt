@@ -164,3 +164,9 @@ V16.8: teljesen dinamikus karakter-felszerelés rendszer. A karakteroldali iteme
 V16.9: a Karakter/Farm/Inventory/... navigációs csíksáv már nem sticky/fixed, görgetéskor normálisan eltűnik felfelé.
 
 V17.0: teljes karakteroldal layout újrarendezve normál 100% zoomhoz; max 1320px tartalom, státuszok karakter mellett, alsó statok kompaktak, nincs széthúzott óriási oldal.
+
+V17.1
+- HP Regen fejlesztés átkerült Farm > Alap fejlesztések alá.
+- Aura Shop külön felső navigációs fület és saját oldalt kapott.
+- Aura Shopon külön látszik Prestige, Aura token és Paragon.
+- Karakter oldal 80% böngésző zoomra újraméretezve / szélesítve.
