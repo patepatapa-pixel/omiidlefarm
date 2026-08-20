@@ -273,3 +273,11 @@ V20.9
 - A karakter mozgatása nem mozgatja a felszerelés ablakot.
 - A felszerelés mozgatása nem mozgatja a karaktert.
 - Mindkét ablak továbbra is külön menti a pozícióját.
+
+V21.0
+- A Felszerelés kezelés alapból zárva van.
+- A Saját karakter ablakból külön „Felszerelés kezelés” gombbal nyitható/zárható.
+- A Felszerelés kezelés továbbra is külön és függetlenül mozgatható ablak.
+- Az EQUIP BEST gomb bekerült a Saját karakter ablakba.
+- Az eredeti Equip Best funkció megmarad, mert ugyanaz a valódi gomb került át.
+- A Felszerelés kezelés saját X bezáró gombot kapott.

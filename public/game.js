@@ -2453,3 +2453,154 @@ document.addEventListener("click",e=>{
     }
   },true);
 })();
+
+/* ================= V21.0 CHARACTER EQUIPMENT TOGGLE ================= */
+(function(){
+  const OPEN_KEY="omi_v210_equipment_open";
+
+  function getPage(){
+    return document.getElementById("page-character");
+  }
+
+  function getCharacterWindow(){
+    return getPage()?.querySelector(".v208-character-window");
+  }
+
+  function getEquipmentWindow(){
+    return getPage()?.querySelector(".inventory-tools-v163");
+  }
+
+  function getEquipBest(){
+    return document.getElementById("equipBestV163");
+  }
+
+  function ensureCharacterControls(){
+    const charWin=getCharacterWindow();
+    if(!charWin)return;
+
+    const header=charWin.querySelector(".v208-character-header");
+    if(!header)return;
+
+    let controls=header.querySelector(".v210-character-actions");
+    if(!controls){
+      controls=document.createElement("div");
+      controls.className="v210-character-actions";
+
+      const openBtn=document.createElement("button");
+      openBtn.type="button";
+      openBtn.id="v210EquipmentToggleBtn";
+      openBtn.className="v210-equipment-toggle";
+      openBtn.textContent="🧰 Felszerelés kezelés";
+
+      controls.appendChild(openBtn);
+      header.appendChild(controls);
+
+      openBtn.addEventListener("click",e=>{
+        e.preventDefault();
+        e.stopPropagation();
+        toggleEquipment();
+      });
+    }
+
+    // Move the REAL Equip Best button into the character window.
+    // This preserves the existing click handler / equip logic.
+    const equipBest=getEquipBest();
+    if(equipBest && equipBest.parentNode!==controls){
+      equipBest.classList.add("v210-equip-best-character");
+      controls.prepend(equipBest);
+    }
+  }
+
+  function ensureEquipmentCloseButton(){
+    const equip=getEquipmentWindow();
+    if(!equip)return;
+    const head=equip.querySelector(".inventory-tools-head");
+    if(!head)return;
+
+    let close=head.querySelector("#v210EquipmentCloseBtn");
+    if(!close){
+      close=document.createElement("button");
+      close.type="button";
+      close.id="v210EquipmentCloseBtn";
+      close.className="v210-equipment-close";
+      close.textContent="✕";
+      close.title="Felszerelés kezelés bezárása";
+      head.appendChild(close);
+
+      close.addEventListener("click",e=>{
+        e.preventDefault();
+        e.stopPropagation();
+        setEquipmentOpen(false);
+      });
+    }
+  }
+
+  function setEquipmentOpen(open){
+    const equip=getEquipmentWindow();
+    if(!equip)return;
+
+    equip.classList.toggle("v210-equipment-open",Boolean(open));
+    equip.classList.toggle("v210-equipment-closed",!open);
+
+    try{
+      localStorage.setItem(OPEN_KEY,open?"1":"0");
+    }catch(e){}
+
+    const btn=document.getElementById("v210EquipmentToggleBtn");
+    if(btn){
+      btn.textContent=open ? "🧰 Felszerelés kezelés ✓" : "🧰 Felszerelés kezelés";
+      btn.classList.toggle("active",Boolean(open));
+    }
+  }
+
+  function toggleEquipment(){
+    const equip=getEquipmentWindow();
+    if(!equip)return;
+    setEquipmentOpen(!equip.classList.contains("v210-equipment-open"));
+  }
+
+  function initialOpen(){
+    // Start CLOSED by default unless user explicitly left it open.
+    let open=false;
+    try{open=localStorage.getItem(OPEN_KEY)==="1"}catch(e){}
+    setEquipmentOpen(open);
+  }
+
+  function setup(){
+    ensureCharacterControls();
+    ensureEquipmentCloseButton();
+
+    const equip=getEquipmentWindow();
+    if(equip && !equip.dataset.v210OpenInitialized){
+      equip.dataset.v210OpenInitialized="1";
+      initialOpen();
+    }
+  }
+
+  window.v210SetEquipmentOpen=setEquipmentOpen;
+  window.v210ToggleEquipment=toggleEquipment;
+  window.v210SetupEquipmentToggle=setup;
+
+  window.addEventListener("load",()=>{
+    setTimeout(setup,120);
+    setTimeout(setup,500);
+  });
+
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.('[data-tab="character"]')){
+      setTimeout(setup,80);
+    }
+  },true);
+
+  // Existing render/layout code may rebuild these pieces.
+  const obs=new MutationObserver(()=>{
+    if(getPage()?.classList.contains("active")){
+      requestAnimationFrame(setup);
+    }
+  });
+
+  window.addEventListener("load",()=>{
+    const p=getPage();
+    if(p)obs.observe(p,{childList:true,subtree:true});
+  });
+})();
