@@ -1879,3 +1879,328 @@ nav.tabs{
 #page-aurashop .aura-page-shell{
   display:grid!important;
 }
+
+/* V18.2 – Character Status stays on Character tab */
+#page-character .v182-character-status,
+#page-character .v17-quick-stats{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+#page-character .v17-stat-grid{
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:8px!important;
+}
+#page-character .v17-stat-grid>div{
+  padding:10px!important;
+  border:1px solid #303b47!important;
+  border-radius:8px!important;
+  background:#080c11!important;
+}
+#page-character .v17-stat-grid small,
+#page-character .v17-stat-grid b{
+  display:block!important;
+}
+#page-character .v17-stat-grid small{
+  color:#929da8!important;
+  font-size:9px!important;
+}
+#page-character .v17-stat-grid b{
+  color:#f0c55a!important;
+  font-size:14px!important;
+  margin-top:3px!important;
+}
+
+/* V18.3 – Character Status MUST NEVER follow to other tabs */
+.v182-character-status,
+.v17-quick-stats,
+#v17QuickStats{
+  display:none!important;
+}
+
+/* Only show status when the Character PAGE is the active page */
+#page-character.active .v182-character-status,
+#page-character.active .v17-quick-stats,
+#page-character.active #v17QuickStats{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+
+/* Prevent old fixed/sticky rules from making the panel float between pages */
+#page-character .v182-character-status,
+#page-character .v17-quick-stats{
+  position:relative!important;
+  top:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  left:auto!important;
+  transform:none!important;
+  z-index:auto!important;
+}
+
+/* V18.4 - Character-only panels must never appear on Farm or other tabs */
+.character-only-panel{
+  display:none!important;
+}
+#page-character.active .character-only-panel{
+  display:block!important;
+}
+#page-character.active .character-attributes.character-only-panel{
+  display:grid!important;
+}
+
+/* Defensive: if old DOM/CSS places these outside normal flow, keep them non-floating */
+.character-only-panel{
+  position:relative!important;
+  top:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  left:auto!important;
+  transform:none!important;
+  z-index:auto!important;
+}
+
+/* V18.5 – requested information belongs to Inventory only */
+.inventory-info-zone{
+  display:none!important;
+}
+#page-inventory.active .inventory-info-zone{
+  display:grid!important;
+  gap:10px!important;
+  margin-bottom:12px!important;
+}
+#page-inventory .inventory-info-block{
+  position:relative!important;
+  inset:auto!important;
+  transform:none!important;
+  width:auto!important;
+  max-width:none!important;
+}
+
+/* V18.6 – currency/resources row belongs to Farm only */
+.v186-farm-resources{display:none!important;}
+#page-farm.active .v186-farm-resources{
+ display:block!important;
+ margin-bottom:10px!important;
+}
+#page-farm .v186-farm-resources .resource-grid,
+#page-farm .v186-farm-resources .stats-grid{
+ display:grid!important;
+ grid-template-columns:repeat(6,minmax(0,1fr))!important;
+ gap:7px!important;
+}
+@media(max-width:1000px){
+ #page-farm .v186-farm-resources .resource-grid,
+ #page-farm .v186-farm-resources .stats-grid{
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ }
+}
+@media(max-width:600px){
+ #page-farm .v186-farm-resources .resource-grid,
+ #page-farm .v186-farm-resources .stats-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ }
+}
+
+/* =========================================================
+   V18.7 COMPACT UI
+   Minden oldal kisebb, egyszerűbb, átláthatóbb.
+   Funkciót nem távolít el.
+   ========================================================= */
+
+:root{
+ --compact-gap:7px;
+ --compact-radius:8px;
+}
+
+/* A játék ne nyúljon ki indokolatlanul a teljes monitorra */
+#gameShell main,
+main{
+ width:min(1380px,calc(100% - 24px))!important;
+ margin-left:auto!important;
+ margin-right:auto!important;
+ padding:8px 0 28px!important;
+}
+
+/* Felső menü */
+.nav,.tabs,nav.tabs{
+ gap:4px!important;
+ padding:6px 8px!important;
+}
+.nav button,.tabs button,nav.tabs button{
+ min-height:28px!important;
+ padding:5px 9px!important;
+ font-size:10px!important;
+ border-radius:6px!important;
+}
+
+/* Általános panelek */
+.card,.panel,.v15-sidebox,.v15-character,.v15-left{
+ border-radius:var(--compact-radius)!important;
+ padding:10px!important;
+}
+.card h2,.panel h2{font-size:16px!important;margin:0 0 6px!important}
+.card h3,.panel h3,.v15-sidebox h3{font-size:12px!important;margin:0 0 7px!important}
+.card p,.panel p{line-height:1.4!important}
+.muted,.card small,.panel small{font-size:9px!important}
+
+/* Gombok */
+button{
+ min-height:28px!important;
+ padding:5px 9px!important;
+ font-size:10px!important;
+ border-radius:6px!important;
+}
+
+/* Farm erőforrás sor - lényegesen kisebb */
+#page-farm .v186-farm-resources{
+ margin-bottom:7px!important;
+}
+#page-farm .v186-farm-resources .resource-grid,
+#page-farm .v186-farm-resources .stats-grid{
+ gap:5px!important;
+}
+#page-farm .v186-farm-resources .resource-card,
+#page-farm .v186-farm-resources .currency-card,
+#page-farm .v186-farm-resources .stat-card{
+ min-height:50px!important;
+ padding:7px 9px!important;
+ border-radius:7px!important;
+}
+#page-farm .v186-farm-resources strong,
+#page-farm .v186-farm-resources b{
+ font-size:14px!important;
+ line-height:1.1!important;
+}
+#page-farm .v186-farm-resources small{
+ font-size:8px!important;
+}
+
+/* Minden grid tömörebb */
+.resource-grid,.stats-grid,.zone-grid,.upgrade-list,
+.v17-stat-grid,.v15-main-grid{
+ gap:var(--compact-gap)!important;
+}
+
+/* Karakter oldal */
+#page-character .v15-main-grid{
+ grid-template-columns:minmax(0,1.65fr) minmax(245px,.65fr)!important;
+ align-items:start!important;
+}
+#page-character .v15-character{
+ padding:9px!important;
+}
+#page-character .v17-stat-grid{
+ gap:5px!important;
+}
+#page-character .v17-stat-grid>div{
+ padding:7px!important;
+}
+#page-character .v17-stat-grid b{
+ font-size:12px!important;
+}
+
+/* Inventory */
+#page-inventory .inventory-info-zone{
+ gap:7px!important;
+ margin-bottom:8px!important;
+}
+#page-inventory .inventory-info-block{
+ padding:9px!important;
+}
+.inventory-item{
+ padding:7px!important;
+ border-radius:7px!important;
+}
+.inventory-item .actions{
+ gap:4px!important;
+}
+.inventory-item .actions button{
+ flex:1 1 90px!important;
+}
+
+/* Farm harci panelek */
+#page-farm .card{
+ margin-bottom:7px!important;
+}
+#page-farm .zone-grid{
+ gap:5px!important;
+}
+#page-farm .upgrade-list{
+ gap:5px!important;
+}
+
+/* Paragon / Aura / Pet / Dungeon / Küldetések / PvP */
+#page-aurashop .aura-card,
+#page-pets .card,
+#page-dungeon .card,
+#page-quests .card,
+#page-pvp .card,
+#page-stats .card,
+#page-upgrades .card{
+ padding:9px!important;
+ margin-bottom:7px!important;
+}
+
+/* Táblázatok/listák */
+.leader-row{
+ min-height:30px!important;
+ padding:5px 7px!important;
+}
+table th,table td{
+ padding:6px 7px!important;
+ font-size:10px!important;
+}
+
+/* Formok/admin */
+input,select,textarea{
+ min-height:29px!important;
+ padding:5px 7px!important;
+ font-size:10px!important;
+ border-radius:6px!important;
+}
+textarea{min-height:62px!important}
+
+/* A fő címkártyák ne legyenek túl magasak */
+.hero,.game-hero,.intro-card{
+ padding:11px!important;
+ min-height:auto!important;
+}
+.hero h1,.game-hero h1,.intro-card h1{
+ font-size:19px!important;
+ margin:2px 0 5px!important;
+}
+
+/* Landing marad jól olvasható, de szintén kompaktabb */
+.v18-landing-shell{
+ width:min(1120px,calc(100vw - 24px))!important;
+ margin:25px auto 38px!important;
+}
+.v18-welcome-copy{padding:22px!important}
+.v18-welcome-copy h1{font-size:28px!important}
+.v18-feature-grid{gap:6px!important;margin-top:14px!important}
+.v18-feature-grid>div{padding:8px!important}
+.v18-login-card{padding:20px!important}
+.v18-info-strip>div{padding:9px!important}
+
+/* 80%-os böngésző zoom mellett se legyen óriási széthúzás */
+@media(min-width:1500px){
+ #gameShell main,main{
+   width:min(1450px,calc(100% - 36px))!important;
+ }
+}
+
+/* Tablet */
+@media(max-width:1000px){
+ #page-character .v15-main-grid{
+   grid-template-columns:1fr!important;
+ }
+}
+
+/* Mobil */
+@media(max-width:650px){
+ #gameShell main,main{width:calc(100% - 12px)!important}
+ .card,.panel,.v15-sidebox,.v15-character,.v15-left{padding:8px!important}
+}

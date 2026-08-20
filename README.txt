@@ -185,3 +185,21 @@ V18.0
 - Sikeres belépés után automatikusan a Karakter oldal nyílik meg.
 
 V18.1: a duplikált HP Regeneráció és Prestige Aura Shop blokkok eltávolítva. HP Regen csak Farm > Alap fejlesztések alatt, Aura Shop csak a saját felső fülén jelenik meg.
+
+V18.2: Karakter státusz panel megtartva a Karakter fülön. Erő, Sebzés, HP, Védelem, Szerencse, Krit, Drop és Wave továbbra is ott látható és élőben frissül.
+
+V18.3: Karakter státusz szigorúan csak a Karakter fülön látható. Farm, Inventory, Fejlesztés, Aura Shop és minden más fül megnyitásakor eltűnik; nem sticky/fixed és nem követi a navigációt.
+
+V18.4: Karakter státusz, Paragon/Prestige, Paragon statpontok és alsó karakter statok kizárólag a Karakter fülön jelennek meg. Farm/Inventory/Fejlesztés/Petek/Aura Shop/Dungeon/Küldetések/PvP/Shop/Statisztika alatt rejtve vannak.
+
+V18.5: Az AUTOMATA FARM RPG információs blokk és a Felszerelés opciók blokk átkerült az Inventory fülre, és csak ott jelenik meg.
+
+V18.6: Arany/Kristály/Érc/Lélekkő/Dungeon jegy/Szint erőforrás-sáv átkerült a Farm fülre és csak ott jelenik meg.
+
+V18.7 COMPACT UI
+- A teljes játékfelület kompaktabb lett.
+- Kisebb panelek, gombok, margók és térközök.
+- Farm erőforrás-sáv jelentősen kisebb.
+- Karakter, Farm, Inventory, Fejlesztés, Aura Shop, Petek, Dungeon, Küldetések, PvP és Statisztika panelek tömörebbek.
+- A funkciók nem lettek eltávolítva.
+- Nagy monitoron sem húzza szét feleslegesen a tartalmat.
