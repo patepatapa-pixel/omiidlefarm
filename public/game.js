@@ -1839,3 +1839,86 @@ document.addEventListener("click",e=>{
   },true);
   setTimeout(v204PlaceEquipmentBesideCharacter,100);
 })();
+
+/* ================= V20.5 TRUE SEPARATE EQUIPMENT HOST ================= */
+(function(){
+  function place(){
+    const page=document.getElementById("page-character");
+    if(!page)return;
+
+    let shell=page.querySelector(":scope > .v205-character-equipment-shell");
+    if(!shell){
+      shell=document.createElement("div");
+      shell.className="v205-character-equipment-shell";
+
+      const charCol=document.createElement("div");
+      charCol.className="v205-character-column";
+      const equipCol=document.createElement("div");
+      equipCol.className="v205-equipment-column";
+
+      shell.append(charCol,equipCol);
+
+      // Find the existing character layout/card and put it in the left column.
+      const oldLayout=page.querySelector(".v200-character-inventory-layout");
+      const oldLeft=page.querySelector(".v200-character-left");
+      const charNode=oldLeft || page.querySelector(".v15-character,.character-card,.v15-character-stage");
+      const anchor=oldLayout || charNode;
+
+      if(anchor) page.insertBefore(shell,anchor);
+      else page.appendChild(shell);
+
+      if(charNode){
+        charCol.appendChild(charNode);
+      }
+
+      // Remove empty old layout if it no longer contains meaningful content.
+      if(oldLayout && oldLayout!==charNode){
+        const right=oldLayout.querySelector(".v200-inventory-right");
+        if(right){
+          while(right.firstChild){
+            // Do not move equipment here; it is handled below.
+            const n=right.firstChild;
+            if(n.classList?.contains("inventory-tools-v163")) break;
+            equipCol.appendChild(n);
+          }
+        }
+        if(!oldLayout.textContent.trim() && !oldLayout.querySelector("*")) oldLayout.remove();
+        else oldLayout.classList.add("v205-old-layout-hidden");
+      }
+    }
+
+    const equipCol=shell.querySelector(".v205-equipment-column");
+    const tool=page.querySelector(".inventory-tools-v163");
+    if(tool && tool.parentNode!==equipCol){
+      equipCol.prepend(tool); // physically separate sibling, never overlay
+    }
+
+    // If inventory content exists, keep it under equipment management on right.
+    const oldRight=page.querySelector(".v200-inventory-right");
+    if(oldRight && oldRight!==equipCol){
+      [...oldRight.children].forEach(n=>{
+        if(n!==tool) equipCol.appendChild(n);
+      });
+      oldRight.classList.add("v205-empty-hidden");
+    }
+  }
+
+  window.v205PlaceEquipment=place;
+  window.addEventListener("load",()=>{ setTimeout(place,50); setTimeout(place,250); });
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.('[data-tab="character"]')) {
+      setTimeout(place,0); setTimeout(place,100);
+    }
+  },true);
+
+  // Render functions can rebuild DOM, so re-check after mutations.
+  const obs=new MutationObserver(()=> {
+    if(document.getElementById("page-character")?.classList.contains("active")){
+      requestAnimationFrame(place);
+    }
+  });
+  window.addEventListener("load",()=>{
+    const p=document.getElementById("page-character");
+    if(p) obs.observe(p,{childList:true,subtree:true});
+  });
+})();
