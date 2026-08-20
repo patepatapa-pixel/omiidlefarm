@@ -25,19 +25,27 @@ const BASE_UPS=[
  {key:"mining",name:"Bányászat",icon:"⛏️",base:110,desc:"+ érc drop"},
  {key:"luck",name:"Szerencse",icon:"🍀",base:160,desc:"+ ritka drop"}
 ];
-const SKILLS=[
- {key:"power",name:"Erő aura",icon:"🔥",desc:"Minden szint növeli a teljes sebzésed",per:.025,milestone:.10,unit:"sebzés"},
- {key:"gold",name:"Aranyáldás",icon:"💰",desc:"Több arany minden farm- és bossjutalomból",per:.03,milestone:.15,unit:"arany"},
- {key:"crit",name:"Kritikus ösztön",icon:"🎯",desc:"Növeli a kritikus találat esélyét",per:.005,milestone:.025,unit:"krit esély"},
- {key:"drop",name:"Kincsvadász",icon:"🎁",desc:"Növeli a tárgyak és ritka loot esélyét",per:.006,milestone:.03,unit:"drop esély"},
- {key:"offline",name:"Mély alvás farm",icon:"🌙",desc:"Több kill és jutalom offline állapotban",per:.02,milestone:.10,unit:"offline farm"},
- {key:"pet",name:"Pet szinkron",icon:"🐾",desc:"Felerősíti az összes felszerelt pet bónuszát",per:.03,milestone:.15,unit:"pet bónusz"}
+const SKILL_TREE=[
+ {key:"root",branch:"root",name:"Kalandor mag",icon:"✨",max:1,desc:"Megnyitja a három fejlődési ágat",effect:"+5% teljes sebzés"},
+ {key:"power",branch:"combat",name:"Harci erő",icon:"🔥",max:5,req:["root",1],desc:"Erősebb normál támadások",effect:"+6% sebzés / pont"},
+ {key:"crit",branch:"combat",name:"Kritikus ösztön",icon:"🎯",max:5,req:["power",3],desc:"Gyakoribb kritikus találat",effect:"+1,5% krit esély / pont"},
+ {key:"boss",branch:"combat",name:"Bossvadász",icon:"🐲",max:5,req:["crit",3],desc:"Extra sebzés bossok ellen",effect:"+8% boss sebzés / pont"},
+ {key:"gold",branch:"farm",name:"Aranyáldás",icon:"💰",max:5,req:["root",1],desc:"Több arany minden harcból",effect:"+8% arany / pont"},
+ {key:"drop",branch:"farm",name:"Kincsvadász",icon:"🎁",max:5,req:["gold",3],desc:"Jobb tárgy- és ritka drop",effect:"+2% drop / pont"},
+ {key:"offline",branch:"farm",name:"Álomfarm",icon:"🌙",max:5,req:["drop",3],desc:"Erősebb offline fejlődés",effect:"+15% offline farm / pont"},
+ {key:"pet",branch:"pet",name:"Pet szinkron",icon:"🐾",max:5,req:["root",1],desc:"Felerősíti a petek bónuszait",effect:"+10% pet bónusz / pont"},
+ {key:"pack",branch:"pet",name:"Falkavezér",icon:"👑",max:5,req:["pet",3],desc:"Minden felszerelt pet együtt erősödik",effect:"+10% pet bónusz / pont"}
 ];
-const SKILL_CAP=100;
-function skillBonus(key,level=Number(save?.skills?.[key]||0)){
- const meta=SKILLS.find(s=>s.key===key);
- const lv=Math.max(0,Math.min(SKILL_CAP,Math.floor(Number(level||0))));
- return meta?lv*meta.per+Math.floor(lv/25)*meta.milestone:0;
+function skillRank(key){return Math.max(0,Number(save?.skills?.[key]||0))}
+function skillBonus(key){
+ if(key==="power")return skillRank("root")*.05+skillRank("power")*.06;
+ if(key==="crit")return skillRank("crit")*.015;
+ if(key==="boss")return skillRank("boss")*.08;
+ if(key==="gold")return skillRank("gold")*.08;
+ if(key==="drop")return skillRank("drop")*.02;
+ if(key==="offline")return skillRank("offline")*.15;
+ if(key==="pet")return skillRank("pet")*.10+skillRank("pack")*.10;
+ return 0;
 }
 const PET_POOL=[
  {name:"Kis Farkas",icon:"🐺",bonus:"damage",value:.08,rarity:"normal"},
@@ -68,7 +76,7 @@ let save=JSON.parse(localStorage.getItem("omiIdleComplete")||"null")||{
  gold:0,gems:10,ore:0,soul:0,tickets:3,level:1,xp:0,skillPoints:0,kills:0,zone:0,
  base:{weaponTraining:1,armorTraining:1,mining:1,luck:1},skills:{power:0,gold:0,crit:0,drop:0,offline:0,pet:0},
  inventory:[],equipped:{weapon:null,helmet:null,armor:null,gloves:null,boots:null,ring:null},
- pets:[],activePet:null,activePets:[],petSlotsUnlocked:1,skillTreeVersion:2,stats:{goldEarned:0,itemsFound:0,legendary:0,bosses:0,dungeons:0,critHits:0,playSeconds:0},
+ pets:[],activePet:null,activePets:[],petSlotsUnlocked:1,skillTreeVersion:3,stats:{goldEarned:0,itemsFound:0,legendary:0,bosses:0,dungeons:0,critHits:0,playSeconds:0},
  dailyClaimed:{},achClaimed:{},last:Date.now(),lastDaily:new Date().toDateString(),uid:1
 };
 if(save.lastDaily!==new Date().toDateString()){save.dailyClaimed={};save.lastDaily=new Date().toDateString()}
@@ -79,16 +87,14 @@ function normalizeV6Save(s){
  s.gold=Number(s.gold||0);s.gems=Number(s.gems||10);s.ore=Number(s.ore||0);s.soul=Number(s.soul||0);s.tickets=Number(s.tickets||3);
  s.level=Math.max(1,Number(s.level||1));s.xp=Number(s.xp||0);s.skillPoints=Number(s.skillPoints||0);s.kills=Number(s.kills||0);s.zone=Math.max(0,Math.min(ZONES.length-1,Number(s.zone||0)));
  s.base={weaponTraining:1,armorTraining:1,mining:1,luck:1,...(s.base||{})};
- s.skills={power:0,gold:0,crit:0,drop:0,offline:0,pet:0,...(s.skills||{})};
- if(Number(s.skillTreeVersion||0)<2){
-   const legitimatePoints=Math.max(0,Math.min(600,Math.floor(s.level-1)));
-   const unusedPoints=Math.max(0,Math.min(600,Math.floor(Number(s.skillPoints||0))));
-   s.skillPoints=Math.max(legitimatePoints,unusedPoints);
-   s.skills={power:0,gold:0,crit:0,drop:0,offline:0,pet:0};
-   s.skillTreeVersion=2;s.skillResetNotice=true;
- }else{
-   Object.keys(s.skills).forEach(k=>s.skills[k]=Math.max(0,Math.min(SKILL_CAP,Math.floor(Number(s.skills[k]||0)))));
- }
+ s.skills={root:0,power:0,crit:0,boss:0,gold:0,drop:0,offline:0,pet:0,pack:0,...(s.skills||{})};
+ if(Number(s.skillTreeVersion||0)<3){
+   s.skillPoints=Math.max(0,Math.floor(s.level/5));
+   s.skills={root:0,power:0,crit:0,boss:0,gold:0,drop:0,offline:0,pet:0,pack:0};
+   s.skillTreeVersion=3;s.skillResetNotice=true;
+}else{
+   SKILL_TREE.forEach(n=>s.skills[n.key]=Math.max(0,Math.min(n.max,Math.floor(Number(s.skills[n.key]||0)))));
+}
  s.inventory=Array.isArray(s.inventory)?s.inventory:[];
  s.equipped={weapon:null,helmet:null,armor:null,gloves:null,boots:null,ring:null,...(s.equipped||{})};
  s.pets=Array.isArray(s.pets)?s.pets:[];
@@ -152,6 +158,7 @@ function damage(){
  let b=bonuses(),io=itemOptionBonuses(),base=6+save.level*1.2+save.base.weaponTraining*4+b.atk;
  let total=base*(1+skillBonus("power")+save.paragonStats.damage*.02)*(1+io.atkPct/100);
  if(save.waveBoss)total*=1+io.bossDmg/100;
+ if(save.waveBoss)total*=1+skillBonus("boss");
  return Math.floor(total)
 }
 function critChance(){let io=itemOptionBonuses();return Math.min(.85,.05+skillBonus("crit")+bonuses().crit+save.paragonStats.crit*.005+io.crit/100)}
@@ -263,7 +270,7 @@ function kill(){
  if(Math.random()<.007+dropBonus()*.05)save.soul++;
  if(Math.random()<.006)save.tickets++;
  if(Math.random()<z.drop+dropBonus())addItem(createItem());
- while(save.xp>=needXp()){save.xp-=needXp();save.level++;save.skillPoints++;toast(`⭐ Szintlépés! Lv.${save.level}`)}
+ while(save.xp>=needXp()){save.xp-=needXp();save.level++;if(save.level%5===0){save.skillPoints++;toast(`🌳 Skillpontot kaptál! Lv.${save.level}`)}else toast(`⭐ Szintlépés! Lv.${save.level}`)}
  save.waveKills++;
  if(save.waveKills>=save.waveGoal){
    save.waveBoss=true;
@@ -466,11 +473,15 @@ function renderUpgrade(){
 function renderSkills(){
  if(save.skillResetNotice){
    save.skillResetNotice=false;
-   setTimeout(()=>{toast("♻️ A régi képességpontok visszaállítva — oszd ki őket az új rendszerben!");persist()},80);
+   setTimeout(()=>{toast("🌳 Az új skillfa elkészült — 5 szintenként kaptál 1 pontot!");persist()},80);
  }
  $("#skillPoints").textContent=save.skillPoints;
- $("#skills").innerHTML=SKILLS.map(s=>{const lv=Math.min(SKILL_CAP,Number(save.skills[s.key]||0)),bonus=skillBonus(s.key,lv)*100,next=lv>=SKILL_CAP?null:Math.min(SKILL_CAP,Math.ceil((lv+1)/25)*25),room=SKILL_CAP-lv,disabled=save.skillPoints<=0||room<=0;return `<div class="skill-card skill-card-v215"><div class="skill-v215-head"><div class="skill-v215-icon">${s.icon}</div><div><h3>${s.name}</h3><small>${s.desc}</small></div></div><div class="skill-v215-effect"><small>AKTÍV BÓNUSZ</small><strong>+${bonus.toFixed(1)}%</strong><span>${s.unit}</span></div><div class="skill-v215-level"><b>Lv.${lv} / ${SKILL_CAP}</b><span>${next?`Következő mérföldkő: Lv.${next}`:"✓ MAXIMUM"}</span></div><div class="skill-v215-bar"><i style="width:${lv}%"></i></div><div class="multi-point-actions"><button data-skill="${s.key}" data-amount="1" ${disabled?"disabled":""}>+1</button><button data-skill="${s.key}" data-amount="5" ${disabled?"disabled":""}>+5</button><button data-skill="${s.key}" data-amount="10" ${disabled?"disabled":""}>+10</button><button data-skill="${s.key}" data-amount="max" ${disabled?"disabled":""}>MAX</button></div></div>`}).join("");
- $$("[data-skill]").forEach(b=>b.onclick=()=>{let sk=SKILLS.find(x=>x.key===b.dataset.skill),room=SKILL_CAP-save.skills[sk.key];if(save.skillPoints<=0||room<=0)return;let raw=b.dataset.amount;let wanted=raw==="max"?room:Math.max(1,Number(raw)||1),amount=Math.min(save.skillPoints,room,wanted);save.skillPoints-=amount;save.skills[sk.key]+=amount;persist();renderAll();if(save.skills[sk.key]%25===0)toast(`🌟 ${sk.name} mérföldkő: Lv.${save.skills[sk.key]}!`)})
+ const unlocked=n=>!n.req||skillRank(n.req[0])>=n.req[1];
+ const nodeHtml=n=>{const rank=skillRank(n.key),open=unlocked(n),maxed=rank>=n.max,can=open&&!maxed&&save.skillPoints>0,req=n.req?SKILL_TREE.find(x=>x.key===n.req[0]):null;return `<article class="skill-tree-node branch-${n.branch} ${open?"unlocked":"locked"} ${maxed?"maxed":""}"><div class="skill-tree-icon">${open?n.icon:"🔒"}</div><div class="skill-tree-copy"><h3>${n.name}</h3><p>${n.desc}</p><strong>${n.effect}</strong>${!open?`<small>Kell: ${req?.name||"Előfeltétel"} ${n.req[1]}/${req?.max||n.req[1]}</small>`:""}</div><div class="skill-tree-rank">${rank}/${n.max}</div><button data-tree-skill="${n.key}" ${can?"":"disabled"}>${maxed?"MAX":open?"+1 PONT":"ZÁROLVA"}</button></article>`};
+ const root=SKILL_TREE.find(n=>n.branch==="root");
+ const branch=(key,title)=>`<section class="skill-tree-branch branch-${key}"><h3>${title}</h3>${SKILL_TREE.filter(n=>n.branch===key).map(nodeHtml).join('<div class="skill-tree-line"></div>')}</section>`;
+ $("#skills").innerHTML=`<div class="skill-tree-v217"><div class="skill-tree-root">${nodeHtml(root)}</div><div class="skill-tree-trunk"></div><div class="skill-tree-branches">${branch("combat","⚔️ Harci ág")}${branch("farm","💰 Farm ág")}${branch("pet","🐾 Pet ág")}</div></div>`;
+ $$("[data-tree-skill]").forEach(b=>b.onclick=()=>{const n=SKILL_TREE.find(x=>x.key===b.dataset.treeSkill);if(!n||save.skillPoints<=0||skillRank(n.key)>=n.max||!unlocked(n))return;save.skillPoints--;save.skills[n.key]=skillRank(n.key)+1;persist();renderAll();toast(`🌟 ${n.name}: ${save.skills[n.key]}/${n.max}`)});
 }
 function renderPets(){
  const costs=[0,25,75,150],active=save.activePets||[];
@@ -1014,7 +1025,7 @@ if(away>15){
  let z=ZONES[save.zone],eff=Math.min(3.5,.55+skillBonus("offline")),kills=Math.floor(away*damage()/z.hp*eff);
  if(kills>0){let g=Math.floor(kills*z.gold*goldBonus());save.gold+=g;save.stats.goldEarned+=g;save.kills+=kills;save.xp+=kills*z.xp;toast(`🌙 Offline farm: ${fmt(kills)} kill · ${fmt(g)} arany`)}
 }
-while(save.xp>=needXp()){save.xp-=needXp();save.level++;save.skillPoints++}
+while(save.xp>=needXp()){save.xp-=needXp();save.level++;if(save.level%5===0)save.skillPoints++}
 
 async function landingLogin(){
  const username=$("#landingUsername")?.value.trim()||"";
@@ -1230,7 +1241,7 @@ function v10AwardNormalKill(){
  if(Math.random()<.007+dropBonus()*.05)save.soul++;
  if(Math.random()<.006)save.tickets++;
  if(Math.random()<z.drop+dropBonus())addItem(createItem());
- while(save.xp>=needXp()){save.xp-=needXp();save.level++;save.skillPoints++;toast(`⭐ Szintlépés! Lv.${save.level}`)}
+ while(save.xp>=needXp()){save.xp-=needXp();save.level++;if(save.level%5===0){save.skillPoints++;toast(`🌳 Skillpontot kaptál! Lv.${save.level}`)}else toast(`⭐ Szintlépés! Lv.${save.level}`)}
 
  save.waveKills++;
  if(save.waveKills>=save.waveGoal){
@@ -1473,7 +1484,7 @@ v10AwardBossKill=function(){
  const bossGems=Math.max(0,Math.floor(Number(b.gems||0))),gemChance=Math.max(0,Math.min(100,Number(b.gemDropChance??100)));
  const gemsWon=bossGems>0&&Math.random()*100<gemChance?bossGems:0;
  save.gems+=gemsWon;save.soul+=Number(b.soul||0);save.stats.bosses++;
- while(save.xp>=needXp()){save.xp-=needXp();save.level++;save.skillPoints++}
+ while(save.xp>=needXp()){save.xp-=needXp();save.level++;if(save.level%5===0)save.skillPoints++}
  if(Math.random()<(Number(b.dropChance||80)/100))addItem(createItem());
 
  const oldWave=save.wave;

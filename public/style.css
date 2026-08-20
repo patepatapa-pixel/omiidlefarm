@@ -1332,6 +1332,32 @@ main{width:100%!important;max-width:100%!important}
   .aura-info-grid{grid-template-columns:1fr}
 }
 
+/* V22.17 branching skill tree */
+.skill-tree-v217{padding:18px 8px 8px}
+.skill-tree-root{display:flex;justify-content:center}
+.skill-tree-root .skill-tree-node{width:min(360px,100%)}
+.skill-tree-trunk{width:3px;height:34px;margin:auto;background:linear-gradient(#f1c550,#5e7b52);box-shadow:0 0 12px rgba(213,190,70,.28)}
+.skill-tree-branches{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.skill-tree-branches:before{content:"";position:absolute;left:16.6%;right:16.6%;top:-18px;height:2px;background:#596b58}
+.skill-tree-branch{position:relative;padding-top:12px}
+.skill-tree-branch:before{content:"";position:absolute;left:50%;top:-18px;width:2px;height:30px;background:#596b58}
+.skill-tree-branch>h3{text-align:center;margin:0 0 10px!important;font-size:13px!important;letter-spacing:.08em}
+.skill-tree-node{position:relative;display:grid;grid-template-columns:48px 1fr auto;gap:10px;padding:12px;border:1px solid #34414d;border-radius:13px;background:linear-gradient(145deg,#10161e,#080b10);box-shadow:0 10px 22px rgba(0,0,0,.24)}
+.skill-tree-node.unlocked{border-color:#8a762f}
+.skill-tree-node.maxed{border-color:#44b879;box-shadow:0 0 0 1px rgba(68,184,121,.15),0 10px 22px rgba(0,0,0,.24)}
+.skill-tree-node.locked{opacity:.58;filter:saturate(.45)}
+.skill-tree-icon{display:grid;place-items:center;width:46px;height:46px;border-radius:50%;border:2px solid #8a762f;background:#17140b;font-size:24px;box-shadow:0 0 16px rgba(221,180,55,.12)}
+.skill-tree-copy h3{margin:0 0 3px!important;color:#f2f4f7!important;font-size:13px!important}
+.skill-tree-copy p{min-height:0!important;margin:0 0 5px!important;color:#8f9baa!important;font-size:10px!important}
+.skill-tree-copy strong{display:block;color:#f2ca58;font-size:10px}
+.skill-tree-copy small{display:block;margin-top:5px;color:#ff8f9c;font-size:9px}
+.skill-tree-rank{align-self:start;padding:4px 7px;border-radius:999px;background:#202832;color:#dce2e8;font-size:10px;font-weight:900}
+.skill-tree-node>button{grid-column:1/-1;min-height:31px!important;margin-top:2px;border-color:#b88d2d!important;background:linear-gradient(180deg,#c79b36,#8d651b)!important;color:#120d05!important;font-size:10px!important;font-weight:1000!important}
+.skill-tree-node>button:disabled{border-color:#343d47!important;background:#171d24!important;color:#697583!important}
+.skill-tree-line{width:2px;height:18px;margin:auto;background:linear-gradient(#596b58,#8a762f)}
+.branch-combat>h3{color:#ff7c72!important}.branch-farm>h3{color:#f0c550!important}.branch-pet>h3{color:#a987ff!important}
+@media(max-width:850px){.skill-tree-branches{grid-template-columns:1fr}.skill-tree-branches:before{display:none}.skill-tree-branch:before{display:none}.skill-tree-trunk{height:18px}.skill-tree-branch{padding-top:0}}
+
 /* ================= V17.2 CHARACTER BOTTOM BAR FIX =================
    Aura / Pet / Wave / Paragon stays INSIDE the character panel.
    It no longer stretches across the viewport or follows scrolling.
