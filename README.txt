@@ -41,3 +41,15 @@ BIZTONSÁG:
 - login httpOnly cookie JWT-t használ
 - az admin végpontok szerepkör ellenőrzöttek
 - ez már online mentés, de a játéklogika jelentős része kliensoldali, ezért komoly verseny/ranglista esetén további szerveroldali anti-cheat szükséges
+
+V4 MODERN KARAKTER:
+- Külön látványos saját karakter panel a Farm oldalon.
+- A karakter körül 6 felszerelés slot látszik.
+- A felszerelt weapon/armor/helmet vizuálisan megjelenik.
+- Rare/Epic/Mythic/Legendary tárgyak színes keretet kapnak.
+- Epic/Mythic/Legendary felszerelés automatikus aurát ad.
+- Legendary aura arany, Mythic bíbor, Epic lila.
+- A pet vizuálisan a karakter mellett lebeg.
+- Az aktuális farmterület külön háttérhangulatot ad a karakter panelhez.
+- A játék minden V3 online funkciója megmaradt: account, cloud save, ranglista, adminpanel, PostgreSQL.
+- A megjelenés modern fantasy idle-RPG ihletésű, saját eredeti UI/ikon megoldással.
