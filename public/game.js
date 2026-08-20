@@ -57,10 +57,10 @@ const PET_POOL=[
  {name:"Mini Sárkány",icon:"🐲",bonus:"all",value:.12,rarity:"legendary"}
 ];
 const DUNGEONS=[
- {id:"cave",name:"Kristálybarlang",icon:"💎",need:800,hp:6000,rewardGold:12000,rewardGems:1,tickets:1},
- {id:"demon",name:"Démon erőd",icon:"🔥",need:4500,hp:35000,rewardGold:90000,rewardGems:2,tickets:2},
- {id:"dragon",name:"Sárkányfészek",icon:"🐉",need:18000,hp:180000,rewardGold:500000,rewardGems:4,tickets:3},
- {id:"void",name:"Void Citadella",icon:"🌌",need:65000,hp:850000,rewardGold:2500000,rewardGems:8,tickets:5}
+ {id:"cave",name:"Kristálybarlang",icon:"💎",need:800,hp:6000,rewardGold:12000,rewardGems:1,rewardSoul:3,tickets:1},
+ {id:"demon",name:"Démon erőd",icon:"🔥",need:4500,hp:35000,rewardGold:90000,rewardGems:2,rewardSoul:8,tickets:2},
+ {id:"dragon",name:"Sárkányfészek",icon:"🐉",need:18000,hp:180000,rewardGold:500000,rewardGems:4,rewardSoul:16,tickets:3},
+ {id:"void",name:"Void Citadella",icon:"🌌",need:65000,hp:850000,rewardGold:2500000,rewardGems:8,rewardSoul:30,tickets:5}
 ];
 const DAILY=[
  {id:"dk25",name:"Bemelegítés",desc:"Ölj meg 25 ellenfelet",target:25,type:"kills",reward:{gold:15000}},
@@ -296,7 +296,7 @@ function kill(){
  if(Math.random()<.007+dropBonus()*.05)save.soul++;
  if(Math.random()<.006)save.tickets++;
  if(Math.random()<z.drop+dropBonus())addItem(createItem());
- while(save.xp>=needXp()){save.xp-=needXp();save.level++;if(save.level%5===0){save.skillPoints++;toast(`🌳 Skillpontot kaptál! Lv.${save.level}`)}else toast(`⭐ Szintlépés! Lv.${save.level}`)}
+ while(save.xp>=needXp()){save.xp-=needXp();save.level++;toast(`⭐ Szintlépés! Lv.${save.level}`)}
  save.waveKills++;
  if(save.waveKills>=save.waveGoal){
    save.waveBoss=true;
@@ -388,9 +388,12 @@ function renderCore(){
  renderEquipped();renderBonuses();renderCharacterVisual()
 }
 function renderZones(){
- $("#zones").innerHTML=ZONES.map((z,i)=>{const cap=zoneMobHpCap(i),capped=i===save.zone&&zoneProgressCapped();return `<div class="zone ${i===save.zone?"active":""} ${power()<z.need?"locked":""} ${capped?"zone-farm-capped":""}" data-zone="${i}"><b>${z.icon} ${z.name}</b><small>${z.enemy} · Ajánlott erő: ${fmt(z.need)}</small><small>Drop: ${(z.drop*100).toFixed(0)}%${Number.isFinite(cap)?` · Max HP: ${fmt(cap)}`:" · Korlátlan"}</small>${capped?'<strong class="zone-cap-badge">💰 FARM MÓD · WAVE MEGÁLLÍTVA</strong>':""}</div>`}).join("");
- $$("[data-zone]").forEach(e=>e.onclick=()=>{let i=+e.dataset.zone;if(power()<ZONES[i].need)return toast("🔒 Még nem vagy elég erős.");save.zone=i;save.waveKills=0;save.waveBoss=false;save.bossHp=0;enemyHp=normalEnemyMaxHp();persist();renderAll();toast("🗺️ "+ZONES[i].name)})
+ const best=strongestUnlockedZone();
+ $("#zones").innerHTML=ZONES.map((z,i)=>{const weak=i<best;return `<div class="zone ${i===save.zone?"active":""} ${power()<z.need?"locked":""} ${weak?"zone-too-weak":""}" data-zone="${i}"><b>${z.icon} ${z.name}</b><small>${z.enemy} · Ajánlott erő: ${fmt(z.need)}</small><small>Drop: ${(z.drop*100).toFixed(0)}% · 🌊 Wave haladás</small>${weak?'<strong class="zone-cap-badge">⬆️ TÚL GYENGE TERÜLET NEKED</strong>':""}</div>`}).join("");
+ $$("[data-zone]").forEach(e=>e.onclick=()=>{let i=+e.dataset.zone;if(power()<ZONES[i].need)return toast("🔒 Még nem vagy elég erős.");if(i<strongestUnlockedZone())return toast("⬆️ Túl erős vagy ehhez a területhez. Válaszd a legerősebb megnyitott területet!");save.zone=i;save.waveKills=0;save.waveBoss=false;save.bossHp=0;enemyHp=normalEnemyMaxHp();persist();renderAll();toast("🗺️ "+ZONES[i].name)})
 }
+function strongestUnlockedZone(){let best=0,p=power();ZONES.forEach((z,i)=>{if(p>=Number(z.need||0))best=i});return best}
+function ensurePowerAppropriateZone(){const best=strongestUnlockedZone();if(save.zone<best){save.zone=best;save.waveBoss=false;save.bossHp=0;enemyHp=normalEnemyMaxHp();toast(`🗺️ Automatikus területváltás: ${ZONES[best].name}`);return true}return false}
 function renderBaseUpgrades(){
  $("#baseUpgrades").innerHTML=BASE_UPS.map(d=>`<div class="upgrade-row"><div class="upgrade-icon">${d.icon}</div><div><b>${d.name} · Lv.${save.base[d.key]}</b><small>${d.desc}</small></div><button data-base="${d.key}" ${save.gold<baseCost(d)?"disabled":""}>${fmt(baseCost(d))} 💰</button></div>`).join("");
  $$("[data-base]").forEach(b=>b.onclick=()=>{let d=BASE_UPS.find(x=>x.key===b.dataset.base),c=baseCost(d);if(save.gold<c)return;save.gold-=c;save.base[d.key]++;persist();renderAll();toast("⬆️ "+d.name)})
@@ -499,15 +502,17 @@ function renderUpgrade(){
 function renderSkills(){
  if(save.skillResetNotice){
    save.skillResetNotice=false;
-   setTimeout(()=>{toast("🌳 Az új skillfa elkészült — 5 szintenként kaptál 1 pontot!");persist()},80);
+   setTimeout(()=>{toast("🌳 A skillfa mostantól dungeon lélekkővel fejleszthető!");persist()},80);
  }
- $("#skillPoints").textContent=save.skillPoints;
+ $("#skillPoints").textContent=fmt(save.soul);
  const unlocked=n=>!n.req||skillRank(n.req[0])>=n.req[1];
- const nodeHtml=n=>{const rank=skillRank(n.key),open=unlocked(n),maxed=rank>=n.max,can=open&&!maxed&&save.skillPoints>0,req=n.req?SKILL_TREE.find(x=>x.key===n.req[0]):null;return `<article class="skill-tree-node branch-${n.branch} ${open?"unlocked":"locked"} ${maxed?"maxed":""}"><div class="skill-tree-icon">${open?n.icon:"🔒"}</div><div class="skill-tree-copy"><h3>${n.name}</h3><p>${n.desc}</p><strong>${n.effect}</strong>${!open?`<small>Kell: ${req?.name||"Előfeltétel"} ${n.req[1]}/${req?.max||n.req[1]}</small>`:""}</div><div class="skill-tree-rank">${rank}/${n.max}</div><button data-tree-skill="${n.key}" ${can?"":"disabled"}>${maxed?"MAX":open?"+1 PONT":"ZÁROLVA"}</button></article>`};
+ const depth=n=>{let d=0,x=n;while(x?.req){d++;x=SKILL_TREE.find(y=>y.key===x.req[0])}return d};
+ const soulCost=n=>{const rank=skillRank(n.key),d=depth(n);return 5+d*5+rank*(3+d)};
+ const nodeHtml=n=>{const rank=skillRank(n.key),cost=soulCost(n),open=unlocked(n),maxed=rank>=n.max,can=open&&!maxed&&save.soul>=cost,req=n.req?SKILL_TREE.find(x=>x.key===n.req[0]):null;return `<article class="skill-tree-node branch-${n.branch} ${open?"unlocked":"locked"} ${maxed?"maxed":""}"><div class="skill-tree-icon">${open?n.icon:"🔒"}</div><div class="skill-tree-copy"><h3>${n.name}</h3><p>${n.desc}</p><strong>${n.effect}</strong>${!open?`<small>Kell: ${req?.name||"Előfeltétel"} ${n.req[1]}/${req?.max||n.req[1]}</small>`:""}</div><div class="skill-tree-rank">${rank}/${n.max}</div><button data-tree-skill="${n.key}" ${can?"":"disabled"}>${maxed?"MAX":open?`🔵 ${cost} LÉLEKKŐ`:"ZÁROLVA"}</button></article>`};
  const root=SKILL_TREE.find(n=>n.branch==="root");
  const branch=(key,title)=>`<section class="skill-tree-branch branch-${key}"><h3>${title}</h3>${SKILL_TREE.filter(n=>n.branch===key).map(nodeHtml).join('<div class="skill-tree-line"></div>')}</section>`;
  $("#skills").innerHTML=`<div class="skill-tree-v217"><div class="skill-tree-root">${nodeHtml(root)}</div><div class="skill-tree-trunk"></div><div class="skill-tree-branches">${branch("combat","⚔️ Harci ág")}${branch("farm","💰 Farm ág")}${branch("afk","💤 AFK ág")}${branch("pet","🐾 Pet ág")}</div></div>`;
- $$("[data-tree-skill]").forEach(b=>b.onclick=()=>{const n=SKILL_TREE.find(x=>x.key===b.dataset.treeSkill);if(!n||save.skillPoints<=0||skillRank(n.key)>=n.max||!unlocked(n))return;save.skillPoints--;save.skills[n.key]=skillRank(n.key)+1;persist();renderAll();toast(`🌟 ${n.name}: ${save.skills[n.key]}/${n.max}`)});
+ $$("[data-tree-skill]").forEach(b=>b.onclick=()=>{const n=SKILL_TREE.find(x=>x.key===b.dataset.treeSkill);if(!n||skillRank(n.key)>=n.max||!unlocked(n))return;const cost=soulCost(n);if(save.soul<cost)return toast(`Nincs elég lélekkő. Kell: ${cost}`);save.soul-=cost;save.skills[n.key]=skillRank(n.key)+1;persist();renderAll();toast(`🌟 ${n.name}: ${save.skills[n.key]}/${n.max} · -${cost} lélekkő`)});
 }
 const ECONOMY_DEFAULTS={
  exchange:{gems:{gold:10000000,amount:25},ore:{gold:1000000,amount:10},tickets:{gold:5000000,amount:1}},
@@ -542,14 +547,14 @@ function renderPets(){
 }
 function summonPet(){const cost=economyCfg().petSummonCost;if(save.gems<cost)return toast(`Nincs elég gyémánt. A pet idézés ára ${fmt(cost)} 💎.`);save.gems-=cost;let r=Math.random()*100,p=r<2?PET_POOL[4]:r<8?PET_POOL[3]:r<25?PET_POOL[2]:r<55?PET_POOL[1]:PET_POOL[0];save.pets.push({...p});persist();renderAll();toast(`🐾 ${p.name} érkezett!`)}
 function renderDungeons(){
- $("#dungeons").innerHTML=DUNGEONS.map(d=>`<div class="dungeon-card ${power()<d.need?"locked":""}"><div style="font-size:30px">${d.icon}</div><h3>${d.name}</h3><small>Erő: ${fmt(d.need)} · Jegy: ${d.tickets}</small><p>${fmt(d.rewardGold)} 💰 + ${d.rewardGems} 💎</p><button data-dungeon="${d.id}" ${power()<d.need||save.tickets<d.tickets?"disabled":""}>Belépés</button></div>`).join("");
+ $("#dungeons").innerHTML=DUNGEONS.map(d=>`<div class="dungeon-card ${power()<d.need?"locked":""}"><div style="font-size:30px">${d.icon}</div><h3>${d.name}</h3><small>Erő: ${fmt(d.need)} · Jegy: ${d.tickets}</small><p>${fmt(d.rewardGold)} 💰 + ${d.rewardGems} 💎 + ${d.rewardSoul} 🔵</p><button data-dungeon="${d.id}" ${power()<d.need||save.tickets<d.tickets?"disabled":""}>Belépés</button></div>`).join("");
  $$("[data-dungeon]").forEach(b=>b.onclick=()=>runDungeon(b.dataset.dungeon))
 }
 function runDungeon(id){
  let d=DUNGEONS.find(x=>x.id===id);if(power()<d.need||save.tickets<d.tickets)return;save.tickets-=d.tickets;
  let playerDps=damage()*(1+critChance()),seconds=Math.ceil(d.hp/playerDps);
  $("#dungeonBattle").innerHTML=`<div style="font-size:55px">${d.icon}</div><h3>${d.name}</h3><p>Harc folyamatban... ~${seconds} mp</p>`;
- setTimeout(()=>{save.gold+=d.rewardGold;save.gems+=d.rewardGems;save.stats.goldEarned+=d.rewardGold;save.stats.dungeons++;if(Math.random()<.65)addItem(createItem());persist();renderAll();$("#dungeonBattle").innerHTML=`✅ Győzelem!<br>+${fmt(d.rewardGold)} 💰 · +${d.rewardGems} 💎`;toast("🏰 Dungeon teljesítve!")},Math.min(seconds*1000,12000))
+ setTimeout(()=>{save.gold+=d.rewardGold;save.gems+=d.rewardGems;save.soul+=d.rewardSoul;save.stats.goldEarned+=d.rewardGold;save.stats.dungeons++;if(Math.random()<.65)addItem(createItem());persist();renderAll();$("#dungeonBattle").innerHTML=`✅ Győzelem!<br>+${fmt(d.rewardGold)} 💰 · +${d.rewardGems} 💎 · +${d.rewardSoul} 🔵`;toast("🏰 Dungeon teljesítve!")},Math.min(seconds*1000,12000))
 }
 function dailySnapshot(){return {kills:Number(save.kills||0),goldEarned:Number(save.stats.goldEarned||0),itemsFound:Number(save.stats.itemsFound||0),critHits:Number(save.stats.critHits||0),bosses:Number(save.stats.bosses||0),dungeons:Number(save.stats.dungeons||0),playSeconds:Number(save.stats.playSeconds||0)}}
 function ensureDailyBaseline(){if(!save.dailyBaseline)save.dailyBaseline=dailySnapshot()}
@@ -644,7 +649,7 @@ function renderWave(){
   ["waveNumber",save.wave],
   ["waveKills",save.waveKills],
   ["waveGoal",save.waveGoal],
-  ["waveState",save.waveBoss?"BOSS HARC":zoneProgressCapped()?"FARM MÓD · WAVE STOP":"Normál farm"],
+  ["waveState",save.waveBoss?"BOSS HARC":"Normál farm"],
   ["bossState",save.waveBoss?`${fmt(Math.max(0,enemyHp))} HP`:"Wave végén"]
  ];
  pairs.forEach(([id,val])=>{const el=$("#"+id);if(el)el.textContent=val});
@@ -703,7 +708,7 @@ function doPrestige(){
  const req=paragonWaveRequirement();
  if(save.wave<req)return toast(`🔒 Következő Paragon követelmény: Wave ${req}.`);
 
- if(!confirm(`Paragon újrakezdés?\n\nJelenlegi Paragon: ${save.paragonLevel}\nÚj Paragon: ${save.paragonLevel+1}\nAz új szinten 1 Sebzés Paragon statpont +${(save.paragonLevel+1)*2}% sebzést ad.\nJutalom: 5 új Paragon statpont és +1 Aura token\n\nRESETELŐDIK: karakterszint, XP, wave, normál statok, alap fejlesztések, teljes skillfa, inventory és felszerelés.\nMEGMARAD: kill szám, kiosztott Paragon statok, arany, gyémánt, érc, lélekkő, dungeon token, petek, aurák, achievementek és gyorsítás.`))return;
+ if(!confirm(`Paragon újrakezdés?\n\nJelenlegi Paragon: ${save.paragonLevel}\nÚj Paragon: ${save.paragonLevel+1}\nAz új szinten 1 Sebzés Paragon statpont +${(save.paragonLevel+1)*2}% sebzést ad.\nJutalom: 5 új Paragon statpont és +1 Aura token\n\nRESETELŐDIK: karakterszint, XP, wave, normál statok, alap fejlesztések, teljes skillfa, inventory, felszerelés, arany, gyémánt és érc.\nMEGMARAD: kill szám, kiosztott Paragon statok, lélekkő, dungeon token, petek, aurák, achievementek és gyorsítás.`))return;
 
  save.paragonLevel++;
  save.paragonPoints=5;
@@ -712,6 +717,7 @@ function doPrestige(){
  // A normál karakter újraindul; a vagyon, kill és tartós rendszerek megmaradnak.
  save.level=1;save.xp=0;save.wave=1;save.waveKills=0;save.waveGoal=10;save.waveBoss=false;save.bossHp=0;save.zone=0;
  save.base={weaponTraining:1,armorTraining:1,mining:1,luck:1};
+ save.gold=0;save.gems=0;save.ore=0;
  save.skillPoints=0;save.skills={root:0,power:0,crit:0,boss:0,gold:0,drop:0,afk:0,offline:0,afkCap:0,pet:0,pack:0};
  save.inventory=[];save.equipped={weapon:null,helmet:null,armor:null,gloves:null,boots:null,ring:null};
  save.playerHp=0;save.deaths=0;save.respawnUntil=0;enemyHp=normalEnemyMaxHp();v10EnsurePlayerHp();
@@ -1094,7 +1100,7 @@ if(away>15){
  let z=ZONES[save.zone],eff=Math.min(3.5,.55+skillBonus("offline")),kills=Math.floor(away*damage()/z.hp*eff);
  if(kills>0){let g=Math.floor(kills*z.gold*goldBonus());save.gold+=g;save.stats.goldEarned+=g;save.kills+=kills;save.xp+=kills*z.xp;toast(`🌙 Offline farm: ${fmt(kills)} kill · ${fmt(g)} arany`)}
 }
-while(save.xp>=needXp()){save.xp-=needXp();save.level++;if(save.level%5===0)save.skillPoints++}
+while(save.xp>=needXp()){save.xp-=needXp();save.level++}
 
 async function landingLogin(){
  const username=$("#landingUsername")?.value.trim()||"";
@@ -1159,18 +1165,9 @@ function waveRewardMultiplier(wave){
 }
 function normalEnemyMaxHp(){
   const z=ZONES[save.zone]||ZONES[0];
-  return Math.max(1,Math.min(zoneMobHpCap(save.zone),Math.floor(z.hp*waveHpMultiplier(save.wave))));
-}
-function zoneMobHpCap(index=save.zone){
-  const z=ZONES[index]||ZONES[0];
-  if(index===ZONES.length-1)return Infinity;
-  const builtIn=[100,750,3000,12000,50000,180000,650000,2200000];
-  return Math.max(z.hp,Number(z.maxHp||builtIn[index]||z.hp*8));
-}
-function zoneProgressCapped(){
-  if(save.zone>=ZONES.length-1)return false;
-  const z=ZONES[save.zone]||ZONES[0],raw=Math.max(1,Math.floor(z.hp*waveHpMultiplier(save.wave)));
-  return raw>=zoneMobHpCap(save.zone);
+  const g=window.OMI_CONTENT?.gameplay||{},hits=Math.max(1,Number(g.mobTargetHits||2));
+  const multipliers=Array.isArray(g.zoneHpMultipliers)?g.zoneHpMultipliers:[],zoneMult=Math.max(.1,Number(multipliers[save.zone]??100)/100);
+  return Math.max(1,Math.floor(Math.max(1,damage())*hits*zoneMult));
 }
 function waveKillRequirement(wave){
   wave=Math.max(1,Number(wave||1));
@@ -1310,25 +1307,20 @@ function v161LiveHud(){
  set("#waveNumber",save.wave);
  set("#waveKills",save.waveKills);
  set("#waveGoal",save.waveGoal);
- set("#waveState",save.waveBoss?"👹 BOSS":zoneProgressCapped()?"💰 FARM MÓD · WAVE STOP":"Normál farm");
+ set("#waveState",save.waveBoss?"👹 BOSS":"Normál farm");
  set("#gps",`~${fmt(z.gold*goldBonus()*damage()/Math.max(1,z.hp))} / mp`);
  if($("#charWave"))$("#charWave").textContent=save.wave;
 }
 
 function v10AwardNormalKill(){
+ ensurePowerAppropriateZone();
  const z=ZONES[save.zone],g=Math.floor(z.gold*goldBonus()*waveRewardMultiplier(save.wave));
  save.gold+=g;save.stats.goldEarned+=g;save.xp+=z.xp;save.kills++;
  if(Math.random()<.07+save.base.mining*.005)save.ore++;
  if(Math.random()<.007+dropBonus()*.05)save.soul++;
  if(Math.random()<.006)save.tickets++;
  if(Math.random()<z.drop+dropBonus())addItem(createItem());
- while(save.xp>=needXp()){save.xp-=needXp();save.level++;if(save.level%5===0){save.skillPoints++;toast(`🌳 Skillpontot kaptál! Lv.${save.level}`)}else toast(`⭐ Szintlépés! Lv.${save.level}`)}
-
- if(zoneProgressCapped()){
-   save.waveKills=0;save.waveBoss=false;save.bossHp=0;enemyHp=normalEnemyMaxHp();
-   $("#combatLog").textContent=`💰 ${z.name} elérte a ${fmt(zoneMobHpCap())} HP korlátot. Aranyat és XP-t kapsz, de a wave csak magasabb farmterületen halad tovább.`;
-   v161LiveHud();return;
- }
+ while(save.xp>=needXp()){save.xp-=needXp();save.level++;toast(`⭐ Szintlépés! Lv.${save.level}`)}
 
  save.waveKills++;
  if(save.waveKills>=save.waveGoal){
@@ -1385,6 +1377,7 @@ function v10AwardBossKill(){
 }
 function v10PlayerAttack(){
  if(!v10IsAlive())return;
+ if(!save.waveBoss)ensurePowerAppropriateZone();
  v10EnsurePlayerHp();
  let hit=damage(),crit=Math.random()<critChance();
  if(crit){hit*=2;save.stats.critHits++}
@@ -1573,7 +1566,7 @@ v10AwardBossKill=function(){
  const bossGems=Math.max(0,Math.floor(Number(b.gems||0))),gemChance=Math.max(0,Math.min(100,Number(b.gemDropChance??100)));
  const gemsWon=bossGems>0&&Math.random()*100<gemChance?bossGems:0;
  save.gems+=gemsWon;save.soul+=Number(b.soul||0);save.stats.bosses++;
- while(save.xp>=needXp()){save.xp-=needXp();save.level++;if(save.level%5===0)save.skillPoints++}
+ while(save.xp>=needXp()){save.xp-=needXp();save.level++}
  if(Math.random()<(Number(b.dropChance||80)/100))addItem(createItem());
 
  const oldWave=save.wave;
@@ -3491,7 +3484,7 @@ document.addEventListener("click",e=>{
       ticketCost:1,
       safe:true,
       minWin:1.00,
-      rewards:{gold:[800,1400], ore:[1,3], gems:[0,1], soul:[0,0]},
+      rewards:{gold:[800,1400], ore:[1,3], gems:[0,1], soul:[1,2]},
       desc:"Biztonságos kezdő kazamata. Ha van jegyed, mindig teljesíted. Farmolásra való."
     },
     {
@@ -3507,7 +3500,7 @@ document.addEventListener("click",e=>{
       reqPower:900,
       ticketCost:1,
       safe:false,
-      rewards:{gold:[1800,3200], ore:[3,7], gems:[0,1], soul:[0,1]},
+      rewards:{gold:[1800,3200], ore:[3,7], gems:[0,1], soul:[2,4]},
       desc:"Az első valódi kockázatos kazamata. A kiírt erő csak ajánlott érték, nem garantált siker."
     },
     {
@@ -3523,7 +3516,7 @@ document.addEventListener("click",e=>{
       reqPower:2200,
       ticketCost:1,
       safe:false,
-      rewards:{gold:[3500,6000], ore:[5,10], gems:[0,2], soul:[0,1]},
+      rewards:{gold:[3500,6000], ore:[5,10], gems:[0,2], soul:[3,5]},
       desc:"Gyors, agresszív ellenfelek. Kisebb eséllyel buksz, ha csak épp eléred az ajánlott erőt."
     },
     {
@@ -3539,7 +3532,7 @@ document.addEventListener("click",e=>{
       reqPower:5200,
       ticketCost:2,
       safe:false,
-      rewards:{gold:[7000,12000], ore:[8,14], gems:[1,3], soul:[1,2]},
+      rewards:{gold:[7000,12000], ore:[8,14], gems:[1,3], soul:[5,8]},
       desc:"Komolyabb kihívás, jobb jutalommal."
     },
     {
@@ -3555,7 +3548,7 @@ document.addEventListener("click",e=>{
       reqPower:11000,
       ticketCost:2,
       safe:false,
-      rewards:{gold:[14000,22000], ore:[12,20], gems:[1,4], soul:[1,3]},
+      rewards:{gold:[14000,22000], ore:[12,20], gems:[1,4], soul:[7,12]},
       desc:"Több szintes démon kazamata. Nem minden futás sikeres."
     },
     {
@@ -3571,7 +3564,7 @@ document.addEventListener("click",e=>{
       reqPower:24000,
       ticketCost:3,
       safe:false,
-      rewards:{gold:[28000,45000], ore:[18,30], gems:[2,5], soul:[2,4]},
+      rewards:{gold:[28000,45000], ore:[18,30], gems:[2,5], soul:[10,16]},
       desc:"Sárkányok és elit őrök. A túléléshez már valódi fejlődés kell."
     },
     {
@@ -3587,7 +3580,7 @@ document.addEventListener("click",e=>{
       reqPower:50000,
       ticketCost:3,
       safe:false,
-      rewards:{gold:[55000,85000], ore:[28,42], gems:[3,7], soul:[3,5]},
+      rewards:{gold:[55000,85000], ore:[28,42], gems:[3,7], soul:[14,22]},
       desc:"Endgame előszoba, komoly bukási eséllyel."
     },
     {
@@ -3603,7 +3596,7 @@ document.addEventListener("click",e=>{
       reqPower:100000,
       ticketCost:4,
       safe:false,
-      rewards:{gold:[100000,160000], ore:[40,60], gems:[4,9], soul:[4,7]},
+      rewards:{gold:[100000,160000], ore:[40,60], gems:[4,9], soul:[20,30]},
       desc:"Nagy erőt igénylő kazamata, ritkább nyersanyagokkal."
     },
     {
@@ -3619,7 +3612,7 @@ document.addEventListener("click",e=>{
       reqPower:200000,
       ticketCost:5,
       safe:false,
-      rewards:{gold:[200000,320000], ore:[60,90], gems:[6,12], soul:[6,10]},
+      rewards:{gold:[200000,320000], ore:[60,90], gems:[6,12], soul:[28,42]},
       desc:"Magas szintű végjáték kazamata. Az ajánlott erő felett sem garantált a siker."
     },
     {
@@ -3635,7 +3628,7 @@ document.addEventListener("click",e=>{
       reqPower:400000,
       ticketCost:6,
       safe:false,
-      rewards:{gold:[380000,600000], ore:[85,130], gems:[8,16], soul:[8,14]},
+      rewards:{gold:[380000,600000], ore:[85,130], gems:[8,16], soul:[40,60]},
       desc:"Nagyon nehéz endgame kazamata, nagy jutalommal és komoly kockázattal."
     }
   ];
@@ -3687,6 +3680,7 @@ document.addEventListener("click",e=>{
     s.ore=Number(s.ore||0)+out.ore;
     s.gems=Number(s.gems||0)+out.gems;
     s.soul=Number(s.soul||0)+out.soul;
+    s.stats=s.stats||{};s.stats.goldEarned=Number(s.stats.goldEarned||0)+out.gold;
     return out;
   }
 
@@ -3709,6 +3703,7 @@ document.addEventListener("click",e=>{
     if(win){
       const rw=applyRewards(d);
       s.dungeonStats.wins++;
+      s.stats=s.stats||{};s.stats.dungeons=Number(s.stats.dungeons||0)+1;
       s.dungeonStats.streak++;
       s.dungeonClears[d.id]=Number(s.dungeonClears[d.id]||0)+1;
 
@@ -3772,6 +3767,7 @@ document.addEventListener("click",e=>{
         </div>
         <div class="v218-dungeon-summary">
           <div><small>🎫 Jegy</small><b>${fmt218(s.tickets||0)}</b></div>
+          <div><small>🔵 Lélekkő</small><b>${fmt218(s.soul||0)}</b></div>
           <div><small>⚔️ Erő</small><b>${fmt218(p218())}</b></div>
           <div><small>🏆 Siker</small><b>${stats.wins}</b></div>
           <div><small>💀 Bukás</small><b>${stats.losses}</b></div>
@@ -3984,10 +3980,12 @@ document.addEventListener("click",e=>{
         s.ore=Number(s.ore||0)+out.ore;
         s.gems=Number(s.gems||0)+out.gems;
         s.soul=Number(s.soul||0)+out.soul;
+        s.stats=s.stats||{};s.stats.goldEarned=Number(s.stats.goldEarned||0)+out.gold;
         return out;
       })();
 
       s.dungeonStats.wins++;
+      s.stats=s.stats||{};s.stats.dungeons=Number(s.stats.dungeons||0)+1;
       s.dungeonStats.streak++;
       s.dungeonClears[d.id]=Number(s.dungeonClears[d.id]||0)+1;
 

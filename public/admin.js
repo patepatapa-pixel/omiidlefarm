@@ -70,6 +70,7 @@ function renderBuildersV8(){
  qsa("[data-del]").forEach(b=>b.onclick=async()=>{studioConfig[b.dataset.del].splice(+b.dataset.i,1);await saveConfigV8()});
  fillEconomyAdmin();
  fillDefaultBossGems();
+ fillZoneHpBalance();
 }
 async function saveConfigV8(){await sa("/api/admin/content-config",{method:"POST",body:JSON.stringify({config:studioConfig})});renderBuildersV8()}
 qsa("[data-add]").forEach(btn=>btn.onclick=async()=>{
@@ -107,7 +108,9 @@ const V10_GAMEPLAY_DEFAULTS={
  bossRewardMult:1,
  mobDamageHpPct:2.1,
  bossGemAmount:1,
- bossGemDropChance:100
+ bossGemDropChance:100,
+ mobTargetHits:2,
+ zoneHpMultipliers:[100,100,100,100,100,100,100,100]
 };
 
 function v10GameplayCfg(){
@@ -132,6 +135,18 @@ function fillDefaultBossGems(){
  if(qs("#cfgDefaultBossGems"))qs("#cfgDefaultBossGems").value=g.bossGemAmount;
  if(qs("#cfgDefaultBossGemChance"))qs("#cfgDefaultBossGemChance").value=g.bossGemDropChance;
 }
+const V226_ZONE_NAMES=["Zöld mező","Sötét erdő","Elhagyott bánya","Démon torony","Sárkány-völgy","Mennydörgés fennsík","Üresség","Isteni kapu"];
+function v226ZoneNames(){return [...V226_ZONE_NAMES,...(studioConfig.zones||[]).map(z=>z.name||"Egyedi terület")]}
+function fillZoneHpBalance(){
+ const g=v10GameplayCfg(),multipliers=Array.isArray(g.zoneHpMultipliers)?g.zoneHpMultipliers:[];
+ if(qs("#cfgMobTargetHits"))qs("#cfgMobTargetHits").value=Number(g.mobTargetHits||2);
+ const root=qs("#zoneHpBalanceEditor");if(root)root.innerHTML=v226ZoneNames().map((name,i)=>`<label>${name} HP szorzó %<input data-zone-hp-mult="${i}" type="number" min="10" max="1000" value="${Number(multipliers[i]??100)}"></label>`).join("");
+}
+qs("#saveZoneHpBalance")?.addEventListener("click",async()=>{
+ const g=v10GameplayCfg();g.mobTargetHits=Math.max(1,Number(qs("#cfgMobTargetHits")?.value||2));
+ g.zoneHpMultipliers=v226ZoneNames().map((_,i)=>Math.max(10,Math.min(1000,Number(qs(`[data-zone-hp-mult="${i}"]`)?.value||100))));
+ studioConfig.gameplay=g;await saveConfigV8();fillZoneHpBalance();alert("✅ Farmterületek mob HP beállításai elmentve.");
+});
 qs("#saveDefaultBossGems")?.addEventListener("click",async()=>{
  const g=v10GameplayCfg();
  g.bossGemAmount=Math.max(0,Math.floor(num("#cfgDefaultBossGems")));
@@ -157,7 +172,7 @@ qs("#saveGameplayConfig")?.addEventListener("click",async()=>{
   alert("✅ Játékmenet elmentve.");
  }catch(e){alert("❌ "+e.message)}
 });
-setTimeout(()=>{fillV10Gameplay();fillDefaultBossGems()},1000);
+setTimeout(()=>{fillV10Gameplay();fillDefaultBossGems();fillZoneHpBalance()},1000);
 
 
 // ================= V11 ADMIN SOCIAL / SHOP =================
