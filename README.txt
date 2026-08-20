@@ -148,3 +148,5 @@ V15.6: Full HP respawn; fejleszthető HP regen; max 5 item opt; rarity szerinti 
 V15.8: Javítva a 'Cannot access V10CFG before initialization' belépési hiba. A HP inicializálás csak a combat config betöltése után fut.
 
 V16.1: élő gold/wave/XP kijelzés frissítés nélkül; kezdő mob sebzésvédelem; halálkor azonnali MAX HP + respawn védelem.
+
+V16.2: játékosonként 1x/2x/3x/4x harci és wave sebesség. 4x prémium, 3 EUR, Feltöltés/Discord oldalon megjelenítve; entitlement mentésben speed4Unlocked.

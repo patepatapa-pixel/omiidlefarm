@@ -544,3 +544,147 @@ button.primary:hover,.gold-btn:hover,#prestigeBtn:hover{filter:brightness(1.08);
 body.auth-open .topbar,body.auth-open .nav,body.auth-open main{
  pointer-events:none!important;
 }
+
+/* V15.4 - definitive login click fix */
+.topbar,.top-actions{
+ position:relative!important;
+ z-index:2000000!important;
+ pointer-events:auto!important;
+}
+.top-actions>*{
+ position:relative!important;
+ z-index:2000001!important;
+ pointer-events:auto!important;
+}
+#authBtn{
+ cursor:pointer!important;
+ pointer-events:auto!important;
+ z-index:2000002!important;
+}
+#authModal{
+ z-index:3000000!important;
+ pointer-events:auto!important;
+}
+#authModal.open{
+ display:flex!important;
+}
+
+/* V15.6 item options + HP regen */
+.hp-regen-box{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.hp-regen-box>div{border:1px solid #303a46;border-radius:8px;padding:9px;background:#080c11}
+.hp-regen-box small,.hp-regen-box b{display:block}.hp-regen-box b{font-size:17px;color:#ff6b78;margin-top:3px}
+#hpRegenUpgradeBtn{width:100%;margin-bottom:7px}
+.item-option-help{margin-top:12px;border-color:#7c4195!important}
+.option-glossary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.opt-help-row{display:grid;grid-template-columns:1fr auto;gap:4px;padding:9px;border:1px solid #303743;border-radius:9px;background:#080b10}
+.opt-help-row b{color:#e8b84b}.opt-help-row span{color:#bd81ff;font-size:10px}.opt-help-row small{grid-column:1/-1;color:#9ba4ad;line-height:1.35}
+.item-options{display:grid;gap:5px;margin:9px 0;padding:8px;border:1px solid #2e3540;border-radius:8px;background:#06090d}
+.item-opt-line{display:grid;gap:2px}.item-opt-line b{font-size:11px;color:#e7bd58}.item-opt-line small{font-size:9px;color:#8f99a4}
+.inventory-item.rarity-legendary{border-color:#e4aa29!important;box-shadow:0 0 20px #e4aa2937}
+.inventory-item.rarity-mythic{border-color:#ed477a!important;box-shadow:0 0 18px #ed477a36}
+.inventory-item.rarity-epic{border-color:#b83ae8!important}.inventory-item.rarity-rare{border-color:#218fd9!important}
+@media(max-width:800px){.option-glossary{grid-template-columns:1fr}}
+
+/* V15.7 definitive auth + interaction repair */
+.topbar,.top-actions,.nav{
+ position:relative!important;
+ z-index:2000000!important;
+ pointer-events:auto!important;
+}
+.topbar *, .top-actions *, .nav *{
+ pointer-events:auto!important;
+}
+#authBtn{
+ position:relative!important;
+ z-index:2000002!important;
+ pointer-events:auto!important;
+ cursor:pointer!important;
+}
+#authModal{
+ position:fixed!important;
+ inset:0!important;
+ z-index:4000000!important;
+ pointer-events:none!important;
+}
+#authModal.open{
+ display:flex!important;
+ pointer-events:auto!important;
+}
+#authModal.open *{
+ pointer-events:auto!important;
+}
+.v15-approved-art,.v15-approved-art:after,
+.hero-equip-layer,.hero-equipped-label,
+.dark-stage-sigil,.dark-stage-smoke,.dark-stage-embers{
+ pointer-events:none!important;
+}
+
+/* ================= V16 LOGIN GATE ================= */
+body.is-guest #gameShell{display:none!important}
+body.is-guest nav.tabs{display:none!important}
+body.is-guest #leaderboardBtn,
+body.is-guest #adminPanelBtn,
+body.is-guest #exportBtn,
+body.is-guest #importBtn{display:none!important}
+body.is-authenticated #guestLanding{display:none!important}
+
+.guest-landing{
+ max-width:1180px;margin:46px auto;padding:0 18px 50px;
+}
+.guest-hero{
+ display:grid;grid-template-columns:minmax(0,1.45fr) 390px;gap:22px;align-items:stretch;
+}
+.guest-copy,.guest-login-card,.guest-info-grid>div{
+ background:linear-gradient(145deg,#0b1017,#05070a);
+ border:1px solid #303c49;border-radius:16px;
+ box-shadow:0 22px 55px #0008,inset 0 1px #ffffff08;
+}
+.guest-copy{
+ padding:38px;border-color:#9c6c20;
+ background:
+ radial-gradient(circle at 85% 20%,rgba(115,37,160,.22),transparent 30%),
+ linear-gradient(145deg,#0b1017,#05070a);
+}
+.guest-copy h1{font-size:36px;line-height:1.08;margin:12px 0 15px;max-width:760px}
+.guest-copy p{color:#a9b3be;line-height:1.65;max-width:720px}
+.guest-features{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+.guest-features span{padding:8px 10px;border:1px solid #37414d;border-radius:999px;background:#070b10;color:#e1e6eb;font-size:11px}
+.guest-login-card{padding:28px;border-color:#bd8426;text-align:center}
+.guest-login-logo{font-size:58px;filter:drop-shadow(0 0 15px #a67b25)}
+.guest-login-card h2{margin:5px 0}.guest-login-card p{color:#9da7b1}
+.guest-login-card input{
+ width:100%;box-sizing:border-box;margin:6px 0;padding:13px 12px;border-radius:9px;
+ background:#06090d;color:#f4f4f4;border:1px solid #34404c;outline:none;
+}
+.guest-login-card input:focus{border-color:#d6a13a;box-shadow:0 0 0 2px #d6a13a22}
+.landing-primary,.landing-secondary{width:100%;margin-top:8px;padding:12px!important;font-weight:1000}
+.landing-primary{background:linear-gradient(#f2c75a,#dca537)!important;color:#080808!important;border-color:#ffd86b!important}
+.landing-secondary{background:#0b1016!important;color:#c9d1d9!important;border:1px solid #394553!important}
+#landingMsg{min-height:22px;margin:9px 0;font-size:11px}
+.landing-error{color:#ff6976}.landing-ok{color:#65db91}
+.guest-login-card>small{display:block;color:#7f8994;line-height:1.45}
+.guest-info-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+.guest-info-grid>div{padding:16px}.guest-info-grid b,.guest-info-grid span{display:block}
+.guest-info-grid b{color:#efbd4f;margin-bottom:7px}.guest-info-grid span{font-size:11px;color:#949faa;line-height:1.5}
+.auth-locked{display:none!important}
+@media(max-width:900px){
+ .guest-hero{grid-template-columns:1fr}.guest-info-grid{grid-template-columns:1fr 1fr}
+ .guest-copy h1{font-size:29px}
+}
+@media(max-width:550px){.guest-info-grid{grid-template-columns:1fr}.guest-copy{padding:24px}}
+
+/* V16.2 combat speed */
+.combat-speed-panel{margin:10px 0;padding:10px;border:1px solid #39434e;border-radius:10px;background:#080c11}
+.combat-speed-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.combat-speed-head small{color:#e9bd54}
+.combat-speed-buttons{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.combat-speed-btn{padding:9px!important;font-weight:900}
+.combat-speed-btn.active{border-color:#f0c251!important;box-shadow:0 0 0 1px #f0c25155,0 0 18px #f0c25120}
+.combat-speed-btn.locked{opacity:.72;border-color:#a55de0!important}
+.speed-note{display:block;margin-top:7px;color:#8d98a3}
+.premium-speed-card{display:grid;grid-template-columns:90px 1fr;gap:18px;align-items:center;border-color:#a85be8!important;background:radial-gradient(circle at 10% 30%,#68228d33,transparent 30%),#080b10!important}
+.premium-speed-icon{font-size:62px;text-align:center;filter:drop-shadow(0 0 16px #9f52e8)}
+.premium-speed-card h2{margin:3px 0 6px}.premium-speed-card p{color:#a6afb8}
+.premium-price{display:inline-block;font-size:28px;font-weight:1000;color:#f1c552;margin:6px 12px 6px 0}
+#speed4PurchaseState{display:inline-block;color:#c28cf0;font-weight:800}
+.premium-speed-card small{display:block;color:#929da8;margin-top:8px}
