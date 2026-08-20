@@ -231,3 +231,9 @@ V20.2
 - Csak admin jogosultságú felhasználónak jelenik meg.
 - OmiAdmin továbbra is adminnak számít.
 - A többi karakter/inventory funkcióhoz nem nyúltunk.
+
+V20.3
+- A Felszerelés kezelés panel jobbra került.
+- Nagyobb fix rés van a Saját karakter és a Felszerelés kezelés között.
+- A két panel nem fedheti egymást.
+- Keskeny kijelzőn a Felszerelés kezelés automatikusan a karakter alá kerül.

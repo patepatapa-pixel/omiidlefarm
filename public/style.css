@@ -1867,3 +1867,59 @@ body:not(.v200-character-tab) .v200-character-only{
 body.v202-is-admin .admin-studio-only-v202{
   display:block!important;
 }
+
+/* ================= V20.3 EQUIPMENT PANEL POSITION =================
+   Több hely a Saját karakter és a Felszerelés kezelés között.
+   A jobb oldali panel nem lóghat bele a karakter kártyába.
+*/
+#page-character .v200-character-inventory-layout{
+  grid-template-columns:minmax(520px, 620px) minmax(460px, 1fr)!important;
+  column-gap:28px!important;
+  gap:28px!important;
+  align-items:start!important;
+  justify-content:center!important;
+  overflow:visible!important;
+}
+
+#page-character .v200-character-left{
+  position:relative!important;
+  z-index:1!important;
+  min-width:0!important;
+}
+
+#page-character .v200-inventory-right{
+  position:relative!important;
+  z-index:2!important;
+  min-width:460px!important;
+  width:100%!important;
+  margin-left:0!important;
+  transform:none!important;
+}
+
+#page-character .v200-inventory-right .inventory-tools-v163,
+#page-character .v200-inventory-right .card{
+  width:100%!important;
+  max-width:none!important;
+  box-sizing:border-box!important;
+  margin-left:0!important;
+}
+
+/* 80%-os böngésző zoom / széles képernyő */
+@media(min-width:1200px){
+  #page-character .v200-character-inventory-layout{
+    width:min(1320px, calc(100vw - 48px))!important;
+  }
+}
+
+/* Keskenyebb képernyőn inkább kerüljön alá, soha ne fedje a karaktert */
+@media(max-width:1100px){
+  #page-character .v200-character-inventory-layout{
+    grid-template-columns:1fr!important;
+    width:min(760px,calc(100vw - 20px))!important;
+    gap:14px!important;
+  }
+  #page-character .v200-inventory-right{
+    min-width:0!important;
+    width:100%!important;
+  }
+}
