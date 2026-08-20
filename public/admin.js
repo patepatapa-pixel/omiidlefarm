@@ -51,9 +51,30 @@ const schemas={
  auras:[["id","ID"],["name","Név"],["className","CSS class"],["prestigeNeed","Prestige kell","number"],["cost","Aura token ár","number"]],
  zones:[["id","ID"],["name","Név"],["icon","Ikon"],["enemy","Szörny neve"],["hp","Szörny HP","number"],["gold","Arany / kill","number"],["xp","XP / kill","number"],["need","Ajánlott erő","number"],["dropChance","Tárgy drop %","number"]]
 };
-function renderBuildersV8(){Object.entries(schemas).forEach(([type,fields])=>{let base=type.slice(0,-1),b=qs("#"+base+"Builder"),l=qs("#"+base+"List");b.innerHTML=`<div class="builder-form">${fields.map(([k,n,t="text"])=>`<label>${n}<input data-field="${k}" type="${t}"></label>`).join("")}</div>`;l.innerHTML=(studioConfig[type]||[]).map((x,i)=>`<div class="builder-entry"><b>${x.icon||"•"} ${x.name}</b><small>${Object.entries(x).map(([k,v])=>`${k}: ${v}`).join(" · ")}</small><button data-del="${type}" data-i="${i}">Törlés</button></div>`).join("")});qs("#contentJson").value=JSON.stringify(studioConfig,null,2);qsa("[data-del]").forEach(b=>b.onclick=async()=>{studioConfig[b.dataset.del].splice(+b.dataset.i,1);await saveConfigV8()})}
+const builderBase={bosses:"boss",items:"item",pets:"pet",auras:"aura",zones:"zone"};
+function renderBuildersV8(){
+ Object.entries(schemas).forEach(([type,fields])=>{
+  const base=builderBase[type],b=qs("#"+base+"Builder"),l=qs("#"+base+"List");
+  if(!b||!l)return;
+  b.innerHTML=`<div class="builder-form">${fields.map(([k,n,t="text"])=>`<label>${n}<input data-field="${k}" type="${t}" placeholder="${n}"></label>`).join("")}</div>`;
+  l.innerHTML=(studioConfig[type]||[]).map((x,i)=>`<div class="builder-entry"><b>${x.icon||"•"} ${x.name||"(névtelen)"}</b><small>${Object.entries(x).map(([k,v])=>`${k}: ${v}`).join(" · ")}</small><button data-del="${type}" data-i="${i}">Törlés</button></div>`).join("");
+ });
+ if(qs("#contentJson"))qs("#contentJson").value=JSON.stringify(studioConfig,null,2);
+ qsa("[data-del]").forEach(b=>b.onclick=async()=>{studioConfig[b.dataset.del].splice(+b.dataset.i,1);await saveConfigV8()});
+}
 async function saveConfigV8(){await sa("/api/admin/content-config",{method:"POST",body:JSON.stringify({config:studioConfig})});renderBuildersV8()}
-qsa("[data-add]").forEach(btn=>btn.onclick=async()=>{let type=btn.dataset.add,base=type.slice(0,-1),o={};qs("#"+base+"Builder").querySelectorAll("[data-field]").forEach(i=>o[i.dataset.field]=i.type==="number"?Number(i.value||0):i.value);if(!o.name)return alert("Adj nevet!");studioConfig[type].push(o);await saveConfigV8();alert("✅ Létrehozva")});
+qsa("[data-add]").forEach(btn=>btn.onclick=async()=>{
+ let type=btn.dataset.add,base=builderBase[type],o={},wrap=qs("#"+base+"Builder");
+ if(!wrap)return alert("A szerkesztő mezői nem töltődtek be. Frissítsd az oldalt.");
+ wrap.querySelectorAll("[data-field]").forEach(i=>o[i.dataset.field]=i.type==="number"?Number(i.value||0):i.value.trim());
+ if(!o.name)return alert("Adj nevet!");
+ if(!o.id)o.id=base+"_"+Date.now();
+ studioConfig[type]=studioConfig[type]||[];
+ studioConfig[type].push(o);
+ await saveConfigV8();
+ wrap.querySelectorAll("[data-field]").forEach(i=>i.value="");
+ alert("✅ Létrehozva: "+o.name);
+});
 qs("#saveContentJson")?.addEventListener("click",async()=>{try{studioConfig=JSON.parse(qs("#contentJson").value);await saveConfigV8();alert("✅ Mentve")}catch(e){alert("❌ Hibás JSON")}});
 loadStudioV8();
 
@@ -161,3 +182,52 @@ async function loadShopRequests(){
 }
 qs("#refreshShopRequests")?.addEventListener("click",loadShopRequests);
 setTimeout(()=>{fillPvpAdmin();renderShopAdmin();loadShopRequests();fillV11PlayerMeta()},1300);
+
+
+// ================= V11.2 JÁTÉKOS TÖRLÉS =================
+async function deletePlayerV112(id,name){
+ if(!id)return;
+ const p=(typeof playersFull!=="undefined"?playersFull:[]).find(x=>Number(x.id)===Number(id));
+ if(p?.role==="admin")return alert("Az adminfiók nem törölhető.");
+ const shown=name||p?.player_name||p?.username||("ID "+id);
+ if(!confirm(`⚠️ Biztosan VÉGLEG törlöd ezt a játékost?\n\n${shown}\n\nA fiók és a hozzá tartozó játékmentés is törlődik.`))return;
+ if(!confirm(`UTOLSÓ MEGERŐSÍTÉS\n\n${shown} törlése nem vonható vissza. Folytatod?`))return;
+ try{
+   const d=await sa(`/api/admin/player/${id}`,{method:"DELETE"});
+   alert("✅ "+(d.message||"Játékos törölve."));
+   if(typeof selectedPlayerId!=="undefined" && Number(selectedPlayerId)===Number(id))selectedPlayerId=null;
+   if(typeof loadPlayers==="function")await loadPlayers();
+   else if(typeof loadPlayersFull==="function")await loadPlayersFull();
+   setTimeout(enhancePlayerDeleteButtonsV112,100);
+ }catch(e){alert("❌ "+e.message)}
+}
+function enhancePlayerDeleteButtonsV112(){
+ const rows=qsa("#playersTable tbody tr, #playerTable tbody tr, .players-table tbody tr");
+ const data=(typeof playersFull!=="undefined"?playersFull:[]);
+ rows.forEach((tr,idx)=>{
+   if(tr.querySelector(".delete-player-v112"))return;
+   const txt=tr.textContent||"";
+   const p=data.find(x=>txt.includes(x.player_name||x.username)) || data[idx];
+   if(!p || p.role==="admin" || /OmiAdmin/i.test(txt))return;
+   const td=document.createElement("td");
+   const b=document.createElement("button");
+   b.className="danger delete-player-v112";
+   b.textContent="🗑️ Törlés";
+   b.title="Játékos és teljes mentés törlése";
+   b.onclick=(e)=>{e.stopPropagation();deletePlayerV112(p.id,p.player_name||p.username)};
+   td.appendChild(b);tr.appendChild(td);
+ });
+ // Fallback for card/list based player rows
+ qsa("[data-player-id]").forEach(el=>{
+   if(el.querySelector(".delete-player-v112"))return;
+   const id=Number(el.dataset.playerId),p=data.find(x=>Number(x.id)===id);
+   if(!p||p.role==="admin")return;
+   const b=document.createElement("button");b.className="danger delete-player-v112";b.textContent="🗑️ Törlés";
+   b.onclick=(e)=>{e.stopPropagation();deletePlayerV112(id,p.player_name||p.username)};
+   el.appendChild(b);
+ });
+}
+document.addEventListener("click",e=>{
+ if(e.target.closest("#refreshPlayers, #playersRefresh, [data-studio='players']"))setTimeout(enhancePlayerDeleteButtonsV112,250);
+});
+setInterval(enhancePlayerDeleteButtonsV112,1200);

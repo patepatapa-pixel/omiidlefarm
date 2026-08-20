@@ -115,3 +115,5 @@ V11 SOCIAL / PVP / SHOP / CONTENT
 - Tárgy készítő: név, slot, rarity, ATK, DEF, arany/krit/drop bónusz.
 - Pet, aura és terület készítő bővítve.
 - Adminból létrehozott egyedi területek/petek/aurák/tárgyak/bossok játék közben betöltődnek.
+
+V11.2: Admin Játékosok listájából normál játékos végleg törölhető kétlépcsős megerősítéssel. Adminfiók nem törölhető innen.

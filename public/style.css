@@ -277,3 +277,6 @@ a{text-decoration:none}
 .shop-warning{padding:12px;border:1px solid #6c5320;border-radius:10px;background:#171205;color:#d9c692;margin-bottom:12px}.store-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.store-product{border:1px solid #343943;border-radius:12px;padding:13px;background:#090b0e}.store-product h3{margin:7px 0}.store-product strong{display:block;color:#efc450;font-size:18px;margin:10px 0}.store-product button{width:100%}.store-icon{font-size:32px}.discord-card{text-align:center}.discord-logo{font-size:58px}.discord-card strong{font-size:28px;color:#8c8cff}
 .register-only{border-color:#6f5724!important}
 @media(max-width:700px){.pvp-player-card{grid-template-columns:55px 1fr}.pvp-player-card button{grid-column:1/-1}.store-grid{grid-template-columns:1fr}.pvp-stage{grid-template-columns:1fr}.versus{padding:4px}}
+
+.delete-player-v112,.danger{border-color:#74313b!important;background:#2a0e13!important;color:#ff9ba8!important}
+.delete-player-v112:hover,.danger:hover{background:#48151e!important;color:#fff!important}
