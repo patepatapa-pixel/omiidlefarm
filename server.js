@@ -57,6 +57,14 @@ function admin(req,res,next){
   if(req.user.role!=="admin")return res.status(403).json({error:"Admin jogosultság szükséges."});
   next();
 }
+function deepMergeSave(target,patch){
+  const out={...(target||{})};
+  for(const [key,value] of Object.entries(patch||{})){
+    if(value && typeof value==="object" && !Array.isArray(value))out[key]=deepMergeSave(out[key],value);
+    else out[key]=value;
+  }
+  return out;
+}
 
 async function init(){
   await q(`
@@ -85,6 +93,11 @@ async function init(){
       target_user_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
       action TEXT NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE TABLE IF NOT EXISTS admin_pending_overrides(
+      user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      patch JSONB NOT NULL DEFAULT '{}'::jsonb,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
     CREATE TABLE IF NOT EXISTS pvp_fights(
       id BIGSERIAL PRIMARY KEY,
@@ -147,7 +160,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.12.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.13.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{
@@ -351,9 +364,12 @@ app.get("/api/me",auth,async(req,res)=>{
 
 app.post("/api/save",auth,async(req,res)=>{
   try{
-    const data=req.body.save;
+    let data=req.body.save;
     const power=Math.max(0,Math.floor(Number(req.body.power||0)));
     if(!data || typeof data!=="object")return res.status(400).json({error:"Hibás mentés."});
+    const pending=(await q("SELECT patch FROM admin_pending_overrides WHERE user_id=$1",[req.user.id])).rows[0];
+    const overrideApplied=Boolean(pending?.patch && Object.keys(pending.patch).length);
+    if(overrideApplied)data=deepMergeSave(data,pending.patch);
     const level=Math.max(1,Math.floor(Number(data.level||1)));
     const kills=Math.max(0,Math.floor(Number(data.kills||0)));
     const gold=Math.max(0,Math.floor(Number(data.gold||0)));
@@ -370,7 +386,8 @@ app.post("/api/save",auth,async(req,res)=>{
         kills=EXCLUDED.kills,gold=EXCLUDED.gold,updated_at=NOW()
     `,[req.user.id,data,power,level,kills,gold]);
     await q("UPDATE users SET last_save_at=NOW() WHERE id=$1",[req.user.id]);
-    res.json({ok:true});
+    if(overrideApplied)await q("DELETE FROM admin_pending_overrides WHERE user_id=$1",[req.user.id]);
+    res.json({ok:true,save:data,overrideApplied});
   }catch(e){console.error(e);res.status(500).json({error:"A mentés nem sikerült."})}
 });
 
@@ -435,6 +452,10 @@ app.post("/api/admin/player/:id/grant",auth,admin,async(req,res)=>{
   const s=g.save_data||{};
   s[type]=Math.max(0,Number(s[type]||0)+amount);
   await q("UPDATE game_saves SET save_data=$1,gold=$2,updated_at=NOW() WHERE user_id=$3",[s,Math.floor(Number(s.gold||0)),req.params.id]);
+  await q(`
+    INSERT INTO admin_pending_overrides(user_id,patch,updated_at) VALUES($1,$2,NOW())
+    ON CONFLICT(user_id) DO UPDATE SET patch=admin_pending_overrides.patch || EXCLUDED.patch,updated_at=NOW()
+  `,[req.params.id,{[type]:s[type]}]);
   await q("INSERT INTO admin_logs(admin_id,target_user_id,action) VALUES($1,$2,$3)",[req.user.id,req.params.id,`GRANT_${type}_${amount}`]);
   res.json({ok:true});
 });
@@ -724,6 +745,17 @@ app.post("/api/admin/player/:id/state",auth,admin,async(req,res)=>{
       "UPDATE game_saves SET save_data=$1,level=$2,kills=$3,gold=$4,updated_at=NOW() WHERE user_id=$5",
       [s,Math.floor(Number(s.level||1)),Math.floor(Number(s.kills||0)),Math.floor(Number(s.gold||0)),id]
     );
+    const overridePatch={
+      gold:s.gold,gems:s.gems,ore:s.ore,soul:s.soul,tickets:s.tickets,
+      level:s.level,xp:s.xp,wave:s.wave,paragonLevel:s.paragonLevel,prestigeLevel:s.prestigeLevel,
+      paragonStatPoints:s.paragonStatPoints,auraTokens:s.auraTokens,skillPoints:s.skillPoints,
+      hpRegenLevel:s.hpRegenLevel,kills:s.kills,deaths:s.deaths,base:s.base,skills:s.skills,
+      speed10Unlocked:s.speed10Unlocked,combatSpeed:s.combatSpeed
+    };
+    await q(`
+      INSERT INTO admin_pending_overrides(user_id,patch,updated_at) VALUES($1,$2,NOW())
+      ON CONFLICT(user_id) DO UPDATE SET patch=admin_pending_overrides.patch || EXCLUDED.patch,updated_at=NOW()
+    `,[id,overridePatch]);
     await q("INSERT INTO admin_logs(admin_id,target_user_id,action) VALUES($1,$2,$3)",
       [req.user.id,id,"FULL_PLAYER_EDIT"]).catch(()=>{});
 

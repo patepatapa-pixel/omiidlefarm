@@ -910,7 +910,13 @@ async function cloudSave(){
  savingCloud=true;
  try{
    save.last=Date.now();
-   await api("/api/save",{method:"POST",body:JSON.stringify({save,power:power()})});
+   const d=await api("/api/save",{method:"POST",body:JSON.stringify({save,power:power()})});
+   if(d.overrideApplied&&d.save){
+     save=normalizeV6Save(d.save);
+     localStorage.setItem("omiIdleComplete",JSON.stringify(save));
+     renderAll();
+     toast("🎁 Admin jutalom / módosítás megérkezett!");
+   }
    $("#saveState").textContent="☁️ Felhőbe mentve";
  }catch(e){
    $("#saveState").textContent="⚠️ Mentési hiba";
