@@ -10,7 +10,7 @@
 <header class="topbar">
   <div class="brand"><span>⚔️ OMI</span> IDLE FARM <em>COMPLETE</em></div>
   <div class="top-actions">
-    <span class="build-version" id="buildVersionBadge">V16.9</span><span id="onlineUser">👤 Vendég</span>
+    <span class="build-version" id="buildVersionBadge">V17.0</span><span id="onlineUser">👤 Vendég</span>
     <button class="ghost" id="leaderboardBtn">🏆 Ranglista</button>
     <button class="ghost admin-only-btn" id="adminPanelBtn" style="display:none">⚙️ Adminpanel</button><button class="ghost" id="authBtn">Belépés</button>
     <span id="saveState">💾 Mentve</span>
@@ -136,6 +136,19 @@
     </section>
 
     <aside class="v15-right">
+      <section class="card v15-sidebox v17-quick-stats">
+        <h3>📊 Karakter státusz</h3>
+        <div class="v17-stat-grid" id="v17QuickStats">
+          <div><small>💪 Erő</small><b id="v17Power">0</b></div>
+          <div><small>⚔️ Sebzés</small><b id="v17Damage">0</b></div>
+          <div><small>❤️ HP</small><b id="v17HP">0 / 0</b></div>
+          <div><small>🛡️ Védelem</small><b id="v17Defense">0</b></div>
+          <div><small>🍀 Szerencse</small><b id="v17Luck">0</b></div>
+          <div><small>🎯 Krit</small><b id="v17Crit">0%</b></div>
+          <div><small>🎁 Drop</small><b id="v17Drop">0%</b></div>
+          <div><small>🌊 Wave</small><b id="v17Wave">1</b></div>
+        </div>
+      </section>
       <section class="card v15-sidebox">
         <h3>👑 Paragon / Prestige</h3>
         <div class="v15-four">

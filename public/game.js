@@ -761,6 +761,20 @@ function renderDynamicEquipment(){
    : "Nincs felszerelt tárgy";
 }
 
+
+function renderV17QuickStats(){
+ const set=(id,val)=>{const e=$("#"+id);if(e)e.textContent=val};
+ set("v17Power",fmt(power()));
+ set("v17Damage",fmt(damage()));
+ const maxHp=(typeof v10MaxHp==="function")?v10MaxHp():0;
+ set("v17HP",`${fmt(save.playerHp||0)} / ${fmt(maxHp)}`);
+ set("v17Defense",(typeof v10Defense==="function")?fmt(v10Defense()):"0");
+ set("v17Luck",fmt(save.base?.luck||0));
+ set("v17Crit",(critChance()*100).toFixed(1)+"%");
+ set("v17Drop",(dropBonus()*100).toFixed(1)+"%");
+ set("v17Wave",save.wave||1);
+}
+
 function renderAll(){
  renderCore();
  renderV15ExactCharacter();
@@ -778,7 +792,7 @@ function renderAll(){
  renderQuests();
  renderStats();
  renderCharacterAttributes();
-;renderHpRegenAndOptions();renderCombatSpeed();renderDynamicEquipment();}
+;renderHpRegenAndOptions();renderCombatSpeed();renderDynamicEquipment();renderV17QuickStats();}
 $("#bossBtn").onclick=()=>toast("👹 A boss automatikusan jön minden wave végén.");
 $("#petSummon").onclick=summonPet;
 $("#sellNormal").onclick=()=>{let equipped=new Set(Object.values(save.equipped));let sold=0;save.inventory=save.inventory.filter(it=>{if(it.rarity==="normal"&&!equipped.has(it.id)){save.gold+=sellValue(it);sold++;return false}return true});persist();renderAll();toast(`${sold} normál tárgy eladva`)};

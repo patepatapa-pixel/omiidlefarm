@@ -283,7 +283,7 @@ a{text-decoration:none}
 
 /* V11.3 - darker adult fantasy character */
 .dark-warrior-svg{width:100%;height:100%;overflow:visible;filter:drop-shadow(0 18px 22px #000)}
-.v5-hero{width:300px!important;height:445px!important;top:47%!important}
+.v5-hero{width:230px!important;height:480px!important;top:47%!important}
 .v5-character-scene{background:radial-gradient(circle at 50% 36%,rgba(85,28,113,.25),transparent 28%),radial-gradient(circle at 50% 60%,rgba(173,102,22,.12),transparent 40%),linear-gradient(180deg,#0c0b0e,#030304 75%)!important}
 .admin-player-row{grid-template-columns:60px 1fr repeat(3,minmax(90px,.6fr)) 110px!important}
 .delete-player-direct{background:#351016!important;border:1px solid #8d2938!important;color:#ff9ca8!important;padding:7px 10px!important;border-radius:8px!important;font-weight:900!important}
@@ -977,3 +977,178 @@ nav.tabs,
 .tabs::before,.tabs::after{
   position:static!important;
 }
+
+/* ================= V17 LAYOUT FIX =================
+   Readable at normal 100% browser zoom.
+   Character center, compact stats beside it, no giant page width.
+*/
+.page{
+  width:min(1480px,calc(100vw - 28px))!important;
+  max-width:1480px!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+}
+
+.v15-main-grid{
+  display:grid!important;
+  grid-template-columns:minmax(250px,300px) minmax(520px,650px) minmax(285px,340px)!important;
+  gap:14px!important;
+  align-items:start!important;
+  width:100%!important;
+  max-width:1320px!important;
+  margin:0 auto!important;
+}
+
+.v15-left{
+  width:auto!important;
+  min-width:0!important;
+  position:static!important;
+}
+.v15-character{
+  width:auto!important;
+  min-width:0!important;
+}
+.v15-right{
+  width:auto!important;
+  min-width:0!important;
+  position:static!important;
+  display:grid!important;
+  gap:10px!important;
+}
+
+.v15-character-stage{
+  width:100%!important;
+  min-height:660px!important;
+  height:660px!important;
+}
+
+.v168-character-system,
+.v166-character-art{
+  border-radius:11px!important;
+}
+
+/* Make character stats compact and place them right below the character,
+   instead of stretching across the whole browser width. */
+.v15-attributes,
+.character-attributes{
+  width:min(1320px,100%)!important;
+  max-width:1320px!important;
+  margin:14px auto 0!important;
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:8px!important;
+}
+
+.char-attr{
+  min-width:0!important;
+  padding:10px 12px!important;
+  border-radius:9px!important;
+}
+.char-attr span{
+  font-size:10px!important;
+}
+.char-attr b{
+  font-size:14px!important;
+}
+
+/* Option explanation panel should also stay centered/compact */
+.item-option-help{
+  width:min(1320px,100%)!important;
+  max-width:1320px!important;
+  margin:12px auto 0!important;
+}
+.option-glossary{
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+}
+
+/* Side widgets smaller and denser */
+.v15-sidebox{
+  padding:11px!important;
+}
+.v15-sidebox h3{
+  font-size:13px!important;
+  margin-bottom:8px!important;
+}
+.v15-four{
+  gap:6px!important;
+}
+.v15-four>div{
+  padding:8px!important;
+}
+
+/* Left player/admin preview compact */
+.v15-left{
+  padding:11px!important;
+}
+.v15-player-head,
+.v15-player-preview>div{
+  grid-template-columns:26px 1fr 42px 64px 60px 45px!important;
+  gap:5px!important;
+  font-size:9px!important;
+}
+
+/* Header cards should not exceed the playable content width */
+.page>.hero-card,
+.page>.resource-grid,
+#page-character>.hero-card,
+#page-character>.resource-grid{
+  width:min(1320px,100%)!important;
+  max-width:1320px!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+}
+
+/* Desktop normal zoom */
+@media (min-width:1181px){
+  #page-character{
+    padding-left:8px!important;
+    padding-right:8px!important;
+  }
+}
+
+/* Medium desktop/laptop: character + right stats, admin block below */
+@media (max-width:1180px) and (min-width:851px){
+  .v15-main-grid{
+    grid-template-columns:minmax(500px,1.4fr) minmax(290px,.8fr)!important;
+    max-width:980px!important;
+  }
+  .v15-character{grid-column:1;grid-row:1}
+  .v15-right{grid-column:2;grid-row:1}
+  .v15-left{grid-column:1/-1;grid-row:2}
+  .v15-character-stage{height:640px!important;min-height:640px!important}
+  .v15-attributes,.character-attributes{grid-template-columns:repeat(3,minmax(0,1fr))!important;max-width:980px!important}
+  .item-option-help{max-width:980px!important}
+}
+
+/* Tablet/mobile stack cleanly */
+@media (max-width:850px){
+  .page{width:calc(100vw - 16px)!important}
+  .v15-main-grid{
+    grid-template-columns:1fr!important;
+    max-width:680px!important;
+  }
+  .v15-character{order:1}
+  .v15-right{order:2}
+  .v15-left{order:3}
+  .v15-character-stage{height:620px!important;min-height:620px!important}
+  .v15-attributes,.character-attributes{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    max-width:680px!important;
+  }
+  .option-glossary{grid-template-columns:1fr!important}
+}
+
+@media (max-width:520px){
+  .v15-character-stage{height:560px!important;min-height:560px!important}
+  .v15-attributes,.character-attributes{grid-template-columns:1fr 1fr!important}
+}
+
+html,body{max-width:100%!important;overflow-x:hidden!important}
+main{width:100%!important;max-width:100%!important}
+
+.v17-quick-stats{border-color:#47719f!important}
+.v17-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.v17-stat-grid>div{padding:8px;border:1px solid #303b47;border-radius:8px;background:#080c11}
+.v17-stat-grid small,.v17-stat-grid b{display:block}
+.v17-stat-grid small{font-size:9px;color:#97a2ad}
+.v17-stat-grid b{font-size:14px;margin-top:3px;color:#f1c14f}

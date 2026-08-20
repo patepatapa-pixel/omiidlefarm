@@ -162,3 +162,5 @@ V16.7: karakter nézet kitisztítva; a kép mögötti/alatti duplikált felszere
 V16.8: teljesen dinamikus karakter-felszerelés rendszer. A karakteroldali itemek közvetlenül az equipped adatokból renderelődnek; +szint és rarity azonnal követi a valódi tárgyat; üres slot üres; fegyver csak felszerelve jelenik meg a karakter kezében.
 
 V16.9: a Karakter/Farm/Inventory/... navigációs csíksáv már nem sticky/fixed, görgetéskor normálisan eltűnik felfelé.
+
+V17.0: teljes karakteroldal layout újrarendezve normál 100% zoomhoz; max 1320px tartalom, státuszok karakter mellett, alsó statok kompaktak, nincs széthúzott óriási oldal.
