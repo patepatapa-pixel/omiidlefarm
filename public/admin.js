@@ -110,7 +110,8 @@ const V10_GAMEPLAY_DEFAULTS={
  bossGemAmount:1,
  bossGemDropChance:100,
  mobTargetHits:2,
- zoneHpMultipliers:[100,100,100,100,100,100,100,100]
+ zoneHpMultipliers:[100,100,100,100,100,100,100,100],
+ zoneGoldMultipliers:[100,100,100,100,100,100,100,100]
 };
 
 function v10GameplayCfg(){
@@ -138,14 +139,15 @@ function fillDefaultBossGems(){
 const V226_ZONE_NAMES=["Zöld mező","Sötét erdő","Elhagyott bánya","Démon torony","Sárkány-völgy","Mennydörgés fennsík","Üresség","Isteni kapu"];
 function v226ZoneNames(){return [...V226_ZONE_NAMES,...(studioConfig.zones||[]).map(z=>z.name||"Egyedi terület")]}
 function fillZoneHpBalance(){
- const g=v10GameplayCfg(),multipliers=Array.isArray(g.zoneHpMultipliers)?g.zoneHpMultipliers:[];
+ const g=v10GameplayCfg(),multipliers=Array.isArray(g.zoneHpMultipliers)?g.zoneHpMultipliers:[],goldMultipliers=Array.isArray(g.zoneGoldMultipliers)?g.zoneGoldMultipliers:[];
  if(qs("#cfgMobTargetHits"))qs("#cfgMobTargetHits").value=Number(g.mobTargetHits||2);
- const root=qs("#zoneHpBalanceEditor");if(root)root.innerHTML=v226ZoneNames().map((name,i)=>`<label>${name} HP szorzó %<input data-zone-hp-mult="${i}" type="number" min="10" max="1000" value="${Number(multipliers[i]??100)}"></label>`).join("");
+ const root=qs("#zoneHpBalanceEditor");if(root)root.innerHTML=v226ZoneNames().map((name,i)=>`<article class="zone-balance-card"><h4>🗺️ ${name}</h4><label>❤️ Mob HP szorzó %<input data-zone-hp-mult="${i}" type="number" min="10" max="1000" step="1" value="${Number(multipliers[i]??100)}"></label><label>💰 Aranyszorzó %<input data-zone-gold-mult="${i}" type="number" min="0" max="100000" step="1" value="${Number(goldMultipliers[i]??100)}"></label><small>100% = alap arany · 200% = dupla arany · 50% = fele arany</small></article>`).join("");
 }
 qs("#saveZoneHpBalance")?.addEventListener("click",async()=>{
  const g=v10GameplayCfg();g.mobTargetHits=Math.max(1,Number(qs("#cfgMobTargetHits")?.value||2));
  g.zoneHpMultipliers=v226ZoneNames().map((_,i)=>Math.max(10,Math.min(1000,Number(qs(`[data-zone-hp-mult="${i}"]`)?.value||100))));
- studioConfig.gameplay=g;await saveConfigV8();fillZoneHpBalance();alert("✅ Farmterületek mob HP beállításai elmentve.");
+ g.zoneGoldMultipliers=v226ZoneNames().map((_,i)=>Math.max(0,Math.min(100000,Number(qs(`[data-zone-gold-mult="${i}"]`)?.value??100))));
+ studioConfig.gameplay=g;await saveConfigV8();fillZoneHpBalance();alert("✅ A területi HP- és aranyszorzók elmentve.");
 });
 qs("#saveDefaultBossGems")?.addEventListener("click",async()=>{
  const g=v10GameplayCfg();

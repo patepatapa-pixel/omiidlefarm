@@ -4267,3 +4267,85 @@ body.v202-is-admin .admin-studio-only-v202{
   #page-character>.v228-character-summary h1{font-size:22px!important}
   #page-character .v15-character-stage{min-height:360px!important;height:360px!important}
 }
+
+/* V22.29: per-zone HP and gold controls in Admin Studio. */
+.zone-balance-editor{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important}
+.zone-balance-card{display:grid;gap:8px;padding:12px;border:1px solid #33404d;border-radius:11px;background:#090d12}
+.zone-balance-card h4{margin:0;color:#f1c452;font-size:13px}
+.zone-balance-card label{display:grid;gap:5px;color:#aeb8c4;font-size:10px}
+.zone-balance-card input{width:100%}
+.zone-balance-card small{line-height:1.4;color:#74808d}
+@media(max-width:1000px){.zone-balance-editor{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:650px){.zone-balance-editor{grid-template-columns:1fr!important}}
+
+/* V22.29 final Character workspace cleanup. */
+#page-character[hidden],
+body:not(.v229-character-visible) #page-character{display:none!important}
+#page-character.active{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  align-content:start!important;
+  gap:12px!important;
+  min-height:0!important;
+  padding:0!important;
+}
+#page-character>.v228-character-summary,
+#page-character>.v228-character-resources,
+#page-character>.v208-window-canvas,
+#page-character>.character-attributes,
+#page-character>.v15-main-grid{grid-column:1!important}
+#page-character>.v228-character-summary{grid-row:1!important;margin:0!important}
+#page-character>.v228-character-resources{grid-row:2!important;margin:0!important}
+#page-character>.v208-window-canvas{grid-row:3!important;margin:0!important}
+#page-character>.character-attributes{
+  grid-row:4!important;
+  width:min(1100px,100%)!important;
+  max-width:1100px!important;
+  margin:0 auto!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+}
+#page-character>.v15-main-grid{
+  grid-row:5!important;
+  display:block!important;
+  width:min(1100px,100%)!important;
+  max-width:1100px!important;
+  min-height:0!important;
+  height:auto!important;
+  margin:0 auto!important;
+  padding:0!important;
+}
+#page-character .v15-main-grid>.v15-left,
+#page-character .v15-main-grid>.admin-game-studio,
+#page-character .v15-main-grid>.admin-studio,
+#page-character .v15-main-grid>[class*="admin-game"],
+#page-character .v15-main-grid>[class*="admin-studio"]{
+  position:relative!important;
+  inset:auto!important;
+  top:auto!important;
+  left:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+  height:auto!important;
+  min-height:0!important;
+  transform:none!important;
+  margin:0!important;
+}
+#page-character .v15-main-grid>.v15-character,
+#page-character .v15-main-grid>.v15-right{display:none!important}
+#page-character>.v208-window-canvas:not(:has(.inventory-tools-v163.v210-equipment-open)){
+  grid-template-columns:minmax(0,1100px)!important;
+  justify-content:center!important;
+}
+#page-character .v208-character-window{max-width:1100px!important;margin:0 auto!important}
+#page-character .v15-character-stage{min-height:390px!important;height:390px!important}
+#page-character .v15-left .v15-player-preview{display:grid!important;gap:5px!important}
+@media(max-width:850px){
+  #page-character>.character-attributes{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:520px){
+  #page-character>.character-attributes{grid-template-columns:1fr!important}
+  #page-character .v15-character-stage{min-height:340px!important;height:340px!important}
+}
