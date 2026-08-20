@@ -313,3 +313,10 @@ V21.4
 - Régi hibás mentett ablakpozíciók egyszer törlődnek.
 - Új „Ablakok alaphelyzetbe” gomb került a karakterhez.
 - A karakter workspace megfelelő magasságot kapott, így a statok sem lógnak bele.
+
+V21.5
+- PostgreSQL 23505 duplicate username hiba kezelve.
+- Foglalt felhasználónév esetén 409 + érthető magyar üzenet.
+- Foglalt játékosnév esetén 409 + érthető magyar üzenet.
+- Egyidejű regisztráció sem dob nyers adatbázis hibát.
+- ADMIN_USERNAME ütközésnél a meglévő felhasználó admin szerepet kap, nem próbál duplikált sort beszúrni.

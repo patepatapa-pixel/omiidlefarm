@@ -117,10 +117,18 @@ async function init(){
   if(ap){
     let row=(await q("SELECT id FROM users WHERE role='admin' LIMIT 1")).rows[0];
     if(!row){
-      const hash=await bcrypt.hash(ap,12);
-      const r=(await q("INSERT INTO users(username,player_name,password_hash,role) VALUES($1,$1,$2,'admin') RETURNING id",[au,hash])).rows[0];
-      await q("INSERT INTO game_saves(user_id,save_data) VALUES($1,$2)",[r.id,DEFAULT_SAVE]);
-      console.log("Admin created:",au);
+      // Ha az ADMIN_USERNAME már létezik normál felhasználóként,
+      // ne omoljon össze az indulás unique constraint miatt.
+      const existing=(await q("SELECT id,role FROM users WHERE LOWER(username)=LOWER($1) LIMIT 1",[au])).rows[0];
+      if(existing){
+        await q("UPDATE users SET role='admin' WHERE id=$1",[existing.id]);
+        console.log("Existing user promoted to admin:",au);
+      }else{
+        const hash=await bcrypt.hash(ap,12);
+        const r=(await q("INSERT INTO users(username,player_name,password_hash,role) VALUES($1,$1,$2,'admin') RETURNING id",[au,hash])).rows[0];
+        await q("INSERT INTO game_saves(user_id,save_data) VALUES($1,$2)",[r.id,DEFAULT_SAVE]);
+        console.log("Admin created:",au);
+      }
     }
   }else{
     console.warn("ADMIN_PASSWORD is not set. Admin account will not be auto-created.");
@@ -148,8 +156,30 @@ app.post("/api/register",async(req,res)=>{
     setAuth(res,u);
     res.json({ok:true,user:publicUser(u),save:DEFAULT_SAVE});
   }catch(e){
-    console.error(e);
-    res.status(500).json({error:"A regisztráció nem sikerült."});
+    // PostgreSQL unique constraint: két azonos regisztráció egyszerre is
+    // biztonságosan, normális 409 válasszal kezelhető.
+    if(e && e.code==="23505"){
+      const c=String(e.constraint||"");
+      const d=String(e.detail||"");
+      if(c==="users_username_key" || d.includes("(username)=")){
+        return res.status(409).json({
+          error:"Ez a felhasználónév már foglalt.",
+          code:"USERNAME_TAKEN"
+        });
+      }
+      if(c==="users_player_name_lower_unique" || d.includes("(lower(player_name))=") || d.includes("(player_name)=")){
+        return res.status(409).json({
+          error:"Ez a játékosnév már foglalt.",
+          code:"PLAYER_NAME_TAKEN"
+        });
+      }
+      return res.status(409).json({
+        error:"Ez az adat már használatban van.",
+        code:"DUPLICATE_VALUE"
+      });
+    }
+    console.error("Register error:",e);
+    return res.status(500).json({error:"A regisztráció nem sikerült."});
   }
 });
 
