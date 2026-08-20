@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: omi-idle-farm
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: omi-idle-farm-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_USERNAME
+        value: OmiAdmin
+      - key: ADMIN_PASSWORD
+        sync: false
+
+databases:
+  - name: omi-idle-farm-db
+    plan: free
