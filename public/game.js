@@ -26,12 +26,12 @@ const BASE_UPS=[
  {key:"luck",name:"Szerencse",icon:"🍀",base:160,desc:"+ ritka drop"}
 ];
 const SKILLS=[
- {key:"power",name:"Erő aura",icon:"🔥",desc:"+5% sebzés / szint",max:20},
- {key:"gold",name:"Aranyáldás",icon:"💰",desc:"+6% arany / szint",max:20},
- {key:"crit",name:"Kritikus ösztön",icon:"🎯",desc:"+1.5% krit / szint",max:15},
- {key:"drop",name:"Kincsvadász",icon:"🎁",desc:"+2% drop esély / szint",max:15},
- {key:"offline",name:"Mély alvás farm",icon:"🌙",desc:"+5% offline hatékonyság / szint",max:10},
- {key:"pet",name:"Pet szinkron",icon:"🐾",desc:"+4% pet bónusz / szint",max:10}
+ {key:"power",name:"Erő aura",icon:"🔥",desc:"Végtelen fejlesztés · fokozatos sebzésnövekedés"},
+ {key:"gold",name:"Aranyáldás",icon:"💰",desc:"Végtelen fejlesztés · több arany farmolásból"},
+ {key:"crit",name:"Kritikus ösztön",icon:"🎯",desc:"Végtelen fejlesztés · krit esély + krit erő"},
+ {key:"drop",name:"Kincsvadász",icon:"🎁",desc:"Végtelen fejlesztés · jobb drop és ritkaság"},
+ {key:"offline",name:"Mély alvás farm",icon:"🌙",desc:"Végtelen fejlesztés · erősebb offline farm"},
+ {key:"pet",name:"Pet szinkron",icon:"🐾",desc:"Végtelen fejlesztés · pet bónuszok erősítése"}
 ];
 const PET_POOL=[
  {name:"Kis Farkas",icon:"🐺",bonus:"damage",value:.08,rarity:"normal"},
@@ -120,7 +120,7 @@ function itemStats(item){
  return {atk:Math.floor((item.atk||0)*m),def:Math.floor((item.def||0)*m),gold:(item.gold||0)*m,crit:(item.crit||0)*m,drop:(item.drop||0)*m}
 }
 function petObj(){return save.pets.find((p,i)=>i===save.activePet)||null}
-function petScale(){return 1+save.skills.pet*.04}
+function petScale(){return 1+infiniteSkillBonus(save.skills.pet,.035,40)}
 function bonuses(){
  let atk=0,def=0,gold=0,crit=0,drop=0;
  Object.keys(save.equipped).forEach(s=>{let it=equipObj(s);if(!it)return;let st=itemStats(it);atk+=st.atk;def+=st.def;gold+=st.gold;crit+=st.crit;drop+=st.drop});
@@ -130,18 +130,18 @@ function bonuses(){
 }
 function damage(){
  let b=bonuses(),io=itemOptionBonuses(),base=6+save.level*1.2+save.base.weaponTraining*4+b.atk;
- let total=base*(1+save.skills.power*.05+save.paragonStats.damage*.02)*(1+io.atkPct/100);
+ let total=base*(1+infiniteSkillBonus(save.skills.power,.04,50)+save.paragonStats.damage*.02)*(1+io.atkPct/100);
  if(save.waveBoss)total*=1+io.bossDmg/100;
  return Math.floor(total)
 }
-function critChance(){let io=itemOptionBonuses();return Math.min(.85,.05+save.skills.crit*.015+bonuses().crit+save.paragonStats.crit*.005+io.crit/100)}
-function goldBonus(){let io=itemOptionBonuses();return 1+(save.base.armorTraining-1)*.05+save.skills.gold*.06+bonuses().gold+save.paragonStats.gold*.03+io.gold/100}
-function dropBonus(){let io=itemOptionBonuses();return save.skills.drop*.02+bonuses().drop+(save.base.luck-1)*.01+save.paragonStats.drop*.01+io.drop/100}
+function critChance(){let io=itemOptionBonuses();return Math.min(.85,.05+infiniteSkillBonus(save.skills.crit,.009,35)+bonuses().crit+save.paragonStats.crit*.005+io.crit/100)}
+function goldBonus(){let io=itemOptionBonuses();return 1+(save.base.armorTraining-1)*.05+infiniteSkillBonus(save.skills.gold,.045,50)+bonuses().gold+save.paragonStats.gold*.03+io.gold/100}
+function dropBonus(){let io=itemOptionBonuses();return infiniteSkillBonus(save.skills.drop,.012,40)+bonuses().drop+(save.base.luck-1)*.01+save.paragonStats.drop*.01+io.drop/100}
 function power(){let b=bonuses();return Math.floor(damage()*11+b.def*7+save.level*20+save.base.mining*8+save.base.luck*8)}
 function rankName(){let p=power();return p<500?"Kezdő":p<2500?"Harcos":p<10000?"Elit":p<40000?"Mester":p<120000?"Hős":"Isteni"}
 function baseCost(d){return Math.floor(d.base*Math.pow(1.58,save.base[d.key]-1))}
 function rarityRoll(){
- let bonus=(save.base.luck-1)*.25+save.skills.drop*.15;
+ let bonus=(save.base.luck-1)*.25+infiniteSkillBonus(save.skills.drop,.10,40);
  let r=Math.random()*100;
  if(r<1+bonus*.08)return RARITIES[4];
  if(r<5+bonus*.15)return RARITIES[3];
@@ -440,8 +440,8 @@ function renderUpgrade(){
 }
 function renderSkills(){
  $("#skillPoints").textContent=save.skillPoints;
- $("#skills").innerHTML=SKILLS.map(s=>`<div class="skill-card"><div style="font-size:28px">${s.icon}</div><h3>${s.name}</h3><small>${s.desc}</small><p>Lv.${save.skills[s.key]} / ${s.max}</p><button data-skill="${s.key}" ${save.skillPoints<=0||save.skills[s.key]>=s.max?"disabled":""}>+1 pont</button></div>`).join("");
- $$("[data-skill]").forEach(b=>b.onclick=()=>{let sk=SKILLS.find(x=>x.key===b.dataset.skill);if(save.skillPoints<=0||save.skills[sk.key]>=sk.max)return;save.skillPoints--;save.skills[sk.key]++;persist();renderAll()})
+ $("#skills").innerHTML=SKILLS.map(s=>`<div class="skill-card"><div style="font-size:28px">${s.icon}</div><h3>${s.name}</h3><small>${s.desc}</small><p>Lv.${fmt(save.skills[s.key])} · ∞</p><button data-skill="${s.key}" ${save.skillPoints<=0?"disabled":""}>+1 pont</button></div>`).join("");
+ $$("[data-skill]").forEach(b=>b.onclick=()=>{let sk=SKILLS.find(x=>x.key===b.dataset.skill);if(save.skillPoints<=0)return;save.skillPoints--;save.skills[sk.key]++;persist();renderAll()})
 }
 function renderPets(){
  $("#pets").innerHTML=save.pets.length?save.pets.map((p,i)=>`<div class="pet-card rarity-${p.rarity} ${save.activePet===i?"active":""}"><div style="font-size:30px">${p.icon}</div><h3>${p.name}</h3><small>${p.bonus==="damage"?"Sebzés":p.bonus==="gold"?"Arany":p.bonus==="drop"?"Drop":p.bonus==="crit"?"Krit":"Minden"} +${(p.value*100).toFixed(0)}%</small><button data-pet="${i}">${save.activePet===i?"Aktív":"Aktiválás"}</button></div>`).join(""):'<p class="muted">Még nincs peted.</p>';
@@ -966,7 +966,7 @@ document.addEventListener("click",e=>{
 // Offline progress max 12h
 let away=Math.min(43200,Math.max(0,(Date.now()-save.last)/1000));
 if(away>15){
- let z=ZONES[save.zone],eff=.55+save.skills.offline*.05,kills=Math.floor(away*damage()/z.hp*eff);
+ let z=ZONES[save.zone],eff=Math.min(2.25,.55+infiniteSkillBonus(save.skills.offline,.035,45)),kills=Math.floor(away*damage()/z.hp*eff);
  if(kills>0){let g=Math.floor(kills*z.gold*goldBonus());save.gold+=g;save.stats.goldEarned+=g;save.kills+=kills;save.xp+=kills*z.xp;toast(`🌙 Offline farm: ${fmt(kills)} kill · ${fmt(g)} arany`)}
 }
 while(save.xp>=needXp()){save.xp-=needXp();save.level++;save.skillPoints++}
@@ -1014,6 +1014,37 @@ window.OMI_CONTENT={bosses:[],items:[],pets:[],auras:[],zones:[]};fetch("/api/co
 
 
 
+
+
+// ================= V19.8 LONG TERM PROGRESSION =================
+function infiniteSkillBonus(level, perLevel, softcap=50){
+  level=Math.max(0,Number(level||0));
+  // Az első szintek gyorsabbak, később lassul, de SOHA nincs maximum.
+  if(level<=softcap)return level*perLevel;
+  return softcap*perLevel + Math.sqrt(level-softcap)*perLevel*4;
+}
+function waveHpMultiplier(wave){
+  wave=Math.max(1,Number(wave||1));
+  // Hosszú távú skálázás: minden wave erősebb, 100-as blokkoknál extra lépcső.
+  return Math.pow(1.012,wave-1)*Math.pow(1.16,Math.floor((wave-1)/100));
+}
+function waveRewardMultiplier(wave){
+  wave=Math.max(1,Number(wave||1));
+  return 1 + (wave-1)*0.018 + Math.floor((wave-1)/100)*0.35;
+}
+function normalEnemyMaxHp(){
+  const z=ZONES[save.zone]||ZONES[0];
+  return Math.max(1,Math.floor(z.hp*waveHpMultiplier(save.wave)));
+}
+function waveKillRequirement(wave){
+  wave=Math.max(1,Number(wave||1));
+  // Farm szakaszok: később több mob kell, de nem válik unalmassá.
+  return Math.min(40,10+Math.floor((wave-1)/25));
+}
+function applyWaveGoal(){
+  save.waveGoal=waveKillRequirement(save.wave);
+}
+
 // ================= V15.5 WAVE / BOSS / PARAGON RULES =================
 function paragonWaveRequirement(){
   // Paragon 1 = wave 500, Paragon 2 = 510, Paragon 3 = 520...
@@ -1027,7 +1058,7 @@ function restartCurrentBossWave(){
   save.bossHp=0;
   save.waveKills=0;
   // A játékos ugyanazon a wave-en marad és újra teljesíti.
-  enemyHp=ZONES[save.zone].hp;
+  enemyHp=normalEnemyMaxHp();
 }
 
 // ================= V10 FULL COMBAT =================
@@ -1053,14 +1084,15 @@ function v10MaxHp(){
  ));
 }
 function v10BossMaxHp(){
- const z=ZONES[save.zone];
- return Math.max(z.hp,Math.floor(z.hp*(6+save.wave*(V10CFG.bossHpGrowthPct/100))));
+ const base=normalEnemyMaxHp();
+ // Boss minden 10. wave-en komoly fal, de nem irreális.
+ return Math.max(base,Math.floor(base*(5.5+Math.min(12,save.wave*.012))));
 }
-function v10EnemyMaxHp(){return save.waveBoss?v10BossMaxHp():ZONES[save.zone].hp}
+function v10EnemyMaxHp(){return save.waveBoss?v10BossMaxHp():normalEnemyMaxHp()}
 function v10RawEnemyDamage(){
  const z=ZONES[save.zone],mx=v10MaxHp();
  let raw=mx*(V10CFG.mobDamageHpPct/100);
- raw += save.zone*5 + save.wave*.45 + z.gold*.0015;
+ raw += save.zone*5 + Math.pow(save.wave,1.08)*.32 + z.gold*.0015;
  raw*=V10CFG.monsterDamageMult;
  if(save.waveBoss)raw*=V10CFG.bossDamageMult;
 
@@ -1147,7 +1179,7 @@ function v161LiveHud(){
 }
 
 function v10AwardNormalKill(){
- const z=ZONES[save.zone],g=Math.floor(z.gold*goldBonus());
+ const z=ZONES[save.zone],g=Math.floor(z.gold*goldBonus()*waveRewardMultiplier(save.wave));
  save.gold+=g;save.stats.goldEarned+=g;save.xp+=z.xp;save.kills++;
  if(Math.random()<.07+save.base.mining*.005)save.ore++;
  if(Math.random()<.007+dropBonus()*.05)save.soul++;
@@ -1168,19 +1200,20 @@ function v10AwardNormalKill(){
      const old=save.wave;
      save.wave++;
      save.waveKills=0;
-     save.waveGoal=Math.max(1,Number(V10CFG.waveKills||10));
-     enemyHp=z.hp;
+     applyWaveGoal();
+     applyWaveGoal();
+     enemyHp=normalEnemyMaxHp();
      $("#combatLog").textContent=`✅ Wave ${old} teljesítve! Következő: Wave ${save.wave}.`;
    }
  }else{
-   enemyHp=z.hp;
+   enemyHp=normalEnemyMaxHp();
    $("#combatLog").textContent=`${z.enemy} legyőzve · +${fmt(g)} arany · Wave ${save.wave}: ${save.waveKills}/${save.waveGoal}`;
  }
  v161LiveHud();
 }
 function v10AwardBossKill(){
  const z=ZONES[save.zone];
- const reward=Math.floor(z.gold*(20+save.wave)*goldBonus()*V10CFG.bossRewardMult);
+ const reward=Math.floor(z.gold*(18+save.wave*.55)*goldBonus()*waveRewardMultiplier(save.wave)*V10CFG.bossRewardMult);
  save.gold+=reward;save.stats.goldEarned+=reward;save.gems++;save.soul++;save.stats.bosses++;
  if(Math.random()<.80)addItem(createItem());
 
@@ -1189,11 +1222,20 @@ function v10AwardBossKill(){
  save.bossHp=0;
  save.wave++;
  save.waveKills=0;
- save.waveGoal=Math.max(1,Number(V10CFG.waveKills||10));
- enemyHp=z.hp;
+ applyWaveGoal();
+ applyWaveGoal();
+ enemyHp=normalEnemyMaxHp();
 
  $("#combatLog").textContent=`🏆 Wave ${oldWave} Boss legyőzve! +${fmt(reward)} arany. Wave ${save.wave} indul.`;
- toast(`🏆 Wave ${oldWave} Boss legyőzve!`);
+ if(oldWave%100===0){
+   save.gems+=3; save.soul+=3; save.ore+=25;
+   toast(`💎 Wave ${oldWave} mérföldkő: +3 kristály, +3 lélekkő, +25 érc`);
+ }else if(oldWave%50===0){
+   save.soul+=2; save.ore+=15;
+   toast(`🔮 Wave ${oldWave} mérföldkő: +2 lélekkő, +15 érc`);
+ }else if(oldWave%10===0){
+   save.ore+=3;
+ }
  v161LiveHud();
 }
 function v10PlayerAttack(){
@@ -1391,7 +1433,7 @@ v10AwardBossKill=function(){
  save.bossHp=0;
  save.wave++;
  save.waveKills=0;
- save.waveGoal=Math.max(1,Number(V10CFG.waveKills||10));
+ applyWaveGoal();
  enemyHp=ZONES[save.zone].hp;
 
  $("#combatLog").textContent=`🏆 ${b.name||"Boss"} legyőzve! +${fmt(reward)} arany · +${fmt(Number(b.xp||0))} XP · Wave ${save.wave}`;
@@ -1543,3 +1585,179 @@ document.addEventListener("click",function(e){
     if(typeof renderParagon==="function")renderParagon();
   },0);
 },true);
+
+/* V19.8 migration / balance initialization */
+try{
+  applyWaveGoal();
+  if(!save.waveBoss) enemyHp=normalEnemyMaxHp();
+}catch(e){console.warn("V19.8 init",e)}
+
+/* V19.9: top summary is Character-tab-only */
+(function(){
+  function v199CharacterHeaderOnly(){
+    const isCharacter=document.getElementById("page-character")?.classList.contains("active");
+    const candidates=[
+      document.querySelector(".hero"),
+      document.querySelector(".resources"),
+      document.querySelector(".resource-grid"),
+      document.querySelector(".stats-top")
+    ].filter(Boolean);
+    candidates.forEach(el=>{
+      el.style.setProperty("display",isCharacter?"":"none",isCharacter?"":"important");
+      if(isCharacter) el.style.removeProperty("display");
+    });
+  }
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.("[data-tab]")) setTimeout(v199CharacterHeaderOnly,0);
+  },true);
+  window.addEventListener("load",v199CharacterHeaderOnly);
+  setTimeout(v199CharacterHeaderOnly,0);
+})();
+
+/* ================= V20.0 CHARACTER / INVENTORY ORGANIZER ================= */
+(function(){
+  let inventoryHome=null, inventoryNode=null, characterHome=null;
+
+  function textOf(el){return (el?.textContent||"").replace(/\s+/g," ").trim();}
+
+  function markCharacterOnlyBlocks(){
+    // Intro card.
+    document.querySelectorAll("section,main>div,#gameShell>div").forEach(el=>{
+      const t=textOf(el);
+      if(t.includes("AUTOMATA FARM RPG") && t.includes("Farmolj automatikusan")){
+        el.classList.add("v200-character-only");
+      }
+    });
+
+    // Shared resources row.
+    document.querySelectorAll("section,div").forEach(el=>{
+      const t=textOf(el);
+      if(
+        t.includes("Arany") && t.includes("Kristály") && t.includes("Érc") &&
+        t.includes("Lélekkő") && t.includes("Dungeon jegy") && t.includes("Szint") &&
+        el.children.length>=4 && el.children.length<=12
+      ){
+        const childText=[...el.children].map(textOf).join("|");
+        if(childText.includes("Arany") && childText.includes("Kristály")){
+          el.classList.add("v200-character-only");
+        }
+      }
+    });
+
+    // Compact stat summary shown in screenshot: Erő/Sebzés/Életerő/.../Halál.
+    document.querySelectorAll("section,div").forEach(el=>{
+      const t=textOf(el);
+      if(
+        t.includes("Erő") && t.includes("Sebzés") && t.includes("Életerő") &&
+        t.includes("Védelem") && t.includes("Szerencse") && t.includes("Krit") &&
+        t.includes("Drop") && t.includes("Paragon") && t.includes("Prestige") &&
+        t.includes("Összes kill") && t.includes("Halál")
+      ){
+        // Prefer the smallest matching container.
+        const matchingChildren=[...el.children].filter(c=>{
+          const ct=textOf(c);
+          return ct.includes("Erő") && ct.includes("Sebzés") && ct.includes("Életerő") &&
+                 ct.includes("Összes kill") && ct.includes("Halál");
+        });
+        if(!matchingChildren.length) el.classList.add("v200-character-only");
+      }
+    });
+  }
+
+  function setTabClass(name){
+    document.body.classList.toggle("v200-character-tab",name==="character");
+  }
+
+  function findInventoryContent(){
+    const page=document.getElementById("page-inventory");
+    if(!page)return null;
+    // Keep the page itself in place; move only its main visible child/container.
+    return page.querySelector(".inventory-layout,.inventory-grid,.inventory-shell,.inventory-wrap,.card") || page.firstElementChild;
+  }
+
+  function findCharacterCore(){
+    const page=document.getElementById("page-character");
+    if(!page)return null;
+    return page.querySelector(".v15-character-stage,.character-stage,.character-layout,.character-main,.character-card") || page.firstElementChild;
+  }
+
+  function ensureCharacterInventoryLayout(){
+    const page=document.getElementById("page-character");
+    const invPage=document.getElementById("page-inventory");
+    if(!page||!invPage)return;
+
+    const charCore=findCharacterCore();
+    if(!charCore)return;
+
+    if(!inventoryNode){
+      inventoryNode=findInventoryContent();
+      if(inventoryNode){
+        inventoryHome={parent:inventoryNode.parentNode,next:inventoryNode.nextSibling};
+      }
+    }
+    if(!inventoryNode)return;
+
+    let layout=page.querySelector(".v200-character-inventory-layout");
+    if(!layout){
+      layout=document.createElement("div");
+      layout.className="v200-character-inventory-layout";
+      const left=document.createElement("div");
+      left.className="v200-character-left";
+      const right=document.createElement("div");
+      right.className="v200-inventory-right";
+      charCore.parentNode.insertBefore(layout,charCore);
+      layout.append(left,right);
+      left.appendChild(charCore);
+    }
+
+    const right=layout.querySelector(".v200-inventory-right");
+    if(inventoryNode.parentNode!==right) right.appendChild(inventoryNode);
+  }
+
+  function restoreInventory(){
+    if(!inventoryNode||!inventoryHome?.parent)return;
+    if(inventoryNode.parentNode===inventoryHome.parent)return;
+    inventoryHome.parent.insertBefore(inventoryNode,inventoryHome.next);
+  }
+
+  function applyForTab(name){
+    setTabClass(name);
+    if(name==="character"){
+      ensureCharacterInventoryLayout();
+    }else if(name==="inventory"){
+      restoreInventory();
+    }else{
+      // On unrelated pages inventory must not leak/follow.
+      restoreInventory();
+    }
+  }
+
+  function fixCloudSaveWidth(){
+    const candidates=[...document.querySelectorAll("header *, .topbar *")];
+    const el=candidates.find(x=>/Felhőbe mentve|Mentés/.test(textOf(x)) && x.children.length===0);
+    if(el)el.classList.add("v200-cloud-save-fixed");
+  }
+
+  function currentTab(){
+    const active=document.querySelector("[data-tab].active");
+    if(active?.dataset.tab)return active.dataset.tab;
+    return document.getElementById("page-character")?.classList.contains("active")?"character":"";
+  }
+
+  document.addEventListener("click",e=>{
+    const b=e.target.closest?.("[data-tab]");
+    if(!b)return;
+    setTimeout(()=>applyForTab(b.dataset.tab),0);
+  },true);
+
+  window.addEventListener("load",()=>{
+    markCharacterOnlyBlocks();
+    fixCloudSaveWidth();
+    applyForTab(currentTab()||"character");
+  });
+  setTimeout(()=>{
+    markCharacterOnlyBlocks();
+    fixCloudSaveWidth();
+    applyForTab(currentTab()||"character");
+  },50);
+})();

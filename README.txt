@@ -192,3 +192,28 @@ V19.7
 - A Karakter fülön már nem jelenik meg ez a státuszblokk.
 - A státuszértékek továbbra is élőben frissülnek.
 - A működő karakter/felszerelés rendszerhez nem nyúltunk.
+
+V19.8 LONG TERM PROGRESSION
+- Minden képesség végtelenül fejleszthető.
+- Diminishing-return balansz: nincs hard cap, de később lassabban erősödik.
+- Mob HP minden wave-ben skálázódik.
+- Boss továbbra is minden 10. wave-en.
+- Wave farmkövetelmény 25 wave-enként fokozatosan nő, maximum 40 mob/wave.
+- Aranyjutalom együtt skálázódik a nehézséggel.
+- 50/100 wave mérföldköveknél extra farmanyag jár.
+- Paragon 500/510/520... rendszer változatlan.
+- Meglévő karakter, inventory, item rarity, aura, pet, dungeon, PvP és speed rendszer megmaradt.
+
+V19.9
+- A felső „Farmolj automatikusan…” + Arany/Kristály/Érc/Lélekkő/Dungeon jegy/Szint blokk kizárólag a Karakter fülön látható.
+- Farm, Inventory, Fejlesztés, Képességek, Petek, Paragon, Aura Shop, Dungeon, Küldetések, PvP, Shop és Statisztika oldalra nem követi a játékost.
+- A blokk működéséhez és élő értékeihez nem nyúltunk.
+
+V20.0
+- AUTOMATA FARM RPG fejléc csak a Karakter fülön látható.
+- A felső Arany/Kristály/Érc/Lélekkő/Dungeon jegy/Szint sor csak a Karakter fülön látható.
+- Erő/Sebzés/Életerő/Védelem/Szerencse/Krit/Drop/Szint/Paragon/Prestige/Paragon pont/Aura token/Wave/Összes kill/Halál összegző blokk csak Karakter fülön látható.
+- Karakter fül: saját karakter bal oldalon, Inventory jobb oldalon.
+- Az Inventory saját fülön továbbra is használható.
+- A jelenlegi Equip működés megmarad.
+- A Felhőbe mentve/Mentés kijelzés fix szélességet kapott, így nem tolja arrébb a felső menüket.

@@ -10,7 +10,7 @@
 <header class="topbar">
   <div class="brand"><span>⚔️ OMI</span> IDLE FARM <em>COMPLETE</em></div>
   <div class="top-actions">
-    <span class="build-version" id="buildVersionBadge">V19.7</span><span id="onlineUser">👤 Vendég</span>
+    <span class="build-version" id="buildVersionBadge">V20.0</span><span id="onlineUser">👤 Vendég</span>
     <button class="ghost" id="leaderboardBtn">🏆 Ranglista</button>
     <button class="ghost admin-only-btn" id="adminPanelBtn" style="display:none">⚙️ Adminpanel</button><button class="ghost" id="authBtn">Belépés</button>
     <span id="saveState">💾 Mentve</span>
@@ -72,7 +72,7 @@
 <main>
 <section class="hero card">
   <div>
-    <div class="eyebrow">AUTOMATA FARM RPG</div>
+    <div class="v200-character-header eyebrow">AUTOMATA FARM RPG</div>
     <h1>Farmolj automatikusan, építs egyre erősebb karaktert.</h1>
     <p>A karaktered magától harcol. Te döntöd el, mit fejlesztesz, mit szerelsz fel, melyik petet használod és melyik területet farmolod.</p>
   </div>
@@ -382,7 +382,19 @@
 <section class="page" id="page-skills">
 <section class="card">
   <div class="title-row"><div><h2>✨ Képességek</h2><small>Szintlépésenként 1 képességpont</small></div><b><span id="skillPoints">0</span> pont</b></div>
-  <div id="skills" class="skill-grid"></div>
+  <div class="card v198-skill-info">
+  <h3>♾️ Végtelen képességfejlődés</h3>
+  <p>Nincs képesség maximum. A korai szintek erősebb növekedést adnak, később a bónusz fokozatosan lassul, ezért hosszú távon is fejleszthető marad anélkül, hogy pár nap alatt szétessen a balansz.</p>
+  <div class="v198-progression-grid">
+    <span>⚔️ Minden wave: erősebb ellenfelek</span>
+    <span>👹 Minden 10. wave: Boss</span>
+    <span>⛏️ 25 wave-enként: hosszabb farm szakasz</span>
+    <span>🎁 50/100 wave: extra nyersanyag mérföldkő</span>
+    <span>👑 Paragon: 500, 510, 520… wave</span>
+    <span>♾️ Endgame: nincs kemény képesség plafon</span>
+  </div>
+</div>
+<div id="skills" class="skill-grid"></div>
 </section>
 </section>
 

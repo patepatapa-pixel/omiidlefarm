@@ -1566,3 +1566,73 @@ main{width:100%!important;max-width:100%!important}
   color:#f0c14f!important;
   font-size:13px!important;
 }
+
+/* V19.8 long-term progression */
+.v198-skill-info{margin-bottom:12px;padding:14px}
+.v198-skill-info h3{margin:0 0 6px;color:#f0c14f}
+.v198-skill-info p{margin:0 0 10px;color:#9ca8b5;line-height:1.5}
+.v198-progression-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.v198-progression-grid span{padding:9px;border:1px solid #2c3540;border-radius:8px;background:#080c11}
+@media(max-width:800px){.v198-progression-grid{grid-template-columns:1fr}}
+
+/* ================= V19.9 CHARACTER HEADER ONLY =================
+   The top RPG intro + resources row belongs to Character only.
+   No moving/floating onto Farm, Inventory, etc.
+*/
+body:has(#page-character.active) .hero,
+body:has(#page-character.active) .resources,
+body:has(#page-character.active) .resource-grid,
+body:has(#page-character.active) .stats-top{
+  display:grid;
+}
+
+/* Hide shared top summary whenever another game page is active */
+body:has(#gameShell > .page.active:not(#page-character)) .hero,
+body:has(#gameShell > .page.active:not(#page-character)) .resources,
+body:has(#gameShell > .page.active:not(#page-character)) .resource-grid,
+body:has(#gameShell > .page.active:not(#page-character)) .stats-top{
+  display:none!important;
+}
+
+/* ================= V20.0 CHARACTER-ONLY UI ================= */
+body:not(.v200-character-tab) .v200-character-header{
+  display:none!important;
+}
+
+/* Runtime-detected shared blocks */
+body:not(.v200-character-tab) .v200-character-only{
+  display:none!important;
+}
+
+/* Character page layout: character left, inventory right */
+#page-character .v200-character-inventory-layout{
+  display:grid!important;
+  grid-template-columns:minmax(420px,0.95fr) minmax(520px,1.35fr)!important;
+  gap:14px!important;
+  align-items:start!important;
+}
+#page-character .v200-character-left,
+#page-character .v200-inventory-right{
+  min-width:0!important;
+}
+#page-character .v200-inventory-right{
+  position:relative!important;
+}
+@media(max-width:1050px){
+  #page-character .v200-character-inventory-layout{
+    grid-template-columns:1fr!important;
+  }
+}
+
+/* Cloud-save indicator must not resize/push the top navigation */
+.v200-cloud-save-fixed{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:112px!important;
+  min-width:112px!important;
+  max-width:112px!important;
+  overflow:hidden!important;
+  white-space:nowrap!important;
+  text-overflow:ellipsis!important;
+}
