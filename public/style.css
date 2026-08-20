@@ -2540,3 +2540,127 @@ body.v202-is-admin .admin-studio-only-v202{
   position:relative!important;
   z-index:50!important;
 }
+
+/* V21.2 contextual balances/status */
+.v212-context-bar{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin:0 auto 10px;
+  padding:8px;
+  border:1px solid #2f3945;
+  border-radius:10px;
+  background:linear-gradient(145deg,#0b1016,#070a0f);
+}
+.v212-resource{
+  display:none;
+  min-width:105px;
+  padding:7px 9px;
+  border:1px solid #35414d;
+  border-radius:8px;
+  background:#080c11;
+}
+.v212-resource span,.v212-resource b{display:block}
+.v212-resource span{font-size:9px;color:#8f9ba7}
+.v212-resource b{margin-top:2px;font-size:13px;color:#f0c24d}
+
+/* Farm */
+#page-farm.active [data-res="gold"],
+#page-farm.active [data-res="ore"],
+#page-farm.active [data-res="soul"],
+#page-farm.active [data-res="power"]{display:block}
+
+/* Inventory */
+#page-inventory.active [data-res="gold"],
+#page-inventory.active [data-res="ore"],
+#page-inventory.active [data-res="power"]{display:block}
+
+/* Upgrades / Fejlesztés */
+#page-upgrade.active [data-res="gold"],
+#page-upgrade.active [data-res="ore"],
+#page-upgrade.active [data-res="soul"],
+#page-upgrade.active [data-res="power"],
+#page-upgrades.active [data-res="gold"],
+#page-upgrades.active [data-res="ore"],
+#page-upgrades.active [data-res="soul"],
+#page-upgrades.active [data-res="power"]{display:block}
+
+/* Skills */
+#page-skills.active [data-res="statpoints"],
+#page-skills.active [data-res="power"],
+#page-skills.active [data-res="gold"]{display:block}
+
+/* Pets */
+#page-pets.active [data-res="gems"],
+#page-pets.active [data-res="gold"],
+#page-pets.active [data-res="power"]{display:block}
+
+/* Paragon */
+#page-paragon.active [data-res="statpoints"],
+#page-paragon.active [data-res="power"],
+#page-paragon.active [data-res="auratokens"]{display:block}
+
+/* Aura shop */
+#page-aurashop.active [data-res="auratokens"],
+#page-aurashop.active [data-res="power"]{display:block}
+
+/* Dungeon */
+#page-dungeon.active [data-res="tickets"],
+#page-dungeon.active [data-res="power"],
+#page-dungeon.active [data-res="gold"]{display:block}
+
+/* Quests */
+#page-quests.active [data-res="gold"],
+#page-quests.active [data-res="gems"],
+#page-quests.active [data-res="power"]{display:block}
+
+/* PvP */
+#page-pvp.active [data-res="power"],
+#page-pvp.active [data-res="gold"]{display:block}
+
+/* Shop */
+#page-shop.active [data-res="gold"],
+#page-shop.active [data-res="gems"],
+#page-shop.active [data-res="auratokens"]{display:block}
+
+/* Stats */
+#page-stats.active [data-res="power"],
+#page-stats.active [data-res="gold"]{display:block}
+
+@media(max-width:650px){
+  .v212-resource{min-width:calc(50% - 5px);box-sizing:border-box}
+}
+
+/* ================= V21.3 ================= */
+.v213-pvp-rewards,.v213-pet-reroll{
+  margin-top:10px;padding:10px;border:1px solid #39434e;border-radius:9px;
+  background:#080d12
+}
+.v213-reward-title{font-weight:900;color:#f2c451;margin-bottom:7px}
+.v213-reward-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.v213-reward-grid span{padding:7px;border:1px solid #303a45;border-radius:7px;background:#0b1117}
+.v213-reward-grid b,.v213-reward-grid strong{display:block}
+.v213-reward-grid strong{color:#f1c34f;margin-top:2px}
+.v213-pvp-rewards small,.v213-pet-reroll small{display:block;color:#8795a4;margin-top:5px}
+
+.v213-pet-reroll{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.v213-reroll-list{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.v213-reroll-list button{
+  border:1px solid #e0ad3f;background:#e6b94e;color:#080a0d;border-radius:7px;
+  padding:7px 10px;font-weight:900;cursor:pointer
+}
+.v213-muted{font-size:10px;color:#8995a1}
+
+.v213-skill-value{
+  display:flex;justify-content:space-between;gap:8px;margin:5px 0 7px;
+  padding:5px 7px;border:1px solid #303a45;border-radius:6px;background:#080d12;
+  font-size:9px
+}
+.v213-skill-value span{color:#aeb9c4}
+.v213-skill-value b{color:#b782ff}
+
+@media(max-width:700px){
+ .v213-reward-grid{grid-template-columns:1fr}
+ .v213-pet-reroll{display:block}
+ .v213-reroll-list{margin-top:8px;justify-content:flex-start}
+}

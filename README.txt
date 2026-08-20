@@ -288,3 +288,18 @@ V21.1
 - Az ablak közvetlenül a floating canvasba kerül, így régi wrapper nem tudja elrejteni.
 - Régi hidden classok automatikusan törlődnek megnyitáskor.
 - Az X bezáró gomb továbbra is működik.
+
+V21.2
+- Oldalanként releváns fizetőeszköz/státusz sáv.
+- Petek: Gyémánt + Arany + Erő.
+- Fejlesztés/Inventory/Farm: Arany + Érc/Lélekkő + Erő.
+- Képességek/Paragon: Statpont + Erő.
+- Aura Shop: Aura token + Erő.
+- Dungeon: Dungeon jegy + Erő + Arany.
+- PvP/Statisztika: Erő + Arany.
+- Minden érték élőben frissül.
+
+V21.3
+- PvP győzelem: az arany mellett érc és esélyes Dungeon token jutalom.
+- Pet reroll: 3 teljesen azonos pet összeolvasztható 1 erősebb változattá (+15% pet bónusz, +1 szint).
+- Képességeknél látszik, hogy 1 pont pontosan hány %-ot ad és mit ad a következő pont.
