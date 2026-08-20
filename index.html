@@ -456,6 +456,11 @@
   </section>
 
   <section class="card">
+    <div class="title-row"><div><h2>🛡️ Felszerelt tárgyak</h2><small>Ezeket használja jelenleg a karaktered.</small></div><button id="equipBestInventory" class="gold-btn">⚡ EQUIP BEST</button></div>
+    <div id="equippedInventory" class="inventory-grid"></div>
+  </section>
+
+  <section class="card">
     <div class="title-row"><div><h2>🎒 Inventory</h2><small>Maximum 120 tárgy</small></div>
       <div class="inventory-actions"><button id="sellNormal">Normál eladása</button><button id="sortInventory">Rendezés</button></div>
     </div>
@@ -512,17 +517,17 @@
 </div>
 
 <section class="card">
-  <div class="title-row"><div><h2>✨ Képességek</h2><small>Szintlépésenként 1 képességpont</small></div><b><span id="skillPoints">0</span> pont</b></div>
+  <div class="title-row"><div><h2>🌳 Skillfa</h2><small>Minden 5. karakterszint után 1 skillpont</small></div><b><span id="skillPoints">0</span> pont</b></div>
   <div class="card v198-skill-info">
-  <h3>♾️ Végtelen képességfejlődés</h3>
-  <p>Nincs képesség maximum. A korai szintek erősebb növekedést adnak, később a bónusz fokozatosan lassul, ezért hosszú távon is fejleszthető marad anélkül, hogy pár nap alatt szétessen a balansz.</p>
+  <h3>🌿 Elágazó fejlődés</h3>
+  <p>Nyisd meg a Kalandor magot, majd válassz Harci, Farm, AFK vagy Pet ágat. Az erősebb képességekhez előbb ki kell húznod az előfeltételeket.</p>
   <div class="v198-progression-grid">
     <span>⚔️ Minden wave: erősebb ellenfelek</span>
     <span>👹 Minden 10. wave: Boss</span>
     <span>⛏️ 25 wave-enként: hosszabb farm szakasz</span>
     <span>🎁 50/100 wave: extra nyersanyag mérföldkő</span>
     <span>👑 Paragon: 500, 510, 520… wave</span>
-    <span>♾️ Endgame: nincs kemény képesség plafon</span>
+    <span>🌳 5 szintenként: 1 új skillpont</span>
   </div>
 </div>
 <div id="skills" class="skill-grid"></div>
@@ -544,7 +549,8 @@
 </div>
 
 <section class="card">
-  <div class="title-row"><div><h2>🐾 Pet rendszer</h2><small>Petek passzív bónuszt adnak</small></div><button id="petSummon">🎲 Pet idézés · 5 💎</button></div>
+  <div class="title-row"><div><h2>🐾 Pet rendszer</h2><small>Legfeljebb 4 pet szerelhető fel. Az első hely ingyenes, a többi gyémántért oldható fel.</small></div><button id="petSummon">🎲 Pet idézés · 5 💎</button></div>
+  <div id="petSlots" class="pet-slot-grid"></div>
   <div id="pets" class="pet-grid"></div>
 </section>
 </section>
@@ -728,4 +734,35 @@
 <div id="toast"></div>
 <input id="importFile" type="file" accept=".json" hidden>
 <script src="game.js"></script>
+
+<div id="v227DiscordWidget" class="v227-discord-widget" aria-label="Discord közösség">
+  <button id="v227DiscordToggle" class="v227-discord-toggle" type="button" title="Discord közösség">
+    <span class="v227-discord-logo">☁</span>
+    <span>DISCORD</span>
+  </button>
+  <div id="v227DiscordPanel" class="v227-discord-panel">
+    <button id="v227DiscordClose" class="v227-discord-close" type="button">×</button>
+    <div class="v227-discord-icon">💬</div>
+    <div>
+      <small>OMI IDLE FARM KÖZÖSSÉG</small>
+      <h3>Csatlakozz a Discordhoz!</h3>
+      <p>Hírek, frissítések, Dungeon/PvP beszélgetés, segítség, hibajelentés és közösségi események.</p>
+    </div>
+    <div class="v227-discord-tags">
+      <span>📢 Hírek</span><span>⚔️ PvP</span><span>🏰 Dungeon</span>
+      <span>🐾 Pet</span><span>🆘 Segítség</span><span>💡 Ötletek</span>
+    </div>
+    <a class="v227-discord-join" href="https://discord.gg/kJscYgMtq" target="_blank" rel="noopener noreferrer">
+      💬 CSATLAKOZÁS A DISCORDHOZ
+    </a>
+    <div class="v228-link-box">
+      <b>🔗 Játékfiók ↔ Discord összekötés</b>
+      <small>A rangjaid így automatikusan követik a játékbeli szintedet.</small>
+      <button id="v228DiscordLinkCode" type="button">🔑 ÖSSZEKÖTŐ KÓD KÉRÉSE</button>
+      <div id="v228DiscordLinkResult"></div>
+    </div>
+    <small class="v227-discord-note">A Discordon a botnak küldd el a megjelenő /link parancsot.</small>
+  </div>
+</div>
+
 </body></html>
