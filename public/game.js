@@ -1922,3 +1922,155 @@ document.addEventListener("click",e=>{
     if(p) obs.observe(p,{childList:true,subtree:true});
   });
 })();
+
+/* ================= V20.6 DRAGGABLE WINDOWS ================= */
+(function(){
+  const STORAGE_KEY="omi_v206_window_positions";
+
+  function loadPositions(){
+    try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||"{}")}catch(e){return {}}
+  }
+  function savePositions(v){
+    try{localStorage.setItem(STORAGE_KEY,JSON.stringify(v))}catch(e){}
+  }
+
+  function getTargets(){
+    const page=document.getElementById("page-character");
+    if(!page)return [];
+    return [
+      {
+        key:"admin",
+        el:page.querySelector(".admin-studio-only-v202"),
+        handleSelector:".v15-section-title"
+      },
+      {
+        key:"character",
+        el:page.querySelector(".v15-character"),
+        handleSelector:".v15-character-top"
+      },
+      {
+        key:"equipment",
+        el:page.querySelector(".inventory-tools-v163"),
+        handleSelector:".inventory-tools-head"
+      }
+    ].filter(x=>x.el);
+  }
+
+  function applySavedPosition(item){
+    const pos=loadPositions()[item.key];
+    if(!pos)return;
+    item.el.style.setProperty("--drag-x",(Number(pos.x)||0)+"px");
+    item.el.style.setProperty("--drag-y",(Number(pos.y)||0)+"px");
+  }
+
+  function makeDraggable(item){
+    const el=item.el;
+    if(!el || el.dataset.v206Draggable==="1")return;
+    el.dataset.v206Draggable="1";
+    el.classList.add("v206-draggable-window");
+
+    let handle=el.querySelector(item.handleSelector);
+    if(!handle)handle=el;
+    handle.classList.add("v206-drag-handle");
+    handle.title="Húzd az ablak mozgatásához";
+
+    applySavedPosition(item);
+
+    let startX=0,startY=0,baseX=0,baseY=0,dragging=false,pointerId=null;
+
+    function currentVar(name){
+      const raw=getComputedStyle(el).getPropertyValue(name).trim();
+      return parseFloat(raw)||0;
+    }
+
+    handle.addEventListener("pointerdown",e=>{
+      // Buttons/inputs/links remain clickable and do not initiate drag.
+      if(e.target.closest("button,input,select,textarea,a"))return;
+      if(e.button!==0)return;
+
+      dragging=true;
+      pointerId=e.pointerId;
+      startX=e.clientX;
+      startY=e.clientY;
+      baseX=currentVar("--drag-x");
+      baseY=currentVar("--drag-y");
+
+      el.classList.add("v206-dragging");
+      try{handle.setPointerCapture(pointerId)}catch(_){}
+      e.preventDefault();
+    });
+
+    handle.addEventListener("pointermove",e=>{
+      if(!dragging || e.pointerId!==pointerId)return;
+      const x=baseX+(e.clientX-startX);
+      const y=baseY+(e.clientY-startY);
+      el.style.setProperty("--drag-x",x+"px");
+      el.style.setProperty("--drag-y",y+"px");
+    });
+
+    function endDrag(e){
+      if(!dragging)return;
+      dragging=false;
+      el.classList.remove("v206-dragging");
+      try{handle.releasePointerCapture(pointerId)}catch(_){}
+
+      const positions=loadPositions();
+      positions[item.key]={
+        x:currentVar("--drag-x"),
+        y:currentVar("--drag-y")
+      };
+      savePositions(positions);
+      pointerId=null;
+    }
+
+    handle.addEventListener("pointerup",endDrag);
+    handle.addEventListener("pointercancel",endDrag);
+
+    // Double click on the title restores only this window.
+    handle.addEventListener("dblclick",e=>{
+      if(e.target.closest("button,input,select,textarea,a"))return;
+      el.style.setProperty("--drag-x","0px");
+      el.style.setProperty("--drag-y","0px");
+      const positions=loadPositions();
+      delete positions[item.key];
+      savePositions(positions);
+    });
+  }
+
+  function setup(){
+    getTargets().forEach(makeDraggable);
+  }
+
+  function resetAll(){
+    localStorage.removeItem(STORAGE_KEY);
+    getTargets().forEach(item=>{
+      item.el.style.setProperty("--drag-x","0px");
+      item.el.style.setProperty("--drag-y","0px");
+    });
+  }
+
+  window.v206SetupDraggableWindows=setup;
+  window.v206ResetWindows=resetAll;
+
+  window.addEventListener("load",()=>{
+    setTimeout(setup,100);
+    setTimeout(setup,500);
+  });
+
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.('[data-tab="character"]')){
+      setTimeout(setup,80);
+    }
+  },true);
+
+  // Reapply if the dynamic character/inventory layout is rebuilt.
+  const observer=new MutationObserver(()=>{
+    if(document.getElementById("page-character")?.classList.contains("active")){
+      requestAnimationFrame(setup);
+    }
+  });
+  window.addEventListener("load",()=>{
+    const page=document.getElementById("page-character");
+    if(page)observer.observe(page,{childList:true,subtree:true});
+  });
+})();

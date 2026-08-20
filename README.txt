@@ -244,3 +244,11 @@ V20.4
 - Felszerelés kezelés külön jobb oldali oszlop.
 - Nincs átfedés vagy belelógás.
 - Keskeny kijelzőn a jobb oldali blokk a karakter alá kerül.
+
+V20.6
+- Admin Game Studio, Saját karakter és Felszerelés kezelés ablak egérrel szabadon mozgatható.
+- Az ablak címsoránál fogva lehet húzni.
+- A pozíció böngészőben automatikusan mentődik.
+- Dupla kattintás a címsoron visszaállítja az adott ablak alaphelyzetét.
+- Gombok továbbra is normálisan kattinthatók.
+- Mobil/keskeny kijelzőn a mozgatás automatikusan kikapcsol.
