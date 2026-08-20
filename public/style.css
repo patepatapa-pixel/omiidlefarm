@@ -809,3 +809,95 @@ body.is-authenticated #guestLanding{display:none!important}
  .v15-armor,.v15-gloves{top:215px!important}
  .v15-boots,.v15-ring{top:382px!important}
 }
+
+/* V16.5 REAL SPEED PANEL */
+.combat-speed-panel-v165{
+ margin:0 0 12px;padding:12px;border:1px solid #b67d23;border-radius:11px;
+ background:radial-gradient(circle at 85% 10%,rgba(133,46,179,.16),transparent 28%),linear-gradient(145deg,#0b1016,#06090d);
+ box-shadow:inset 0 1px #ffffff08,0 8px 20px #0007;
+}
+.combat-speed-title{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:10px}
+.combat-speed-title b,.combat-speed-title small{display:block}.combat-speed-title b{color:#f0c04f;font-size:13px}.combat-speed-title small{color:#8e99a4;margin-top:3px}
+.combat-speed-title strong{color:#f4cc60;border:1px solid #8b6626;border-radius:8px;padding:7px 10px;background:#0a0d11;white-space:nowrap}
+.combat-speed-buttons-v165{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.combat-speed-buttons-v165 .combat-speed-btn{padding:10px!important;font-size:13px!important;font-weight:1000!important}
+.combat-speed-buttons-v165 .combat-speed-btn.active{background:linear-gradient(#f0c85c,#d9a438)!important;color:#070707!important;border-color:#ffda72!important;box-shadow:0 0 18px #dba63945!important}
+.combat-speed-buttons-v165 .combat-speed-btn.locked{border-color:#9c53dc!important;color:#ce9cf6!important}
+.speed-note-v165{display:block;margin-top:8px;color:#8e98a2}
+.premium-speed-v165{display:grid;grid-template-columns:86px 1fr;gap:16px;align-items:center;margin-bottom:12px;border-color:#a352df!important;background:radial-gradient(circle at 10% 40%,#7b28a744,transparent 35%),#080b10!important}
+.premium-bolt{font-size:58px;text-align:center;filter:drop-shadow(0 0 16px #b45ef3)}
+.premium-speed-v165 h2{margin:2px 0 7px}.premium-speed-v165 p{color:#9ca7b1}.premium-price-v165{font-size:27px;color:#efc04d;margin-right:10px}
+@media(max-width:600px){.combat-speed-buttons-v165{grid-template-columns:1fr 1fr}.combat-speed-title{align-items:flex-start;flex-direction:column}.premium-speed-v165{grid-template-columns:1fr}.premium-bolt{text-align:left}}
+
+/* V16.6 – clean character artwork + corrected rarity system */
+.v15-character-stage{
+  background:#05070a!important;
+  min-height:690px;
+}
+.v166-character-art{
+  position:absolute;
+  inset:0;
+  z-index:1;
+  overflow:hidden;
+  border-radius:11px;
+  background:#05070a;
+}
+.v166-character-art>img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center;
+  display:block;
+}
+.v166-character-art:after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(90deg,rgba(3,5,8,.42),transparent 22%,transparent 78%,rgba(3,5,8,.42)),
+             linear-gradient(180deg,transparent 76%,rgba(2,3,5,.58));
+}
+.v15-approved-art{display:none!important}
+.hero-equip-layer{display:none!important}
+
+/* Equipment cards remain live and always get their color from the ACTUAL item rarity. */
+.v15-gear{z-index:6!important}
+.v15-gear.rarity-empty{border-color:#3c4652!important;box-shadow:none!important}
+.v15-gear.rarity-normal{border-color:#9aa4ae!important;box-shadow:0 0 14px #9aa4ae35!important}
+.v15-gear.rarity-rare{border-color:#159cff!important;box-shadow:0 0 21px #159cff66!important}
+.v15-gear.rarity-epic{border-color:#e128d8!important;box-shadow:0 0 22px #e128d866!important}
+.v15-gear.rarity-mythic{border-color:#8d49ff!important;box-shadow:0 0 24px #8d49ff7d!important}
+.v15-gear.rarity-legendary{border-color:#f0bd37!important;box-shadow:0 0 27px #f0bd3785!important}
+.v15-gear.rarity-normal b{color:#d9dee3!important}
+.v15-gear.rarity-rare b{color:#55baff!important}
+.v15-gear.rarity-epic b{color:#f05bea!important}
+.v15-gear.rarity-mythic b{color:#b98cff!important}
+.v15-gear.rarity-legendary b{color:#ffd45f!important}
+
+/* Keep the six live equipment cards aligned and outside the warrior's body. */
+.v15-gear{width:112px!important;min-height:142px!important}
+.v15-gear img{height:86px!important;object-fit:cover!important}
+.v15-helmet{left:14px!important;top:62px!important}
+.v15-armor{left:14px!important;top:255px!important}
+.v15-boots{left:14px!important;top:448px!important}
+.v15-weapon{right:14px!important;top:62px!important}
+.v15-gloves{right:14px!important;top:255px!important}
+.v15-ring{right:14px!important;top:448px!important}
+.hero-equipped-label{
+ z-index:8!important;
+ left:50%!important;
+ bottom:58px!important;
+ max-width:70%;
+ overflow:hidden;
+ text-overflow:ellipsis;
+}
+@media(max-width:650px){
+ .v166-character-art>img{object-position:center}
+ .v15-gear{width:92px!important;min-height:120px!important}
+ .v15-gear img{height:66px!important}
+ .v15-helmet,.v15-armor,.v15-boots{left:5px!important}
+ .v15-weapon,.v15-gloves,.v15-ring{right:5px!important}
+ .v15-helmet,.v15-weapon{top:50px!important}
+ .v15-armor,.v15-gloves{top:220px!important}
+ .v15-boots,.v15-ring{top:390px!important}
+}

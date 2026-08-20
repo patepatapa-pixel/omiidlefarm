@@ -1,6 +1,6 @@
 {
   "name": "omi-idle-farm-online",
-  "version": "16.4.0",
+  "version": "16.6.0",
   "private": true,
   "scripts": {
     "start": "node server.js"

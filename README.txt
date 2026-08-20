@@ -154,3 +154,5 @@ V16.2: játékosonként 1x/2x/3x/4x harci és wave sebesség. 4x prémium, 3 EUR
 V16.3: Equip Best; tömeges rarity törlés/eladás; speed panel biztosan Farm fülön; 2x/3x/4x ténylegesen gyorsítja a player/enemy combat timereket.
 
 V16.4: karakter gear ikonok újraigazítva; ritkaság szerinti helyes keretek: Normal szürke, Rare kék, Epic magenta, Mythic lila, Legendary arany/sárga.
+
+V16.6: új saját karakter/felszerelés grafika beépítve; régi lila sárkány háttér eltávolítva; Mythic=lila, Legendary=arany rarity keretek; slotok újraigazítva.

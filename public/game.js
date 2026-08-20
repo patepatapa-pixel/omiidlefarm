@@ -86,6 +86,8 @@ function normalizeV6Save(s){
  s.activeAura=s.activeAura||"none";
  s.playerHp=Number.isFinite(Number(s.playerHp))?Number(s.playerHp):0;
  s.hpRegenLevel=Math.max(0,Number(s.hpRegenLevel||0));
+ s.combatSpeed=[1,2,3,4].includes(Number(s.combatSpeed))?Number(s.combatSpeed):1;
+ s.speed4Unlocked=Boolean(s.speed4Unlocked);
  s.deaths=Math.max(0,Number(s.deaths||0));
  s.respawnUntil=Math.max(0,Number(s.respawnUntil||0));
  return s;
@@ -688,7 +690,7 @@ function renderV15ExactCharacter(){
    if(box){
      box.classList.remove("rarity-empty","rarity-normal","rarity-rare","rarity-epic","rarity-mythic","rarity-legendary");
      if(it){
-       const rarity=["normal","rare","epic","mythic","legendary"].includes(it.rarity)?it.rarity:"normal";
+       const rawRarity=String(it.rarity||"normal").toLowerCase(); const rarity=rawRarity==="mistic"||rawRarity==="mystic"?"mythic":(["normal","common","rare","epic","mythic","legendary"].includes(rawRarity)?(rawRarity==="common"?"normal":rawRarity):"normal");
        box.classList.add("rarity-"+rarity);
      }else{
        box.classList.add("rarity-empty");
@@ -725,7 +727,7 @@ function renderAll(){
  renderQuests();
  renderStats();
  renderCharacterAttributes();
-;renderHpRegenAndOptions();}
+;renderHpRegenAndOptions();renderCombatSpeed();}
 $("#bossBtn").onclick=()=>toast("👹 A boss automatikusan jön minden wave végén.");
 $("#petSummon").onclick=summonPet;
 $("#sellNormal").onclick=()=>{let equipped=new Set(Object.values(save.equipped));let sold=0;save.inventory=save.inventory.filter(it=>{if(it.rarity==="normal"&&!equipped.has(it.id)){save.gold+=sellValue(it);sold++;return false}return true});persist();renderAll();toast(`${sold} normál tárgy eladva`)};
@@ -1002,6 +1004,48 @@ function v10EnsurePlayerHp(){
  if(save.playerHp<0)save.playerHp=mx;
 }
 
+
+function effectiveCombatSpeed(){
+ const n=[1,2,3,4].includes(Number(save.combatSpeed))?Number(save.combatSpeed):1;
+ return n===4&&!save.speed4Unlocked?3:n;
+}
+function setCombatSpeed(n){
+ n=Number(n);
+ if(![1,2,3,4].includes(n))return;
+
+ if(n===4&&!save.speed4Unlocked){
+   toast("🔒 A 4× sebesség prémium. A Feltöltés / Discord fülön 3 €.");
+   const tab=$('[data-tab="shop"]');
+   if(tab)tab.click();
+   return;
+ }
+ save.combatSpeed=n;
+ persist();
+ if(typeof v10RestartTimers==="function")v10RestartTimers();
+ renderCombatSpeed();
+ toast(`⚡ Harci / Wave sebesség: ${n}×`);
+}
+function renderCombatSpeed(){
+ const n=effectiveCombatSpeed();
+ $$(".combat-speed-btn").forEach(b=>{
+   const val=Number(b.dataset.speed);
+   b.classList.toggle("active",val===n);
+   b.classList.toggle("locked",val===4&&!save.speed4Unlocked);
+   if(val===4)b.innerHTML=save.speed4Unlocked?"⚡ 4×":"🔒 4×";
+ });
+ ["combatSpeedState","combatSpeedStateV163"].forEach(id=>{
+   const e=$("#"+id);if(e)e.textContent=`Aktív: ${n}×`;
+ });
+ const premium=$("#speed4PurchaseState");
+ if(premium)premium.textContent=save.speed4Unlocked?"✅ Aktiválva":"🔒 Nincs aktiválva";
+}
+document.addEventListener("click",e=>{
+ const b=e.target.closest?.(".combat-speed-btn");
+ if(!b)return;
+ e.preventDefault();
+ setCombatSpeed(b.dataset.speed);
+});
+
 function v161LiveHud(){
  const z=ZONES[save.zone]||ZONES[0];
  const set=(sel,val)=>{const e=$(sel);if(e)e.textContent=val};
@@ -1165,8 +1209,8 @@ function v10RestartTimers(){
  if(v10PlayerTimer)clearInterval(v10PlayerTimer);
  if(v10EnemyTimer)clearInterval(v10EnemyTimer);
  if(v10RegenTimer)clearInterval(v10RegenTimer);
- v10PlayerTimer=setInterval(v10PlayerAttack,Math.max(120,(V10CFG.playerAttackSec*1000)/Math.max(1,Number(save.combatSpeed||1))));
- v10EnemyTimer=setInterval(v10EnemyAttack,Math.max(120,(V10CFG.enemyAttackSec*1000)/Math.max(1,Number(save.combatSpeed||1))));
+ v10PlayerTimer=setInterval(v10PlayerAttack,Math.max(90,(V10CFG.playerAttackSec*1000)/effectiveCombatSpeed()));
+ v10EnemyTimer=setInterval(v10EnemyAttack,Math.max(200,V10CFG.enemyAttackSec*1000));
  v10RegenTimer=setInterval(v10Regen,1000);
 }
 async function v10LoadGameplay(){
