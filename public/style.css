@@ -179,3 +179,74 @@ a{text-decoration:none}
 .prestige-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px}.prestige-summary>div{border:1px solid #2a3037;border-radius:10px;padding:10px}.prestige-summary small,.prestige-summary b{display:block}.prestige-summary b{font-size:18px;color:#e8bd4a;margin-top:4px}.prestige-progress{height:10px;background:#1f242a;border-radius:10px;overflow:hidden;margin:12px 0 7px}.prestige-progress>div{height:100%;width:0;background:linear-gradient(90deg,#7c5cff,#e2b745)}.prestige-btn{width:100%;margin-top:10px}.paragon-stat-list{display:grid;gap:7px}.paragon-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;border:1px solid #2a3037;border-radius:10px;padding:10px}.aura-shop{display:grid;gap:8px}.aura-card{border:1px solid #2a3037;border-radius:10px;padding:10px}.aura-card.active{border-color:#e4b94a}.aura-card b,.aura-card small{display:block}.aura-card button{width:100%;margin-top:8px}.wave-panel{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:12px}.wave-panel>div{padding:9px;border:1px solid #2b3038;border-radius:9px;background:#090b0e}.wave-panel small,.wave-panel b{display:block}
 @keyframes v5PetFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}@keyframes v5AuraPulse{0%,100%{transform:translate(-50%,-50%) scale(.97)}50%{transform:translate(-50%,-50%) scale(1.04)}}@keyframes v5AuraSpin{to{transform:rotate(360deg)}}
 @media(max-width:1000px){.character-page-grid{grid-template-columns:1fr}.v5-character-scene{height:650px}}@media(max-width:650px){.v5-slot{width:105px}.v5-slot-head,.v5-slot-armor,.v5-slot-boots{left:8px}.v5-slot-weapon,.v5-slot-gloves,.v5-slot-ring{right:8px}.v5-character-footer{grid-template-columns:1fr 1fr}.wave-panel{grid-template-columns:1fr 1fr}.v5-pet{right:-35px}}
+
+/* V6 – polished character and interaction fix */
+.v5-character-scene,
+.v5-scene-bg,
+.v5-aura,
+.v5-hero,
+.hero-svg,
+.v5-slot,
+.v5-character-footer{
+  pointer-events:none;
+}
+.hero-svg{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  overflow:visible;
+}
+.v5-hero{
+  width:310px!important;
+  height:470px!important;
+  top:47%!important;
+}
+.v5-hero-head,.v5-hero-shoulders,.v5-hero-chest,.v5-hero-belt,.v5-hero-legs,
+.v5-hero-weapon,.v5-hero-offhand{
+  display:none!important;
+}
+.v5-pet{
+  right:-75px!important;
+  bottom:45px!important;
+  z-index:12;
+}
+.v5-slot{
+  backdrop-filter:blur(10px);
+  background:linear-gradient(145deg,rgba(12,15,20,.94),rgba(6,8,11,.94));
+}
+.v5-slot b{color:#f1f3f5}
+.v5-slot.rarity-normal{border-color:#49515a}
+.v5-slot.rarity-rare{border-color:#357fc5;box-shadow:0 0 22px rgba(53,127,197,.20)}
+.v5-slot.rarity-epic{border-color:#9857dd;box-shadow:0 0 25px rgba(152,87,221,.23)}
+.v5-slot.rarity-mythic{border-color:#d34976;box-shadow:0 0 28px rgba(211,73,118,.24)}
+.v5-slot.rarity-legendary{border-color:#e1b33e;box-shadow:0 0 32px rgba(225,179,62,.30)}
+.equip-best-btn{
+  pointer-events:auto!important;
+  position:relative;
+  z-index:20;
+}
+.tabs,.tab,button,.inventory-item .actions,.paragon-stat-list,.aura-shop{
+  pointer-events:auto!important;
+}
+
+/* V7 Character attributes */
+.character-attributes{
+ display:grid;
+ grid-template-columns:repeat(4,minmax(0,1fr));
+ gap:8px;
+ margin-top:12px;
+}
+.char-attr{
+ padding:10px 11px;
+ border:1px solid #2b3038;
+ border-radius:10px;
+ background:linear-gradient(145deg,#0b0e12,#080a0d);
+}
+.char-attr span,.char-attr b{display:block}
+.char-attr span{font-size:10px;color:#9098a1}
+.char-attr b{font-size:16px;margin-top:4px;color:#f2f3f4}
+.char-attr:nth-child(1) b,
+.char-attr:nth-child(7) b,
+.char-attr:nth-child(8) b{color:#efc553}
+@media(max-width:760px){.character-attributes{grid-template-columns:repeat(2,minmax(0,1fr))}}

@@ -67,3 +67,18 @@ V5:
 - Paragon pontok: sebzés / arany / drop / krit.
 - Prestige Aura Shop.
 - Prestige alatt inventory, felszerelés, petek, paragon és prestige megmarad.
+
+V6 FIX:
+- Javítva a V5 régi cloud save kompatibilitási hibája, ami lefagyás-szerű működést okozhatott.
+- Minden régi mentést automatikusan V6 struktúrára egészít ki.
+- A karakter teljesen új SVG humanoid fantasy hőst kapott.
+- A páncél, sisak, kesztyű, csizma, gyűrű és fegyver ritkasága vizuálisan módosítja a karaktert.
+- Equip Best javítva: minden felszerelési slotra ténylegesen a legerősebb, megfelelő típusú inventory tárgy kerül.
+- Inventory kézi Felszerel gombjai változatlanul működnek.
+- Karakteres látványelemek nem blokkolják többé az egérkattintásokat.
+- Wave/Boss/Prestige/Paragon/Aura rendszer megmaradt.
+
+V7 KARAKTER ADOTTSÁGOK:
+- A Karakter fülön külön stat panel mutatja:
+  Erő, Sebzés, Szerencse, Krit esély, Drop bónusz,
+  Szint, Paragon, Prestige, Paragon pont, Aura token, Wave, Összes kill.

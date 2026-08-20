@@ -67,6 +67,27 @@ let save=JSON.parse(localStorage.getItem("omiIdleComplete")||"null")||{
 };
 if(save.lastDaily!==new Date().toDateString()){save.dailyClaimed={};save.lastDaily=new Date().toDateString()}
 
+
+function normalizeV6Save(s){
+ s=s&&typeof s==="object"?s:{};
+ s.gold=Number(s.gold||0);s.gems=Number(s.gems||10);s.ore=Number(s.ore||0);s.soul=Number(s.soul||0);s.tickets=Number(s.tickets||3);
+ s.level=Math.max(1,Number(s.level||1));s.xp=Number(s.xp||0);s.skillPoints=Number(s.skillPoints||0);s.kills=Number(s.kills||0);s.zone=Math.max(0,Math.min(ZONES.length-1,Number(s.zone||0)));
+ s.base={weaponTraining:1,armorTraining:1,mining:1,luck:1,...(s.base||{})};
+ s.skills={power:0,gold:0,crit:0,drop:0,offline:0,pet:0,...(s.skills||{})};
+ s.inventory=Array.isArray(s.inventory)?s.inventory:[];
+ s.equipped={weapon:null,helmet:null,armor:null,gloves:null,boots:null,ring:null,...(s.equipped||{})};
+ s.pets=Array.isArray(s.pets)?s.pets:[];s.activePet=Number.isInteger(s.activePet)?s.activePet:null;
+ s.stats={goldEarned:0,itemsFound:0,legendary:0,bosses:0,dungeons:0,critHits:0,playSeconds:0,...(s.stats||{})};
+ s.dailyClaimed=s.dailyClaimed||{};s.achClaimed=s.achClaimed||{};s.last=Number(s.last||Date.now());s.lastDaily=s.lastDaily||new Date().toDateString();s.uid=Math.max(1,Number(s.uid||1));
+ s.wave=Math.max(1,Number(s.wave||1));s.waveKills=Math.max(0,Number(s.waveKills||0));s.waveGoal=Math.max(1,Number(s.waveGoal||10));s.waveBoss=Boolean(s.waveBoss);s.bossHp=Math.max(0,Number(s.bossHp||0));
+ s.paragonLevel=Math.max(0,Number(s.paragonLevel||0));s.prestigeLevel=Math.max(0,Number(s.prestigeLevel||0));s.paragonPoints=Math.max(0,Number(s.paragonPoints||0));s.auraTokens=Math.max(0,Number(s.auraTokens||0));
+ s.paragonStats={damage:0,gold:0,drop:0,crit:0,...(s.paragonStats||{})};
+ s.ownedAuras=Array.isArray(s.ownedAuras)?s.ownedAuras:["none"];if(!s.ownedAuras.includes("none"))s.ownedAuras.unshift("none");
+ s.activeAura=s.activeAura||"none";
+ return s;
+}
+save=normalizeV6Save(save);
+
 save.wave=Number(save.wave||1);
 save.waveKills=Number(save.waveKills||0);
 save.waveGoal=Number(save.waveGoal||10);
@@ -331,28 +352,71 @@ function itemScore(it){
  return (st.atk*8+st.def*5+st.gold*900+st.crit*1300+st.drop*1600)*(1+it.plus*.08)*rar;
 }
 function equipBest(){
+ let changed=0;
  Object.keys(SLOT_NAMES).forEach(slot=>{
-   const choices=save.inventory.filter(x=>x.slot===slot);
+   const choices=save.inventory.filter(x=>x && x.slot===slot && Number.isFinite(Number(x.id)));
    if(!choices.length)return;
    choices.sort((a,b)=>itemScore(b)-itemScore(a));
-   save.equipped[slot]=choices[0].id;
+   if(save.equipped[slot]!==choices[0].id){save.equipped[slot]=choices[0].id;changed++}
  });
- persist();renderAll();toast("✨ A legjobb felszerelések felrakva!");
+ persist();renderAll();
+ toast(changed?`✨ EQUIP BEST: ${changed} felszerelés cserélve.`:"✨ Már a legerősebb felszerelések vannak rajtad.");
 }
+
+function renderCharacterAttributes(){
+ if($("#charStatPower"))$("#charStatPower").textContent=fmt(power());
+ if($("#charStatDamage"))$("#charStatDamage").textContent=fmt(damage());
+ if($("#charStatLuck"))$("#charStatLuck").textContent=fmt(save.base.luck + save.paragonStats.drop);
+ if($("#charStatCrit"))$("#charStatCrit").textContent=(critChance()*100).toFixed(1)+"%";
+ if($("#charStatDrop"))$("#charStatDrop").textContent=(dropBonus()*100).toFixed(1)+"%";
+ if($("#charStatLevel"))$("#charStatLevel").textContent=save.level;
+ if($("#charStatParagon"))$("#charStatParagon").textContent=save.paragonLevel;
+ if($("#charStatPrestige"))$("#charStatPrestige").textContent=save.prestigeLevel;
+ if($("#charStatPoints"))$("#charStatPoints").textContent=save.paragonPoints;
+ if($("#charStatAuraTokens"))$("#charStatAuraTokens").textContent=save.auraTokens;
+ if($("#charStatWave"))$("#charStatWave").textContent=save.wave;
+ if($("#charStatKills"))$("#charStatKills").textContent=fmt(save.kills);
+}
+
 function renderV5Character(){
- const map={helmet:["v5Helmet","🪖"],weapon:["v5Weapon","⚔️"],armor:["v5Armor","🛡️"],gloves:["v5Gloves","🧤"],boots:["v5Boots","🥾"],ring:["v5Ring","💍"]};
- Object.entries(map).forEach(([slot,[id]])=>{
-   const it=equipObj(slot),el=$("#"+id);
-   if(el)el.textContent=it?`${rarityName(it.rarity)} +${it.plus}`:"Üres";
+ const slotMap={
+  helmet:["v5Helmet",".v5-slot-head"],weapon:["v5Weapon",".v5-slot-weapon"],
+  armor:["v5Armor",".v5-slot-armor"],gloves:["v5Gloves",".v5-slot-gloves"],
+  boots:["v5Boots",".v5-slot-boots"],ring:["v5Ring",".v5-slot-ring"]
+ };
+ Object.entries(slotMap).forEach(([slot,[id,selector]])=>{
+   const it=equipObj(slot),el=$("#"+id),box=$(selector);
+   if(el)el.textContent=it?`${it.name} +${it.plus}`:"Üres";
+   if(box){
+    box.classList.remove("rarity-normal","rarity-rare","rarity-epic","rarity-mythic","rarity-legendary");
+    if(it)box.classList.add("rarity-"+it.rarity);
+   }
  });
- const weapon=equipObj("weapon"),armor=equipObj("armor"),helmet=equipObj("helmet"),pet=petObj();
- $("#v5HeroHead").textContent=helmet?(helmet.rarity==="legendary"?"👑":"🧙"):"🧑";
- $("#v5HeroWeapon").textContent=weapon?(weapon.rarity==="legendary"?"🗡️":"⚔️"):"";
- $("#v5HeroOffhand").textContent=armor?"🛡️":"";
- const armorColors={normal:["#2d343c","#15191e"],rare:["#24425a","#10283b"],epic:["#4a2c61","#251430"],mythic:["#63263d","#2f121d"],legendary:["#655021","#2c220d"]};
- const c=armorColors[armor?.rarity||"normal"];
- $("#v5HeroChest").style.background=`linear-gradient(${c[0]},${c[1]})`;
- $("#v5Pet").textContent=pet?pet.icon:"🐾";$("#v5PetName").textContent=pet?pet.name:"Nincs";
+
+ const weapon=equipObj("weapon"),armor=equipObj("armor"),helmet=equipObj("helmet"),
+       gloves=equipObj("gloves"),boots=equipObj("boots"),ring=equipObj("ring"),pet=petObj();
+
+ const rarityColors={
+  normal:{metal:"#56616d",dark:"#22282e",accent:"#8c969f"},
+  rare:{metal:"#3c89c9",dark:"#15334d",accent:"#7dc4ff"},
+  epic:{metal:"#8955be",dark:"#342044",accent:"#c895ff"},
+  mythic:{metal:"#c3436c",dark:"#4a192a",accent:"#ff7ba6"},
+  legendary:{metal:"#cda13b",dark:"#4b3a12",accent:"#ffe07a"}
+ };
+
+ let ac=rarityColors[armor?.rarity||"normal"],wc=rarityColors[weapon?.rarity||"normal"],
+     hc=rarityColors[helmet?.rarity||"normal"],gc=rarityColors[gloves?.rarity||"normal"],
+     bc=rarityColors[boots?.rarity||"normal"],rc=rarityColors[ring?.rarity||"normal"];
+
+ const armorEl=$("#svgArmor");if(armorEl){armorEl.setAttribute("fill",ac.dark);armorEl.setAttribute("stroke",ac.metal)}
+ ["svgShoulderL","svgShoulderR"].forEach(id=>{let e=$("#"+id);if(e){e.setAttribute("fill",ac.dark);e.setAttribute("stroke",ac.metal)}});
+ const helmetEl=$("#svgHelmet");if(helmetEl){helmetEl.setAttribute("opacity",helmet?"1":"0");helmetEl.querySelector("path")?.setAttribute("fill",hc.dark)}
+ ["svgGloveL","svgGloveR"].forEach(id=>{let e=$("#"+id);if(e){e.setAttribute("fill",gc.dark);e.setAttribute("stroke",gc.metal)}});
+ ["svgBootL","svgBootR"].forEach(id=>{let e=$("#"+id);if(e){e.setAttribute("fill",bc.dark);e.setAttribute("stroke",bc.metal)}});
+ const ringGlow=$("#svgRingGlow");if(ringGlow){ringGlow.setAttribute("opacity",ring?".95":".15");ringGlow.setAttribute("stroke",rc.accent)}
+ const wep=$("#svgWeapon");if(wep){wep.style.display=weapon?"block":"none";wep.style.filter=weapon?.rarity==="legendary"?"drop-shadow(0 0 12px #f2c64d)":"none"}
+
+ $("#v5Pet").textContent=pet?pet.icon:"🐾";$("#v5Pet").style.opacity=pet?"1":".25";$("#v5PetName").textContent=pet?pet.name:"Nincs";
  $("#v5CharPower").textContent=fmt(power());$("#v5CharRank").textContent=rankName();
  $("#v5WaveLabel").textContent=save.wave;$("#v5ParagonLabel").textContent=save.paragonLevel;
 
@@ -414,7 +478,7 @@ function buyOrEquipAura(id){
 $("#equipBestBtn").onclick=equipBest;
 $("#prestigeBtn").onclick=doPrestige;
 
-function renderAll(){renderCore();renderCharacterVisual();renderV5Character();renderWave();renderParagon();renderZones();renderBaseUpgrades();renderInventory();renderUpgrade();renderSkills();renderPets();renderDungeons();renderQuests();renderStats()}
+function renderAll(){renderCore();renderCharacterVisual();renderV5Character();renderWave();renderParagon();renderZones();renderBaseUpgrades();renderInventory();renderUpgrade();renderSkills();renderPets();renderDungeons();renderQuests();renderStats();renderCharacterAttributes();}
 $("#bossBtn").onclick=()=>toast("👹 A boss automatikusan jön minden wave végén.");
 $("#petSummon").onclick=summonPet;
 $("#sellNormal").onclick=()=>{let equipped=new Set(Object.values(save.equipped));let sold=0;save.inventory=save.inventory.filter(it=>{if(it.rarity==="normal"&&!equipped.has(it.id)){save.gold+=sellValue(it);sold++;return false}return true});persist();renderAll();toast(`${sold} normál tárgy eladva`)};
@@ -448,7 +512,7 @@ async function loadMe(){
    const d=await api("/api/me");
    currentUser=d.user;
    if(d.save && Object.keys(d.save).length){
-     save=d.save;
+     save=normalizeV6Save(d.save);
      if(save.lastDaily!==new Date().toDateString()){save.dailyClaimed={};save.lastDaily=new Date().toDateString()}
      enemyHp=ZONES[save.zone]?.hp||ZONES[0].hp;
    }
@@ -495,7 +559,7 @@ $("#authSubmit").onclick=async()=>{
  try{
    const username=$("#authUsername").value.trim(),password=$("#authPassword").value;
    const d=await api(authMode==="login"?"/api/login":"/api/register",{method:"POST",body:JSON.stringify({username,password})});
-   currentUser=d.user;save=d.save||save;cloudReady=true;closeAuth();enemyHp=ZONES[save.zone]?.hp||ZONES[0].hp;renderAll();
+   currentUser=d.user;save=normalizeV6Save(d.save||save);cloudReady=true;closeAuth();enemyHp=ZONES[save.zone]?.hp||ZONES[0].hp;renderAll();
    $("#onlineUser").innerHTML=`<span class="online-badge">●</span> ${currentUser.username}`;$("#authBtn").textContent="Kilépés";toast("✅ Sikeres "+(authMode==="login"?"belépés":"regisztráció"));
  }catch(e){$("#authMsg").textContent="❌ "+e.message}
 };
@@ -514,6 +578,17 @@ persist=function(){
 // Require login for meaningful online progression, but local guest can still preview.
 setInterval(()=>{if(currentUser)cloudSave()},15000);
 window.addEventListener("beforeunload",()=>{if(currentUser)navigator.sendBeacon&&navigator.sendBeacon("/api/save",new Blob([JSON.stringify({save,power:power()})],{type:"application/json"}))});
+
+
+document.addEventListener("click",e=>{
+ const slot=e.target.closest(".v5-slot");
+ if(!slot)return;
+ const cls=[...slot.classList];
+ const map={"v5-slot-head":"helmet","v5-slot-weapon":"weapon","v5-slot-armor":"armor","v5-slot-gloves":"gloves","v5-slot-boots":"boots","v5-slot-ring":"ring"};
+ const k=Object.keys(map).find(x=>cls.includes(x));
+ if(!k)return;
+ // visual slots are informational; equipment is changed from Inventory / Equip Best.
+});
 
 // Offline progress max 12h
 let away=Math.min(43200,Math.max(0,(Date.now()-save.last)/1000));

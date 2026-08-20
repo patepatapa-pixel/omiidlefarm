@@ -69,17 +69,105 @@
     <div class="v5-slot v5-slot-boots"><span>🥾</span><small>CSIZMA</small><b id="v5Boots">Üres</b></div>
     <div class="v5-slot v5-slot-ring"><span>💍</span><small>GYŰRŰ</small><b id="v5Ring">Üres</b></div>
 
-    <div class="v5-hero">
-      <div class="v5-hero-shadow"></div>
-      <div class="v5-hero-head" id="v5HeroHead">🧑</div>
-      <div class="v5-hero-shoulders"></div>
-      <div class="v5-hero-chest" id="v5HeroChest"></div>
-      <div class="v5-hero-belt"></div>
-      <div class="v5-hero-legs"></div>
-      <div class="v5-hero-weapon" id="v5HeroWeapon">⚔️</div>
-      <div class="v5-hero-offhand" id="v5HeroOffhand"></div>
-      <div class="v5-pet" id="v5Pet">🐾</div>
-    </div>
+    
+<div class="v5-hero">
+  <div class="v5-hero-shadow"></div>
+
+  <svg class="hero-svg" viewBox="0 0 300 470" aria-label="Fantasy character">
+    <defs>
+      <linearGradient id="skinG" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#f1c69a"/>
+        <stop offset="1" stop-color="#b87954"/>
+      </linearGradient>
+      <linearGradient id="metalG" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#65717d"/>
+        <stop offset=".5" stop-color="#252c33"/>
+        <stop offset="1" stop-color="#101418"/>
+      </linearGradient>
+      <linearGradient id="clothG" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#5b2438"/>
+        <stop offset="1" stop-color="#24101b"/>
+      </linearGradient>
+      <filter id="heroShadow"><feDropShadow dx="0" dy="10" stdDeviation="7" flood-opacity=".7"/></filter>
+    </defs>
+
+    <g filter="url(#heroShadow)">
+      <!-- cloak -->
+      <path id="svgCloak" d="M84 151 Q150 116 216 151 L236 330 Q150 382 64 330 Z"
+            fill="#21151d" stroke="#3b2733" stroke-width="5"/>
+
+      <!-- legs -->
+      <path d="M105 315 L145 315 L139 438 L91 438 Z" fill="#171c22" stroke="#303740" stroke-width="4"/>
+      <path d="M155 315 L195 315 L209 438 L161 438 Z" fill="#171c22" stroke="#303740" stroke-width="4"/>
+      <path d="M87 428 L142 428 L145 452 L77 452 Q73 441 87 428Z" fill="#15191e"/>
+      <path d="M158 428 L213 428 Q228 441 222 452 L155 452 Z" fill="#15191e"/>
+
+      <!-- torso armor -->
+      <path id="svgArmor" d="M95 148 Q150 125 205 148 L217 284 Q150 314 83 284 Z"
+            fill="url(#metalG)" stroke="#56616d" stroke-width="5"/>
+      <path d="M108 166 Q150 151 192 166 L188 257 Q150 275 112 257 Z"
+            fill="url(#clothG)" opacity=".85"/>
+      <path d="M85 282 L215 282 L209 310 L91 310 Z" fill="#b08936" stroke="#493816" stroke-width="4"/>
+      <rect x="140" y="280" width="20" height="31" rx="4" fill="#dfba4e" stroke="#604915" stroke-width="3"/>
+
+      <!-- shoulders -->
+      <path id="svgShoulderL" d="M83 148 Q54 151 45 183 L91 194 L111 157 Z"
+            fill="url(#metalG)" stroke="#56616d" stroke-width="5"/>
+      <path id="svgShoulderR" d="M217 148 Q246 151 255 183 L209 194 L189 157 Z"
+            fill="url(#metalG)" stroke="#56616d" stroke-width="5"/>
+
+      <!-- arms -->
+      <path d="M61 184 Q47 232 58 276 L82 270 L92 193 Z" fill="url(#skinG)" stroke="#714c39" stroke-width="4"/>
+      <path d="M239 184 Q253 232 242 276 L218 270 L208 193 Z" fill="url(#skinG)" stroke="#714c39" stroke-width="4"/>
+      <path id="svgGloveL" d="M53 263 Q66 253 84 263 L80 296 Q61 305 48 288 Z" fill="#45304f" stroke="#724e80" stroke-width="4"/>
+      <path id="svgGloveR" d="M216 263 Q234 253 247 263 L252 288 Q239 305 220 296 Z" fill="#45304f" stroke="#724e80" stroke-width="4"/>
+
+      <!-- neck -->
+      <rect x="132" y="112" width="36" height="42" rx="13" fill="url(#skinG)" stroke="#714c39" stroke-width="4"/>
+
+      <!-- head -->
+      <ellipse cx="150" cy="86" rx="52" ry="60" fill="url(#skinG)" stroke="#714c39" stroke-width="5"/>
+      <!-- ears -->
+      <ellipse cx="96" cy="90" rx="9" ry="15" fill="#cc966e"/>
+      <ellipse cx="204" cy="90" rx="9" ry="15" fill="#cc966e"/>
+      <!-- hair -->
+      <path id="svgHair" d="M101 76 Q96 18 150 18 Q207 18 202 79 Q188 50 170 45 Q151 58 128 46 Q111 57 101 76Z"
+            fill="#3b271a"/>
+      <path d="M106 69 Q98 93 108 119 L120 107 L119 75Z" fill="#3b271a"/>
+      <path d="M194 69 Q202 93 192 119 L180 107 L181 75Z" fill="#3b271a"/>
+
+      <!-- face -->
+      <ellipse cx="131" cy="86" rx="5" ry="7" fill="#171719"/>
+      <ellipse cx="169" cy="86" rx="5" ry="7" fill="#171719"/>
+      <path d="M139 109 Q150 117 161 109" fill="none" stroke="#7e493e" stroke-width="4" stroke-linecap="round"/>
+      <path d="M146 92 L141 103 L151 104" fill="none" stroke="#9b674e" stroke-width="3" stroke-linecap="round"/>
+
+      <!-- helmet overlay -->
+      <g id="svgHelmet" opacity="0">
+        <path d="M99 78 Q96 20 150 10 Q205 20 201 78 L186 61 Q150 45 114 61 Z"
+              fill="url(#metalG)" stroke="#687581" stroke-width="5"/>
+        <path d="M145 9 L155 9 L164 36 L136 36 Z" fill="#c79c31"/>
+      </g>
+
+      <!-- boots overlays -->
+      <path id="svgBootL" d="M86 408 L143 408 L145 452 L77 452 Q72 433 86 408Z" fill="#5f4632" stroke="#8a6548" stroke-width="4"/>
+      <path id="svgBootR" d="M157 408 L214 408 Q230 433 223 452 L155 452 Z" fill="#5f4632" stroke="#8a6548" stroke-width="4"/>
+
+      <!-- weapon -->
+      <g id="svgWeapon" transform="translate(220 154) rotate(-18)">
+        <rect x="9" y="40" width="13" height="170" rx="6" fill="#c4cbd1" stroke="#4c545c" stroke-width="4"/>
+        <path d="M15 0 L34 55 L15 45 L-4 55 Z" fill="#e4e9ec" stroke="#59636d" stroke-width="4"/>
+        <rect x="-10" y="190" width="50" height="12" rx="5" fill="#c89b31"/>
+        <rect x="10" y="200" width="11" height="58" rx="5" fill="#573923"/>
+      </g>
+
+      <!-- ring glow -->
+      <circle id="svgRingGlow" cx="244" cy="277" r="12" fill="none" stroke="#b9a9ff" stroke-width="5" opacity=".25"/>
+    </g>
+  </svg>
+
+  <div class="v5-pet" id="v5Pet">🐾</div>
+</div>
 
     <div class="v5-character-footer">
       <div><small>AURA</small><b id="v5AuraName">Nincs</b></div>
@@ -89,6 +177,21 @@
     </div>
   </div>
   <button id="equipBestBtn" class="equip-best-btn">✨ EQUIP BEST – Legjobb felszerelés automatikusan</button>
+
+  <div class="character-attributes">
+    <div class="char-attr"><span>💪 Erő</span><b id="charStatPower">0</b></div>
+    <div class="char-attr"><span>⚔️ Sebzés</span><b id="charStatDamage">0</b></div>
+    <div class="char-attr"><span>🍀 Szerencse</span><b id="charStatLuck">0</b></div>
+    <div class="char-attr"><span>🎯 Krit esély</span><b id="charStatCrit">0%</b></div>
+    <div class="char-attr"><span>🎁 Drop bónusz</span><b id="charStatDrop">0%</b></div>
+    <div class="char-attr"><span>⭐ Szint</span><b id="charStatLevel">1</b></div>
+    <div class="char-attr"><span>🌟 Paragon</span><b id="charStatParagon">0</b></div>
+    <div class="char-attr"><span>👑 Prestige</span><b id="charStatPrestige">0</b></div>
+    <div class="char-attr"><span>📌 Paragon pont</span><b id="charStatPoints">0</b></div>
+    <div class="char-attr"><span>✨ Aura token</span><b id="charStatAuraTokens">0</b></div>
+    <div class="char-attr"><span>🌊 Wave</span><b id="charStatWave">1</b></div>
+    <div class="char-attr"><span>☠️ Összes kill</span><b id="charStatKills">0</b></div>
+  </div>
 </section>
 
 <aside class="stack">
