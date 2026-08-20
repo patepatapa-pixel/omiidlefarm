@@ -10,7 +10,7 @@
 <header class="topbar">
   <div class="brand"><span>⚔️ OMI</span> IDLE FARM <em>COMPLETE</em></div>
   <div class="top-actions">
-    <span class="build-version" id="buildVersionBadge">V17.1</span><span id="onlineUser">👤 Vendég</span>
+    <span class="build-version" id="buildVersionBadge">V22.3</span><span id="onlineUser">👤 Vendég</span>
     <button class="ghost" id="leaderboardBtn">🏆 Ranglista</button>
     <button class="ghost admin-only-btn" id="adminPanelBtn" style="display:none">⚙️ Adminpanel</button><button class="ghost" id="authBtn">Belépés</button>
     <span id="saveState">💾 Mentve</span>
@@ -25,6 +25,8 @@
   <button class="tab" data-tab="upgrade">🔨 Fejlesztés</button>
   <button class="tab" data-tab="skills">✨ Képességek</button>
   <button class="tab" data-tab="pets">🐾 Petek</button>
+  <button class="tab" data-tab="paragon">👑 Paragon / Prestige</button>
+  <button class="tab" data-tab="aurashop">✨ Prestige Aura Shop</button>
   <button class="tab" data-tab="dungeon">🏰 Dungeon</button>
   <button class="tab" data-tab="quests">📜 Küldetések</button>
   <button class="tab" data-tab="pvp">⚔️ PvP</button><button class="tab" data-tab="shop">💳 Feltöltés / Discord</button><button class="tab" data-tab="stats">📊 Statisztika</button>
@@ -70,7 +72,7 @@
 <main>
 <section class="hero card">
   <div>
-    <div class="eyebrow">AUTOMATA FARM RPG</div>
+    <div class="v200-character-header eyebrow">AUTOMATA FARM RPG</div>
     <h1>Farmolj automatikusan, építs egyre erősebb karaktert.</h1>
     <p>A karaktered magától harcol. Te döntöd el, mit fejlesztesz, mit szerelsz fel, melyik petet használod és melyik területet farmolod.</p>
   </div>
@@ -92,7 +94,7 @@
 <section class="page active" id="page-character">
   <div class="v15-main-grid">
     <aside class="v15-left card">
-      <div class="v15-section-title">👥 ADMIN GAME STUDIO</div>
+      <div class="admin-studio-only-v202 v15-section-title">👥 ADMIN GAME STUDIO</div>
       <small>Játékosok kezelése és moderálása</small>
       <div class="v15-search">🔎 Játékos keresése...</div>
       <div class="v15-player-head"><span>#</span><span>Játékos</span><span>Szint</span><span>Erő</span><span>Státusz</span><span>Művelet</span></div>
@@ -136,52 +138,11 @@
     </section>
 
     <aside class="v15-right">
-      <section class="card v15-sidebox v17-quick-stats">
-        <h3>📊 Karakter státusz</h3>
-        <div class="v17-stat-grid" id="v17QuickStats">
-          <div><small>💪 Erő</small><b id="v17Power">0</b></div>
-          <div><small>⚔️ Sebzés</small><b id="v17Damage">0</b></div>
-          <div><small>❤️ HP</small><b id="v17HP">0 / 0</b></div>
-          <div><small>🛡️ Védelem</small><b id="v17Defense">0</b></div>
-          <div><small>🍀 Szerencse</small><b id="v17Luck">0</b></div>
-          <div><small>🎯 Krit</small><b id="v17Crit">0%</b></div>
-          <div><small>🎁 Drop</small><b id="v17Drop">0%</b></div>
-          <div><small>🌊 Wave</small><b id="v17Wave">1</b></div>
-        </div>
-      </section>
-      <section class="card v15-sidebox">
-        <h3>👑 Paragon / Prestige</h3>
-        <div class="v15-four">
-          <div><small>Prestige</small><b id="v15Prestige">0</b></div>
-          <div><small>Paragon</small><b id="v15ParagonTop">0</b></div>
-          <div><small>Statpont</small><b id="v15StatPoints">0</b></div>
-          <div><small>Aura token</small><b id="v15AuraTokens">0</b></div>
-        </div>
-        <div class="prestige-progress"><div id="prestigeProgress"></div></div>
-        <small id="prestigeText">200-as szinten prestigelhetsz.</small>
-        <button id="prestigeBtn" class="prestige-btn">👑 PRESTIGE</button>
-      </section>
+      
+      
 
-      <section class="card v15-sidebox">
-        <h3>⚔️ Paragon statpontok</h3>
-        <div id="paragonStats" class="paragon-stat-list"></div>
-      </section>
-
-      <section class="card v15-sidebox">
-        <h3>❤️ HP Regeneráció</h3>
-        <div class="hp-regen-box">
-          <div><small>Szint</small><b id="hpRegenLevel">0</b></div>
-          <div><small>Regen</small><b id="hpRegenPct">0% / mp</b></div>
-        </div>
-        <button id="hpRegenUpgradeBtn">⬆️ HP REGEN FEJLESZTÉS</button>
-        <small id="hpRegenCost">Ár: 0 arany</small>
-      </section>
-
-      <section class="card v15-sidebox">
-        <h3>⭐ Prestige Aura Shop</h3>
-        <div id="auraShop" class="aura-shop"></div>
-      </section>
-    </aside>
+      
+</aside>
   </div>
 
   <div class="character-attributes v15-attributes">
@@ -201,14 +162,116 @@
     <div class="char-attr"><span>☠️ Összes kill</span><b id="charStatKills">0</b></div>
     <div class="char-attr"><span>💀 Halál</span><b id="charStatDeaths">0</b></div>
   </div>
-  <section class="card item-option-help">
-    <div class="title-row"><div><h3>🎲 Felszerelés opciók</h3><small>Maximum 5 opt / tárgy. Normal: 1 · Rare: 2 · Epic: 3 · Mythic: 4 · Legendary: 5.</small></div></div>
-    <div class="option-glossary" id="optionGlossary"></div>
-  </section>
+  
 </section>
 
 
+
+<!-- PRESTIGE AURA SHOP -->
+
+<section class="page" id="page-paragon">
+
+<div class="v212-context-bar" data-context-bar data-context-page="page-paragon">
+  <div class="v212-resource" data-res="gold"><span>💰 Arany</span><b data-val="gold">0</b></div>
+  <div class="v212-resource" data-res="gems"><span>💎 Gyémánt</span><b data-val="gems">0</b></div>
+  <div class="v212-resource" data-res="ore"><span>⛏️ Érc</span><b data-val="ore">0</b></div>
+  <div class="v212-resource" data-res="soul"><span>🔵 Lélekkő</span><b data-val="soul">0</b></div>
+  <div class="v212-resource" data-res="tickets"><span>🎫 Dungeon jegy</span><b data-val="tickets">0</b></div>
+  <div class="v212-resource" data-res="power"><span>⚔️ Erő</span><b data-val="power">0</b></div>
+  <div class="v212-resource" data-res="statpoints"><span>📌 Statpont</span><b data-val="statpoints">0</b></div>
+  <div class="v212-resource" data-res="auratokens"><span>✨ Aura token</span><b data-val="auratokens">0</b></div>
+</div>
+
+  <div class="paragon-standalone-v196">
+    <section class="card paragon-title-v196">
+      <div>
+        <small>👑 KARAKTER FEJLŐDÉS</small>
+        <h2>Paragon / Prestige</h2>
+        <p>A Paragon, Prestige és Paragon statpont fejlesztések külön oldala.</p>
+      </div>
+    </section>
+<section class="card v15-sidebox v17-quick-stats">
+        <h3>📊 Karakter státusz</h3>
+        <div class="v17-stat-grid" id="v17QuickStats">
+          <div><small>💪 Erő</small><b id="v17Power">0</b></div>
+          <div><small>⚔️ Sebzés</small><b id="v17Damage">0</b></div>
+          <div><small>❤️ HP</small><b id="v17HP">0 / 0</b></div>
+          <div><small>🛡️ Védelem</small><b id="v17Defense">0</b></div>
+          <div><small>🍀 Szerencse</small><b id="v17Luck">0</b></div>
+          <div><small>🎯 Krit</small><b id="v17Crit">0%</b></div>
+          <div><small>🎁 Drop</small><b id="v17Drop">0%</b></div>
+          <div><small>🌊 Wave</small><b id="v17Wave">1</b></div>
+        </div>
+      </section>
+
+    <section class="card v15-sidebox">
+        <h3>👑 Paragon / Prestige</h3>
+        <div class="v15-four">
+          <div><small>Prestige</small><b id="v15Prestige">0</b></div>
+          <div><small>Paragon</small><b id="v15ParagonTop">0</b></div>
+          <div><small>Statpont</small><b id="v15StatPoints">0</b></div>
+          <div><small>Aura token</small><b id="v15AuraTokens">0</b></div>
+        </div>
+        <div class="prestige-progress"><div id="prestigeProgress"></div></div>
+        <small id="prestigeText">200-as szinten prestigelhetsz.</small>
+        <button id="prestigeBtn" class="prestige-btn">👑 PRESTIGE</button>
+      </section>
+    <section class="card v15-sidebox">
+        <h3>⚔️ Paragon statpontok</h3>
+        <div id="paragonStats" class="paragon-stat-list"></div>
+      </section>
+  </div>
+</section>
+
+<section class="page" id="page-aurashop">
+
+<div class="v212-context-bar" data-context-bar data-context-page="page-aurashop">
+  <div class="v212-resource" data-res="gold"><span>💰 Arany</span><b data-val="gold">0</b></div>
+  <div class="v212-resource" data-res="gems"><span>💎 Gyémánt</span><b data-val="gems">0</b></div>
+  <div class="v212-resource" data-res="ore"><span>⛏️ Érc</span><b data-val="ore">0</b></div>
+  <div class="v212-resource" data-res="soul"><span>🔵 Lélekkő</span><b data-val="soul">0</b></div>
+  <div class="v212-resource" data-res="tickets"><span>🎫 Dungeon jegy</span><b data-val="tickets">0</b></div>
+  <div class="v212-resource" data-res="power"><span>⚔️ Erő</span><b data-val="power">0</b></div>
+  <div class="v212-resource" data-res="statpoints"><span>📌 Statpont</span><b data-val="statpoints">0</b></div>
+  <div class="v212-resource" data-res="auratokens"><span>✨ Aura token</span><b data-val="auratokens">0</b></div>
+</div>
+
+  <div class="aura-page-shell">
+    <section class="card aura-page-hero">
+      <div>
+        <small class="eyebrow">✨ PRESTIGE RENDSZER</small>
+        <h2>Prestige Aura Shop</h2>
+        <p>Prestige szintekkel és Aura Tokenekkel különleges aurákat oldhatsz fel. A megvásárolt aurák közül bármikor kiválaszthatod, melyiket használja a karaktered.</p>
+      </div>
+      <div class="aura-page-counters">
+        <div><small>👑 Prestige</small><b id="auraPagePrestige">0</b></div>
+        <div><small>✨ Aura token</small><b id="auraPageTokens">0</b></div>
+        <div><small>🌟 Paragon</small><b id="auraPageParagon">0</b></div>
+      </div>
+    </section>
+
+    <section class="card aura-shop-main">
+      <div class="title-row">
+        <div><h2>🌌 Elérhető aurák</h2><small>A követelmények és árak automatikusan frissülnek.</small></div>
+      </div>
+      <div id="auraShop" class="aura-shop aura-shop-grid"></div>
+    </section>
+  </div>
+</section>
+
 <section class="page" id="page-farm">
+
+<div class="v212-context-bar" data-context-bar data-context-page="page-farm">
+  <div class="v212-resource" data-res="gold"><span>💰 Arany</span><b data-val="gold">0</b></div>
+  <div class="v212-resource" data-res="gems"><span>💎 Gyémánt</span><b data-val="gems">0</b></div>
+  <div class="v212-resource" data-res="ore"><span>⛏️ Érc</span><b data-val="ore">0</b></div>
+  <div class="v212-resource" data-res="soul"><span>🔵 Lélekkő</span><b data-val="soul">0</b></div>
+  <div class="v212-resource" data-res="tickets"><span>🎫 Dungeon jegy</span><b data-val="tickets">0</b></div>
+  <div class="v212-resource" data-res="power"><span>⚔️ Erő</span><b data-val="power">0</b></div>
+  <div class="v212-resource" data-res="statpoints"><span>📌 Statpont</span><b data-val="statpoints">0</b></div>
+  <div class="v212-resource" data-res="auratokens"><span>✨ Aura token</span><b data-val="auratokens">0</b></div>
+</div>
+
 <div class="layout">
   <div class="stack">
     <section class="card battle-card">
@@ -222,9 +285,9 @@
           <button class="combat-speed-btn active" data-speed="1">1×</button>
           <button class="combat-speed-btn" data-speed="2">⚡ 2×</button>
           <button class="combat-speed-btn" data-speed="3">⚡ 3×</button>
-          <button class="combat-speed-btn locked" data-speed="4">🔒 4×</button>
+          <button class="combat-speed-btn locked" data-speed="10">🔒 10×</button>
         </div>
-        <small class="speed-note-v165">1× / 2× / 3× ingyenes. A 4× prémium sebesség 3 €, a Feltöltés / Discord fülön érhető el.</small>
+        <small class="speed-note-v165">1× / 2× / 3× ingyenes. A 10× prémium sebesség 3 €, a Feltöltés / Discord fülön érhető el.</small>
       </div>
 <div class="wave-panel">
  <div><small>WAVE</small><b id="waveNumber">1</b></div>
@@ -272,6 +335,21 @@
     <section class="card">
       <div class="title-row"><h2>🧰 Alap fejlesztések</h2><small>Biztos erősödés</small></div>
       <div id="baseUpgrades" class="upgrade-list"></div>
+
+      <div class="farm-hp-regen-upgrade">
+        <div class="farm-hp-regen-head">
+          <div>
+            <b>❤️ HP Regeneráció</b>
+            <small>Másodpercenként automatikusan visszatölti az életerőd egy részét.</small>
+          </div>
+          <div class="farm-hp-regen-values">
+            <span>Szint: <b id="hpRegenLevel">0</b></span>
+            <span>Regen: <b id="hpRegenPct">0% / mp</b></span>
+          </div>
+        </div>
+        <button id="hpRegenUpgradeBtn" class="gold-btn">⬆️ HP REGEN FEJLESZTÉS</button>
+        <small id="hpRegenCost">Ár: 0 arany</small>
+      </div>
     </section>
   </div>
 
@@ -295,6 +373,73 @@
 <!-- INVENTORY -->
 
 <section class="page" id="page-inventory">
+
+<section class="card v216-auto-delete-panel">
+  <div class="v216-auto-delete-head">
+    <div>
+      <h3>🗑️ Automata item törlés</h3>
+      <small>Saját beállítás. A rendszer automatikusan törli a kiválasztott gyengébb tárgyakat, így nem telik meg az inventory.</small>
+    </div>
+    <label class="v216-switch">
+      <input type="checkbox" id="v216AutoDeleteEnabled">
+      <span>Bekapcsolva</span>
+    </label>
+  </div>
+
+  <div class="v216-grid">
+    <div class="v216-box">
+      <b>Rarity törlés</b>
+      <label><input type="checkbox" data-v216-rarity="normal"> Common / Normal</label>
+      <label><input type="checkbox" data-v216-rarity="rare"> Rare</label>
+      <label><input type="checkbox" data-v216-rarity="epic"> Epic</label>
+      <label><input type="checkbox" data-v216-rarity="mythic"> Mythic</label>
+      <label><input type="checkbox" data-v216-rarity="legendary"> Legendary</label>
+    </div>
+
+    <div class="v216-box">
+      <b>Erősség szűrő</b>
+      <label>Csak ez alatt töröljön:
+        <input type="number" id="v216MaxPowerDelete" min="0" step="1" value="0">
+      </label>
+      <small>0 = nincs erősség korlát. Példa: 500 → csak az 500 alatti, kijelölt rarity tárgyakat törli.</small>
+    </div>
+
+    <div class="v216-box">
+      <b>+ szint védelem</b>
+      <label>+ szinttől ne töröljön:
+        <input type="number" id="v216ProtectPlus" min="0" max="15" step="1" value="1">
+      </label>
+      <small>Példa: 5 → +5 vagy magasabb tárgyat soha nem töröl.</small>
+    </div>
+
+    <div class="v216-box">
+      <b>Biztonság</b>
+      <label><input type="checkbox" id="v216ProtectEquipped" checked disabled> Felszerelt tárgyak védve</label>
+      <label><input type="checkbox" id="v216ProtectLocked" checked> Zárolt / kedvenc tárgyak védve</label>
+      <small>A felszerelt tárgyakat az automata törlés soha nem törli.</small>
+    </div>
+  </div>
+
+  <div class="v216-actions">
+    <button type="button" id="v216SaveAutoDelete">💾 Beállítás mentése</button>
+    <button type="button" id="v216RunAutoDelete">🧹 Törlés most</button>
+    <span id="v216AutoDeleteStatus">Automata törlés: kikapcsolva</span>
+  </div>
+</section>
+
+
+
+<div class="v212-context-bar" data-context-bar data-context-page="page-inventory">
+  <div class="v212-resource" data-res="gold"><span>💰 Arany</span><b data-val="gold">0</b></div>
+  <div class="v212-resource" data-res="gems"><span>💎 Gyémánt</span><b data-val="gems">0</b></div>
+  <div class="v212-resource" data-res="ore"><span>⛏️ Érc</span><b data-val="ore">0</b></div>
+  <div class="v212-resource" data-res="soul"><span>🔵 Lélekkő</span><b data-val="soul">0</b></div>
+  <div class="v212-resource" data-res="tickets"><span>🎫 Dungeon jegy</span><b data-val="tickets">0</b></div>
+  <div class="v212-resource" data-res="power"><span>⚔️ Erő</span><b data-val="power">0</b></div>
+  <div class="v212-resource" data-res="statpoints"><span>📌 Statpont</span><b data-val="statpoints">0</b></div>
+  <div class="v212-resource" data-res="auratokens"><span>✨ Aura token</span><b data-val="auratokens">0</b></div>
+</div>
+
   <section class="card inventory-tools-v163">
     <div class="inventory-tools-head">
       <div><h2>⚔️ Felszerelés kezelés</h2><small>Egy kattintással legjobb felszerelés, tömeges törlés vagy eladás.</small></div>
@@ -320,6 +465,25 @@
 
 <!-- UPGRADE -->
 <section class="page" id="page-upgrade">
+
+<div class="v212-context-bar" data-context-bar data-context-page="page-upgrade">
+  <div class="v212-resource" data-res="gold"><span>💰 Arany</span><b data-val="gold">0</b></div>
+  <div class="v212-resource" data-res="gems"><span>💎 Gyémánt</span><b data-val="gems">0</b></div>
+  <div class="v212-resource" data-res="ore"><span>⛏️ Érc</span><b data-val="ore">0</b></div>
+  <div class="v212-resource" data-res="soul"><span>🔵 Lélekkő</span><b data-val="soul">0</b></div>
+  <div class="v212-resource" data-res="tickets"><span>🎫 Dungeon jegy</span><b data-val="tickets">0</b></div>
+  <div class="v212-resource" data-res="power"><span>⚔️ Erő</span><b data-val="power">0</b></div>
+  <div class="v212-resource" data-res="statpoints"><span>📌 Statpont</span><b data-val="statpoints">0</b></div>
+  <div class="v212-resource" data-res="auratokens"><span>✨ Aura token</span><b data-val="auratokens">0</b></div>
+</div>
+
+<div class="v201-options-upgrade-only">
+<section class="card item-option-help">
+    <div class="title-row"><div><h3>🎲 Felszerelés opciók</h3><small>Maximum 5 opt / tárgy. Normal: 1 · Rare: 2 · Epic: 3 · Mythic: 4 · Legendary: 5.</small></div></div>
+    <div class="option-glossary" id="optionGlossary"></div>
+  </section>
+</div>
+
 <div class="layout">
   <section class="card">
     <h2>🔨 Felszerelés fejlesztés +0 → +15</h2>
@@ -335,14 +499,50 @@
 
 <!-- SKILLS -->
 <section class="page" id="page-skills">
+
+<div class="v212-context-bar" data-context-bar data-context-page="page-skills">
+  <div class="v212-resource" data-res="gold"><span>💰 Arany</span><b data-val="gold">0</b></div>
+  <div class="v212-resource" data-res="gems"><span>💎 Gyémánt</span><b data-val="gems">0</b></div>
+  <div class="v212-resource" data-res="ore"><span>⛏️ Érc</span><b data-val="ore">0</b></div>
+  <div class="v212-resource" data-res="soul"><span>🔵 Lélekkő</span><b data-val="soul">0</b></div>
+  <div class="v212-resource" data-res="tickets"><span>🎫 Dungeon jegy</span><b data-val="tickets">0</b></div>
+  <div class="v212-resource" data-res="power"><span>⚔️ Erő</span><b data-val="power">0</b></div>
+  <div class="v212-resource" data-res="statpoints"><span>📌 Statpont</span><b data-val="statpoints">0</b></div>
+  <div class="v212-resource" data-res="auratokens"><span>✨ Aura token</span><b data-val="auratokens">0</b></div>
+</div>
+
 <section class="card">
   <div class="title-row"><div><h2>✨ Képességek</h2><small>Szintlépésenként 1 képességpont</small></div><b><span id="skillPoints">0</span> pont</b></div>
-  <div id="skills" class="skill-grid"></div>
+  <div class="card v198-skill-info">
+  <h3>♾️ Végtelen képességfejlődés</h3>
+  <p>Nincs képesség maximum. A korai szintek erősebb növekedést adnak, később a bónusz fokozatosan lassul, ezért hosszú távon is fejleszthető marad anélkül, hogy pár nap alatt szétessen a balansz.</p>
+  <div class="v198-progression-grid">
+    <span>⚔️ Minden wave: erősebb ellenfelek</span>
+    <span>👹 Minden 10. wave: Boss</span>
+    <span>⛏️ 25 wave-enként: hosszabb farm szakasz</span>
+    <span>🎁 50/100 wave: extra nyersanyag mérföldkő</span>
+    <span>👑 Paragon: 500, 510, 520… wave</span>
+    <span>♾️ Endgame: nincs kemény képesség plafon</span>
+  </div>
+</div>
+<div id="skills" class="skill-grid"></div>
 </section>
 </section>
 
 <!-- PETS -->
 <section class="page" id="page-pets">
+
+<div class="v212-context-bar" data-context-bar data-context-page="page-pets">
+  <div class="v212-resource" data-res="gold"><span>💰 Arany</span><b data-val="gold">0</b></div>
+  <div class="v212-resource" data-res="gems"><span>💎 Gyémánt</span><b data-val="gems">0</b></div>
+  <div class="v212-resource" data-res="ore"><span>⛏️ Érc</span><b data-val="ore">0</b></div>
+  <div class="v212-resource" data-res="soul"><span>🔵 Lélekkő</span><b data-val="soul">0</b></div>
+  <div class="v212-resource" data-res="tickets"><span>🎫 Dungeon jegy</span><b data-val="tickets">0</b></div>
+  <div class="v212-resource" data-res="power"><span>⚔️ Erő</span><b data-val="power">0</b></div>
+  <div class="v212-resource" data-res="statpoints"><span>📌 Statpont</span><b data-val="statpoints">0</b></div>
+  <div class="v212-resource" data-res="auratokens"><span>✨ Aura token</span><b data-val="auratokens">0</b></div>
+</div>
+
 <section class="card">
   <div class="title-row"><div><h2>🐾 Pet rendszer</h2><small>Petek passzív bónuszt adnak</small></div><button id="petSummon">🎲 Pet idézés · 5 💎</button></div>
   <div id="pets" class="pet-grid"></div>
@@ -351,6 +551,18 @@
 
 <!-- DUNGEON -->
 <section class="page" id="page-dungeon">
+
+<div class="v212-context-bar" data-context-bar data-context-page="page-dungeon">
+  <div class="v212-resource" data-res="gold"><span>💰 Arany</span><b data-val="gold">0</b></div>
+  <div class="v212-resource" data-res="gems"><span>💎 Gyémánt</span><b data-val="gems">0</b></div>
+  <div class="v212-resource" data-res="ore"><span>⛏️ Érc</span><b data-val="ore">0</b></div>
+  <div class="v212-resource" data-res="soul"><span>🔵 Lélekkő</span><b data-val="soul">0</b></div>
+  <div class="v212-resource" data-res="tickets"><span>🎫 Dungeon jegy</span><b data-val="tickets">0</b></div>
+  <div class="v212-resource" data-res="power"><span>⚔️ Erő</span><b data-val="power">0</b></div>
+  <div class="v212-resource" data-res="statpoints"><span>📌 Statpont</span><b data-val="statpoints">0</b></div>
+  <div class="v212-resource" data-res="auratokens"><span>✨ Aura token</span><b data-val="auratokens">0</b></div>
+</div>
+
 <div class="layout">
 <section class="card">
   <h2>🏰 Dungeonök</h2>
@@ -365,6 +577,18 @@
 
 <!-- QUESTS -->
 <section class="page" id="page-quests">
+
+<div class="v212-context-bar" data-context-bar data-context-page="page-quests">
+  <div class="v212-resource" data-res="gold"><span>💰 Arany</span><b data-val="gold">0</b></div>
+  <div class="v212-resource" data-res="gems"><span>💎 Gyémánt</span><b data-val="gems">0</b></div>
+  <div class="v212-resource" data-res="ore"><span>⛏️ Érc</span><b data-val="ore">0</b></div>
+  <div class="v212-resource" data-res="soul"><span>🔵 Lélekkő</span><b data-val="soul">0</b></div>
+  <div class="v212-resource" data-res="tickets"><span>🎫 Dungeon jegy</span><b data-val="tickets">0</b></div>
+  <div class="v212-resource" data-res="power"><span>⚔️ Erő</span><b data-val="power">0</b></div>
+  <div class="v212-resource" data-res="statpoints"><span>📌 Statpont</span><b data-val="statpoints">0</b></div>
+  <div class="v212-resource" data-res="auratokens"><span>✨ Aura token</span><b data-val="auratokens">0</b></div>
+</div>
+
 <div class="layout">
 <section class="card"><h2>📜 Napi küldetések</h2><div id="dailyQuests"></div></section>
 <aside class="card"><h2>🏆 Achievementek</h2><div id="achievements"></div></aside>
@@ -374,6 +598,18 @@
 
 <!-- PVP -->
 <section class="page" id="page-pvp">
+
+<div class="v212-context-bar" data-context-bar data-context-page="page-pvp">
+  <div class="v212-resource" data-res="gold"><span>💰 Arany</span><b data-val="gold">0</b></div>
+  <div class="v212-resource" data-res="gems"><span>💎 Gyémánt</span><b data-val="gems">0</b></div>
+  <div class="v212-resource" data-res="ore"><span>⛏️ Érc</span><b data-val="ore">0</b></div>
+  <div class="v212-resource" data-res="soul"><span>🔵 Lélekkő</span><b data-val="soul">0</b></div>
+  <div class="v212-resource" data-res="tickets"><span>🎫 Dungeon jegy</span><b data-val="tickets">0</b></div>
+  <div class="v212-resource" data-res="power"><span>⚔️ Erő</span><b data-val="power">0</b></div>
+  <div class="v212-resource" data-res="statpoints"><span>📌 Statpont</span><b data-val="statpoints">0</b></div>
+  <div class="v212-resource" data-res="auratokens"><span>✨ Aura token</span><b data-val="auratokens">0</b></div>
+</div>
+
  <div class="layout">
   <section class="card">
    <div class="title-row"><div><h2>⚔️ Játékos párbaj</h2><small id="pvpRequirement">A párbaj szintkövetelménye betöltés alatt...</small></div><button id="refreshPvp">↻ Ellenfelek</button></div>
@@ -390,13 +626,25 @@
 
 <!-- SHOP / DISCORD -->
 <section class="page" id="page-shop">
+
+<div class="v212-context-bar" data-context-bar data-context-page="page-shop">
+  <div class="v212-resource" data-res="gold"><span>💰 Arany</span><b data-val="gold">0</b></div>
+  <div class="v212-resource" data-res="gems"><span>💎 Gyémánt</span><b data-val="gems">0</b></div>
+  <div class="v212-resource" data-res="ore"><span>⛏️ Érc</span><b data-val="ore">0</b></div>
+  <div class="v212-resource" data-res="soul"><span>🔵 Lélekkő</span><b data-val="soul">0</b></div>
+  <div class="v212-resource" data-res="tickets"><span>🎫 Dungeon jegy</span><b data-val="tickets">0</b></div>
+  <div class="v212-resource" data-res="power"><span>⚔️ Erő</span><b data-val="power">0</b></div>
+  <div class="v212-resource" data-res="statpoints"><span>📌 Statpont</span><b data-val="statpoints">0</b></div>
+  <div class="v212-resource" data-res="auratokens"><span>✨ Aura token</span><b data-val="auratokens">0</b></div>
+</div>
+
   <section class="card premium-speed-v165">
     <div class="premium-bolt">⚡</div>
     <div>
       <div class="eyebrow">PRÉMIUM</div>
-      <h2>4× Harci / Wave Sebesség</h2>
-      <p>A saját karaktered támadási sebességét 4×-re állíthatod, így gyorsabban haladsz a wave-ekkel.</p>
-      <div><b class="premium-price-v165">3 €</b> <span id="speed4PurchaseState">🔒 Nincs aktiválva</span></div>
+      <h2>10× Harci / Wave Sebesség</h2>
+      <p>A saját karaktered támadási sebességét 10×-re állíthatod, így gyorsabban haladsz a wave-ekkel.</p>
+      <div><b class="premium-price-v165">3 €</b> <span id="speed10PurchaseState">🔒 Nincs aktiválva</span></div>
       <small>Vásárlás/aktiválás privátban: Discord <b>nervos11</b>.</small>
     </div>
   </section>
@@ -419,6 +667,18 @@
 
 <!-- STATS -->
 <section class="page" id="page-stats">
+
+<div class="v212-context-bar" data-context-bar data-context-page="page-stats">
+  <div class="v212-resource" data-res="gold"><span>💰 Arany</span><b data-val="gold">0</b></div>
+  <div class="v212-resource" data-res="gems"><span>💎 Gyémánt</span><b data-val="gems">0</b></div>
+  <div class="v212-resource" data-res="ore"><span>⛏️ Érc</span><b data-val="ore">0</b></div>
+  <div class="v212-resource" data-res="soul"><span>🔵 Lélekkő</span><b data-val="soul">0</b></div>
+  <div class="v212-resource" data-res="tickets"><span>🎫 Dungeon jegy</span><b data-val="tickets">0</b></div>
+  <div class="v212-resource" data-res="power"><span>⚔️ Erő</span><b data-val="power">0</b></div>
+  <div class="v212-resource" data-res="statpoints"><span>📌 Statpont</span><b data-val="statpoints">0</b></div>
+  <div class="v212-resource" data-res="auratokens"><span>✨ Aura token</span><b data-val="auratokens">0</b></div>
+</div>
+
 <section class="card">
   <h2>📊 Karakter statisztika</h2>
   <div id="statsPanel" class="stats-panel"></div>
@@ -434,6 +694,18 @@
 
 
 <section class="page" id="page-leaderboard">
+
+<div class="v212-context-bar" data-context-bar data-context-page="page-leaderboard">
+  <div class="v212-resource" data-res="gold"><span>💰 Arany</span><b data-val="gold">0</b></div>
+  <div class="v212-resource" data-res="gems"><span>💎 Gyémánt</span><b data-val="gems">0</b></div>
+  <div class="v212-resource" data-res="ore"><span>⛏️ Érc</span><b data-val="ore">0</b></div>
+  <div class="v212-resource" data-res="soul"><span>🔵 Lélekkő</span><b data-val="soul">0</b></div>
+  <div class="v212-resource" data-res="tickets"><span>🎫 Dungeon jegy</span><b data-val="tickets">0</b></div>
+  <div class="v212-resource" data-res="power"><span>⚔️ Erő</span><b data-val="power">0</b></div>
+  <div class="v212-resource" data-res="statpoints"><span>📌 Statpont</span><b data-val="statpoints">0</b></div>
+  <div class="v212-resource" data-res="auratokens"><span>✨ Aura token</span><b data-val="auratokens">0</b></div>
+</div>
+
   <section class="card">
     <div class="title-row"><div><h2>🏆 Online ranglista</h2><small>A játékosok összereje alapján</small></div><button id="refreshLeaderboard">↻ Frissítés</button></div>
     <div id="leaderboard" class="leaderboard"></div>

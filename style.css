@@ -1331,3 +1331,2322 @@ main{width:100%!important;max-width:100%!important}
   .aura-shop-grid{grid-template-columns:1fr!important}
   .aura-info-grid{grid-template-columns:1fr}
 }
+
+/* ================= V17.2 CHARACTER BOTTOM BAR FIX =================
+   Aura / Pet / Wave / Paragon stays INSIDE the character panel.
+   It no longer stretches across the viewport or follows scrolling.
+*/
+#page-character .v15-character{
+  position:relative!important;
+}
+
+#page-character .v15-character-stage{
+  position:relative!important;
+  overflow:hidden!important;
+  padding-bottom:82px!important;
+}
+
+#page-character .v15-bottom-stats{
+  position:absolute!important;
+  left:14px!important;
+  right:14px!important;
+  bottom:12px!important;
+  top:auto!important;
+  width:auto!important;
+  max-width:none!important;
+  transform:none!important;
+  margin:0!important;
+  z-index:20!important;
+
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:8px!important;
+
+  background:transparent!important;
+  pointer-events:auto!important;
+}
+
+#page-character .v15-bottom-stats>div{
+  min-width:0!important;
+  width:auto!important;
+  padding:9px 10px!important;
+  border:1px solid #34404c!important;
+  border-radius:9px!important;
+  background:linear-gradient(145deg,rgba(7,11,16,.98),rgba(3,6,9,.98))!important;
+  box-shadow:0 5px 14px rgba(0,0,0,.45)!important;
+}
+
+#page-character .v15-bottom-stats span,
+#page-character .v15-bottom-stats b{
+  display:block!important;
+  width:auto!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+
+#page-character .v15-bottom-stats span{
+  font-size:8px!important;
+  color:#8f9aa5!important;
+}
+
+#page-character .v15-bottom-stats b{
+  margin-top:3px!important;
+  font-size:10px!important;
+  color:#f1f4f7!important;
+}
+
+/* The equipped-summary pill also belongs inside the character panel */
+#page-character .hero-equipped-label{
+  position:absolute!important;
+  left:50%!important;
+  right:auto!important;
+  bottom:94px!important;
+  top:auto!important;
+  transform:translateX(-50%)!important;
+  width:max-content!important;
+  max-width:76%!important;
+  margin:0!important;
+  z-index:21!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+
+/* Kill any old full-width / viewport-sticky behavior from previous versions */
+#page-character .v15-bottom-stats,
+#page-character .hero-equipped-label{
+  position:absolute!important;
+}
+
+@media(max-width:850px){
+  #page-character .v15-character-stage{
+    padding-bottom:132px!important;
+  }
+  #page-character .v15-bottom-stats{
+    grid-template-columns:1fr 1fr!important;
+    bottom:10px!important;
+  }
+  #page-character .hero-equipped-label{
+    bottom:138px!important;
+    max-width:82%!important;
+  }
+}
+
+/* V17.4 - Prestige Aura Shop separate tab + HP Regen in Farm basic upgrades */
+.farm-hp-regen-upgrade{
+  margin-top:12px!important;
+  padding:12px!important;
+  border:1px solid #854251!important;
+  border-radius:11px!important;
+  background:radial-gradient(circle at 92% 15%,rgba(215,71,89,.14),transparent 34%),#080b10!important;
+}
+.farm-hp-regen-head{
+  display:flex!important;
+  justify-content:space-between!important;
+  align-items:center!important;
+  gap:12px!important;
+  margin-bottom:10px!important;
+}
+.farm-hp-regen-head b,.farm-hp-regen-head small{display:block}
+.farm-hp-regen-head>div:first-child>b{color:#ff707d!important}
+.farm-hp-regen-head small{color:#8f9aa5!important;margin-top:3px!important}
+.farm-hp-regen-values{display:flex!important;gap:7px!important;flex-wrap:wrap!important}
+.farm-hp-regen-values span{
+  padding:7px 9px!important;
+  border:1px solid #343d48!important;
+  border-radius:8px!important;
+  background:#06090d!important;
+  font-size:10px!important;
+}
+#hpRegenUpgradeBtn{width:100%!important;margin:0 0 6px!important}
+
+.aura-page-shell{
+  width:min(1280px,100%)!important;
+  margin:0 auto!important;
+  display:grid!important;
+  gap:12px!important;
+}
+.aura-page-hero{
+  display:grid!important;
+  grid-template-columns:1fr auto!important;
+  gap:18px!important;
+  align-items:center!important;
+  border-color:#8249ae!important;
+  background:radial-gradient(circle at 90% 22%,rgba(140,54,196,.22),transparent 34%),linear-gradient(145deg,#0b1017,#06080c)!important;
+}
+.aura-page-hero h2{margin:3px 0 7px!important;font-size:28px!important}
+.aura-page-hero p{max-width:760px!important;color:#9ca7b1!important;line-height:1.55!important}
+.aura-page-counters{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(100px,1fr))!important;
+  gap:8px!important;
+}
+.aura-page-counters>div{
+  padding:11px!important;
+  border:1px solid #4c365d!important;
+  border-radius:10px!important;
+  background:#080b10!important;
+}
+.aura-page-counters small,.aura-page-counters b{display:block!important}
+.aura-page-counters b{font-size:20px!important;color:#d191ff!important;margin-top:4px!important}
+.aura-shop-grid{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:10px!important;
+}
+.aura-shop-grid .aura-card{min-height:110px!important;padding:12px!important}
+@media(max-width:850px){
+ .aura-page-hero{grid-template-columns:1fr!important}
+ .aura-shop-grid{grid-template-columns:1fr 1fr!important}
+}
+@media(max-width:560px){
+ .farm-hp-regen-head{align-items:flex-start!important;flex-direction:column!important}
+ .aura-page-counters{grid-template-columns:1fr!important}
+ .aura-shop-grid{grid-template-columns:1fr!important}
+}
+
+/* V19.6 - standalone Paragon page */
+#page-paragon{display:none}
+#page-paragon.active{display:block}
+.paragon-standalone-v196{
+  width:min(1180px,calc(100vw - 24px));
+  margin:0 auto;
+  display:grid;
+  gap:10px;
+}
+.paragon-title-v196{padding:14px}
+.paragon-title-v196 h2{margin:3px 0 4px;color:#f0c44e}
+.paragon-title-v196 p{margin:0;color:#94a0ad}
+#page-paragon .character-paragon-panel,
+#page-paragon .character-paragon-stats-panel{display:block!important}
+
+/* ================= V19.7 PARAGON STATUS MOVE =================
+   Character Status is now part of the Paragon / Prestige page only.
+*/
+#page-character .v17-quick-stats,
+#page-character .v197-paragon-status{
+  display:none!important;
+}
+
+#page-paragon .v197-paragon-status,
+#page-paragon .v17-quick-stats{
+  display:block!important;
+  position:relative!important;
+  top:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  left:auto!important;
+  transform:none!important;
+  width:auto!important;
+  margin:0!important;
+}
+
+#page-paragon .v17-stat-grid{
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:8px!important;
+}
+#page-paragon .v17-stat-grid>div{
+  padding:9px!important;
+  border:1px solid #303a46!important;
+  border-radius:8px!important;
+  background:#080c11!important;
+}
+#page-paragon .v17-stat-grid small,
+#page-paragon .v17-stat-grid b{
+  display:block!important;
+}
+#page-paragon .v17-stat-grid small{
+  font-size:9px!important;
+  color:#919ca7!important;
+}
+#page-paragon .v17-stat-grid b{
+  margin-top:3px!important;
+  color:#f0c14f!important;
+  font-size:13px!important;
+}
+
+/* V19.8 long-term progression */
+.v198-skill-info{margin-bottom:12px;padding:14px}
+.v198-skill-info h3{margin:0 0 6px;color:#f0c14f}
+.v198-skill-info p{margin:0 0 10px;color:#9ca8b5;line-height:1.5}
+.v198-progression-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.v198-progression-grid span{padding:9px;border:1px solid #2c3540;border-radius:8px;background:#080c11}
+@media(max-width:800px){.v198-progression-grid{grid-template-columns:1fr}}
+
+/* ================= V19.9 CHARACTER HEADER ONLY =================
+   The top RPG intro + resources row belongs to Character only.
+   No moving/floating onto Farm, Inventory, etc.
+*/
+body:has(#page-character.active) .hero,
+body:has(#page-character.active) .resources,
+body:has(#page-character.active) .resource-grid,
+body:has(#page-character.active) .stats-top{
+  display:grid;
+}
+
+/* Hide shared top summary whenever another game page is active */
+body:has(#gameShell > .page.active:not(#page-character)) .hero,
+body:has(#gameShell > .page.active:not(#page-character)) .resources,
+body:has(#gameShell > .page.active:not(#page-character)) .resource-grid,
+body:has(#gameShell > .page.active:not(#page-character)) .stats-top{
+  display:none!important;
+}
+
+/* ================= V20.0 CHARACTER-ONLY UI ================= */
+body:not(.v200-character-tab) .v200-character-header{
+  display:none!important;
+}
+
+/* Runtime-detected shared blocks */
+body:not(.v200-character-tab) .v200-character-only{
+  display:none!important;
+}
+
+/* Character page layout: character left, inventory right */
+#page-character .v200-character-inventory-layout{
+  display:grid!important;
+  grid-template-columns:minmax(420px,0.95fr) minmax(520px,1.35fr)!important;
+  gap:14px!important;
+  align-items:start!important;
+}
+#page-character .v200-character-left,
+#page-character .v200-inventory-right{
+  min-width:0!important;
+}
+#page-character .v200-inventory-right{
+  position:relative!important;
+}
+@media(max-width:1050px){
+  #page-character .v200-character-inventory-layout{
+    grid-template-columns:1fr!important;
+  }
+}
+
+/* Cloud-save indicator must not resize/push the top navigation */
+.v200-cloud-save-fixed{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:112px!important;
+  min-width:112px!important;
+  max-width:112px!important;
+  overflow:hidden!important;
+  white-space:nowrap!important;
+  text-overflow:ellipsis!important;
+}
+
+/* ================= V20.1 CHARACTER + INVENTORY POLISH ================= */
+
+/* Character page overall */
+#page-character.active{
+  display:block!important;
+}
+#page-character{
+  padding:12px!important;
+}
+
+/* The runtime-created character/inventory side-by-side layout */
+#page-character .v200-character-inventory-layout{
+  width:min(1220px,calc(100vw - 28px))!important;
+  margin:0 auto!important;
+  display:grid!important;
+  grid-template-columns:minmax(520px,1.05fr) minmax(430px,.95fr)!important;
+  gap:16px!important;
+  align-items:start!important;
+}
+
+/* Left: character */
+#page-character .v200-character-left{
+  min-width:0!important;
+}
+#page-character .v15-character,
+#page-character .character-card,
+#page-character .v15-character-stage{
+  width:100%!important;
+  box-sizing:border-box!important;
+}
+#page-character .v15-character{
+  border:1px solid #8a6626!important;
+  border-radius:12px!important;
+  background:linear-gradient(145deg,#0c1117,#070a0f)!important;
+  padding:12px!important;
+}
+#page-character .v15-character-top{
+  display:flex!important;
+  justify-content:space-between!important;
+  align-items:center!important;
+  gap:12px!important;
+  margin-bottom:10px!important;
+}
+#page-character .v15-character-top h2{
+  margin:0 0 4px!important;
+  font-size:18px!important;
+}
+#page-character .v15-character-stage{
+  position:relative!important;
+  min-height:610px!important;
+  height:610px!important;
+  overflow:hidden!important;
+  border:1px solid #39434e!important;
+  border-radius:10px!important;
+  background:radial-gradient(circle at 50% 38%,#171e28 0,#090d13 46%,#040608 78%)!important;
+}
+#page-character .v168-character-system{
+  inset:0!important;
+}
+#page-character .v168-avatar{
+  transform:translate(-50%,-50%) scale(.92)!important;
+}
+
+/* Equipment slots aligned symmetrically */
+#page-character .v168-slot{
+  width:138px!important;
+  min-height:92px!important;
+  grid-template-columns:54px 1fr!important;
+  gap:7px!important;
+  padding:7px!important;
+}
+#page-character .v168-icon{
+  height:54px!important;
+}
+#page-character .v168-helmet,
+#page-character .v168-armor,
+#page-character .v168-boots{
+  left:14px!important;
+}
+#page-character .v168-weapon,
+#page-character .v168-gloves,
+#page-character .v168-ring{
+  right:14px!important;
+}
+#page-character .v168-helmet,
+#page-character .v168-weapon{top:46px!important}
+#page-character .v168-armor,
+#page-character .v168-gloves{top:213px!important}
+#page-character .v168-boots,
+#page-character .v168-ring{top:380px!important}
+
+#page-character .hero-equipped-label{
+  left:50%!important;
+  bottom:64px!important;
+  transform:translateX(-50%)!important;
+  max-width:78%!important;
+}
+
+/* Bottom mini status inside character card */
+#page-character .v15-bottom-stats{
+  position:absolute!important;
+  left:12px!important;
+  right:12px!important;
+  bottom:10px!important;
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:7px!important;
+  width:auto!important;
+  z-index:25!important;
+}
+#page-character .v15-bottom-stats>div{
+  min-width:0!important;
+  padding:8px!important;
+  border-radius:8px!important;
+  border:1px solid #333e49!important;
+  background:#070b10f2!important;
+}
+#page-character .v15-bottom-stats span,
+#page-character .v15-bottom-stats b{
+  display:block!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+
+/* Right: inventory management */
+#page-character .v200-inventory-right{
+  min-width:0!important;
+  display:grid!important;
+  gap:10px!important;
+}
+#page-character .v200-inventory-right .card{
+  border-radius:11px!important;
+  background:linear-gradient(145deg,#0c1117,#080b10)!important;
+  border:1px solid #39444f!important;
+  padding:11px!important;
+}
+#page-character .inventory-tools-v163{
+  border-color:#8b6728!important;
+}
+#page-character .inventory-tools-head{
+  display:flex!important;
+  justify-content:space-between!important;
+  align-items:center!important;
+  gap:10px!important;
+  margin-bottom:10px!important;
+}
+#page-character .bulk-rarity-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:7px!important;
+}
+#page-character .bulk-rarity{
+  padding:8px!important;
+}
+#page-character .bulk-rarity-grid .legendary{
+  grid-column:1/-1!important;
+}
+#page-character #equipBestV163{
+  min-width:116px!important;
+}
+
+/* Actual inventory list on the right */
+#page-character .inventory-grid,
+#page-character #inventory,
+#page-character .inventory-list{
+  max-height:610px!important;
+  overflow:auto!important;
+  padding-right:4px!important;
+}
+
+/* Responsive */
+@media(max-width:1050px){
+  #page-character .v200-character-inventory-layout{
+    grid-template-columns:1fr!important;
+    width:min(760px,calc(100vw - 18px))!important;
+  }
+  #page-character .v200-inventory-right{
+    width:100%!important;
+  }
+}
+@media(max-width:620px){
+  #page-character .v15-character-stage{
+    min-height:540px!important;
+    height:540px!important;
+  }
+  #page-character .v168-slot{
+    width:108px!important;
+    grid-template-columns:40px 1fr!important;
+  }
+  #page-character .v168-icon{height:40px!important}
+  #page-character .bulk-rarity-grid{grid-template-columns:1fr!important}
+  #page-character .bulk-rarity-grid .legendary{grid-column:auto!important}
+}
+
+/* ================= V20.1 OPTIONS PAGE SEPARATION ================= */
+
+/* Felszerelés opciók only on Fejlesztés */
+.v201-options-upgrade-only{
+  display:none!important;
+}
+#page-upgrade.active .v201-options-upgrade-only,
+#page-upgrades.active .v201-options-upgrade-only{
+  display:block!important;
+  width:min(1100px,100%)!important;
+  margin:0 auto 12px!important;
+}
+
+/* Defensive hiding on all other pages */
+#page-character .item-option-help,
+#page-inventory .item-option-help,
+#page-farm .item-option-help,
+#page-skills .item-option-help,
+#page-pets .item-option-help,
+#page-paragon .item-option-help,
+#page-aurashop .item-option-help,
+#page-dungeon .item-option-help,
+#page-quests .item-option-help,
+#page-pvp .item-option-help,
+#page-shop .item-option-help,
+#page-stats .item-option-help{
+  display:none!important;
+}
+
+/* V20.2 - Admin Game Studio visible only to admins */
+.admin-studio-only-v202{
+  display:none!important;
+}
+body.v202-is-admin .admin-studio-only-v202{
+  display:block!important;
+}
+
+/* ================= V20.3 EQUIPMENT PANEL POSITION =================
+   Több hely a Saját karakter és a Felszerelés kezelés között.
+   A jobb oldali panel nem lóghat bele a karakter kártyába.
+*/
+#page-character .v200-character-inventory-layout{
+  grid-template-columns:minmax(520px, 620px) minmax(460px, 1fr)!important;
+  column-gap:28px!important;
+  gap:28px!important;
+  align-items:start!important;
+  justify-content:center!important;
+  overflow:visible!important;
+}
+
+#page-character .v200-character-left{
+  position:relative!important;
+  z-index:1!important;
+  min-width:0!important;
+}
+
+#page-character .v200-inventory-right{
+  position:relative!important;
+  z-index:2!important;
+  min-width:460px!important;
+  width:100%!important;
+  margin-left:0!important;
+  transform:none!important;
+}
+
+#page-character .v200-inventory-right .inventory-tools-v163,
+#page-character .v200-inventory-right .card{
+  width:100%!important;
+  max-width:none!important;
+  box-sizing:border-box!important;
+  margin-left:0!important;
+}
+
+/* 80%-os böngésző zoom / széles képernyő */
+@media(min-width:1200px){
+  #page-character .v200-character-inventory-layout{
+    width:min(1320px, calc(100vw - 48px))!important;
+  }
+}
+
+/* Keskenyebb képernyőn inkább kerüljön alá, soha ne fedje a karaktert */
+@media(max-width:1100px){
+  #page-character .v200-character-inventory-layout{
+    grid-template-columns:1fr!important;
+    width:min(760px,calc(100vw - 20px))!important;
+    gap:14px!important;
+  }
+  #page-character .v200-inventory-right{
+    min-width:0!important;
+    width:100%!important;
+  }
+}
+
+/* ================= V20.4 EQUIPMENT OUTSIDE CHARACTER ================= */
+/* Character and equipment management are two true sibling columns. */
+#page-character .v200-character-inventory-layout{
+  width:min(1360px,calc(100vw - 40px))!important;
+  margin:0 auto!important;
+  display:grid!important;
+  grid-template-columns:620px minmax(500px,1fr)!important;
+  gap:24px!important;
+  align-items:start!important;
+  justify-content:center!important;
+}
+
+#page-character .v200-character-left{
+  width:620px!important;
+  min-width:620px!important;
+  max-width:620px!important;
+}
+
+#page-character .v200-inventory-right{
+  width:100%!important;
+  min-width:500px!important;
+  margin:0!important;
+  padding:0!important;
+  position:relative!important;
+  left:auto!important;
+  right:auto!important;
+  top:auto!important;
+  transform:none!important;
+}
+
+/* Equipment manager is a normal card in the right column, never overlaying character */
+#page-character .v200-inventory-right .inventory-tools-v163{
+  position:relative!important;
+  inset:auto!important;
+  width:100%!important;
+  max-width:none!important;
+  margin:0 0 12px 0!important;
+  box-sizing:border-box!important;
+  float:none!important;
+  transform:none!important;
+}
+
+/* Prevent any old absolute rules from pulling the inventory panel over the hero */
+#page-character .v200-inventory-right > *{
+  position:relative!important;
+  left:auto!important;
+  right:auto!important;
+  transform:none!important;
+}
+
+/* Keep the actual character card self-contained */
+#page-character .v200-character-left .v15-character,
+#page-character .v200-character-left .character-card{
+  width:100%!important;
+  max-width:100%!important;
+  margin:0!important;
+  box-sizing:border-box!important;
+  overflow:hidden!important;
+}
+
+@media(max-width:1180px){
+  #page-character .v200-character-inventory-layout{
+    grid-template-columns:1fr!important;
+    width:min(760px,calc(100vw - 20px))!important;
+  }
+  #page-character .v200-character-left,
+  #page-character .v200-inventory-right{
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+  }
+}
+
+/* ================= V20.5 TRUE TWO-COLUMN CHARACTER PAGE ================= */
+#page-character.active{
+  display:block!important;
+}
+#page-character > .v205-character-equipment-shell{
+  width:min(1380px,calc(100vw - 40px))!important;
+  margin:0 auto!important;
+  display:grid!important;
+  grid-template-columns:620px minmax(500px,1fr)!important;
+  gap:30px!important;
+  align-items:start!important;
+}
+#page-character .v205-character-column{
+  width:620px!important;
+  min-width:620px!important;
+  position:relative!important;
+}
+#page-character .v205-equipment-column{
+  min-width:500px!important;
+  width:100%!important;
+  position:relative!important;
+  margin:0!important;
+  padding:0!important;
+}
+#page-character .v205-equipment-column .inventory-tools-v163{
+  position:relative!important;
+  inset:auto!important;
+  left:auto!important;
+  right:auto!important;
+  top:auto!important;
+  bottom:auto!important;
+  transform:none!important;
+  float:none!important;
+  width:100%!important;
+  max-width:none!important;
+  margin:0 0 12px!important;
+  box-sizing:border-box!important;
+}
+#page-character .v205-old-layout-hidden,
+#page-character .v205-empty-hidden{
+  display:none!important;
+}
+#page-character .v205-character-column .v15-character,
+#page-character .v205-character-column .character-card{
+  width:100%!important;
+  max-width:100%!important;
+  margin:0!important;
+  box-sizing:border-box!important;
+}
+@media(max-width:1180px){
+  #page-character > .v205-character-equipment-shell{
+    grid-template-columns:1fr!important;
+    width:min(760px,calc(100vw - 20px))!important;
+  }
+  #page-character .v205-character-column,
+  #page-character .v205-equipment-column{
+    width:100%!important;
+    min-width:0!important;
+  }
+}
+
+/* ================= V20.6 DRAGGABLE WINDOWS ================= */
+#page-character .v206-draggable-window{
+  --drag-x:0px;
+  --drag-y:0px;
+  transform:translate(var(--drag-x),var(--drag-y))!important;
+  transition:box-shadow .15s ease!important;
+  will-change:transform;
+  position:relative!important;
+  z-index:20!important;
+}
+
+#page-character .v206-draggable-window.v206-dragging{
+  z-index:999!important;
+  box-shadow:0 18px 45px rgba(0,0,0,.68),0 0 0 1px rgba(244,193,70,.75)!important;
+  user-select:none!important;
+}
+
+#page-character .v206-drag-handle{
+  cursor:grab!important;
+  touch-action:none!important;
+  user-select:none!important;
+}
+
+#page-character .v206-dragging .v206-drag-handle{
+  cursor:grabbing!important;
+}
+
+/* Tiny visual clue without changing the existing design */
+#page-character .v206-drag-handle::after{
+  content:" ⋮⋮";
+  opacity:.35;
+  font-size:11px;
+  margin-left:6px;
+}
+
+/* Keep controls clickable */
+#page-character .v206-drag-handle button,
+#page-character .v206-drag-handle input,
+#page-character .v206-drag-handle select,
+#page-character .v206-drag-handle textarea,
+#page-character .v206-drag-handle a{
+  cursor:pointer!important;
+}
+
+/* On narrow screens disable free dragging to avoid losing panels off-screen */
+@media(max-width:900px){
+  #page-character .v206-draggable-window{
+    transform:none!important;
+  }
+  #page-character .v206-drag-handle{
+    cursor:default!important;
+  }
+}
+
+/* ================= V20.7 TRUE INDEPENDENT WINDOWS ================= */
+#page-character{
+  position:relative!important;
+  min-height:760px!important;
+  overflow:visible!important;
+}
+
+#page-character>.v207-window-canvas{
+  position:relative!important;
+  width:min(1420px,calc(100vw - 30px))!important;
+  min-height:730px!important;
+  margin:0 auto!important;
+  overflow:visible!important;
+}
+
+#page-character .v207-free-window{
+  position:absolute!important;
+  left:0!important;
+  top:0!important;
+  margin:0!important;
+  transform:translate(var(--v207-x),var(--v207-y))!important;
+  z-index:30!important;
+  will-change:transform!important;
+}
+
+#page-character .v207-free-window.v207-dragging{
+  z-index:999!important;
+  box-shadow:0 22px 55px rgba(0,0,0,.72),0 0 0 1px rgba(246,194,74,.75)!important;
+}
+
+#page-character .v207-drag-handle{
+  cursor:grab!important;
+  user-select:none!important;
+  touch-action:none!important;
+}
+#page-character .v207-dragging .v207-drag-handle{
+  cursor:grabbing!important;
+}
+
+/* Character window fixed independent size */
+#page-character .v15-character.v207-free-window{
+  width:620px!important;
+  max-width:620px!important;
+  min-width:620px!important;
+}
+
+/* Equipment window fixed independent size */
+#page-character .inventory-tools-v163.v207-free-window{
+  width:540px!important;
+  max-width:540px!important;
+  min-width:540px!important;
+}
+
+/* Old shared grids are irrelevant after moving the two cards out */
+#page-character .v207-obsolete-layout{
+  display:none!important;
+}
+
+/* On smaller screens return to normal flow */
+@media(max-width:1050px){
+  #page-character>.v207-window-canvas{
+    min-height:0!important;
+    display:grid!important;
+    gap:12px!important;
+  }
+  #page-character .v207-free-window{
+    position:relative!important;
+    transform:none!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+  }
+}
+
+/* ================= V20.8 COMPLETE CHARACTER WINDOW ================= */
+#page-character{
+  position:relative!important;
+  min-height:820px!important;
+}
+
+#page-character>.v208-window-canvas{
+  position:relative!important;
+  width:min(1500px,calc(100vw - 30px))!important;
+  min-height:790px!important;
+  margin:0 auto!important;
+  overflow:visible!important;
+}
+
+#page-character .v208-free-window{
+  position:absolute!important;
+  left:0!important;
+  top:0!important;
+  margin:0!important;
+  transform:translate(var(--v208-x),var(--v208-y))!important;
+  z-index:30!important;
+  will-change:transform!important;
+}
+
+#page-character .v208-free-window.v208-dragging{
+  z-index:999!important;
+  box-shadow:0 22px 60px rgba(0,0,0,.75),0 0 0 1px rgba(242,193,70,.75)!important;
+}
+
+#page-character .v208-drag-handle{
+  cursor:grab!important;
+  user-select:none!important;
+  touch-action:none!important;
+}
+#page-character .v208-dragging .v208-drag-handle{
+  cursor:grabbing!important;
+}
+
+/* Complete Character window */
+#page-character .v208-character-window{
+  width:650px!important;
+  min-width:650px!important;
+  max-width:650px!important;
+  padding:12px!important;
+  border:1px solid #8a6626!important;
+  border-radius:12px!important;
+  background:linear-gradient(145deg,#0c1117,#070a0f)!important;
+  box-sizing:border-box!important;
+}
+
+#page-character .v208-character-header{
+  display:flex!important;
+  justify-content:space-between!important;
+  align-items:center!important;
+  gap:14px!important;
+  margin-bottom:10px!important;
+}
+
+#page-character .v208-character-header h2{
+  margin:0 0 4px!important;
+  font-size:18px!important;
+}
+
+#page-character .v208-character-header small{
+  color:#8f9ba7!important;
+}
+
+#page-character .v208-power-box{
+  min-width:118px!important;
+  text-align:center!important;
+  padding:8px 12px!important;
+  border:1px solid #926b25!important;
+  border-radius:9px!important;
+  background:#080b10!important;
+}
+#page-character .v208-power-box small,
+#page-character .v208-power-box b{
+  display:block!important;
+}
+#page-character .v208-power-box b{
+  margin-top:3px!important;
+  color:#f0c24c!important;
+  font-size:22px!important;
+}
+
+#page-character .v208-character-body{
+  position:relative!important;
+  display:block!important;
+}
+
+#page-character .v208-character-body .v15-character-stage{
+  display:block!important;
+  position:relative!important;
+  width:100%!important;
+  min-height:610px!important;
+  height:610px!important;
+  overflow:hidden!important;
+}
+
+#page-character .v208-character-body .v168-character-system,
+#page-character .v208-character-body .v168-avatar,
+#page-character .v208-character-body .v168-slots{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+
+#page-character .v208-character-body .v15-bottom-stats{
+  position:relative!important;
+  left:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  margin-top:8px!important;
+  width:100%!important;
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:7px!important;
+}
+
+/* Equipment stays a separate independent window */
+#page-character .inventory-tools-v163.v208-free-window{
+  width:560px!important;
+  min-width:560px!important;
+  max-width:560px!important;
+}
+
+/* Remove ghost/old shells that caused the clipping seen in screenshot */
+#page-character .v208-hide-old-character-shell,
+#page-character .v208-obsolete{
+  display:none!important;
+}
+
+/* Disable old V20.7 positioning */
+#page-character .v207-free-window{
+  position:relative!important;
+  transform:none!important;
+}
+
+@media(max-width:1100px){
+  #page-character>.v208-window-canvas{
+    min-height:0!important;
+    display:grid!important;
+    gap:12px!important;
+  }
+  #page-character .v208-free-window{
+    position:relative!important;
+    transform:none!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+  }
+}
+
+/* ================= V20.9 SIDE-BY-SIDE FREE WINDOWS ================= */
+
+/* Larger canvas so both windows fit next to each other cleanly */
+#page-character>.v208-window-canvas{
+  width:min(1500px,calc(100vw - 24px))!important;
+  min-height:760px!important;
+  margin:0 auto!important;
+  position:relative!important;
+  overflow:visible!important;
+}
+
+/* Character stays its own free movable window */
+#page-character .v208-character-window.v208-free-window{
+  width:650px!important;
+  min-width:650px!important;
+  max-width:650px!important;
+}
+
+/* Equipment stays a completely separate free movable window */
+#page-character .inventory-tools-v163.v208-free-window{
+  width:560px!important;
+  min-width:560px!important;
+  max-width:560px!important;
+  position:absolute!important;
+  margin:0!important;
+  left:0!important;
+  top:0!important;
+  transform:translate(var(--v208-x),var(--v208-y))!important;
+  z-index:35!important;
+}
+
+/* Clear visual separation */
+#page-character .v208-character-window,
+#page-character .inventory-tools-v163.v208-free-window{
+  box-sizing:border-box!important;
+}
+
+#page-character .inventory-tools-v163.v208-free-window{
+  border:1px solid #8a6626!important;
+  border-radius:12px!important;
+  background:linear-gradient(145deg,#0c1117,#070a0f)!important;
+  box-shadow:0 10px 26px rgba(0,0,0,.32)!important;
+}
+
+/* Narrow screens: stack instead of overlapping */
+@media(max-width:1250px){
+  #page-character>.v208-window-canvas{
+    display:grid!important;
+    gap:14px!important;
+    width:min(760px,calc(100vw - 18px))!important;
+    min-height:0!important;
+  }
+
+  #page-character .v208-character-window.v208-free-window,
+  #page-character .inventory-tools-v163.v208-free-window{
+    position:relative!important;
+    transform:none!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+  }
+}
+
+/* ================= V21.0 CHARACTER EQUIPMENT CONTROLS ================= */
+
+/* Character header actions: Equip Best + Equipment Management button */
+#page-character .v210-character-actions{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  gap:8px!important;
+  margin-left:auto!important;
+  flex-wrap:wrap!important;
+}
+
+#page-character .v210-character-actions #equipBestV163,
+#page-character .v210-equipment-toggle{
+  min-height:34px!important;
+  padding:7px 12px!important;
+  border-radius:8px!important;
+  font-size:10px!important;
+  font-weight:900!important;
+  white-space:nowrap!important;
+}
+
+#page-character .v210-character-actions #equipBestV163{
+  background:linear-gradient(180deg,#f3c95e,#dda941)!important;
+  border:1px solid #ffdb75!important;
+  color:#07090c!important;
+}
+
+#page-character .v210-equipment-toggle{
+  background:#0b1118!important;
+  border:1px solid #536173!important;
+  color:#e9eef4!important;
+}
+
+#page-character .v210-equipment-toggle:hover,
+#page-character .v210-equipment-toggle.active{
+  border-color:#d5a63f!important;
+  color:#f4c65a!important;
+}
+
+/* Equipment management is a separate independent draggable window,
+   but hidden until opened from Character. */
+#page-character .inventory-tools-v163.v210-equipment-closed{
+  display:none!important;
+}
+
+#page-character .inventory-tools-v163.v210-equipment-open{
+  display:block!important;
+  position:absolute!important;
+}
+
+/* Close button inside Equipment Management */
+#page-character #v210EquipmentCloseBtn{
+  margin-left:auto!important;
+  min-width:30px!important;
+  width:30px!important;
+  height:30px!important;
+  min-height:30px!important;
+  padding:0!important;
+  display:grid!important;
+  place-items:center!important;
+  border-radius:7px!important;
+  border:1px solid #754049!important;
+  background:#180b0e!important;
+  color:#ff7b87!important;
+  font-weight:900!important;
+}
+
+/* Once Equip Best is inside Character header, old equipment-header alignment
+   should not leave a fake gap. */
+#page-character .inventory-tools-head{
+  align-items:center!important;
+  gap:8px!important;
+}
+
+/* Keep the character title/control area neat */
+#page-character .v208-character-header{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  gap:12px!important;
+  align-items:center!important;
+}
+
+/* Power box can remain beside title, actions wrap underneath/right cleanly */
+#page-character .v208-power-box{
+  grid-column:2!important;
+  grid-row:1!important;
+}
+#page-character .v210-character-actions{
+  grid-column:1/-1!important;
+  grid-row:2!important;
+}
+
+@media(max-width:720px){
+  #page-character .v208-character-header{
+    grid-template-columns:1fr!important;
+  }
+  #page-character .v208-power-box,
+  #page-character .v210-character-actions{
+    grid-column:1!important;
+    grid-row:auto!important;
+  }
+  #page-character .v210-character-actions{
+    justify-content:flex-start!important;
+  }
+}
+
+/* ================= V21.1 EQUIPMENT OPEN FIX ================= */
+#page-character .inventory-tools-v163.v210-equipment-open{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  pointer-events:auto!important;
+  position:absolute!important;
+  left:0!important;
+  top:0!important;
+  transform:translate(var(--v208-x,720px),var(--v208-y,55px))!important;
+  z-index:999!important;
+}
+
+#page-character .inventory-tools-v163.v210-equipment-closed{
+  display:none!important;
+}
+
+/* Prevent older wrapper-hiding rules from hiding the actual equipment window */
+#page-character .v208-window-canvas > .inventory-tools-v163{
+  max-width:560px!important;
+  width:560px!important;
+  min-width:560px!important;
+}
+
+/* Make the opener clearly clickable */
+#page-character #v210EquipmentToggleBtn{
+  pointer-events:auto!important;
+  cursor:pointer!important;
+  position:relative!important;
+  z-index:50!important;
+}
+
+/* V21.2 contextual balances/status */
+.v212-context-bar{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin:0 auto 10px;
+  padding:8px;
+  border:1px solid #2f3945;
+  border-radius:10px;
+  background:linear-gradient(145deg,#0b1016,#070a0f);
+}
+.v212-resource{
+  display:none;
+  min-width:105px;
+  padding:7px 9px;
+  border:1px solid #35414d;
+  border-radius:8px;
+  background:#080c11;
+}
+.v212-resource span,.v212-resource b{display:block}
+.v212-resource span{font-size:9px;color:#8f9ba7}
+.v212-resource b{margin-top:2px;font-size:13px;color:#f0c24d}
+
+/* Farm */
+#page-farm.active [data-res="gold"],
+#page-farm.active [data-res="ore"],
+#page-farm.active [data-res="soul"],
+#page-farm.active [data-res="power"]{display:block}
+
+/* Inventory */
+#page-inventory.active [data-res="gold"],
+#page-inventory.active [data-res="ore"],
+#page-inventory.active [data-res="power"]{display:block}
+
+/* Upgrades / Fejlesztés */
+#page-upgrade.active [data-res="gold"],
+#page-upgrade.active [data-res="ore"],
+#page-upgrade.active [data-res="soul"],
+#page-upgrade.active [data-res="power"],
+#page-upgrades.active [data-res="gold"],
+#page-upgrades.active [data-res="ore"],
+#page-upgrades.active [data-res="soul"],
+#page-upgrades.active [data-res="power"]{display:block}
+
+/* Skills */
+#page-skills.active [data-res="statpoints"],
+#page-skills.active [data-res="power"],
+#page-skills.active [data-res="gold"]{display:block}
+
+/* Pets */
+#page-pets.active [data-res="gems"],
+#page-pets.active [data-res="gold"],
+#page-pets.active [data-res="power"]{display:block}
+
+/* Paragon */
+#page-paragon.active [data-res="statpoints"],
+#page-paragon.active [data-res="power"],
+#page-paragon.active [data-res="auratokens"]{display:block}
+
+/* Aura shop */
+#page-aurashop.active [data-res="auratokens"],
+#page-aurashop.active [data-res="power"]{display:block}
+
+/* Dungeon */
+#page-dungeon.active [data-res="tickets"],
+#page-dungeon.active [data-res="power"],
+#page-dungeon.active [data-res="gold"]{display:block}
+
+/* Quests */
+#page-quests.active [data-res="gold"],
+#page-quests.active [data-res="gems"],
+#page-quests.active [data-res="power"]{display:block}
+
+/* PvP */
+#page-pvp.active [data-res="power"],
+#page-pvp.active [data-res="gold"]{display:block}
+
+/* Shop */
+#page-shop.active [data-res="gold"],
+#page-shop.active [data-res="gems"],
+#page-shop.active [data-res="auratokens"]{display:block}
+
+/* Stats */
+#page-stats.active [data-res="power"],
+#page-stats.active [data-res="gold"]{display:block}
+
+@media(max-width:650px){
+  .v212-resource{min-width:calc(50% - 5px);box-sizing:border-box}
+}
+
+/* ================= V21.3 ================= */
+.v213-pvp-rewards,.v213-pet-reroll{
+  margin-top:10px;padding:10px;border:1px solid #39434e;border-radius:9px;
+  background:#080d12
+}
+.v213-reward-title{font-weight:900;color:#f2c451;margin-bottom:7px}
+.v213-reward-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.v213-reward-grid span{padding:7px;border:1px solid #303a45;border-radius:7px;background:#0b1117}
+.v213-reward-grid b,.v213-reward-grid strong{display:block}
+.v213-reward-grid strong{color:#f1c34f;margin-top:2px}
+.v213-pvp-rewards small,.v213-pet-reroll small{display:block;color:#8795a4;margin-top:5px}
+
+.v213-pet-reroll{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.v213-reroll-list{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.v213-reroll-list button{
+  border:1px solid #e0ad3f;background:#e6b94e;color:#080a0d;border-radius:7px;
+  padding:7px 10px;font-weight:900;cursor:pointer
+}
+.v213-muted{font-size:10px;color:#8995a1}
+
+.v213-skill-value{
+  display:flex;justify-content:space-between;gap:8px;margin:5px 0 7px;
+  padding:5px 7px;border:1px solid #303a45;border-radius:6px;background:#080d12;
+  font-size:9px
+}
+.v213-skill-value span{color:#aeb9c4}
+.v213-skill-value b{color:#b782ff}
+
+@media(max-width:700px){
+ .v213-reward-grid{grid-template-columns:1fr}
+ .v213-pet-reroll{display:block}
+ .v213-reroll-list{margin-top:8px;justify-content:flex-start}
+}
+
+/* ================= V21.4 CHARACTER LAYOUT RECOVERY ================= */
+
+/* The character workspace must have enough real height for draggable windows. */
+#page-character .v208-window-canvas{
+  position:relative!important;
+  width:min(1280px,calc(100vw - 32px))!important;
+  min-width:980px!important;
+  min-height:920px!important;
+  height:auto!important;
+  margin:18px auto 30px!important;
+  overflow:visible!important;
+}
+
+/* Restore the complete character card instead of the collapsed title strip. */
+#page-character .v208-character-window,
+#page-character .v208-character-window.v214-character-restored{
+  display:block!important;
+  position:absolute!important;
+  width:590px!important;
+  min-width:590px!important;
+  height:auto!important;
+  min-height:560px!important;
+  max-height:none!important;
+  overflow:visible!important;
+  visibility:visible!important;
+  opacity:1!important;
+  z-index:20!important;
+  transform:translate(var(--v208-x,30px),var(--v208-y,25px))!important;
+}
+
+/* Make sure all character equipment/body content is visible again. */
+#page-character .v208-character-window > *{
+  visibility:visible!important;
+  opacity:1!important;
+}
+#page-character .v208-character-window .v208-character-stage,
+#page-character .v208-character-window .character-stage,
+#page-character .v208-character-window [class*="character-body"],
+#page-character .v208-character-window [class*="equipment-stage"]{
+  display:block!important;
+}
+
+/* Equipment manager starts beside Character and remains a separate window. */
+#page-character .inventory-tools-v163.v210-equipment-open{
+  width:560px!important;
+  min-width:560px!important;
+  max-width:560px!important;
+  position:absolute!important;
+  transform:translate(var(--v208-x,650px),var(--v208-y,25px))!important;
+  z-index:30!important;
+}
+
+/* Admin window must not force the character workspace apart. */
+#page-character .admin-game-studio,
+#page-character .admin-studio,
+#page-character [class*="admin-game"],
+#page-character [class*="admin-studio"]{
+  position:absolute!important;
+  z-index:15!important;
+}
+
+/* Character stats below floating workspace should not overlap the windows. */
+#page-character .v208-window-canvas + *,
+#page-character .v208-character-workspace + *{
+  clear:both!important;
+}
+
+/* Reset control */
+#v214ResetLayout{
+  min-height:28px!important;
+  padding:5px 9px!important;
+  border:1px solid #4b5663!important;
+  border-radius:7px!important;
+  background:#0a1016!important;
+  color:#b9c4cf!important;
+  font-size:9px!important;
+  font-weight:800!important;
+  cursor:pointer!important;
+}
+#v214ResetLayout:hover{border-color:#d7a63c!important;color:#f2c452!important}
+
+/* 80% browser zoom / desktop layout remains readable */
+@media(min-width:1100px){
+ #page-character .v208-window-canvas{min-height:900px!important}
+}
+@media(max-width:1050px){
+ #page-character .v208-window-canvas{
+   min-width:0!important;width:calc(100vw - 18px)!important;min-height:1250px!important
+ }
+ #page-character .v208-character-window{width:min(590px,calc(100vw - 32px))!important;min-width:0!important}
+ #page-character .inventory-tools-v163.v210-equipment-open{
+   width:min(560px,calc(100vw - 32px))!important;min-width:0!important
+ }
+}
+
+/* ================= V21.6 AUTO DELETE INVENTORY ================= */
+.v216-auto-delete-panel{
+  margin:0 auto 12px!important;
+  width:min(1150px,100%)!important;
+  border-color:#6d4f22!important;
+}
+.v216-auto-delete-head{
+  display:flex!important;
+  justify-content:space-between!important;
+  align-items:flex-start!important;
+  gap:12px!important;
+  margin-bottom:10px!important;
+}
+.v216-auto-delete-head h3{margin:0 0 4px!important}
+.v216-auto-delete-head small{color:#8f9aa6!important}
+.v216-switch{
+  display:flex!important;
+  align-items:center!important;
+  gap:6px!important;
+  padding:7px 10px!important;
+  border:1px solid #46515d!important;
+  border-radius:8px!important;
+  background:#080d12!important;
+  white-space:nowrap!important;
+}
+.v216-grid{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:8px!important;
+}
+.v216-box{
+  padding:9px!important;
+  border:1px solid #303a45!important;
+  border-radius:8px!important;
+  background:#080d12!important;
+}
+.v216-box>b{display:block!important;color:#f0c24f!important;margin-bottom:7px!important}
+.v216-box label{
+  display:block!important;
+  margin:5px 0!important;
+  font-size:10px!important;
+}
+.v216-box input[type="number"]{
+  display:block!important;
+  width:100%!important;
+  margin-top:5px!important;
+  box-sizing:border-box!important;
+}
+.v216-box small{display:block!important;color:#7f8b97!important;line-height:1.35!important}
+.v216-actions{
+  display:flex!important;
+  align-items:center!important;
+  gap:8px!important;
+  margin-top:10px!important;
+  flex-wrap:wrap!important;
+}
+.v216-actions button{
+  min-height:31px!important;
+  padding:6px 10px!important;
+}
+#v216AutoDeleteStatus{
+  margin-left:auto!important;
+  padding:6px 9px!important;
+  border:1px solid #414c58!important;
+  border-radius:7px!important;
+  background:#080d12!important;
+  color:#9ca8b5!important;
+  font-size:9px!important;
+}
+#v216AutoDeleteStatus.active{
+  border-color:#4f8b5d!important;
+  color:#6ee28b!important;
+}
+@media(max-width:950px){
+  .v216-grid{grid-template-columns:1fr 1fr!important}
+}
+@media(max-width:600px){
+  .v216-grid{grid-template-columns:1fr!important}
+  .v216-auto-delete-head{display:block!important}
+  .v216-switch{margin-top:8px!important;width:max-content!important}
+  #v216AutoDeleteStatus{margin-left:0!important}
+}
+
+/* V21.7 — Silent autosave: saving continues, visual indicator never jumps/flickers */
+#saveStatus,
+#cloudSaveStatus,
+.save-status,
+.cloud-save-status,
+.saving-status,
+[data-save-status],
+[data-cloud-save-status] {
+  display:none !important;
+  visibility:hidden !important;
+  width:0 !important;
+  min-width:0 !important;
+  max-width:0 !important;
+  padding:0 !important;
+  margin:0 !important;
+  border:0 !important;
+  overflow:hidden !important;
+}
+
+/* ================= V21.8 DUNGEON SYSTEM ================= */
+#page-dungeon .v218-old-dungeon-hidden{
+  display:none!important;
+}
+
+.v218-dungeon-system{
+  width:min(1250px,100%)!important;
+  margin:0 auto!important;
+}
+
+.v218-dungeon-head{
+  display:flex!important;
+  justify-content:space-between!important;
+  align-items:flex-start!important;
+  gap:14px!important;
+  margin-bottom:12px!important;
+}
+
+.v218-dungeon-head h2{
+  margin:3px 0 5px!important;
+  color:#f0c24f!important;
+}
+
+.v218-dungeon-head p{
+  margin:0!important;
+  color:#94a0ac!important;
+  max-width:720px!important;
+}
+
+.v218-dungeon-summary{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(100px,1fr))!important;
+  gap:6px!important;
+  min-width:260px!important;
+}
+
+.v218-dungeon-summary>div{
+  padding:8px!important;
+  border:1px solid #34404c!important;
+  border-radius:8px!important;
+  background:#080d12!important;
+}
+
+.v218-dungeon-summary small,
+.v218-dungeon-summary b{
+  display:block!important;
+}
+.v218-dungeon-summary b{
+  color:#f0c24f!important;
+  margin-top:2px!important;
+}
+
+.v218-dungeon-grid{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:10px!important;
+}
+
+.v218-dungeon-card{
+  padding:11px!important;
+  border:1px solid #34404c!important;
+  border-radius:10px!important;
+  background:linear-gradient(145deg,#0b1016,#070a0f)!important;
+}
+
+.v218-dungeon-card.safe{
+  border-color:#39744b!important;
+  box-shadow:0 0 0 1px rgba(76,170,99,.08) inset!important;
+}
+
+.v218-dungeon-title{
+  display:flex!important;
+  align-items:center!important;
+  gap:9px!important;
+}
+.v218-dungeon-icon{
+  font-size:26px!important;
+}
+.v218-dungeon-title h3{
+  margin:0!important;
+}
+.v218-dungeon-title small{
+  color:#8d99a5!important;
+}
+
+.v218-dungeon-card p{
+  color:#8e9aa6!important;
+  min-height:38px!important;
+}
+
+.v218-dungeon-stats{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:5px!important;
+}
+
+.v218-dungeon-stats span{
+  padding:6px!important;
+  border:1px solid #2f3944!important;
+  border-radius:7px!important;
+  background:#080d12!important;
+}
+
+.v218-dungeon-stats small,
+.v218-dungeon-stats b{
+  display:block!important;
+}
+.v218-dungeon-stats small{
+  font-size:8px!important;
+  color:#85919d!important;
+}
+.v218-dungeon-stats b{
+  margin-top:2px!important;
+  color:#f1c34f!important;
+}
+
+.v218-chance{
+  height:6px!important;
+  margin:8px 0!important;
+  border-radius:99px!important;
+  overflow:hidden!important;
+  background:#202833!important;
+}
+.v218-chance>div{
+  height:100%!important;
+  background:linear-gradient(90deg,#8060ff,#f0c24f)!important;
+}
+
+.v218-rewards{
+  padding:7px!important;
+  border:1px solid #2e3843!important;
+  border-radius:7px!important;
+  background:#080d12!important;
+  margin-bottom:8px!important;
+}
+.v218-rewards small{
+  display:block!important;
+  color:#87939f!important;
+  margin-bottom:3px!important;
+}
+.v218-rewards div{
+  font-size:10px!important;
+  color:#d7dce2!important;
+}
+
+.v218-dungeon-card button{
+  width:100%!important;
+  min-height:32px!important;
+  font-weight:900!important;
+}
+
+@media(max-width:900px){
+  .v218-dungeon-grid{grid-template-columns:1fr!important}
+  .v218-dungeon-head{display:block!important}
+  .v218-dungeon-summary{margin-top:10px!important}
+}
+@media(max-width:560px){
+  .v218-dungeon-stats{grid-template-columns:1fr 1fr!important}
+}
+
+/* ================= V21.9 DUNGEON BOSS FIGHT ================= */
+.v219-boss-preview{
+  display:flex!important;
+  align-items:center!important;
+  gap:8px!important;
+  margin:8px 0!important;
+  padding:7px 8px!important;
+  border:1px solid #5a3740!important;
+  border-radius:8px!important;
+  background:linear-gradient(90deg,#17090d,#0b0d12)!important;
+}
+.v219-boss-preview>span{
+  display:grid!important;
+  place-items:center!important;
+  width:38px!important;
+  height:38px!important;
+  font-size:25px!important;
+  border-radius:8px!important;
+  background:#090d13!important;
+}
+.v219-boss-preview small,
+.v219-boss-preview b{display:block!important}
+.v219-boss-preview small{font-size:8px!important;color:#9b7b82!important}
+.v219-boss-preview b{margin-top:1px!important;color:#ff8794!important}
+
+#v219DungeonBattle{
+  margin-bottom:12px!important;
+  padding:12px!important;
+  border:1px solid #8a6626!important;
+  border-radius:11px!important;
+  background:radial-gradient(circle at 50% 0,#171119,#080c11 62%)!important;
+}
+#v219DungeonBattle.hidden{display:none!important}
+
+.v219-battle-title{
+  display:flex!important;
+  justify-content:space-between!important;
+  align-items:center!important;
+  gap:10px!important;
+  margin-bottom:11px!important;
+}
+.v219-battle-title h3{margin:2px 0 0!important;color:#f1c34f!important}
+.v219-battle-round{
+  padding:6px 9px!important;
+  border:1px solid #38434f!important;
+  border-radius:7px!important;
+  background:#080c11!important;
+  font-weight:800!important;
+}
+
+.v219-fighters{
+  display:grid!important;
+  grid-template-columns:1fr 54px 1fr!important;
+  gap:10px!important;
+  align-items:center!important;
+}
+.v219-fighter{
+  display:flex!important;
+  gap:9px!important;
+  align-items:center!important;
+  padding:10px!important;
+  border:1px solid #34404c!important;
+  border-radius:9px!important;
+  background:#080d12!important;
+}
+.v219-fighter.boss{border-color:#6a313b!important}
+.v219-fighter-icon,
+.v219-boss-icon{
+  display:grid!important;
+  place-items:center!important;
+  flex:0 0 54px!important;
+  width:54px!important;
+  height:54px!important;
+  border-radius:10px!important;
+  background:#111720!important;
+  font-size:34px!important;
+}
+.v219-boss-icon{
+  background:#1a0b0f!important;
+  box-shadow:0 0 20px rgba(225,65,85,.14)!important;
+}
+.v219-fighter-main{flex:1!important;min-width:0!important}
+.v219-name-row{
+  display:flex!important;
+  justify-content:space-between!important;
+  gap:8px!important;
+  margin-bottom:6px!important;
+}
+.v219-name-row span{font-size:9px!important;color:#a7b0ba!important}
+.v219-hp{
+  height:11px!important;
+  overflow:hidden!important;
+  border-radius:99px!important;
+  background:#261014!important;
+  border:1px solid #47212a!important;
+  margin-bottom:5px!important;
+}
+.v219-hp>div{
+  height:100%!important;
+  background:linear-gradient(90deg,#d03e4d,#f16b77)!important;
+  transition:width .35s ease!important;
+}
+.v219-hp.boss>div{
+  background:linear-gradient(90deg,#a61e32,#ef4d61)!important;
+}
+.v219-versus{
+  text-align:center!important;
+  font-size:17px!important;
+  font-weight:1000!important;
+  color:#f0c24f!important;
+}
+.v219-combat-log{
+  margin-top:9px!important;
+  padding:7px 9px!important;
+  border:1px solid #303a45!important;
+  border-radius:7px!important;
+  background:#06090d!important;
+  color:#aab4be!important;
+  text-align:center!important;
+}
+
+@media(max-width:760px){
+  .v219-fighters{grid-template-columns:1fr!important}
+  .v219-versus{padding:2px!important}
+}
+
+/* ================= V22.0 DUNGEON VISUALS ================= */
+
+/* Mini scene on dungeon cards */
+.v220-card-scene{
+  position:relative;
+  height:92px;
+  margin:-2px -2px 9px;
+  border-radius:9px;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 42%,rgba(120,70,180,.28),transparent 34%),
+    linear-gradient(180deg,#111722,#080b10);
+  border:1px solid rgba(255,255,255,.05);
+}
+.v220-card-boss{
+  position:absolute;
+  left:50%;
+  bottom:14px;
+  transform:translateX(-50%);
+  font-size:46px;
+  filter:drop-shadow(0 0 14px rgba(0,0,0,.75));
+  animation:v220BossIdle 2.4s ease-in-out infinite;
+}
+.v220-card-shadow{
+  position:absolute;
+  left:50%;
+  bottom:9px;
+  width:72px;
+  height:12px;
+  transform:translateX(-50%);
+  border-radius:50%;
+  background:rgba(0,0,0,.55);
+  filter:blur(3px);
+}
+.v220-card-decor{
+  position:absolute;
+  inset:8px 10px auto;
+  display:flex;
+  justify-content:space-between;
+  opacity:.55;
+  font-size:20px;
+}
+@keyframes v220BossIdle{
+  0%,100%{transform:translateX(-50%) translateY(0) scale(1)}
+  50%{transform:translateX(-50%) translateY(-4px) scale(1.03)}
+}
+
+/* Theme backgrounds */
+.v218-dungeon-card.theme-cave .v220-card-scene{background:linear-gradient(180deg,#20241b,#0b0e09)}
+.v218-dungeon-card.theme-mine .v220-card-scene{background:linear-gradient(180deg,#171b25,#0a0c11)}
+.v218-dungeon-card.theme-forest .v220-card-scene{background:linear-gradient(180deg,#14231a,#080e0a)}
+.v218-dungeon-card.theme-crypt .v220-card-scene{background:linear-gradient(180deg,#1d1821,#0c0a0e)}
+.v218-dungeon-card.theme-demon .v220-card-scene{background:linear-gradient(180deg,#2b1111,#100707)}
+.v218-dungeon-card.theme-dragon .v220-card-scene{background:linear-gradient(180deg,#30170d,#120904)}
+.v218-dungeon-card.theme-storm .v220-card-scene{background:linear-gradient(180deg,#16233a,#090d16)}
+.v218-dungeon-card.theme-void .v220-card-scene{background:linear-gradient(180deg,#25133b,#0d0714)}
+.v218-dungeon-card.theme-celestial .v220-card-scene{background:linear-gradient(180deg,#26384d,#0c1219)}
+.v218-dungeon-card.theme-abyss .v220-card-scene{background:linear-gradient(180deg,#082b38,#041116)}
+
+/* Battle arena */
+.v220-arena{
+  position:relative;
+  padding:22px 12px 18px;
+  border:1px solid #394550;
+  border-radius:11px;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 20%,rgba(115,75,160,.22),transparent 32%),
+    linear-gradient(180deg,#111721 0%,#080c11 72%);
+  isolation:isolate;
+}
+.v220-ground{
+  position:absolute;
+  left:-8%;
+  right:-8%;
+  bottom:-28px;
+  height:92px;
+  border-radius:50% 50% 0 0;
+  background:radial-gradient(ellipse at center,#252a31 0,#10141a 54%,#06090d 75%);
+  border-top:1px solid rgba(255,255,255,.05);
+  z-index:-1;
+}
+.v220-bg-decor{
+  position:absolute;
+  top:16px;
+  font-size:58px;
+  opacity:.10;
+  filter:blur(.3px);
+  z-index:-1;
+}
+.v220-bg-decor.left{left:26px}
+.v220-bg-decor.right{right:26px}
+
+/* Arena themes */
+.v220-arena.theme-cave{background:radial-gradient(circle at 50% 12%,#27301f,#0d120b 68%)}
+.v220-arena.theme-mine{background:radial-gradient(circle at 50% 12%,#20283a,#0a0d13 68%)}
+.v220-arena.theme-forest{background:radial-gradient(circle at 50% 12%,#17321f,#080f0b 68%)}
+.v220-arena.theme-crypt{background:radial-gradient(circle at 50% 12%,#2a1e31,#0d0a10 68%)}
+.v220-arena.theme-demon{background:radial-gradient(circle at 50% 12%,#3a1717,#130707 68%)}
+.v220-arena.theme-dragon{background:radial-gradient(circle at 50% 12%,#462014,#160a05 68%)}
+.v220-arena.theme-storm{background:radial-gradient(circle at 50% 12%,#1a3155,#080e18 68%)}
+.v220-arena.theme-void{background:radial-gradient(circle at 50% 12%,#361a55,#100719 68%)}
+.v220-arena.theme-celestial{background:radial-gradient(circle at 50% 12%,#324c69,#0d151e 68%)}
+.v220-arena.theme-abyss{background:radial-gradient(circle at 50% 12%,#0d4052,#04151b 68%)}
+
+/* particles */
+.v220-particles i{
+  position:absolute;
+  width:4px;
+  height:4px;
+  border-radius:50%;
+  background:rgba(255,255,255,.25);
+  animation:v220Float 4s linear infinite;
+}
+.v220-particles i:nth-child(1){left:12%;top:78%;animation-delay:0s}
+.v220-particles i:nth-child(2){left:28%;top:62%;animation-delay:.8s}
+.v220-particles i:nth-child(3){left:47%;top:75%;animation-delay:1.5s}
+.v220-particles i:nth-child(4){left:65%;top:64%;animation-delay:2.1s}
+.v220-particles i:nth-child(5){left:82%;top:76%;animation-delay:2.8s}
+.v220-particles i:nth-child(6){left:91%;top:58%;animation-delay:3.4s}
+@keyframes v220Float{
+  0%{transform:translateY(20px) scale(.6);opacity:0}
+  25%{opacity:.45}
+  100%{transform:translateY(-90px) scale(1.2);opacity:0}
+}
+
+/* Make fighters feel like actual combatants */
+.v220-arena .v219-fighter{
+  backdrop-filter:blur(2px);
+  background:rgba(7,11,16,.78)!important;
+}
+.v220-arena .v219-fighter-icon,
+.v220-arena .v219-boss-icon{
+  transform:scale(1);
+  transition:transform .15s ease;
+}
+#v219DungeonBattle.v220-hit .v219-fighter-icon{
+  animation:v220PlayerHit .18s ease;
+}
+#v219DungeonBattle.v220-hit .v219-boss-icon{
+  animation:v220BossHit .18s ease;
+}
+@keyframes v220PlayerHit{
+  0%,100%{transform:translateX(0)}
+  50%{transform:translateX(-7px)}
+}
+@keyframes v220BossHit{
+  0%,100%{transform:translateX(0)}
+  50%{transform:translateX(7px)}
+}
+
+/* ================= V22.1 UNIQUE DUNGEON EFFECTS ================= */
+.v221-effect-layer{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index:4;
+  overflow:hidden;
+  opacity:.0;
+}
+#v219DungeonBattle.v221-cast .v221-effect-layer{
+  opacity:1;
+}
+.v221-effect-main{
+  position:absolute;
+  left:50%;
+  top:45%;
+  transform:translate(-50%,-50%) scale(.4);
+  font-size:68px;
+  opacity:0;
+  filter:drop-shadow(0 0 18px currentColor);
+}
+#v219DungeonBattle.v221-cast .v221-effect-main{
+  animation:v221Main .42s ease-out;
+}
+@keyframes v221Main{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(-12deg)}
+  35%{opacity:1;transform:translate(-50%,-50%) scale(1.15) rotate(4deg)}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(1.5) rotate(0)}
+}
+
+.v221-effect-layer i{
+  position:absolute;
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  opacity:0;
+}
+#v219DungeonBattle.v221-cast .v221-effect-layer i{
+  animation:v221Burst .42s ease-out forwards;
+}
+.v221-effect-layer i:nth-child(2){left:42%;top:45%}
+.v221-effect-layer i:nth-child(3){left:48%;top:38%;animation-delay:.03s}
+.v221-effect-layer i:nth-child(4){left:55%;top:44%;animation-delay:.05s}
+.v221-effect-layer i:nth-child(5){left:46%;top:54%;animation-delay:.07s}
+.v221-effect-layer i:nth-child(6){left:58%;top:52%;animation-delay:.09s}
+@keyframes v221Burst{
+  0%{opacity:0;transform:scale(.4)}
+  25%{opacity:1}
+  100%{opacity:0;transform:translate(var(--dx,30px),var(--dy,-30px)) scale(1.8)}
+}
+
+/* 1. Cave - falling rocks */
+.effect-rockfall .v221-effect-main{color:#b9a076}
+.effect-rockfall i{background:#8c7657}
+.effect-rockfall i:nth-child(2){--dx:-38px;--dy:42px}
+.effect-rockfall i:nth-child(3){--dx:-18px;--dy:55px}
+.effect-rockfall i:nth-child(4){--dx:14px;--dy:46px}
+.effect-rockfall i:nth-child(5){--dx:30px;--dy:60px}
+.effect-rockfall i:nth-child(6){--dx:48px;--dy:38px}
+
+/* 2. Mine - crystal burst */
+.effect-crystal_burst .v221-effect-main{color:#79d7ff}
+.effect-crystal_burst i{
+  background:#81e4ff;
+  box-shadow:0 0 10px #6fdcff;
+  border-radius:1px;
+}
+.effect-crystal_burst i:nth-child(2){--dx:-55px;--dy:-20px}
+.effect-crystal_burst i:nth-child(3){--dx:-35px;--dy:38px}
+.effect-crystal_burst i:nth-child(4){--dx:10px;--dy:-50px}
+.effect-crystal_burst i:nth-child(5){--dx:44px;--dy:30px}
+.effect-crystal_burst i:nth-child(6){--dx:58px;--dy:-12px}
+
+/* 3. Wolf - moon slash */
+.effect-moon_slash .v221-effect-main{color:#bcd7ff}
+.effect-moon_slash::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:48%;
+  width:180px;
+  height:14px;
+  border-radius:50%;
+  border-top:4px solid rgba(200,225,255,.95);
+  transform:translate(-50%,-50%) rotate(-22deg) scaleX(.2);
+  opacity:0;
+}
+#v219DungeonBattle.v221-cast .effect-moon_slash::after{
+  animation:v221Slash .38s ease-out;
+}
+@keyframes v221Slash{
+  0%{opacity:0;transform:translate(-50%,-50%) rotate(-22deg) scaleX(.2)}
+  35%{opacity:1}
+  100%{opacity:0;transform:translate(-50%,-50%) rotate(-22deg) scaleX(1.4)}
+}
+
+/* 4. Crypt - soul flame */
+.effect-soul_flame .v221-effect-main{color:#80ffd1}
+.effect-soul_flame i{
+  background:#79ffc8;
+  box-shadow:0 0 14px #72ffd0;
+}
+#v219DungeonBattle.v221-cast .effect-soul_flame i{
+  animation:v221Soul .55s ease-out forwards;
+}
+@keyframes v221Soul{
+  0%{opacity:0;transform:translateY(12px) scale(.5)}
+  30%{opacity:1}
+  100%{opacity:0;transform:translateY(-70px) scale(1.4)}
+}
+
+/* 5. Demon - hellfire */
+.effect-hellfire .v221-effect-main{color:#ff6b37}
+.effect-hellfire i{
+  background:#ff4d1f;
+  box-shadow:0 0 14px #ff3c00;
+}
+#v219DungeonBattle.v221-cast .effect-hellfire{
+  background:radial-gradient(circle at 50% 70%,rgba(255,65,10,.22),transparent 45%);
+}
+
+/* 6. Dragon - breath cone */
+.effect-dragon_breath .v221-effect-main{color:#ff9d3b}
+.effect-dragon_breath::before{
+  content:"";
+  position:absolute;
+  right:24%;
+  top:44%;
+  width:220px;
+  height:70px;
+  background:linear-gradient(90deg,rgba(255,220,90,.9),rgba(255,80,0,.35),transparent);
+  clip-path:polygon(100% 35%,0 0,0 100%);
+  opacity:0;
+  filter:blur(2px);
+}
+#v219DungeonBattle.v221-cast .effect-dragon_breath::before{
+  animation:v221Breath .42s ease-out;
+}
+@keyframes v221Breath{
+  0%{opacity:0;transform:scaleX(.2)}
+  30%{opacity:.95}
+  100%{opacity:0;transform:scaleX(1.1)}
+}
+
+/* 7. Storm - lightning */
+.effect-lightning .v221-effect-main{color:#bfe7ff}
+.effect-lightning::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:8%;
+  width:7px;
+  height:72%;
+  background:linear-gradient(#eefaff,#74c8ff);
+  box-shadow:0 0 18px #83d0ff,0 0 42px #4aa6ff;
+  clip-path:polygon(55% 0,100% 0,62% 40%,90% 40%,34% 100%,48% 55%,20% 55%);
+  opacity:0;
+}
+#v219DungeonBattle.v221-cast .effect-lightning::after{
+  animation:v221Lightning .30s ease-out;
+}
+@keyframes v221Lightning{
+  0%,100%{opacity:0}
+  15%,45%,70%{opacity:1}
+  30%,60%{opacity:.2}
+}
+
+/* 8. Void - rift */
+.effect-void_rift .v221-effect-main{color:#a96cff}
+.effect-void_rift::before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:120px;
+  height:120px;
+  border:4px solid rgba(168,90,255,.75);
+  border-radius:50%;
+  box-shadow:0 0 30px #7d3bff inset,0 0 35px #7d3bff;
+  transform:translate(-50%,-50%) scale(.2) rotate(0);
+  opacity:0;
+}
+#v219DungeonBattle.v221-cast .effect-void_rift::before{
+  animation:v221Rift .48s ease-out;
+}
+@keyframes v221Rift{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.2) rotate(0)}
+  40%{opacity:1}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(1.25) rotate(180deg)}
+}
+
+/* 9. Celestial - holy blast */
+.effect-holy_blast .v221-effect-main{color:#fff4a8}
+.effect-holy_blast::before,
+.effect-holy_blast::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
+  background:rgba(255,245,180,.9);
+  transform:translate(-50%,-50%);
+  opacity:0;
+}
+.effect-holy_blast::before{width:220px;height:8px}
+.effect-holy_blast::after{width:8px;height:220px}
+#v219DungeonBattle.v221-cast .effect-holy_blast::before,
+#v219DungeonBattle.v221-cast .effect-holy_blast::after{
+  animation:v221Holy .38s ease-out;
+}
+@keyframes v221Holy{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.2)}
+  35%{opacity:1}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(1.2)}
+}
+
+/* 10. Abyss - tentacle/water surge */
+.effect-tentacle_surge .v221-effect-main{color:#69d9e8}
+.effect-tentacle_surge::before{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:-20px;
+  height:95px;
+  background:
+    radial-gradient(circle at 15% 100%,rgba(80,210,230,.5),transparent 35%),
+    radial-gradient(circle at 45% 100%,rgba(55,160,210,.5),transparent 38%),
+    radial-gradient(circle at 78% 100%,rgba(80,210,230,.45),transparent 35%);
+  opacity:0;
+}
+#v219DungeonBattle.v221-cast .effect-tentacle_surge::before{
+  animation:v221Wave .5s ease-out;
+}
+@keyframes v221Wave{
+  0%{opacity:0;transform:translateY(45px)}
+  40%{opacity:1}
+  100%{opacity:0;transform:translateY(-22px)}
+}
+
+/* ================= V22.2 FULL PLAYER ADMIN EDITOR ================= */
+.v222-player-editor{
+  padding:10px 0 2px;
+}
+.v222-player-editor h3{margin:0 0 3px}
+.v222-player-editor small{color:#8f9aa6}
+.v222-editor-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:7px;
+  margin-top:9px;
+}
+.v222-editor-grid label,.v222-premium-row label{
+  font-size:9px;
+  color:#9aa6b2;
+}
+.v222-editor-grid input,.v222-premium-row select{
+  display:block;
+  width:100%;
+  box-sizing:border-box;
+  margin-top:4px;
+}
+.v222-premium-row{
+  display:grid;
+  grid-template-columns:1fr 180px;
+  gap:8px;
+  margin-top:9px;
+  padding:8px;
+  border:1px solid #4a3a1d;
+  border-radius:8px;
+  background:#0a0d11;
+}
+.v222-check{
+  display:flex!important;
+  align-items:center;
+  gap:7px;
+  font-weight:900;
+  color:#f0c24f!important;
+}
+.v222-check input{width:auto!important;margin:0!important}
+.v222-editor-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-top:9px;
+}
+#v222EditorStatus{
+  margin-top:8px;
+  min-height:20px;
+  color:#91a0ad;
+}
+@media(max-width:900px){.v222-editor-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){
+ .v222-editor-grid,.v222-premium-row{grid-template-columns:1fr}
+}
+
+/* V22.3 multi point spend */
+.multi-point-actions{display:grid!important;grid-template-columns:repeat(4,1fr)!important;gap:5px!important;width:100%!important;margin-top:7px!important}
+.multi-point-actions button{min-width:0!important;padding:8px 4px!important;font-size:10px!important;font-weight:900!important}
+.paragon-row .multi-point-actions{width:min(330px,100%)!important;margin-top:0!important}
+@media(max-width:600px){.multi-point-actions{grid-template-columns:repeat(2,1fr)!important}}
+
+/* ================= V22.4 PET FUSION ================= */
+.v224-pet-fusion{
+  width:min(1150px,100%)!important;
+  margin:0 auto 12px!important;
+  border-color:#65508b!important;
+}
+.v224-head{
+  display:flex!important;
+  justify-content:space-between!important;
+  gap:12px!important;
+  align-items:flex-start!important;
+}
+.v224-head h3{margin:0 0 4px!important}
+.v224-head small{color:#98a4b0!important}
+.v224-rule{
+  padding:7px 9px!important;
+  border:1px solid #6c54a0!important;
+  border-radius:8px!important;
+  color:#caa8ff!important;
+  background:#0d0a13!important;
+  white-space:nowrap!important;
+}
+.v224-groups{display:grid!important;gap:7px!important;margin-top:10px!important}
+.v224-fuse-row{
+  display:flex!important;
+  justify-content:space-between!important;
+  align-items:center!important;
+  gap:10px!important;
+  padding:9px!important;
+  border:1px solid #3b4652!important;
+  border-radius:8px!important;
+  background:#080d12!important;
+}
+.v224-fuse-row b,.v224-fuse-row small{display:block!important}
+.v224-fuse-row small{margin-top:3px!important;color:#a893c7!important}
+.v224-fusion-badge{
+  display:inline-block!important;
+  margin-top:6px!important;
+  padding:4px 6px!important;
+  border:1px solid #704bb0!important;
+  border-radius:6px!important;
+  background:#120b1d!important;
+  color:#c997ff!important;
+  font-size:9px!important;
+  font-weight:900!important;
+}
+@media(max-width:700px){
+ .v224-head,.v224-fuse-row{display:block!important}
+ .v224-rule,.v224-fuse-row button{margin-top:8px!important;width:100%!important}
+}

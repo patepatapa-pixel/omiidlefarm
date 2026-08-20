@@ -397,3 +397,14 @@ V22.3
 - Képességpontoknál +1 / +5 / +10 / MAX egyszerre.
 - Paragon statpontoknál +1 / +5 / +10 / MAX egyszerre.
 - A rendszer automatikusan csak annyi pontot költ, amennyi rendelkezésre áll.
+
+V22.4
+- Pet craft/összeolvasztás teljesen átírva.
+- 3 teljesen azonos petből garantáltan erősebb pet készül.
+- A fusion NEM újradobja a pet százalékát, hanem a legjobb alapértéket megtartja és +18%-kal erősíti fusion szintenként.
+- Fusion +1, +2, +3... korlátlanul tovább fejleszthető 3 azonos példánnyal.
+- Pet kártyán látszik a Fusion szint és az effektív bónusz.
+- PvE ellenfelek HP-ja fokozatosan skálázódik wave + pet fusion alapján, hogy a játék ne váljon túl könnyűvé.
+- A pet fusion továbbra is valódi előnyt ad, az ellenfél skálázás csak részleges.
+- PvP-ben a fusion pet növeli a támadást és HP-t, de csökkentett/diminishing hatással, így nem kizárólag a pet dönti el a párbajt.
+- PvP sebzés finomhangolva, hogy a magas fusion ne okozzon együtéses meccseket.

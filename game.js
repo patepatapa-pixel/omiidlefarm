@@ -26,12 +26,12 @@ const BASE_UPS=[
  {key:"luck",name:"Szerencse",icon:"🍀",base:160,desc:"+ ritka drop"}
 ];
 const SKILLS=[
- {key:"power",name:"Erő aura",icon:"🔥",desc:"+5% sebzés / szint",max:20},
- {key:"gold",name:"Aranyáldás",icon:"💰",desc:"+6% arany / szint",max:20},
- {key:"crit",name:"Kritikus ösztön",icon:"🎯",desc:"+1.5% krit / szint",max:15},
- {key:"drop",name:"Kincsvadász",icon:"🎁",desc:"+2% drop esély / szint",max:15},
- {key:"offline",name:"Mély alvás farm",icon:"🌙",desc:"+5% offline hatékonyság / szint",max:10},
- {key:"pet",name:"Pet szinkron",icon:"🐾",desc:"+4% pet bónusz / szint",max:10}
+ {key:"power",name:"Erő aura",icon:"🔥",desc:"Végtelen fejlesztés · fokozatos sebzésnövekedés"},
+ {key:"gold",name:"Aranyáldás",icon:"💰",desc:"Végtelen fejlesztés · több arany farmolásból"},
+ {key:"crit",name:"Kritikus ösztön",icon:"🎯",desc:"Végtelen fejlesztés · krit esély + krit erő"},
+ {key:"drop",name:"Kincsvadász",icon:"🎁",desc:"Végtelen fejlesztés · jobb drop és ritkaság"},
+ {key:"offline",name:"Mély alvás farm",icon:"🌙",desc:"Végtelen fejlesztés · erősebb offline farm"},
+ {key:"pet",name:"Pet szinkron",icon:"🐾",desc:"Végtelen fejlesztés · pet bónuszok erősítése"}
 ];
 const PET_POOL=[
  {name:"Kis Farkas",icon:"🐺",bonus:"damage",value:.08,rarity:"normal"},
@@ -86,8 +86,8 @@ function normalizeV6Save(s){
  s.activeAura=s.activeAura||"none";
  s.playerHp=Number.isFinite(Number(s.playerHp))?Number(s.playerHp):0;
  s.hpRegenLevel=Math.max(0,Number(s.hpRegenLevel||0));
- s.combatSpeed=[1,2,3,4].includes(Number(s.combatSpeed))?Number(s.combatSpeed):1;
- s.speed4Unlocked=Boolean(s.speed4Unlocked);
+ s.combatSpeed=[1,2,3,10].includes(Number(s.combatSpeed))?Number(s.combatSpeed):(Number(s.combatSpeed)===4?1:1);
+ s.speed10Unlocked=Boolean(s.speed10Unlocked||s.speed4Unlocked);
  s.deaths=Math.max(0,Number(s.deaths||0));
  s.respawnUntil=Math.max(0,Number(s.respawnUntil||0));
  return s;
@@ -120,7 +120,7 @@ function itemStats(item){
  return {atk:Math.floor((item.atk||0)*m),def:Math.floor((item.def||0)*m),gold:(item.gold||0)*m,crit:(item.crit||0)*m,drop:(item.drop||0)*m}
 }
 function petObj(){return save.pets.find((p,i)=>i===save.activePet)||null}
-function petScale(){return 1+save.skills.pet*.04}
+function petScale(){return 1+infiniteSkillBonus(save.skills.pet,.035,40)}
 function bonuses(){
  let atk=0,def=0,gold=0,crit=0,drop=0;
  Object.keys(save.equipped).forEach(s=>{let it=equipObj(s);if(!it)return;let st=itemStats(it);atk+=st.atk;def+=st.def;gold+=st.gold;crit+=st.crit;drop+=st.drop});
@@ -130,18 +130,18 @@ function bonuses(){
 }
 function damage(){
  let b=bonuses(),io=itemOptionBonuses(),base=6+save.level*1.2+save.base.weaponTraining*4+b.atk;
- let total=base*(1+save.skills.power*.05+save.paragonStats.damage*.02)*(1+io.atkPct/100);
+ let total=base*(1+infiniteSkillBonus(save.skills.power,.04,50)+save.paragonStats.damage*.02)*(1+io.atkPct/100);
  if(save.waveBoss)total*=1+io.bossDmg/100;
  return Math.floor(total)
 }
-function critChance(){let io=itemOptionBonuses();return Math.min(.85,.05+save.skills.crit*.015+bonuses().crit+save.paragonStats.crit*.005+io.crit/100)}
-function goldBonus(){let io=itemOptionBonuses();return 1+(save.base.armorTraining-1)*.05+save.skills.gold*.06+bonuses().gold+save.paragonStats.gold*.03+io.gold/100}
-function dropBonus(){let io=itemOptionBonuses();return save.skills.drop*.02+bonuses().drop+(save.base.luck-1)*.01+save.paragonStats.drop*.01+io.drop/100}
+function critChance(){let io=itemOptionBonuses();return Math.min(.85,.05+infiniteSkillBonus(save.skills.crit,.009,35)+bonuses().crit+save.paragonStats.crit*.005+io.crit/100)}
+function goldBonus(){let io=itemOptionBonuses();return 1+(save.base.armorTraining-1)*.05+infiniteSkillBonus(save.skills.gold,.045,50)+bonuses().gold+save.paragonStats.gold*.03+io.gold/100}
+function dropBonus(){let io=itemOptionBonuses();return infiniteSkillBonus(save.skills.drop,.012,40)+bonuses().drop+(save.base.luck-1)*.01+save.paragonStats.drop*.01+io.drop/100}
 function power(){let b=bonuses();return Math.floor(damage()*11+b.def*7+save.level*20+save.base.mining*8+save.base.luck*8)}
 function rankName(){let p=power();return p<500?"Kezdő":p<2500?"Harcos":p<10000?"Elit":p<40000?"Mester":p<120000?"Hős":"Isteni"}
 function baseCost(d){return Math.floor(d.base*Math.pow(1.58,save.base[d.key]-1))}
 function rarityRoll(){
- let bonus=(save.base.luck-1)*.25+save.skills.drop*.15;
+ let bonus=(save.base.luck-1)*.25+infiniteSkillBonus(save.skills.drop,.10,40);
  let r=Math.random()*100;
  if(r<1+bonus*.08)return RARITIES[4];
  if(r<5+bonus*.15)return RARITIES[3];
@@ -440,8 +440,8 @@ function renderUpgrade(){
 }
 function renderSkills(){
  $("#skillPoints").textContent=save.skillPoints;
- $("#skills").innerHTML=SKILLS.map(s=>`<div class="skill-card"><div style="font-size:28px">${s.icon}</div><h3>${s.name}</h3><small>${s.desc}</small><p>Lv.${save.skills[s.key]} / ${s.max}</p><button data-skill="${s.key}" ${save.skillPoints<=0||save.skills[s.key]>=s.max?"disabled":""}>+1 pont</button></div>`).join("");
- $$("[data-skill]").forEach(b=>b.onclick=()=>{let sk=SKILLS.find(x=>x.key===b.dataset.skill);if(save.skillPoints<=0||save.skills[sk.key]>=sk.max)return;save.skillPoints--;save.skills[sk.key]++;persist();renderAll()})
+ $("#skills").innerHTML=SKILLS.map(s=>`<div class="skill-card"><div style="font-size:28px">${s.icon}</div><h3>${s.name}</h3><small>${s.desc}</small><p>Lv.${fmt(save.skills[s.key])} · ∞</p><div class="multi-point-actions"><button data-skill="${s.key}" data-amount="1" ${save.skillPoints<=0?"disabled":""}>+1</button><button data-skill="${s.key}" data-amount="5" ${save.skillPoints<=0?"disabled":""}>+5</button><button data-skill="${s.key}" data-amount="10" ${save.skillPoints<=0?"disabled":""}>+10</button><button data-skill="${s.key}" data-amount="max" ${save.skillPoints<=0?"disabled":""}>MAX</button></div></div>`).join("");
+ $$("[data-skill]").forEach(b=>b.onclick=()=>{let sk=SKILLS.find(x=>x.key===b.dataset.skill);if(save.skillPoints<=0)return;let raw=b.dataset.amount;let amount=raw==="max"?save.skillPoints:Math.min(save.skillPoints,Math.max(1,Number(raw)||1));save.skillPoints-=amount;save.skills[sk.key]+=amount;persist();renderAll()})
 }
 function renderPets(){
  $("#pets").innerHTML=save.pets.length?save.pets.map((p,i)=>`<div class="pet-card rarity-${p.rarity} ${save.activePet===i?"active":""}"><div style="font-size:30px">${p.icon}</div><h3>${p.name}</h3><small>${p.bonus==="damage"?"Sebzés":p.bonus==="gold"?"Arany":p.bonus==="drop"?"Drop":p.bonus==="crit"?"Krit":"Minden"} +${(p.value*100).toFixed(0)}%</small><button data-pet="${i}">${save.activePet===i?"Aktív":"Aktiválás"}</button></div>`).join(""):'<p class="muted">Még nincs peted.</p>';
@@ -577,8 +577,8 @@ function renderParagon(){
  ];
  const ps=$("#paragonStats");
  if(ps){
-   ps.innerHTML=stats.map(x=>`<div class="paragon-row"><div><b>${x[1]}</b><small>${x[2]} · Pont: ${save.paragonStats[x[0]]}</small></div><button data-paragon="${x[0]}" ${save.paragonPoints<=0?"disabled":""}>+1</button></div>`).join("");
-   $$("[data-paragon]").forEach(b=>b.onclick=()=>{if(save.paragonPoints<=0)return;save.paragonPoints--;save.paragonStats[b.dataset.paragon]++;persist();renderAll()});
+   ps.innerHTML=stats.map(x=>`<div class="paragon-row"><div><b>${x[1]}</b><small>${x[2]} · Pont: ${save.paragonStats[x[0]]}</small></div><div class="multi-point-actions"><button data-paragon="${x[0]}" data-amount="1" ${save.paragonPoints<=0?"disabled":""}>+1</button><button data-paragon="${x[0]}" data-amount="5" ${save.paragonPoints<=0?"disabled":""}>+5</button><button data-paragon="${x[0]}" data-amount="10" ${save.paragonPoints<=0?"disabled":""}>+10</button><button data-paragon="${x[0]}" data-amount="max" ${save.paragonPoints<=0?"disabled":""}>MAX</button></div></div>`).join("");
+   $$("[data-paragon]").forEach(b=>b.onclick=()=>{if(save.paragonPoints<=0)return;let raw=b.dataset.amount;let amount=raw==="max"?save.paragonPoints:Math.min(save.paragonPoints,Math.max(1,Number(raw)||1));save.paragonPoints-=amount;save.paragonStats[b.dataset.paragon]+=amount;persist();renderAll()});
  }
 
  const shop=$("#auraShop");
@@ -783,6 +783,14 @@ function renderAuraPageV171(){
  set("auraPageParagon",save.paragonLevel||0);
 }
 
+
+function renderAuraPageV174(){
+ const set=(id,val)=>{const e=$("#"+id);if(e)e.textContent=val};
+ set("auraPagePrestige",save.prestigeLevel||0);
+ set("auraPageTokens",save.auraTokens||0);
+ set("auraPageParagon",save.paragonLevel||0);
+}
+
 function renderAll(){
  renderCore();
  renderV15ExactCharacter();
@@ -800,7 +808,7 @@ function renderAll(){
  renderQuests();
  renderStats();
  renderCharacterAttributes();
-;renderHpRegenAndOptions();renderCombatSpeed();renderDynamicEquipment();renderV17QuickStats();renderAuraPageV171();}
+;renderHpRegenAndOptions();renderCombatSpeed();renderDynamicEquipment();renderV17QuickStats();renderAuraPageV171();renderAuraPageV174();window.v212RenderContextBars?.()}
 $("#bossBtn").onclick=()=>toast("👹 A boss automatikusan jön minden wave végén.");
 $("#petSummon").onclick=summonPet;
 $("#sellNormal").onclick=()=>{let equipped=new Set(Object.values(save.equipped));let sold=0;save.inventory=save.inventory.filter(it=>{if(it.rarity==="normal"&&!equipped.has(it.id)){save.gold+=sellValue(it);sold++;return false}return true});persist();renderAll();toast(`${sold} normál tárgy eladva`)};
@@ -817,6 +825,7 @@ let currentUser=null,authMode="login",cloudReady=false,savingCloud=false;
 
 
 function setAuthenticatedUI(user){
+  setTimeout(()=>window.v202ApplyAdminStudioVisibility?.(),0);
  const logged=!!user;
  document.body.classList.toggle("is-authenticated",logged);
  document.body.classList.toggle("is-guest",!logged);
@@ -958,7 +967,7 @@ document.addEventListener("click",e=>{
 // Offline progress max 12h
 let away=Math.min(43200,Math.max(0,(Date.now()-save.last)/1000));
 if(away>15){
- let z=ZONES[save.zone],eff=.55+save.skills.offline*.05,kills=Math.floor(away*damage()/z.hp*eff);
+ let z=ZONES[save.zone],eff=Math.min(2.25,.55+infiniteSkillBonus(save.skills.offline,.035,45)),kills=Math.floor(away*damage()/z.hp*eff);
  if(kills>0){let g=Math.floor(kills*z.gold*goldBonus());save.gold+=g;save.stats.goldEarned+=g;save.kills+=kills;save.xp+=kills*z.xp;toast(`🌙 Offline farm: ${fmt(kills)} kill · ${fmt(g)} arany`)}
 }
 while(save.xp>=needXp()){save.xp-=needXp();save.level++;save.skillPoints++}
@@ -1006,6 +1015,37 @@ window.OMI_CONTENT={bosses:[],items:[],pets:[],auras:[],zones:[]};fetch("/api/co
 
 
 
+
+
+// ================= V19.8 LONG TERM PROGRESSION =================
+function infiniteSkillBonus(level, perLevel, softcap=50){
+  level=Math.max(0,Number(level||0));
+  // Az első szintek gyorsabbak, később lassul, de SOHA nincs maximum.
+  if(level<=softcap)return level*perLevel;
+  return softcap*perLevel + Math.sqrt(level-softcap)*perLevel*4;
+}
+function waveHpMultiplier(wave){
+  wave=Math.max(1,Number(wave||1));
+  // Hosszú távú skálázás: minden wave erősebb, 100-as blokkoknál extra lépcső.
+  return Math.pow(1.012,wave-1)*Math.pow(1.16,Math.floor((wave-1)/100));
+}
+function waveRewardMultiplier(wave){
+  wave=Math.max(1,Number(wave||1));
+  return 1 + (wave-1)*0.018 + Math.floor((wave-1)/100)*0.35;
+}
+function normalEnemyMaxHp(){
+  const z=ZONES[save.zone]||ZONES[0];
+  return Math.max(1,Math.floor(z.hp*waveHpMultiplier(save.wave)));
+}
+function waveKillRequirement(wave){
+  wave=Math.max(1,Number(wave||1));
+  // Farm szakaszok: később több mob kell, de nem válik unalmassá.
+  return Math.min(40,10+Math.floor((wave-1)/25));
+}
+function applyWaveGoal(){
+  save.waveGoal=waveKillRequirement(save.wave);
+}
+
 // ================= V15.5 WAVE / BOSS / PARAGON RULES =================
 function paragonWaveRequirement(){
   // Paragon 1 = wave 500, Paragon 2 = 510, Paragon 3 = 520...
@@ -1019,7 +1059,7 @@ function restartCurrentBossWave(){
   save.bossHp=0;
   save.waveKills=0;
   // A játékos ugyanazon a wave-en marad és újra teljesíti.
-  enemyHp=ZONES[save.zone].hp;
+  enemyHp=normalEnemyMaxHp();
 }
 
 // ================= V10 FULL COMBAT =================
@@ -1045,14 +1085,15 @@ function v10MaxHp(){
  ));
 }
 function v10BossMaxHp(){
- const z=ZONES[save.zone];
- return Math.max(z.hp,Math.floor(z.hp*(6+save.wave*(V10CFG.bossHpGrowthPct/100))));
+ const base=normalEnemyMaxHp();
+ // Boss minden 10. wave-en komoly fal, de nem irreális.
+ return Math.max(base,Math.floor(base*(5.5+Math.min(12,save.wave*.012))));
 }
-function v10EnemyMaxHp(){return save.waveBoss?v10BossMaxHp():ZONES[save.zone].hp}
+function v10EnemyMaxHp(){return save.waveBoss?v10BossMaxHp():normalEnemyMaxHp()}
 function v10RawEnemyDamage(){
  const z=ZONES[save.zone],mx=v10MaxHp();
  let raw=mx*(V10CFG.mobDamageHpPct/100);
- raw += save.zone*5 + save.wave*.45 + z.gold*.0015;
+ raw += save.zone*5 + Math.pow(save.wave,1.08)*.32 + z.gold*.0015;
  raw*=V10CFG.monsterDamageMult;
  if(save.waveBoss)raw*=V10CFG.bossDamageMult;
 
@@ -1079,15 +1120,15 @@ function v10EnsurePlayerHp(){
 
 
 function effectiveCombatSpeed(){
- const n=[1,2,3,4].includes(Number(save.combatSpeed))?Number(save.combatSpeed):1;
- return n===4&&!save.speed4Unlocked?3:n;
+ const n=[1,2,3,10].includes(Number(save.combatSpeed))?Number(save.combatSpeed):1;
+ return n===10&&!save.speed10Unlocked?3:n;
 }
 function setCombatSpeed(n){
  n=Number(n);
- if(![1,2,3,4].includes(n))return;
+ if(![1,2,3,10].includes(n))return;
 
- if(n===4&&!save.speed4Unlocked){
-   toast("🔒 A 4× sebesség prémium. A Feltöltés / Discord fülön 3 €.");
+ if(n===10&&!save.speed10Unlocked){
+   toast("🔒 A 10× sebesség prémium. A Feltöltés / Discord fülön 3 €.");
    const tab=$('[data-tab="shop"]');
    if(tab)tab.click();
    return;
@@ -1103,14 +1144,14 @@ function renderCombatSpeed(){
  $$(".combat-speed-btn").forEach(b=>{
    const val=Number(b.dataset.speed);
    b.classList.toggle("active",val===n);
-   b.classList.toggle("locked",val===4&&!save.speed4Unlocked);
-   if(val===4)b.innerHTML=save.speed4Unlocked?"⚡ 4×":"🔒 4×";
+   b.classList.toggle("locked",val===10&&!save.speed10Unlocked);
+   if(val===10)b.innerHTML=save.speed10Unlocked?"⚡ 10×":"🔒 10×";
  });
  ["combatSpeedState","combatSpeedStateV163"].forEach(id=>{
    const e=$("#"+id);if(e)e.textContent=`Aktív: ${n}×`;
  });
- const premium=$("#speed4PurchaseState");
- if(premium)premium.textContent=save.speed4Unlocked?"✅ Aktiválva":"🔒 Nincs aktiválva";
+ const premium=$("#speed10PurchaseState");
+ if(premium)premium.textContent=save.speed10Unlocked?"✅ Aktiválva":"🔒 Nincs aktiválva";
 }
 document.addEventListener("click",e=>{
  const b=e.target.closest?.(".combat-speed-btn");
@@ -1139,7 +1180,7 @@ function v161LiveHud(){
 }
 
 function v10AwardNormalKill(){
- const z=ZONES[save.zone],g=Math.floor(z.gold*goldBonus());
+ const z=ZONES[save.zone],g=Math.floor(z.gold*goldBonus()*waveRewardMultiplier(save.wave));
  save.gold+=g;save.stats.goldEarned+=g;save.xp+=z.xp;save.kills++;
  if(Math.random()<.07+save.base.mining*.005)save.ore++;
  if(Math.random()<.007+dropBonus()*.05)save.soul++;
@@ -1160,19 +1201,20 @@ function v10AwardNormalKill(){
      const old=save.wave;
      save.wave++;
      save.waveKills=0;
-     save.waveGoal=Math.max(1,Number(V10CFG.waveKills||10));
-     enemyHp=z.hp;
+     applyWaveGoal();
+     applyWaveGoal();
+     enemyHp=normalEnemyMaxHp();
      $("#combatLog").textContent=`✅ Wave ${old} teljesítve! Következő: Wave ${save.wave}.`;
    }
  }else{
-   enemyHp=z.hp;
+   enemyHp=normalEnemyMaxHp();
    $("#combatLog").textContent=`${z.enemy} legyőzve · +${fmt(g)} arany · Wave ${save.wave}: ${save.waveKills}/${save.waveGoal}`;
  }
  v161LiveHud();
 }
 function v10AwardBossKill(){
  const z=ZONES[save.zone];
- const reward=Math.floor(z.gold*(20+save.wave)*goldBonus()*V10CFG.bossRewardMult);
+ const reward=Math.floor(z.gold*(18+save.wave*.55)*goldBonus()*waveRewardMultiplier(save.wave)*V10CFG.bossRewardMult);
  save.gold+=reward;save.stats.goldEarned+=reward;save.gems++;save.soul++;save.stats.bosses++;
  if(Math.random()<.80)addItem(createItem());
 
@@ -1181,11 +1223,20 @@ function v10AwardBossKill(){
  save.bossHp=0;
  save.wave++;
  save.waveKills=0;
- save.waveGoal=Math.max(1,Number(V10CFG.waveKills||10));
- enemyHp=z.hp;
+ applyWaveGoal();
+ applyWaveGoal();
+ enemyHp=normalEnemyMaxHp();
 
  $("#combatLog").textContent=`🏆 Wave ${oldWave} Boss legyőzve! +${fmt(reward)} arany. Wave ${save.wave} indul.`;
- toast(`🏆 Wave ${oldWave} Boss legyőzve!`);
+ if(oldWave%100===0){
+   save.gems+=3; save.soul+=3; save.ore+=25;
+   toast(`💎 Wave ${oldWave} mérföldkő: +3 kristály, +3 lélekkő, +25 érc`);
+ }else if(oldWave%50===0){
+   save.soul+=2; save.ore+=15;
+   toast(`🔮 Wave ${oldWave} mérföldkő: +2 lélekkő, +15 érc`);
+ }else if(oldWave%10===0){
+   save.ore+=3;
+ }
  v161LiveHud();
 }
 function v10PlayerAttack(){
@@ -1383,7 +1434,7 @@ v10AwardBossKill=function(){
  save.bossHp=0;
  save.wave++;
  save.waveKills=0;
- save.waveGoal=Math.max(1,Number(V10CFG.waveKills||10));
+ applyWaveGoal();
  enemyHp=ZONES[save.zone].hp;
 
  $("#combatLog").textContent=`🏆 ${b.name||"Boss"} legyőzve! +${fmt(reward)} arany · +${fmt(Number(b.xp||0))} XP · Wave ${save.wave}`;
@@ -1514,3 +1565,2614 @@ if(document.readyState==="loading"){
  document.addEventListener("DOMContentLoaded",bindAuthButtonsV153);
 }else bindAuthButtonsV153();
 setTimeout(bindAuthButtonsV153,250);
+
+/* V19.6 Paragon separate tab */
+document.addEventListener("click",function(e){
+  const b=e.target.closest?.('[data-tab="paragon"]');
+  if(!b)return;
+  document.querySelectorAll("#gameShell .page").forEach(p=>p.classList.remove("active"));
+  const p=document.getElementById("page-paragon");
+  if(p)p.classList.add("active");
+  document.querySelectorAll("[data-tab]").forEach(x=>x.classList.toggle("active",x===b));
+  if(typeof renderParagon==="function")renderParagon();
+},true);
+
+/* V19.7 - refresh moved Character Status on Paragon page */
+document.addEventListener("click",function(e){
+  const b=e.target.closest?.('[data-tab="paragon"]');
+  if(!b)return;
+  setTimeout(()=>{
+    if(typeof renderV17QuickStats==="function")renderV17QuickStats();
+    if(typeof renderParagon==="function")renderParagon();
+  },0);
+},true);
+
+/* V19.8 migration / balance initialization */
+try{
+  applyWaveGoal();
+  if(!save.waveBoss) enemyHp=normalEnemyMaxHp();
+}catch(e){console.warn("V19.8 init",e)}
+
+/* V19.9: top summary is Character-tab-only */
+(function(){
+  function v199CharacterHeaderOnly(){
+    const isCharacter=document.getElementById("page-character")?.classList.contains("active");
+    const candidates=[
+      document.querySelector(".hero"),
+      document.querySelector(".resources"),
+      document.querySelector(".resource-grid"),
+      document.querySelector(".stats-top")
+    ].filter(Boolean);
+    candidates.forEach(el=>{
+      el.style.setProperty("display",isCharacter?"":"none",isCharacter?"":"important");
+      if(isCharacter) el.style.removeProperty("display");
+    });
+  }
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.("[data-tab]")) setTimeout(v199CharacterHeaderOnly,0);
+  },true);
+  window.addEventListener("load",v199CharacterHeaderOnly);
+  setTimeout(v199CharacterHeaderOnly,0);
+})();
+
+/* ================= V20.0 CHARACTER / INVENTORY ORGANIZER ================= */
+(function(){
+  let inventoryHome=null, inventoryNode=null, characterHome=null;
+
+  function textOf(el){return (el?.textContent||"").replace(/\s+/g," ").trim();}
+
+  function markCharacterOnlyBlocks(){
+    // Intro card.
+    document.querySelectorAll("section,main>div,#gameShell>div").forEach(el=>{
+      const t=textOf(el);
+      if(t.includes("AUTOMATA FARM RPG") && t.includes("Farmolj automatikusan")){
+        el.classList.add("v200-character-only");
+      }
+    });
+
+    // Shared resources row.
+    document.querySelectorAll("section,div").forEach(el=>{
+      const t=textOf(el);
+      if(
+        t.includes("Arany") && t.includes("Kristály") && t.includes("Érc") &&
+        t.includes("Lélekkő") && t.includes("Dungeon jegy") && t.includes("Szint") &&
+        el.children.length>=4 && el.children.length<=12
+      ){
+        const childText=[...el.children].map(textOf).join("|");
+        if(childText.includes("Arany") && childText.includes("Kristály")){
+          el.classList.add("v200-character-only");
+        }
+      }
+    });
+
+    // Compact stat summary shown in screenshot: Erő/Sebzés/Életerő/.../Halál.
+    document.querySelectorAll("section,div").forEach(el=>{
+      const t=textOf(el);
+      if(
+        t.includes("Erő") && t.includes("Sebzés") && t.includes("Életerő") &&
+        t.includes("Védelem") && t.includes("Szerencse") && t.includes("Krit") &&
+        t.includes("Drop") && t.includes("Paragon") && t.includes("Prestige") &&
+        t.includes("Összes kill") && t.includes("Halál")
+      ){
+        // Prefer the smallest matching container.
+        const matchingChildren=[...el.children].filter(c=>{
+          const ct=textOf(c);
+          return ct.includes("Erő") && ct.includes("Sebzés") && ct.includes("Életerő") &&
+                 ct.includes("Összes kill") && ct.includes("Halál");
+        });
+        if(!matchingChildren.length) el.classList.add("v200-character-only");
+      }
+    });
+  }
+
+  function setTabClass(name){
+    document.body.classList.toggle("v200-character-tab",name==="character");
+  }
+
+  function findInventoryContent(){
+    const page=document.getElementById("page-inventory");
+    if(!page)return null;
+    // Keep the page itself in place; move only its main visible child/container.
+    return page.querySelector(".inventory-layout,.inventory-grid,.inventory-shell,.inventory-wrap,.card") || page.firstElementChild;
+  }
+
+  function findCharacterCore(){
+    const page=document.getElementById("page-character");
+    if(!page)return null;
+    return page.querySelector(".v15-character-stage,.character-stage,.character-layout,.character-main,.character-card") || page.firstElementChild;
+  }
+
+  function ensureCharacterInventoryLayout(){
+    const page=document.getElementById("page-character");
+    const invPage=document.getElementById("page-inventory");
+    if(!page||!invPage)return;
+
+    const charCore=findCharacterCore();
+    if(!charCore)return;
+
+    if(!inventoryNode){
+      inventoryNode=findInventoryContent();
+      if(inventoryNode){
+        inventoryHome={parent:inventoryNode.parentNode,next:inventoryNode.nextSibling};
+      }
+    }
+    if(!inventoryNode)return;
+
+    let layout=page.querySelector(".v200-character-inventory-layout");
+    if(!layout){
+      layout=document.createElement("div");
+      layout.className="v200-character-inventory-layout";
+      const left=document.createElement("div");
+      left.className="v200-character-left";
+      const right=document.createElement("div");
+      right.className="v200-inventory-right";
+      charCore.parentNode.insertBefore(layout,charCore);
+      layout.append(left,right);
+      left.appendChild(charCore);
+    }
+
+    const right=layout.querySelector(".v200-inventory-right");
+    if(inventoryNode.parentNode!==right) right.appendChild(inventoryNode);
+  }
+
+  function restoreInventory(){
+    if(!inventoryNode||!inventoryHome?.parent)return;
+    if(inventoryNode.parentNode===inventoryHome.parent)return;
+    inventoryHome.parent.insertBefore(inventoryNode,inventoryHome.next);
+  }
+
+  function applyForTab(name){
+    setTabClass(name);
+    if(name==="character"){
+      ensureCharacterInventoryLayout();
+    }else if(name==="inventory"){
+      restoreInventory();
+    }else{
+      // On unrelated pages inventory must not leak/follow.
+      restoreInventory();
+    }
+  }
+
+  function fixCloudSaveWidth(){
+    const candidates=[...document.querySelectorAll("header *, .topbar *")];
+    const el=candidates.find(x=>/Felhőbe mentve|Mentés/.test(textOf(x)) && x.children.length===0);
+    if(el)el.classList.add("v200-cloud-save-fixed");
+  }
+
+  function currentTab(){
+    const active=document.querySelector("[data-tab].active");
+    if(active?.dataset.tab)return active.dataset.tab;
+    return document.getElementById("page-character")?.classList.contains("active")?"character":"";
+  }
+
+  document.addEventListener("click",e=>{
+    const b=e.target.closest?.("[data-tab]");
+    if(!b)return;
+    setTimeout(()=>applyForTab(b.dataset.tab),0);
+  },true);
+
+  window.addEventListener("load",()=>{
+    markCharacterOnlyBlocks();
+    fixCloudSaveWidth();
+    applyForTab(currentTab()||"character");
+  });
+  setTimeout(()=>{
+    markCharacterOnlyBlocks();
+    fixCloudSaveWidth();
+    applyForTab(currentTab()||"character");
+  },50);
+})();
+
+/* V20.1 polished character/inventory placement */
+document.addEventListener("click",e=>{
+  const b=e.target.closest?.("[data-tab]");
+  if(!b)return;
+  if(b.dataset.tab==="character"){
+    setTimeout(()=>{
+      if(typeof renderDynamicEquipment==="function")renderDynamicEquipment();
+      if(typeof renderInventory==="function")renderInventory();
+    },20);
+  }
+},true);
+
+/* V20.2 - Admin Game Studio client visibility */
+(function(){
+  function v202IsAdmin(){
+    try{
+      const u=window.currentUser || (typeof currentUser!=="undefined" ? currentUser : null);
+      if(!u)return false;
+      const role=String(u.role||u.userRole||u.type||"").toLowerCase();
+      const name=String(u.username||u.name||u.playerName||"").toLowerCase();
+      return Boolean(
+        u.isAdmin===true ||
+        u.admin===true ||
+        role==="admin" ||
+        role==="administrator" ||
+        name==="omiadmin"
+      );
+    }catch(e){
+      return false;
+    }
+  }
+
+  function v202ApplyAdminStudioVisibility(){
+    document.body.classList.toggle("v202-is-admin",v202IsAdmin());
+  }
+
+  window.v202ApplyAdminStudioVisibility=v202ApplyAdminStudioVisibility;
+  window.addEventListener("load",()=>setTimeout(v202ApplyAdminStudioVisibility,50));
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.("[data-tab],#loginBtn,#landingLoginBtn")) {
+      setTimeout(v202ApplyAdminStudioVisibility,100);
+    }
+  },true);
+  setInterval(v202ApplyAdminStudioVisibility,1500);
+})();
+
+/* V20.4: force Equipment Management outside the character card */
+(function(){
+  function v204PlaceEquipmentBesideCharacter(){
+    const page=document.getElementById("page-character");
+    if(!page)return;
+    const layout=page.querySelector(".v200-character-inventory-layout");
+    if(!layout)return;
+    const left=layout.querySelector(".v200-character-left");
+    const right=layout.querySelector(".v200-inventory-right");
+    if(!left||!right)return;
+
+    // If equipment manager was accidentally rendered inside the character,
+    // physically move its containing inventory block to the right column.
+    const tool=page.querySelector(".inventory-tools-v163");
+    if(tool && left.contains(tool)){
+      let movable=tool;
+      // Prefer moving its inventory wrapper when one exists.
+      const wrapper=tool.closest(".inventory-layout,.inventory-shell,.inventory-wrap");
+      if(wrapper && wrapper!==layout && !wrapper.contains(left)) movable=wrapper;
+      right.appendChild(movable);
+    } else if(tool && !right.contains(tool)){
+      right.appendChild(tool);
+    }
+  }
+  window.addEventListener("load",()=>setTimeout(v204PlaceEquipmentBesideCharacter,80));
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.('[data-tab="character"]')) setTimeout(v204PlaceEquipmentBesideCharacter,40);
+  },true);
+  setTimeout(v204PlaceEquipmentBesideCharacter,100);
+})();
+
+/* ================= V20.5 TRUE SEPARATE EQUIPMENT HOST ================= */
+(function(){
+  function place(){
+    const page=document.getElementById("page-character");
+    if(!page)return;
+
+    let shell=page.querySelector(":scope > .v205-character-equipment-shell");
+    if(!shell){
+      shell=document.createElement("div");
+      shell.className="v205-character-equipment-shell";
+
+      const charCol=document.createElement("div");
+      charCol.className="v205-character-column";
+      const equipCol=document.createElement("div");
+      equipCol.className="v205-equipment-column";
+
+      shell.append(charCol,equipCol);
+
+      // Find the existing character layout/card and put it in the left column.
+      const oldLayout=page.querySelector(".v200-character-inventory-layout");
+      const oldLeft=page.querySelector(".v200-character-left");
+      const charNode=oldLeft || page.querySelector(".v15-character,.character-card,.v15-character-stage");
+      const anchor=oldLayout || charNode;
+
+      if(anchor) page.insertBefore(shell,anchor);
+      else page.appendChild(shell);
+
+      if(charNode){
+        charCol.appendChild(charNode);
+      }
+
+      // Remove empty old layout if it no longer contains meaningful content.
+      if(oldLayout && oldLayout!==charNode){
+        const right=oldLayout.querySelector(".v200-inventory-right");
+        if(right){
+          while(right.firstChild){
+            // Do not move equipment here; it is handled below.
+            const n=right.firstChild;
+            if(n.classList?.contains("inventory-tools-v163")) break;
+            equipCol.appendChild(n);
+          }
+        }
+        if(!oldLayout.textContent.trim() && !oldLayout.querySelector("*")) oldLayout.remove();
+        else oldLayout.classList.add("v205-old-layout-hidden");
+      }
+    }
+
+    const equipCol=shell.querySelector(".v205-equipment-column");
+    const tool=page.querySelector(".inventory-tools-v163");
+    if(tool && tool.parentNode!==equipCol){
+      equipCol.prepend(tool); // physically separate sibling, never overlay
+    }
+
+    // If inventory content exists, keep it under equipment management on right.
+    const oldRight=page.querySelector(".v200-inventory-right");
+    if(oldRight && oldRight!==equipCol){
+      [...oldRight.children].forEach(n=>{
+        if(n!==tool) equipCol.appendChild(n);
+      });
+      oldRight.classList.add("v205-empty-hidden");
+    }
+  }
+
+  window.v205PlaceEquipment=place;
+  window.addEventListener("load",()=>{ setTimeout(place,50); setTimeout(place,250); });
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.('[data-tab="character"]')) {
+      setTimeout(place,0); setTimeout(place,100);
+    }
+  },true);
+
+  // Render functions can rebuild DOM, so re-check after mutations.
+  const obs=new MutationObserver(()=> {
+    if(document.getElementById("page-character")?.classList.contains("active")){
+      requestAnimationFrame(place);
+    }
+  });
+  window.addEventListener("load",()=>{
+    const p=document.getElementById("page-character");
+    if(p) obs.observe(p,{childList:true,subtree:true});
+  });
+})();
+
+/* ================= V20.6 DRAGGABLE WINDOWS ================= */
+(function(){
+  const STORAGE_KEY="omi_v206_window_positions";
+
+  function loadPositions(){
+    try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||"{}")}catch(e){return {}}
+  }
+  function savePositions(v){
+    try{localStorage.setItem(STORAGE_KEY,JSON.stringify(v))}catch(e){}
+  }
+
+  function getTargets(){
+    const page=document.getElementById("page-character");
+    if(!page)return [];
+    return [
+      {
+        key:"admin",
+        el:page.querySelector(".admin-studio-only-v202"),
+        handleSelector:".v15-section-title"
+      },
+      {
+        key:"character",
+        el:page.querySelector(".v15-character"),
+        handleSelector:".v15-character-top"
+      },
+      {
+        key:"equipment",
+        el:page.querySelector(".inventory-tools-v163"),
+        handleSelector:".inventory-tools-head"
+      }
+    ].filter(x=>x.el);
+  }
+
+  function applySavedPosition(item){
+    const pos=loadPositions()[item.key];
+    if(!pos)return;
+    item.el.style.setProperty("--drag-x",(Number(pos.x)||0)+"px");
+    item.el.style.setProperty("--drag-y",(Number(pos.y)||0)+"px");
+  }
+
+  function makeDraggable(item){
+    const el=item.el;
+    if(!el || el.dataset.v206Draggable==="1")return;
+    el.dataset.v206Draggable="1";
+    el.classList.add("v206-draggable-window");
+
+    let handle=el.querySelector(item.handleSelector);
+    if(!handle)handle=el;
+    handle.classList.add("v206-drag-handle");
+    handle.title="Húzd az ablak mozgatásához";
+
+    applySavedPosition(item);
+
+    let startX=0,startY=0,baseX=0,baseY=0,dragging=false,pointerId=null;
+
+    function currentVar(name){
+      const raw=getComputedStyle(el).getPropertyValue(name).trim();
+      return parseFloat(raw)||0;
+    }
+
+    handle.addEventListener("pointerdown",e=>{
+      // Buttons/inputs/links remain clickable and do not initiate drag.
+      if(e.target.closest("button,input,select,textarea,a"))return;
+      if(e.button!==0)return;
+
+      dragging=true;
+      pointerId=e.pointerId;
+      startX=e.clientX;
+      startY=e.clientY;
+      baseX=currentVar("--drag-x");
+      baseY=currentVar("--drag-y");
+
+      el.classList.add("v206-dragging");
+      try{handle.setPointerCapture(pointerId)}catch(_){}
+      e.preventDefault();
+    });
+
+    handle.addEventListener("pointermove",e=>{
+      if(!dragging || e.pointerId!==pointerId)return;
+      const x=baseX+(e.clientX-startX);
+      const y=baseY+(e.clientY-startY);
+      el.style.setProperty("--drag-x",x+"px");
+      el.style.setProperty("--drag-y",y+"px");
+    });
+
+    function endDrag(e){
+      if(!dragging)return;
+      dragging=false;
+      el.classList.remove("v206-dragging");
+      try{handle.releasePointerCapture(pointerId)}catch(_){}
+
+      const positions=loadPositions();
+      positions[item.key]={
+        x:currentVar("--drag-x"),
+        y:currentVar("--drag-y")
+      };
+      savePositions(positions);
+      pointerId=null;
+    }
+
+    handle.addEventListener("pointerup",endDrag);
+    handle.addEventListener("pointercancel",endDrag);
+
+    // Double click on the title restores only this window.
+    handle.addEventListener("dblclick",e=>{
+      if(e.target.closest("button,input,select,textarea,a"))return;
+      el.style.setProperty("--drag-x","0px");
+      el.style.setProperty("--drag-y","0px");
+      const positions=loadPositions();
+      delete positions[item.key];
+      savePositions(positions);
+    });
+  }
+
+  function setup(){
+    getTargets().forEach(makeDraggable);
+  }
+
+  function resetAll(){
+    localStorage.removeItem(STORAGE_KEY);
+    getTargets().forEach(item=>{
+      item.el.style.setProperty("--drag-x","0px");
+      item.el.style.setProperty("--drag-y","0px");
+    });
+  }
+
+  window.v206SetupDraggableWindows=setup;
+  window.v206ResetWindows=resetAll;
+
+  window.addEventListener("load",()=>{
+    setTimeout(setup,100);
+    setTimeout(setup,500);
+  });
+
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.('[data-tab="character"]')){
+      setTimeout(setup,80);
+    }
+  },true);
+
+  // Reapply if the dynamic character/inventory layout is rebuilt.
+  const observer=new MutationObserver(()=>{
+    if(document.getElementById("page-character")?.classList.contains("active")){
+      requestAnimationFrame(setup);
+    }
+  });
+  window.addEventListener("load",()=>{
+    const page=document.getElementById("page-character");
+    if(page)observer.observe(page,{childList:true,subtree:true});
+  });
+})();
+
+/* ================= V20.7 INDEPENDENT CHARACTER WINDOWS ================= */
+(function(){
+  const KEY="omi_v207_independent_window_positions";
+
+  function load(){
+    try{return JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){return {}}
+  }
+  function save(v){
+    try{localStorage.setItem(KEY,JSON.stringify(v))}catch(e){}
+  }
+
+  function ensureCanvas(){
+    const page=document.getElementById("page-character");
+    if(!page)return null;
+
+    let canvas=page.querySelector(":scope > .v207-window-canvas");
+    if(!canvas){
+      canvas=document.createElement("div");
+      canvas.className="v207-window-canvas";
+      page.prepend(canvas);
+    }
+    return canvas;
+  }
+
+  function findCharacter(){
+    const page=document.getElementById("page-character");
+    return page?.querySelector(".v15-character");
+  }
+
+  function findEquipment(){
+    const page=document.getElementById("page-character");
+    return page?.querySelector(".inventory-tools-v163");
+  }
+
+  function makeWindow(el,key,defaultX,defaultY){
+    if(!el)return;
+    const canvas=ensureCanvas();
+    if(!canvas)return;
+
+    if(el.parentNode!==canvas) canvas.appendChild(el);
+
+    el.classList.add("v207-free-window");
+    el.dataset.v207Key=key;
+
+    const p=load()[key]||{x:defaultX,y:defaultY};
+    el.style.setProperty("--v207-x",(Number(p.x)||0)+"px");
+    el.style.setProperty("--v207-y",(Number(p.y)||0)+"px");
+
+    if(el.dataset.v207Ready==="1")return;
+    el.dataset.v207Ready="1";
+
+    let handle = key==="character"
+      ? el.querySelector(".v15-character-top")
+      : el.querySelector(".inventory-tools-head");
+
+    if(!handle) handle=el;
+    handle.classList.add("v207-drag-handle");
+
+    let dragging=false,startX=0,startY=0,baseX=0,baseY=0,pid=null;
+
+    const getNum=name=>parseFloat(getComputedStyle(el).getPropertyValue(name))||0;
+
+    handle.addEventListener("pointerdown",e=>{
+      if(e.button!==0)return;
+      if(e.target.closest("button,input,select,textarea,a"))return;
+      dragging=true;
+      pid=e.pointerId;
+      startX=e.clientX; startY=e.clientY;
+      baseX=getNum("--v207-x"); baseY=getNum("--v207-y");
+      el.classList.add("v207-dragging");
+      try{handle.setPointerCapture(pid)}catch(_){}
+      e.preventDefault();
+    });
+
+    handle.addEventListener("pointermove",e=>{
+      if(!dragging||e.pointerId!==pid)return;
+      let x=baseX+(e.clientX-startX);
+      let y=baseY+(e.clientY-startY);
+
+      // keep at least a piece of the window inside the canvas
+      const c=canvas.getBoundingClientRect();
+      const w=el.offsetWidth, h=el.offsetHeight;
+      x=Math.max(-w+120,Math.min(x,c.width-120));
+      y=Math.max(-40,Math.min(y,c.height-50));
+
+      el.style.setProperty("--v207-x",x+"px");
+      el.style.setProperty("--v207-y",y+"px");
+    });
+
+    function done(){
+      if(!dragging)return;
+      dragging=false;
+      el.classList.remove("v207-dragging");
+      const all=load();
+      all[key]={x:getNum("--v207-x"),y:getNum("--v207-y")};
+      save(all);
+    }
+    handle.addEventListener("pointerup",done);
+    handle.addEventListener("pointercancel",done);
+
+    handle.addEventListener("dblclick",e=>{
+      if(e.target.closest("button,input,select,textarea,a"))return;
+      const all=load();
+      delete all[key];
+      save(all);
+      el.style.setProperty("--v207-x",defaultX+"px");
+      el.style.setProperty("--v207-y",defaultY+"px");
+    });
+  }
+
+  function setup(){
+    const canvas=ensureCanvas();
+    if(!canvas)return;
+
+    // default positions are independent from each other
+    makeWindow(findCharacter(),"character",20,16);
+    makeWindow(findEquipment(),"equipment",680,70);
+
+    // Hide obsolete layout wrappers so they cannot affect positioning anymore.
+    document.querySelectorAll("#page-character .v200-character-inventory-layout,#page-character .v205-character-equipment-shell").forEach(x=>{
+      if(!x.contains(findCharacter()) && !x.contains(findEquipment())) x.classList.add("v207-obsolete-layout");
+    });
+  }
+
+  window.v207Setup=setup;
+  window.addEventListener("load",()=>{setTimeout(setup,80);setTimeout(setup,350)});
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.('[data-tab="character"]')) setTimeout(setup,60);
+  },true);
+
+  const obs=new MutationObserver(()=>{
+    if(document.getElementById("page-character")?.classList.contains("active")){
+      requestAnimationFrame(setup);
+    }
+  });
+  window.addEventListener("load",()=>{
+    const p=document.getElementById("page-character");
+    if(p)obs.observe(p,{childList:true,subtree:true});
+  });
+})();
+
+/* ================= V20.8 COMPLETE CHARACTER WINDOW FIX ================= */
+(function(){
+  const KEY="omi_v208_window_positions";
+
+  function loadPos(){
+    try{return JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){return {}}
+  }
+  function savePos(v){
+    try{localStorage.setItem(KEY,JSON.stringify(v))}catch(e){}
+  }
+
+  function ensureCanvas(){
+    const page=document.getElementById("page-character");
+    if(!page)return null;
+    let canvas=page.querySelector(":scope > .v208-window-canvas");
+    if(!canvas){
+      canvas=document.createElement("div");
+      canvas.className="v208-window-canvas";
+      page.prepend(canvas);
+    }
+    return canvas;
+  }
+
+  function buildCompleteCharacterWindow(){
+    const page=document.getElementById("page-character");
+    const canvas=ensureCanvas();
+    if(!page||!canvas)return null;
+
+    let win=canvas.querySelector(".v208-character-window");
+    if(!win){
+      win=document.createElement("section");
+      win.className="card v208-character-window";
+
+      const header=document.createElement("div");
+      header.className="v208-character-header";
+      header.innerHTML=`
+        <div>
+          <h2>⚔️ Saját karakter</h2>
+          <small>Felszereld a tárgyakat, aurákat és peteket, hogy egyre erősebb legyél!</small>
+        </div>
+        <div class="v208-power-box">
+          <small>ÖSSZERŐ</small>
+          <b id="v208PowerMirror">0</b>
+        </div>`;
+      win.appendChild(header);
+
+      const body=document.createElement("div");
+      body.className="v208-character-body";
+      win.appendChild(body);
+
+      canvas.appendChild(win);
+    }
+
+    const body=win.querySelector(".v208-character-body");
+
+    // Move the COMPLETE character visual stage into this window.
+    const stage=
+      page.querySelector(".v15-character-stage") ||
+      page.querySelector(".v168-character-system")?.parentElement ||
+      page.querySelector(".character-stage");
+
+    if(stage && !win.contains(stage)){
+      body.appendChild(stage);
+    }
+
+    // Move bottom mini stats with the character.
+    const bottom=page.querySelector(".v15-bottom-stats");
+    if(bottom && !win.contains(bottom)){
+      body.appendChild(bottom);
+    }
+
+    // Hide old character card shell if it became empty/duplicate.
+    page.querySelectorAll(".v15-character").forEach(old=>{
+      if(old!==win){
+        const hasStage=old.querySelector(".v15-character-stage,.v168-character-system");
+        if(!hasStage) old.classList.add("v208-hide-old-character-shell");
+      }
+    });
+
+    return win;
+  }
+
+  function getEquipment(){
+    return document.querySelector("#page-character .inventory-tools-v163");
+  }
+
+  function makeDraggable(el,key,dx,dy,handleSelector){
+    if(!el)return;
+    const canvas=ensureCanvas();
+    if(!canvas)return;
+
+    if(el.parentNode!==canvas) canvas.appendChild(el);
+    el.classList.add("v208-free-window");
+
+    if(!el.dataset.v208Init){
+      el.dataset.v208Init="1";
+      const saved=loadPos()[key]||{x:dx,y:dy};
+      el.style.setProperty("--v208-x",(Number(saved.x)||0)+"px");
+      el.style.setProperty("--v208-y",(Number(saved.y)||0)+"px");
+
+      let handle=el.querySelector(handleSelector)||el;
+      handle.classList.add("v208-drag-handle");
+
+      let dragging=false,pid=null,sx=0,sy=0,bx=0,by=0;
+      const num=n=>parseFloat(getComputedStyle(el).getPropertyValue(n))||0;
+
+      handle.addEventListener("pointerdown",e=>{
+        if(e.button!==0)return;
+        if(e.target.closest("button,input,select,textarea,a"))return;
+        dragging=true; pid=e.pointerId;
+        sx=e.clientX; sy=e.clientY;
+        bx=num("--v208-x"); by=num("--v208-y");
+        el.classList.add("v208-dragging");
+        try{handle.setPointerCapture(pid)}catch(_){}
+        e.preventDefault();
+      });
+
+      handle.addEventListener("pointermove",e=>{
+        if(!dragging||e.pointerId!==pid)return;
+        const rect=canvas.getBoundingClientRect();
+        const w=el.offsetWidth, h=el.offsetHeight;
+        let x=bx+(e.clientX-sx), y=by+(e.clientY-sy);
+        x=Math.max(-w+140,Math.min(x,rect.width-140));
+        y=Math.max(-30,Math.min(y,rect.height-60));
+        el.style.setProperty("--v208-x",x+"px");
+        el.style.setProperty("--v208-y",y+"px");
+      });
+
+      const done=()=>{
+        if(!dragging)return;
+        dragging=false;
+        el.classList.remove("v208-dragging");
+        const all=loadPos();
+        all[key]={x:num("--v208-x"),y:num("--v208-y")};
+        savePos(all);
+      };
+      handle.addEventListener("pointerup",done);
+      handle.addEventListener("pointercancel",done);
+
+      handle.addEventListener("dblclick",e=>{
+        if(e.target.closest("button,input,select,textarea,a"))return;
+        const all=loadPos(); delete all[key]; savePos(all);
+        el.style.setProperty("--v208-x",dx+"px");
+        el.style.setProperty("--v208-y",dy+"px");
+      });
+    }
+  }
+
+  function mirrorPower(){
+    const src=
+      document.querySelector("#v15Power") ||
+      document.querySelector(".v15-power-box b") ||
+      document.querySelector("[data-role='power']");
+    const dst=document.getElementById("v208PowerMirror");
+    if(src&&dst)dst.textContent=src.textContent;
+  }
+
+  function setup(){
+    const page=document.getElementById("page-character");
+    if(!page)return;
+    const charWin=buildCompleteCharacterWindow();
+    const eq=getEquipment();
+
+    makeDraggable(charWin,"character",40,20,".v208-character-header");
+    makeDraggable(eq,"equipment",720,55,".inventory-tools-head");
+
+    // Hide old V20.7 floating shells to stop clipping/ghost layout.
+    page.querySelectorAll(".v207-window-canvas,.v205-character-equipment-shell,.v200-character-inventory-layout").forEach(old=>{
+      if(!old.contains(charWin) && !old.contains(eq)) old.classList.add("v208-obsolete");
+    });
+
+    mirrorPower();
+    if(typeof renderDynamicEquipment==="function") renderDynamicEquipment();
+  }
+
+  window.v208Setup=setup;
+  window.addEventListener("load",()=>{setTimeout(setup,80);setTimeout(setup,400)});
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.('[data-tab="character"]')){
+      setTimeout(setup,60);
+      setTimeout(mirrorPower,120);
+    }
+  },true);
+
+  setInterval(()=>{
+    if(document.getElementById("page-character")?.classList.contains("active")){
+      mirrorPower();
+    }
+  },800);
+})();
+
+/* ================= V20.9 EQUIPMENT BESIDE CHARACTER ================= */
+(function(){
+  function v209ArrangeDefaults(){
+    const page=document.getElementById("page-character");
+    if(!page)return;
+
+    const canvas=page.querySelector(".v208-window-canvas");
+    const charWin=page.querySelector(".v208-character-window");
+    const equip=page.querySelector(".inventory-tools-v163.v208-free-window, .inventory-tools-v163");
+
+    if(!canvas || !charWin || !equip)return;
+
+    // If this version has never been positioned before, give clean side-by-side defaults.
+    const key="omi_v208_window_positions";
+    let pos={};
+    try{pos=JSON.parse(localStorage.getItem(key)||"{}")}catch(e){}
+
+    if(!pos.character){
+      charWin.style.setProperty("--v208-x","30px");
+      charWin.style.setProperty("--v208-y","20px");
+    }
+
+    if(!pos.equipment){
+      equip.style.setProperty("--v208-x","720px");
+      equip.style.setProperty("--v208-y","20px");
+    }
+
+    // Make sure equipment remains a direct sibling in the same window canvas.
+    if(equip.parentNode!==canvas){
+      canvas.appendChild(equip);
+    }
+  }
+
+  window.v209ArrangeDefaults=v209ArrangeDefaults;
+
+  window.addEventListener("load",()=>{
+    setTimeout(v209ArrangeDefaults,120);
+    setTimeout(v209ArrangeDefaults,500);
+  });
+
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.('[data-tab="character"]')){
+      setTimeout(v209ArrangeDefaults,80);
+    }
+  },true);
+})();
+
+/* ================= V21.0 CHARACTER EQUIPMENT TOGGLE ================= */
+(function(){
+  const OPEN_KEY="omi_v210_equipment_open";
+
+  function getPage(){
+    return document.getElementById("page-character");
+  }
+
+  function getCharacterWindow(){
+    return getPage()?.querySelector(".v208-character-window");
+  }
+
+  function getEquipmentWindow(){
+    return getPage()?.querySelector(".inventory-tools-v163");
+  }
+
+  function getEquipBest(){
+    return document.getElementById("equipBestV163");
+  }
+
+  function ensureCharacterControls(){
+    const charWin=getCharacterWindow();
+    if(!charWin)return;
+
+    const header=charWin.querySelector(".v208-character-header");
+    if(!header)return;
+
+    let controls=header.querySelector(".v210-character-actions");
+    if(!controls){
+      controls=document.createElement("div");
+      controls.className="v210-character-actions";
+
+      const openBtn=document.createElement("button");
+      openBtn.type="button";
+      openBtn.id="v210EquipmentToggleBtn";
+      openBtn.className="v210-equipment-toggle";
+      openBtn.textContent="🧰 Felszerelés kezelés";
+
+      controls.appendChild(openBtn);
+      header.appendChild(controls);
+
+      openBtn.addEventListener("click",e=>{
+        e.preventDefault();
+        e.stopPropagation();
+        toggleEquipment();
+      });
+    }
+
+    // Move the REAL Equip Best button into the character window.
+    // This preserves the existing click handler / equip logic.
+    const equipBest=getEquipBest();
+    if(equipBest && equipBest.parentNode!==controls){
+      equipBest.classList.add("v210-equip-best-character");
+      controls.prepend(equipBest);
+    }
+  }
+
+  function ensureEquipmentCloseButton(){
+    const equip=getEquipmentWindow();
+    if(!equip)return;
+    const head=equip.querySelector(".inventory-tools-head");
+    if(!head)return;
+
+    let close=head.querySelector("#v210EquipmentCloseBtn");
+    if(!close){
+      close=document.createElement("button");
+      close.type="button";
+      close.id="v210EquipmentCloseBtn";
+      close.className="v210-equipment-close";
+      close.textContent="✕";
+      close.title="Felszerelés kezelés bezárása";
+      head.appendChild(close);
+
+      close.addEventListener("click",e=>{
+        e.preventDefault();
+        e.stopPropagation();
+        setEquipmentOpen(false);
+      });
+    }
+  }
+
+  function setEquipmentOpen(open){
+    const equip=getEquipmentWindow();
+    if(!equip)return;
+
+    equip.classList.toggle("v210-equipment-open",Boolean(open));
+    equip.classList.toggle("v210-equipment-closed",!open);
+
+    try{
+      localStorage.setItem(OPEN_KEY,open?"1":"0");
+    }catch(e){}
+
+    const btn=document.getElementById("v210EquipmentToggleBtn");
+    if(btn){
+      btn.textContent=open ? "🧰 Felszerelés kezelés ✓" : "🧰 Felszerelés kezelés";
+      btn.classList.toggle("active",Boolean(open));
+    }
+  }
+
+  function toggleEquipment(){
+    const equip=getEquipmentWindow();
+    if(!equip)return;
+    setEquipmentOpen(!equip.classList.contains("v210-equipment-open"));
+  }
+
+  function initialOpen(){
+    // Start CLOSED by default unless user explicitly left it open.
+    let open=false;
+    try{open=localStorage.getItem(OPEN_KEY)==="1"}catch(e){}
+    setEquipmentOpen(open);
+  }
+
+  function setup(){
+    ensureCharacterControls();
+    ensureEquipmentCloseButton();
+
+    const equip=getEquipmentWindow();
+    if(equip && !equip.dataset.v210OpenInitialized){
+      equip.dataset.v210OpenInitialized="1";
+      initialOpen();
+    }
+  }
+
+  window.v210SetEquipmentOpen=setEquipmentOpen;
+  window.v210ToggleEquipment=toggleEquipment;
+  window.v210SetupEquipmentToggle=setup;
+
+  window.addEventListener("load",()=>{
+    setTimeout(setup,120);
+    setTimeout(setup,500);
+  });
+
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.('[data-tab="character"]')){
+      setTimeout(setup,80);
+    }
+  },true);
+
+  // Existing render/layout code may rebuild these pieces.
+  const obs=new MutationObserver(()=>{
+    if(getPage()?.classList.contains("active")){
+      requestAnimationFrame(setup);
+    }
+  });
+
+  window.addEventListener("load",()=>{
+    const p=getPage();
+    if(p)obs.observe(p,{childList:true,subtree:true});
+  });
+})();
+
+/* ================= V21.1 EQUIPMENT OPEN FIX ================= */
+(function(){
+  function page(){ return document.getElementById("page-character"); }
+  function canvas(){ return page()?.querySelector(".v208-window-canvas"); }
+
+  function equipment(){
+    const p=page();
+    if(!p)return null;
+    return p.querySelector(".inventory-tools-v163");
+  }
+
+  function ensureEquipmentWindow(){
+    const p=page();
+    const c=canvas();
+    const eq=equipment();
+    if(!p || !c || !eq)return null;
+
+    // Must be a direct child of the floating canvas.
+    if(eq.parentNode!==c){
+      c.appendChild(eq);
+    }
+
+    // Remove all old hiding classes from previous versions.
+    [
+      "v210-equipment-closed",
+      "v205-empty-hidden",
+      "v205-old-layout-hidden",
+      "v208-obsolete",
+      "v207-obsolete-layout"
+    ].forEach(cls=>eq.classList.remove(cls));
+
+    // Keep V20.8/V20.9 draggable behavior.
+    eq.classList.add("v208-free-window");
+
+    // Guarantee a usable default position.
+    const x=getComputedStyle(eq).getPropertyValue("--v208-x").trim();
+    const y=getComputedStyle(eq).getPropertyValue("--v208-y").trim();
+    if(!x)eq.style.setProperty("--v208-x","720px");
+    if(!y)eq.style.setProperty("--v208-y","55px");
+
+    return eq;
+  }
+
+  function openEquipment(){
+    const eq=ensureEquipmentWindow();
+    if(!eq)return;
+
+    eq.classList.remove("v210-equipment-closed");
+    eq.classList.add("v210-equipment-open");
+    eq.style.setProperty("display","block","important");
+    eq.style.setProperty("visibility","visible","important");
+    eq.style.setProperty("opacity","1","important");
+    eq.style.setProperty("pointer-events","auto","important");
+    eq.style.setProperty("z-index","999","important");
+
+    try{localStorage.setItem("omi_v210_equipment_open","1")}catch(e){}
+
+    // Re-run drag setup if available.
+    setTimeout(()=>{
+      if(window.v208Setup)window.v208Setup();
+      if(window.v209ArrangeDefaults)window.v209ArrangeDefaults();
+    },0);
+
+    const btn=document.getElementById("v210EquipmentToggleBtn");
+    if(btn){
+      btn.classList.add("active");
+      btn.textContent="🧰 Felszerelés kezelés ✓";
+    }
+  }
+
+  function closeEquipment(){
+    const eq=equipment();
+    if(!eq)return;
+    eq.classList.remove("v210-equipment-open");
+    eq.classList.add("v210-equipment-closed");
+    eq.style.setProperty("display","none","important");
+    try{localStorage.setItem("omi_v210_equipment_open","0")}catch(e){}
+
+    const btn=document.getElementById("v210EquipmentToggleBtn");
+    if(btn){
+      btn.classList.remove("active");
+      btn.textContent="🧰 Felszerelés kezelés";
+    }
+  }
+
+  function toggleEquipment(){
+    const eq=equipment();
+    if(!eq){
+      // layout may not be ready yet
+      setTimeout(openEquipment,60);
+      return;
+    }
+    const hidden =
+      eq.classList.contains("v210-equipment-closed") ||
+      getComputedStyle(eq).display==="none";
+    hidden ? openEquipment() : closeEquipment();
+  }
+
+  function bindButton(){
+    const btn=document.getElementById("v210EquipmentToggleBtn");
+    if(!btn || btn.dataset.v211Bound==="1")return;
+    btn.dataset.v211Bound="1";
+
+    // Replace old behavior with a guaranteed open/close handler.
+    btn.addEventListener("click",function(e){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      toggleEquipment();
+    },true);
+  }
+
+  function bindClose(){
+    const close=document.getElementById("v210EquipmentCloseBtn");
+    if(!close || close.dataset.v211Bound==="1")return;
+    close.dataset.v211Bound="1";
+    close.addEventListener("click",function(e){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      closeEquipment();
+    },true);
+  }
+
+  function setup(){
+    ensureEquipmentWindow();
+    bindButton();
+    bindClose();
+
+    // Default to closed unless saved open.
+    let saved=false;
+    try{saved=localStorage.getItem("omi_v210_equipment_open")==="1"}catch(e){}
+    saved ? openEquipment() : closeEquipment();
+  }
+
+  window.v211OpenEquipment=openEquipment;
+  window.v211CloseEquipment=closeEquipment;
+  window.v211ToggleEquipment=toggleEquipment;
+
+  window.addEventListener("load",()=>{
+    setTimeout(setup,150);
+    setTimeout(setup,600);
+  });
+
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.('[data-tab="character"]')){
+      setTimeout(setup,100);
+    }
+  },true);
+
+  const obs=new MutationObserver(()=>{
+    if(page()?.classList.contains("active")){
+      requestAnimationFrame(()=>{
+        bindButton();
+        bindClose();
+      });
+    }
+  });
+
+  window.addEventListener("load",()=>{
+    const p=page();
+    if(p)obs.observe(p,{childList:true,subtree:true});
+  });
+})();
+
+/* V21.2 contextual balances/status live sync */
+(function(){
+  function values(){
+    const s=(typeof save!=="undefined"&&save)?save:{};
+    return {
+      gold:Number(s.gold||0),
+      gems:Number(s.gems||0),
+      ore:Number(s.ore||0),
+      soul:Number(s.soul||0),
+      tickets:Number(s.tickets||0),
+      power:Number((typeof power==="function"?power():0)||0),
+      statpoints:Number(s.paragonStatPoints ?? s.statPoints ?? s.skillPoints ?? 0),
+      auratokens:Number(s.auraTokens||0)
+    };
+  }
+
+  function render(){
+    const v=values();
+    document.querySelectorAll("[data-context-bar] [data-val]").forEach(el=>{
+      const key=el.dataset.val;
+      const n=v[key]??0;
+      el.textContent=(typeof fmt==="function")?fmt(n):String(Math.floor(n));
+    });
+  }
+
+  window.v212RenderContextBars=render;
+  window.addEventListener("load",()=>{
+    setTimeout(render,120);
+    setInterval(render,700);
+  });
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.("[data-tab],button")){
+      setTimeout(render,0);
+      setTimeout(render,100);
+    }
+  },true);
+})();
+
+/* ================= V21.3 PVP + PET REROLL + SKILL VALUES ================= */
+(function(){
+  const REROLL_DUPES = 3;
+
+  function S(){ return (typeof save!=="undefined" && save) ? save : {}; }
+  function F(n){ return typeof fmt==="function" ? fmt(Number(n||0)) : Math.floor(Number(n||0)).toLocaleString("hu-HU"); }
+
+  /* ---------- PvP meaningful rewards ---------- */
+  function ensurePvpRewardInfo(){
+    const p=document.getElementById("page-pvp");
+    if(!p)return;
+    const arena=p.querySelector(".pvp-arena-v165, .pvp-arena, [class*='pvp-arena']");
+    if(!arena)return;
+    let box=p.querySelector(".v213-pvp-rewards");
+    if(!box){
+      box=document.createElement("div");
+      box.className="v213-pvp-rewards";
+      arena.appendChild(box);
+    }
+    box.innerHTML=`
+      <div class="v213-reward-title">🏆 PvP győzelmi jutalom</div>
+      <div class="v213-reward-grid">
+        <span>💰 <b>Arany</b><strong>500–2 500</strong></span>
+        <span>⛏️ <b>Érc</b><strong>1–4</strong></span>
+        <span>🎫 <b>Dungeon token</b><strong>5–15% esély</strong></span>
+      </div>
+      <small>Magasabb ellenfél / rating esetén jobb jutalom.</small>`;
+  }
+
+  function awardExtraPvpRewards(opponent){
+    const s=S();
+    const rating=Number(opponent?.rating||opponent?.pvpRating||0);
+    const bonus=Math.max(0,Math.min(4,Math.floor(rating/250)));
+    const ore=1+Math.floor(Math.random()*(2+bonus));
+    s.ore=Number(s.ore||0)+ore;
+
+    let token=0;
+    const tokenChance=Math.min(.15,.05+bonus*.025);
+    if(Math.random()<tokenChance){
+      token=1;
+      // Project calls these tickets in the current save.
+      s.tickets=Number(s.tickets||0)+1;
+    }
+    return {ore,token};
+  }
+
+  // Hook common PvP result functions without replacing the base combat.
+  ["pvpFight","fightPvp","doPvpFight","resolvePvpFight"].forEach(name=>{
+    const old=window[name];
+    if(typeof old!=="function" || old.__v213)return;
+    const wrapped=function(...args){
+      const beforeWins=Number(S().pvpWins||S().wins||0);
+      const result=old.apply(this,args);
+      const afterWins=Number(S().pvpWins||S().wins||0);
+      const won=(result===true || result?.win===true || result?.won===true || afterWins>beforeWins);
+      if(won){
+        const r=awardExtraPvpRewards(args[0]);
+        if(typeof toast==="function") toast(`🏆 PvP jutalom: +${r.ore} érc${r.token?` +${r.token} dungeon token`:""}`);
+        if(typeof renderAll==="function") renderAll();
+      }
+      return result;
+    };
+    wrapped.__v213=true;
+    window[name]=wrapped;
+  });
+
+  /* ---------- Pet: 3 identical copies -> stronger reroll ---------- */
+  function petKey(p){ return String(p?.id ?? p?.key ?? p?.name ?? ""); }
+  function petName(p){ return String(p?.name ?? p?.title ?? "Pet"); }
+  function petLevel(p){ return Number(p?.level ?? p?.lvl ?? 1); }
+
+  function petCollection(){
+    const s=S();
+    if(Array.isArray(s.pets)) return s.pets;
+    if(Array.isArray(s.petInventory)) return s.petInventory;
+    if(Array.isArray(s.ownedPets)) return s.ownedPets;
+    return null;
+  }
+
+  function duplicateGroups(){
+    const arr=petCollection()||[];
+    const groups={};
+    arr.forEach((p,i)=>{
+      const k=petKey(p);
+      if(!k)return;
+      (groups[k] ||= []).push({p,i});
+    });
+    return Object.values(groups).filter(g=>g.length>=REROLL_DUPES);
+  }
+
+  function ensurePetReroll(){
+    const p=document.getElementById("page-pets");
+    if(!p)return;
+    const root=p.querySelector(".pet-grid, .pets-grid, [class*='pet-grid'], [class*='pet-system']") || p;
+    let panel=p.querySelector(".v213-pet-reroll");
+    if(!panel){
+      panel=document.createElement("div");
+      panel.className="v213-pet-reroll";
+      root.prepend(panel);
+    }
+    const groups=duplicateGroups();
+    panel.innerHTML=`
+      <div>
+        <b>♻️ Pet összeolvasztás / reroll</b>
+        <small>3 teljesen azonos petből 1 erősebb változat készíthető.</small>
+      </div>
+      <div class="v213-reroll-list">${
+        groups.length ? groups.map((g,n)=>`
+          <button type="button" data-v213-reroll="${n}">
+            ${petName(g[0].p)} ×${g.length} → Erősebb pet
+          </button>`).join("") :
+          `<span class="v213-muted">Nincs még 3 egyforma peted.</span>`
+      }</div>`;
+    panel.querySelectorAll("[data-v213-reroll]").forEach(btn=>{
+      btn.onclick=()=>{
+        const group=duplicateGroups()[Number(btn.dataset.v213Reroll)];
+        const arr=petCollection();
+        if(!group || !arr || group.length<3)return;
+        const selected=group.slice(0,3);
+        const base=JSON.parse(JSON.stringify(selected[0].p));
+        base.level=Math.max(...selected.map(x=>petLevel(x.p)))+1;
+        base.lvl=base.level;
+        base.rerollTier=Number(base.rerollTier||0)+1;
+        base.powerMultiplier=Number(base.powerMultiplier||1)*1.15;
+        base.bonusMultiplier=Number(base.bonusMultiplier||1)*1.15;
+        selected.map(x=>x.i).sort((a,b)=>b-a).forEach(i=>arr.splice(i,1));
+        arr.push(base);
+        if(typeof toast==="function") toast(`♻️ ${petName(base)} erősítve: +15% pet bónusz, Lv.${base.level}`);
+        if(typeof renderAll==="function") renderAll();
+        ensurePetReroll();
+      };
+    });
+  }
+
+  /* ---------- Skills: show exact gain per point ---------- */
+  const skillInfo = {
+    "Erő aura":       {per:"+2.0% sebzés / pont", next:"+2.0% DMG"},
+    "Aranyládás":     {per:"+3.0% arany / pont",  next:"+3.0% arany"},
+    "Kritikus ösztön":{per:"+0.5% krit / pont",   next:"+0.5% krit"},
+    "Kincsvadász":    {per:"+1.0% drop / pont",   next:"+1.0% drop"},
+    "Mély alvás farm":{per:"+5.0% offline farm / pont", next:"+5.0% offline"},
+    "Pet szinkron":   {per:"+2.0% pet bónusz / pont", next:"+2.0% pet bónusz"}
+  };
+
+  function ensureSkillValues(){
+    const p=document.getElementById("page-skills");
+    if(!p)return;
+    const cards=[...p.querySelectorAll("button")].filter(b=>b.textContent.includes("+1 pont")).map(b=>b.closest("div"));
+    cards.forEach(card=>{
+      if(!card)return;
+      const txt=card.textContent;
+      const found=Object.entries(skillInfo).find(([name])=>txt.includes(name));
+      if(!found)return;
+      const [name,info]=found;
+      let badge=card.querySelector(".v213-skill-value");
+      if(!badge){
+        badge=document.createElement("div");
+        badge.className="v213-skill-value";
+        const button=card.querySelector("button");
+        if(button) card.insertBefore(badge,button);
+        else card.appendChild(badge);
+      }
+      badge.innerHTML=`<span>${info.per}</span><b>Következő pont: ${info.next}</b>`;
+    });
+  }
+
+  function refresh(){
+    ensurePvpRewardInfo();
+    ensurePetReroll();
+    ensureSkillValues();
+  }
+  window.v213Refresh=refresh;
+  window.addEventListener("load",()=>{setTimeout(refresh,180);setTimeout(refresh,700)});
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.("[data-tab],button")) setTimeout(refresh,80);
+  },true);
+})();
+
+/* ================= V21.4 CHARACTER LAYOUT RECOVERY ================= */
+(function(){
+  const POSKEY="omi_v214_character_positions";
+
+  function page(){return document.getElementById("page-character")}
+  function canvas(){return page()?.querySelector(".v208-window-canvas")}
+  function charWin(){return page()?.querySelector(".v208-character-window")}
+  function equipWin(){return page()?.querySelector(".inventory-tools-v163")}
+  function adminWin(){
+    const p=page(); if(!p)return null;
+    return p.querySelector(".admin-game-studio, .admin-studio, [class*='admin-game'], [class*='admin-studio']");
+  }
+
+  function resetWindow(el,x,y){
+    if(!el)return;
+    el.style.setProperty("--v208-x",x+"px");
+    el.style.setProperty("--v208-y",y+"px");
+    el.style.left="0px";
+    el.style.top="0px";
+  }
+
+  function restoreCharacterContent(){
+    const cw=charWin();
+    if(!cw)return;
+    // Undo accidental clipping/collapse caused by older draggable rules.
+    cw.style.removeProperty("height");
+    cw.style.removeProperty("max-height");
+    cw.style.removeProperty("overflow");
+    cw.classList.add("v214-character-restored");
+  }
+
+  function arrange(force=false){
+    const p=page(), c=canvas(), cw=charWin(), ew=equipWin();
+    if(!p||!c||!cw)return;
+
+    restoreCharacterContent();
+
+    // Remove old saved coordinates once on this version: they are the source
+    // of the screenshot's scattered/collapsed layout.
+    if(force || !localStorage.getItem(POSKEY)){
+      ["omi_v208_positions","omi_v209_positions","omi_v208_window_positions",
+       "omi_character_window_positions","omi_window_positions"].forEach(k=>{
+        try{localStorage.removeItem(k)}catch(e){}
+      });
+
+      resetWindow(cw,30,25);
+      if(ew) resetWindow(ew,650,25);
+
+      const aw=adminWin();
+      if(aw) resetWindow(aw,30,610);
+
+      try{localStorage.setItem(POSKEY,"1")}catch(e){}
+    }
+  }
+
+  function addResetButton(){
+    const p=page(), cw=charWin();
+    if(!p||!cw||p.querySelector("#v214ResetLayout"))return;
+    const b=document.createElement("button");
+    b.id="v214ResetLayout";
+    b.type="button";
+    b.textContent="↺ Ablakok alaphelyzetbe";
+    b.title="Ha elhúztad az ablakokat, visszaállítja őket.";
+    const header=cw.querySelector(".v208-character-header")||cw;
+    header.appendChild(b);
+    b.onclick=e=>{
+      e.preventDefault();e.stopPropagation();
+      arrange(true);
+      if(window.v208Setup) setTimeout(window.v208Setup,0);
+    };
+  }
+
+  function fix(){
+    arrange(false);
+    addResetButton();
+  }
+
+  window.v214ResetCharacterLayout=()=>arrange(true);
+  window.addEventListener("load",()=>{setTimeout(fix,180);setTimeout(fix,700)});
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.('[data-tab="character"]'))setTimeout(fix,80);
+  },true);
+})();
+
+/* ================= V21.6 PERSONAL AUTO ITEM DELETE ================= */
+(function(){
+  const DEFAULTS={
+    enabled:false,
+    rarities:{normal:false,rare:false,epic:false,mythic:false,legendary:false},
+    maxPower:0,
+    protectPlus:1,
+    protectLocked:true
+  };
+  let cleanupLock=false;
+  let lastRemoved=0;
+
+  function cfg(){
+    const s=(typeof save!=="undefined"&&save)?save:null;
+    if(!s)return JSON.parse(JSON.stringify(DEFAULTS));
+    if(!s.autoDeleteSettings){
+      s.autoDeleteSettings=JSON.parse(JSON.stringify(DEFAULTS));
+    }
+    s.autoDeleteSettings.rarities={
+      ...DEFAULTS.rarities,
+      ...(s.autoDeleteSettings.rarities||{})
+    };
+    return s.autoDeleteSettings;
+  }
+
+  function normRarity(r){
+    r=String(r||"normal").toLowerCase();
+    if(r==="common")r="normal";
+    if(r==="mistic"||r==="mystic")r="mythic";
+    return ["normal","rare","epic","mythic","legendary"].includes(r)?r:"normal";
+  }
+
+  function inventoryArray(){
+    const s=(typeof save!=="undefined"&&save)?save:null;
+    if(!s)return null;
+    const candidates=["inventory","items","bag","equipmentInventory","itemInventory"];
+    for(const k of candidates){
+      if(Array.isArray(s[k]))return s[k];
+    }
+    // fallback: find an array that looks like items
+    for(const [k,v] of Object.entries(s)){
+      if(Array.isArray(v) && v.length && v.some(x=>x && typeof x==="object" && ("rarity" in x || "slot" in x || "plus" in x))){
+        if(!/pets?|quests?|logs?|history/i.test(k))return v;
+      }
+    }
+    return null;
+  }
+
+  function equippedRefs(){
+    const s=(typeof save!=="undefined"&&save)?save:null;
+    const refs=new Set();
+    if(!s)return refs;
+    const eqCandidates=[s.equipment,s.equipped,s.equip];
+    eqCandidates.forEach(eq=>{
+      if(!eq||typeof eq!=="object")return;
+      Object.values(eq).forEach(v=>{
+        if(!v)return;
+        if(typeof v==="object"){
+          if(v.id!=null)refs.add("id:"+v.id);
+          if(v.uid!=null)refs.add("uid:"+v.uid);
+          refs.add(v);
+        }else{
+          refs.add("id:"+v);
+        }
+      });
+    });
+    return refs;
+  }
+
+  function isEquipped(item,refs){
+    if(!item)return false;
+    if(item.equipped===true || item.isEquipped===true)return true;
+    if(refs.has(item))return true;
+    if(item.id!=null && refs.has("id:"+item.id))return true;
+    if(item.uid!=null && refs.has("uid:"+item.uid))return true;
+    return false;
+  }
+
+  function itemPower(item){
+    if(!item)return 0;
+    const direct=["power","score","strength","itemPower","combatPower"];
+    for(const k of direct){
+      if(Number.isFinite(Number(item[k])))return Number(item[k]);
+    }
+    // approximate score from common item fields when no explicit score exists
+    let n=0;
+    n += Number(item.atk||item.attack||item.damage||0);
+    n += Number(item.def||item.defense||0);
+    n += Number(item.hp||item.maxHp||0)/10;
+    n += Number(item.plus||0)*20;
+    if(Array.isArray(item.options)){
+      item.options.forEach(o=>{ n += Number(o?.value||o?.amount||0); });
+    }
+    return Math.floor(n);
+  }
+
+  function shouldDelete(item,settings,refs){
+    if(!item||typeof item!=="object")return false;
+    if(isEquipped(item,refs))return false;
+    if(settings.protectLocked && (item.locked===true || item.favorite===true || item.favourite===true || item.isLocked===true))return false;
+
+    const rarity=normRarity(item.rarity);
+    if(!settings.rarities[rarity])return false;
+
+    const plus=Number(item.plus||0);
+    const protectPlus=Math.max(0,Number(settings.protectPlus||0));
+    if(protectPlus>0 && plus>=protectPlus)return false;
+
+    const maxPower=Math.max(0,Number(settings.maxPower||0));
+    if(maxPower>0 && itemPower(item)>=maxPower)return false;
+
+    return true;
+  }
+
+  function cleanup(showToast=false){
+    if(cleanupLock)return 0;
+    const s=(typeof save!=="undefined"&&save)?save:null;
+    const settings=cfg();
+    const inv=inventoryArray();
+    if(!s||!inv||!settings.enabled)return 0;
+
+    cleanupLock=true;
+    try{
+      const refs=equippedRefs();
+      let removed=0;
+      for(let i=inv.length-1;i>=0;i--){
+        if(shouldDelete(inv[i],settings,refs)){
+          inv.splice(i,1);
+          removed++;
+        }
+      }
+      if(removed>0){
+        lastRemoved=removed;
+        if(typeof persist==="function")persist();
+        if(typeof renderInventory==="function")renderInventory();
+        if(typeof v212RenderContextBars==="function")v212RenderContextBars();
+        if(showToast && typeof toast==="function")toast(`🗑️ Automata törlés: ${removed} tárgy törölve.`);
+      }else if(showToast && typeof toast==="function"){
+        toast("🧹 Nincs törölhető tárgy a beállítások alapján.");
+      }
+      updateStatus();
+      return removed;
+    }finally{
+      cleanupLock=false;
+    }
+  }
+
+  function loadUI(){
+    const settings=cfg();
+    const enabled=document.getElementById("v216AutoDeleteEnabled");
+    if(!enabled)return;
+    enabled.checked=Boolean(settings.enabled);
+    document.querySelectorAll("[data-v216-rarity]").forEach(el=>{
+      el.checked=Boolean(settings.rarities[normRarity(el.dataset.v216Rarity)]);
+    });
+    const mp=document.getElementById("v216MaxPowerDelete");
+    if(mp)mp.value=Number(settings.maxPower||0);
+    const pp=document.getElementById("v216ProtectPlus");
+    if(pp)pp.value=Number(settings.protectPlus??1);
+    const lock=document.getElementById("v216ProtectLocked");
+    if(lock)lock.checked=settings.protectLocked!==false;
+    updateStatus();
+  }
+
+  function saveUI(){
+    const settings=cfg();
+    settings.enabled=Boolean(document.getElementById("v216AutoDeleteEnabled")?.checked);
+    document.querySelectorAll("[data-v216-rarity]").forEach(el=>{
+      settings.rarities[normRarity(el.dataset.v216Rarity)]=Boolean(el.checked);
+    });
+    settings.maxPower=Math.max(0,Number(document.getElementById("v216MaxPowerDelete")?.value||0));
+    settings.protectPlus=Math.max(0,Math.min(15,Number(document.getElementById("v216ProtectPlus")?.value||0)));
+    settings.protectLocked=Boolean(document.getElementById("v216ProtectLocked")?.checked);
+    if(typeof persist==="function")persist();
+    updateStatus();
+    if(typeof toast==="function")toast("💾 Automata törlés beállításai mentve.");
+    if(settings.enabled)cleanup(false);
+  }
+
+  function updateStatus(){
+    const el=document.getElementById("v216AutoDeleteStatus");
+    if(!el)return;
+    const s=cfg();
+    const selected=Object.entries(s.rarities).filter(([,v])=>v).map(([k])=>({
+      normal:"Common",rare:"Rare",epic:"Epic",mythic:"Mythic",legendary:"Legendary"
+    }[k])).join(", ");
+    el.textContent=s.enabled
+      ? `Automata törlés: AKTÍV · ${selected||"nincs rarity kiválasztva"}${s.maxPower>0?` · Erő < ${s.maxPower}`:""}`
+      : "Automata törlés: kikapcsolva";
+    el.classList.toggle("active",Boolean(s.enabled));
+  }
+
+  function bind(){
+    const saveBtn=document.getElementById("v216SaveAutoDelete");
+    const runBtn=document.getElementById("v216RunAutoDelete");
+    if(saveBtn && !saveBtn.dataset.bound216){
+      saveBtn.dataset.bound216="1";
+      saveBtn.onclick=saveUI;
+    }
+    if(runBtn && !runBtn.dataset.bound216){
+      runBtn.dataset.bound216="1";
+      runBtn.onclick=()=>{
+        // manual cleanup should obey the toggle; temporarily enable if needed
+        const settings=cfg();
+        const was=settings.enabled;
+        if(!was)settings.enabled=true;
+        cleanup(true);
+        settings.enabled=was;
+        updateStatus();
+      };
+    }
+    loadUI();
+  }
+
+  // Run periodically so freshly dropped items are removed automatically.
+  window.setInterval(()=>{
+    try{
+      if(cfg().enabled)cleanup(false);
+    }catch(e){console.warn("V21.6 auto-delete:",e)}
+  },1200);
+
+  window.addEventListener("load",()=>setTimeout(bind,200));
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.('[data-tab="inventory"]'))setTimeout(bind,80);
+  },true);
+
+  window.v216AutoDeleteCleanup=cleanup;
+  window.v216AutoDeleteBind=bind;
+})();
+
+/* ================= V21.7 SILENT AUTOSAVE UI ================= */
+(function(){
+  function hideSaveIndicators(){
+    document.querySelectorAll(
+      '#saveStatus,#cloudSaveStatus,.save-status,.cloud-save-status,.saving-status,[data-save-status],[data-cloud-save-status]'
+    ).forEach(el=>{
+      el.style.setProperty('display','none','important');
+    });
+
+    document.querySelectorAll('span,small,div').forEach(el=>{
+      if(el.children.length) return;
+      const t=(el.textContent||'').trim();
+      if(/^(☁️\s*)?(Mentés\.{0,3}|Mentés…|Mentve|Felhőbe mentve)$/i.test(t)){
+        // Avoid hiding buttons/controls or large containers.
+        if(!el.closest('button,a,input,label')){
+          el.style.setProperty('display','none','important');
+        }
+      }
+    });
+  }
+
+  window.addEventListener('load',()=>{
+    hideSaveIndicators();
+    const obs=new MutationObserver(hideSaveIndicators);
+    obs.observe(document.body,{subtree:true,childList:true,characterData:true});
+  });
+})();
+
+/* ================= V21.8 DUNGEON SYSTEM ================= */
+(function(){
+  const DUNGEONS_V218 = [
+    {
+      id:"training_cave",
+      effectType:"rockfall",
+      effectIcon:"🪨",
+      visualTheme:"cave",
+      visualDecor:["🪨","🌿"],
+      name:"Kezdők barlangja",
+      icon:"🪨",
+      bossName:"Barlangi Gólem",
+      bossIcon:"🗿",
+      reqPower:250,
+      ticketCost:1,
+      safe:true,
+      minWin:1.00,
+      rewards:{gold:[800,1400], ore:[1,3], gems:[0,1], soul:[0,0]},
+      desc:"Biztonságos kezdő kazamata. Ha van jegyed, mindig teljesíted. Farmolásra való."
+    },
+    {
+      id:"forgotten_mine",
+      effectType:"crystal_burst",
+      effectIcon:"💎",
+      visualTheme:"mine",
+      visualDecor:["⛏️","💎"],
+      name:"Elfeledett bánya",
+      icon:"⛏️",
+      bossName:"Bányarém",
+      bossIcon:"👹",
+      reqPower:900,
+      ticketCost:1,
+      safe:false,
+      rewards:{gold:[1800,3200], ore:[3,7], gems:[0,1], soul:[0,1]},
+      desc:"Az első valódi kockázatos kazamata. A kiírt erő csak ajánlott érték, nem garantált siker."
+    },
+    {
+      id:"wolf_den",
+      effectType:"moon_slash",
+      effectIcon:"🌙",
+      visualTheme:"forest",
+      visualDecor:["🌲","🌕"],
+      name:"Farkasverem",
+      icon:"🐺",
+      bossName:"Alfa Vérfarkas",
+      bossIcon:"🐺",
+      reqPower:2200,
+      ticketCost:1,
+      safe:false,
+      rewards:{gold:[3500,6000], ore:[5,10], gems:[0,2], soul:[0,1]},
+      desc:"Gyors, agresszív ellenfelek. Kisebb eséllyel buksz, ha csak épp eléred az ajánlott erőt."
+    },
+    {
+      id:"crypt",
+      effectType:"soul_flame",
+      effectIcon:"👻",
+      visualTheme:"crypt",
+      visualDecor:["🪦","🕯️"],
+      name:"Elátkozott kripta",
+      icon:"☠️",
+      bossName:"Kripta Ura",
+      bossIcon:"💀",
+      reqPower:5200,
+      ticketCost:2,
+      safe:false,
+      rewards:{gold:[7000,12000], ore:[8,14], gems:[1,3], soul:[1,2]},
+      desc:"Komolyabb kihívás, jobb jutalommal."
+    },
+    {
+      id:"demon_tower",
+      effectType:"hellfire",
+      effectIcon:"🔥",
+      visualTheme:"demon",
+      visualDecor:["🔥","🩸"],
+      name:"Démon torony",
+      icon:"🔥",
+      bossName:"Démon Hadúr",
+      bossIcon:"😈",
+      reqPower:11000,
+      ticketCost:2,
+      safe:false,
+      rewards:{gold:[14000,22000], ore:[12,20], gems:[1,4], soul:[1,3]},
+      desc:"Több szintes démon kazamata. Nem minden futás sikeres."
+    },
+    {
+      id:"dragon_valley",
+      effectType:"dragon_breath",
+      effectIcon:"🐉",
+      visualTheme:"dragon",
+      visualDecor:["🌋","🔥"],
+      name:"Sárkány-völgy",
+      icon:"🐉",
+      bossName:"Ősi Sárkány",
+      bossIcon:"🐉",
+      reqPower:24000,
+      ticketCost:3,
+      safe:false,
+      rewards:{gold:[28000,45000], ore:[18,30], gems:[2,5], soul:[2,4]},
+      desc:"Sárkányok és elit őrök. A túléléshez már valódi fejlődés kell."
+    },
+    {
+      id:"storm_keep",
+      effectType:"lightning",
+      effectIcon:"⚡",
+      visualTheme:"storm",
+      visualDecor:["⛈️","⚡"],
+      name:"Vihartorony",
+      icon:"🌩️",
+      bossName:"Vihar Titán",
+      bossIcon:"⚡",
+      reqPower:50000,
+      ticketCost:3,
+      safe:false,
+      rewards:{gold:[55000,85000], ore:[28,42], gems:[3,7], soul:[3,5]},
+      desc:"Endgame előszoba, komoly bukási eséllyel."
+    },
+    {
+      id:"void_temple",
+      effectType:"void_rift",
+      effectIcon:"🌀",
+      visualTheme:"void",
+      visualDecor:["🕳️","🟣"],
+      name:"Üresség temploma",
+      icon:"🕳️",
+      bossName:"Void Őrző",
+      bossIcon:"👁️",
+      reqPower:100000,
+      ticketCost:4,
+      safe:false,
+      rewards:{gold:[100000,160000], ore:[40,60], gems:[4,9], soul:[4,7]},
+      desc:"Nagy erőt igénylő kazamata, ritkább nyersanyagokkal."
+    },
+    {
+      id:"celestial_gate",
+      effectType:"holy_blast",
+      effectIcon:"✨",
+      visualTheme:"celestial",
+      visualDecor:["☁️","✨"],
+      name:"Isteni kapu",
+      icon:"👁️",
+      bossName:"Mennyei Bíró",
+      bossIcon:"🪽",
+      reqPower:200000,
+      ticketCost:5,
+      safe:false,
+      rewards:{gold:[200000,320000], ore:[60,90], gems:[6,12], soul:[6,10]},
+      desc:"Magas szintű végjáték kazamata. Az ajánlott erő felett sem garantált a siker."
+    },
+    {
+      id:"abyss",
+      effectType:"tentacle_surge",
+      effectIcon:"🌊",
+      visualTheme:"abyss",
+      visualDecor:["🌊","🦑"],
+      name:"Mélység ura",
+      icon:"🦑",
+      bossName:"A Mélység Ura",
+      bossIcon:"🦑",
+      reqPower:400000,
+      ticketCost:6,
+      safe:false,
+      rewards:{gold:[380000,600000], ore:[85,130], gems:[8,16], soul:[8,14]},
+      desc:"Nagyon nehéz endgame kazamata, nagy jutalommal és komoly kockázattal."
+    }
+  ];
+
+  function s218(){ return (typeof save!=="undefined"&&save)?save:{}; }
+  function p218(){ return (typeof power==="function")?Number(power()||0):0; }
+  function fmt218(n){ return (typeof fmt==="function")?fmt(n):Math.floor(n).toLocaleString("hu-HU"); }
+
+  function successChance(d){
+    if(d.safe) return 1;
+
+    const p=Math.max(1,p218());
+    const r=Math.max(1,Number(d.reqPower||1));
+    const ratio=p/r;
+
+    // Recommended power = ~70% chance, not guaranteed.
+    // Underpowered players still have a small chance; overpowered players approach 95%, never 100%.
+    let c;
+    if(ratio < .50) c = .08 + ratio*.20;       // ~8–18%
+    else if(ratio < .80) c = .20 + (ratio-.50)*.70; // ~20–41%
+    else if(ratio < 1.00) c = .45 + (ratio-.80)*1.25; // ~45–70%
+    else if(ratio < 1.50) c = .70 + (ratio-1.00)*.40; // 70–90%
+    else c = .90 + Math.min(.05,(ratio-1.50)*.03);    // max 95%
+
+    return Math.max(.05,Math.min(.95,c));
+  }
+
+  function rollRange([a,b]){
+    a=Number(a||0); b=Number(b||a);
+    return Math.floor(a+Math.random()*(b-a+1));
+  }
+
+  function ensureDungeonState(){
+    const s=s218();
+    if(!s.dungeonStats) s.dungeonStats={runs:0,wins:0,losses:0,streak:0};
+    if(!s.dungeonClears) s.dungeonClears={};
+  }
+
+  function applyRewards(d){
+    const s=s218();
+    const r=d.rewards||{};
+    const out={
+      gold:rollRange(r.gold||[0,0]),
+      ore:rollRange(r.ore||[0,0]),
+      gems:rollRange(r.gems||[0,0]),
+      soul:rollRange(r.soul||[0,0])
+    };
+    s.gold=Number(s.gold||0)+out.gold;
+    s.ore=Number(s.ore||0)+out.ore;
+    s.gems=Number(s.gems||0)+out.gems;
+    s.soul=Number(s.soul||0)+out.soul;
+    return out;
+  }
+
+  function runDungeon(d){
+    const s=s218();
+    ensureDungeonState();
+
+    const tickets=Number(s.tickets||0);
+    if(tickets<d.ticketCost){
+      if(typeof toast==="function") toast(`🎫 Nincs elég Dungeon jegyed. Kell: ${d.ticketCost}`);
+      return;
+    }
+
+    s.tickets=tickets-d.ticketCost;
+    s.dungeonStats.runs++;
+
+    const chance=successChance(d);
+    const win=d.safe || Math.random()<chance;
+
+    if(win){
+      const rw=applyRewards(d);
+      s.dungeonStats.wins++;
+      s.dungeonStats.streak++;
+      s.dungeonClears[d.id]=Number(s.dungeonClears[d.id]||0)+1;
+
+      const parts=[`+${fmt218(rw.gold)} arany`];
+      if(rw.ore) parts.push(`+${rw.ore} érc`);
+      if(rw.gems) parts.push(`+${rw.gems} gyémánt`);
+      if(rw.soul) parts.push(`+${rw.soul} lélekkő`);
+
+      if(typeof toast==="function") toast(`🏆 ${d.name} sikerült! ${parts.join(" · ")}`);
+    }else{
+      s.dungeonStats.losses++;
+      s.dungeonStats.streak=0;
+
+      // Dungeon death should not trap players: revive at full HP.
+      try{
+        if(typeof v10MaxHp==="function") s.playerHp=v10MaxHp();
+        else if(Number(s.maxHp)) s.playerHp=Number(s.maxHp);
+      }catch(e){}
+
+      if(typeof toast==="function") toast(`💀 ${d.name} sikertelen. A jegy elfogyott, de teljes HP-val folytatod.`);
+    }
+
+    if(typeof persist==="function") persist();
+    if(typeof renderAll==="function") renderAll();
+    renderDungeonV218();
+  }
+
+  function renderDungeonV218(){
+    const p=document.getElementById("page-dungeon");
+    if(!p)return;
+    ensureDungeonState();
+
+    let root=p.querySelector("#v218DungeonSystem");
+    if(!root){
+      root=document.createElement("section");
+      root.id="v218DungeonSystem";
+      root.className="card v218-dungeon-system";
+
+      // Hide old dungeon cards to avoid duplicate systems.
+      [...p.children].forEach(ch=>{
+        if(ch!==root && !ch.classList?.contains("v212-context-bar")){
+          const t=(ch.textContent||"").toLowerCase();
+          if(t.includes("kazamata") || t.includes("dungeon")){
+            ch.classList.add("v218-old-dungeon-hidden");
+          }
+        }
+      });
+
+      p.appendChild(root);
+    }
+
+    const s=s218();
+    const stats=s.dungeonStats||{runs:0,wins:0,losses:0,streak:0};
+
+    root.innerHTML=`
+      <div class="v218-dungeon-head">
+        <div>
+          <small>🏰 KAZAMATA RENDSZER</small>
+          <h2>Kazamaták</h2>
+          <p>Az első kazamata biztonságos farm. A többi kazamatánál az ajánlott erő csak esélyt jelent, nem garantált sikert.</p>
+        </div>
+        <div class="v218-dungeon-summary">
+          <div><small>🎫 Jegy</small><b>${fmt218(s.tickets||0)}</b></div>
+          <div><small>⚔️ Erő</small><b>${fmt218(p218())}</b></div>
+          <div><small>🏆 Siker</small><b>${stats.wins}</b></div>
+          <div><small>💀 Bukás</small><b>${stats.losses}</b></div>
+        </div>
+      </div>
+
+      <div class="v218-dungeon-grid">
+        ${DUNGEONS_V218.map(d=>{
+          const chance=Math.round(successChance(d)*100);
+          const clears=Number(s.dungeonClears?.[d.id]||0);
+          return `
+          <article class="v218-dungeon-card ${d.safe?"safe":""} theme-${d.visualTheme||"cave"}">
+            <div class="v220-card-scene">
+              <div class="v220-card-decor">${d.visualDecor?.[0]||"✦"} ${d.visualDecor?.[1]||"✦"}</div>
+              <div class="v220-card-boss">${d.bossIcon||"👹"}</div>
+              <div class="v220-card-shadow"></div>
+            </div>
+            <div class="v218-dungeon-title">
+              <span class="v218-dungeon-icon">${d.icon}</span>
+              <div><h3>${d.name}</h3><small>${d.safe?"Biztonságos farm":"Kockázatos kazamata"}</small></div>
+            </div>
+            <p>${d.desc}</p>
+
+            <div class="v218-dungeon-stats">
+              <span><small>Ajánlott erő</small><b>${fmt218(d.reqPower)}</b></span>
+              <span><small>Jegy</small><b>${d.ticketCost}</b></span>
+              <span><small>Siker esélyed</small><b>${d.safe?"100%":chance+"%"}</b></span>
+              <span><small>Teljesítve</small><b>${clears}×</b></span>
+            </div>
+
+            <div class="v218-chance">
+              <div style="width:${d.safe?100:chance}%"></div>
+            </div>
+
+            <div class="v218-rewards">
+              <small>Lehetséges jutalom</small>
+              <div>
+                💰 ${fmt218(d.rewards.gold[0])}–${fmt218(d.rewards.gold[1])}
+                · ⛏️ ${d.rewards.ore[0]}–${d.rewards.ore[1]}
+                ${d.rewards.gems[1]>0?` · 💎 ${d.rewards.gems[0]}–${d.rewards.gems[1]}`:""}
+                ${d.rewards.soul[1]>0?` · 🔵 ${d.rewards.soul[0]}–${d.rewards.soul[1]}`:""}
+              </div>
+            </div>
+
+            <button type="button" data-v218-dungeon="${d.id}">
+              ${d.safe?"🌾 Farmolás":"⚔️ Belépés"} · ${d.ticketCost} jegy
+            </button>
+          </article>`;
+        }).join("")}
+      </div>
+    `;
+
+    root.querySelectorAll("[data-v218-dungeon]").forEach(btn=>{
+      btn.onclick=()=>{
+        const d=DUNGEONS_V218.find(x=>x.id===btn.dataset.v218Dungeon);
+        if(d) runDungeon(d);
+      };
+    });
+  }
+
+  window.DUNGEONS_V218=DUNGEONS_V218;
+  window.v218RenderDungeon=renderDungeonV218;
+  window.v218RunDungeon=runDungeon;
+
+  window.addEventListener("load",()=>setTimeout(renderDungeonV218,250));
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.('[data-tab="dungeon"]')) setTimeout(renderDungeonV218,80);
+  },true);
+})();
+
+
+/* ================= V21.9 DUNGEON BOSS HP / VISUAL FIGHT ================= */
+(function(){
+  let activeBattle=null;
+  let battleTimer=null;
+
+  function S(){ return (typeof save!=="undefined"&&save)?save:{}; }
+  function P(){ return (typeof power==="function")?Number(power()||0):0; }
+  function F(n){ return (typeof fmt==="function")?fmt(Number(n||0)):Math.floor(Number(n||0)).toLocaleString("hu-HU"); }
+
+  function maxPlayerHp(){
+    const s=S();
+    try{
+      if(typeof v10MaxHp==="function") return Math.max(1,Number(v10MaxHp()||1));
+    }catch(e){}
+    return Math.max(1,Number(s.maxHp||s.playerHp||100));
+  }
+
+  function bossMaxHp(d){
+    return Math.max(
+      250,
+      Math.floor(Number(d.reqPower||100) * (d.safe ? 2.2 : 4.8))
+    );
+  }
+
+  function ensureBattlePanel(root){
+    let panel=root.querySelector("#v219DungeonBattle");
+    if(!panel){
+      panel=document.createElement("section");
+      panel.id="v219DungeonBattle";
+      panel.className="v219-dungeon-battle hidden";
+      root.prepend(panel);
+    }
+    return panel;
+  }
+
+
+  function triggerDungeonEffect(type){
+    const panel=document.getElementById("v219DungeonBattle");
+    if(!panel)return;
+    panel.dataset.effect=String(type||"rockfall");
+    panel.classList.remove("v221-cast");
+    void panel.offsetWidth;
+    panel.classList.add("v221-cast");
+    setTimeout(()=>panel.classList.remove("v221-cast"),420);
+  }
+
+  function drawBattle(){
+    const root=document.getElementById("v218DungeonSystem");
+    if(!root)return;
+    const panel=ensureBattlePanel(root);
+
+    if(!activeBattle){
+      panel.classList.add("hidden");
+      return;
+    }
+
+    const b=activeBattle;
+    const php=Math.max(0,Math.min(100,(b.playerHp/b.playerMaxHp)*100));
+    const bhp=Math.max(0,Math.min(100,(b.bossHp/b.bossMaxHp)*100));
+
+    panel.classList.remove("hidden");
+    panel.innerHTML=`
+      <div class="v219-battle-title">
+        <div>
+          <small>⚔️ KAZAMATA HARC</small>
+          <h3>${b.dungeon.name}</h3>
+        </div>
+        <div class="v219-battle-round">Kör ${b.round}</div>
+      </div>
+
+      <div class="v220-arena theme-${b.dungeon.visualTheme||"cave"}">
+        <div class="v220-bg-decor left">${b.dungeon.visualDecor?.[0]||"✦"}</div>
+        <div class="v220-bg-decor right">${b.dungeon.visualDecor?.[1]||"✦"}</div>
+        <div class="v220-ground"></div>
+        <div class="v220-particles">
+          <i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <div class="v221-effect-layer effect-${b.dungeon.effectType||"rockfall"}">
+          <span class="v221-effect-main">${b.dungeon.effectIcon||"✦"}</span>
+          <i></i><i></i><i></i><i></i><i></i>
+        </div>
+
+        <div class="v219-fighters">
+        <div class="v219-fighter player">
+          <div class="v219-fighter-icon">🧙</div>
+          <div class="v219-fighter-main">
+            <div class="v219-name-row"><b>Saját karakter</b><span>${F(Math.max(0,b.playerHp))} / ${F(b.playerMaxHp)} HP</span></div>
+            <div class="v219-hp"><div style="width:${php}%"></div></div>
+            <small>⚔️ Erő: ${F(P())}</small>
+          </div>
+        </div>
+
+        <div class="v219-versus">VS</div>
+
+        <div class="v219-fighter boss">
+          <div class="v219-boss-icon">${b.dungeon.bossIcon||"👹"}</div>
+          <div class="v219-fighter-main">
+            <div class="v219-name-row"><b>${b.dungeon.bossName||"Kazamata Boss"}</b><span>${F(Math.max(0,b.bossHp))} / ${F(b.bossMaxHp)} HP</span></div>
+            <div class="v219-hp boss"><div style="width:${bhp}%"></div></div>
+            <small>☠️ Boss erő: ${F(b.dungeon.reqPower)}</small>
+          </div>
+        </div>
+        </div>
+      </div>
+
+      <div class="v219-combat-log">${b.log||"A harc elkezdődött..."}</div>
+    `;
+  }
+
+  function finishBattle(win){
+    if(!activeBattle)return;
+    const b=activeBattle;
+    const d=b.dungeon;
+    const s=S();
+
+    clearInterval(battleTimer);
+    battleTimer=null;
+
+    if(win){
+      const rw=(function(){
+        const r=d.rewards||{};
+        function rr(x){const a=Number(x?.[0]||0),c=Number(x?.[1]??a);return Math.floor(a+Math.random()*(c-a+1))}
+        const out={gold:rr(r.gold),ore:rr(r.ore),gems:rr(r.gems),soul:rr(r.soul)};
+        s.gold=Number(s.gold||0)+out.gold;
+        s.ore=Number(s.ore||0)+out.ore;
+        s.gems=Number(s.gems||0)+out.gems;
+        s.soul=Number(s.soul||0)+out.soul;
+        return out;
+      })();
+
+      s.dungeonStats.wins++;
+      s.dungeonStats.streak++;
+      s.dungeonClears[d.id]=Number(s.dungeonClears[d.id]||0)+1;
+
+      b.bossHp=0;
+      b.log=`🏆 ${d.bossName} legyőzve! +${F(rw.gold)} arany${rw.ore?` · +${rw.ore} érc`:""}${rw.gems?` · +${rw.gems} gyémánt`:""}${rw.soul?` · +${rw.soul} lélekkő`:""}`;
+      drawBattle();
+      if(typeof toast==="function")toast(`🏆 ${d.name} teljesítve!`);
+    }else{
+      s.dungeonStats.losses++;
+      s.dungeonStats.streak=0;
+      b.playerHp=0;
+      b.log=`💀 ${d.bossName} legyőzött. A jegy elfogyott, de teljes HP-val éledsz újra.`;
+      drawBattle();
+
+      const mh=maxPlayerHp();
+      s.playerHp=mh;
+      if(typeof toast==="function")toast(`💀 ${d.name} sikertelen.`);
+    }
+
+    if(typeof persist==="function")persist();
+    if(typeof renderAll==="function")renderAll();
+
+    setTimeout(()=>{
+      activeBattle=null;
+      if(typeof window.v218RenderDungeon==="function")window.v218RenderDungeon();
+    },1800);
+  }
+
+  function startBattle(d){
+    const s=S();
+    if(!s.dungeonStats)s.dungeonStats={runs:0,wins:0,losses:0,streak:0};
+    if(!s.dungeonClears)s.dungeonClears={};
+
+    const tickets=Number(s.tickets||0);
+    if(tickets<Number(d.ticketCost||1)){
+      if(typeof toast==="function")toast(`🎫 Nincs elég Dungeon jegyed. Kell: ${d.ticketCost}`);
+      return;
+    }
+
+    if(activeBattle)return;
+
+    s.tickets=tickets-Number(d.ticketCost||1);
+    s.dungeonStats.runs++;
+
+    const chance=(function(){
+      if(d.safe)return 1;
+      const p=Math.max(1,P()), r=Math.max(1,Number(d.reqPower||1)), ratio=p/r;
+      let c;
+      if(ratio<.50)c=.08+ratio*.20;
+      else if(ratio<.80)c=.20+(ratio-.50)*.70;
+      else if(ratio<1.00)c=.45+(ratio-.80)*1.25;
+      else if(ratio<1.50)c=.70+(ratio-1.00)*.40;
+      else c=.90+Math.min(.05,(ratio-1.50)*.03);
+      return Math.max(.05,Math.min(.95,c));
+    })();
+
+    const predeterminedWin=d.safe || Math.random()<chance;
+    const ph=maxPlayerHp();
+    const bh=bossMaxHp(d);
+
+    activeBattle={
+      dungeon:d,
+      playerHp:ph,
+      playerMaxHp:ph,
+      bossHp:bh,
+      bossMaxHp:bh,
+      round:1,
+      win:predeterminedWin,
+      log:`${d.bossIcon||"👹"} ${d.bossName||"Boss"} megjelent!`
+    };
+
+    drawBattle();
+
+    battleTimer=setInterval(()=>{
+      if(!activeBattle)return;
+      const b=activeBattle;
+      b.round++;
+
+      // Visual damage tuned so the pre-rolled result remains consistent with the displayed success chance.
+      const roundsTarget=7+Math.floor(Math.random()*4);
+
+      if(b.win){
+        const bossDmg=Math.max(1,Math.floor(b.bossMaxHp/roundsTarget*(.82+Math.random()*.35)));
+        const incoming=d.safe
+          ? Math.max(1,Math.floor(b.playerMaxHp*.035))
+          : Math.max(1,Math.floor(b.playerMaxHp*(.045+Math.random()*.045)));
+        b.bossHp=Math.max(0,b.bossHp-bossDmg);
+        b.playerHp=d.safe
+          ? Math.max(Math.floor(b.playerMaxHp*.35),b.playerHp-incoming)
+          : Math.max(1,b.playerHp-incoming);
+        b.log=`⚔️ ${F(bossDmg)} sebzés a bossnak · ☠️ ${F(incoming)} sebzés érkezett.`; triggerDungeonEffect(b.dungeon.effectType); document.getElementById("v219DungeonBattle")?.classList.add("v220-hit"); setTimeout(()=>document.getElementById("v219DungeonBattle")?.classList.remove("v220-hit"),180);
+
+        if(b.bossHp<=0 || b.round>=12){
+          b.bossHp=0;
+          finishBattle(true);
+          return;
+        }
+      }else{
+        const bossDmg=Math.max(1,Math.floor(b.bossMaxHp*(.045+Math.random()*.045)));
+        const incoming=Math.max(1,Math.floor(b.playerMaxHp*(.11+Math.random()*.09)));
+        b.bossHp=Math.max(Math.floor(b.bossMaxHp*.18),b.bossHp-bossDmg);
+        b.playerHp=Math.max(0,b.playerHp-incoming);
+        b.log=`⚔️ ${F(bossDmg)} sebzés a bossnak · 💥 ${F(incoming)} sebzést kaptál.`; triggerDungeonEffect(b.dungeon.effectType); document.getElementById("v219DungeonBattle")?.classList.add("v220-hit"); setTimeout(()=>document.getElementById("v219DungeonBattle")?.classList.remove("v220-hit"),180);
+
+        if(b.playerHp<=0 || b.round>=10){
+          b.playerHp=0;
+          finishBattle(false);
+          return;
+        }
+      }
+      drawBattle();
+    },480);
+  }
+
+  // Enhance the current V21.8 renderer with boss card presentation + bind battle start.
+  const oldRender=window.v218RenderDungeon;
+  function enhancedRender(){
+    if(typeof oldRender==="function")oldRender();
+
+    const root=document.getElementById("v218DungeonSystem");
+    if(!root)return;
+
+    ensureBattlePanel(root);
+
+    root.querySelectorAll("[data-v218-dungeon]").forEach(btn=>{
+      const id=btn.dataset.v218Dungeon;
+      const d=(window.DUNGEONS_V218||[]).find(x=>x.id===id);
+      if(!d)return;
+
+      const card=btn.closest(".v218-dungeon-card");
+      if(card && !card.querySelector(".v219-boss-preview")){
+        const title=card.querySelector(".v218-dungeon-title");
+        const boss=document.createElement("div");
+        boss.className="v219-boss-preview";
+        boss.innerHTML=`
+          <span>${d.bossIcon||"👹"}</span>
+          <div><small>Boss</small><b>${d.bossName||"Kazamata Boss"}</b></div>`;
+        if(title)title.after(boss);
+      }
+
+      btn.onclick=()=>startBattle(d);
+    });
+
+    if(activeBattle)drawBattle();
+  }
+
+  window.v218RenderDungeon=enhancedRender;
+  window.v219StartDungeonBattle=startBattle;
+
+  window.addEventListener("load",()=>setTimeout(enhancedRender,320));
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.('[data-tab="dungeon"]'))setTimeout(enhancedRender,100);
+  },true);
+})();
+
+/* V22.2 admin 10x compatibility: existing combat speed uses save.speed10Unlocked */
+window.v222AdminSpeedSupported=true;
+
+/* ================= V22.4 PET FUSION + GLOBAL BALANCE ================= */
+(function(){
+  const FUSION_REQ=3;
+  const FUSION_GAIN=0.18; // +18% pet effect per fusion tier
+
+  function S(){return (typeof save!=="undefined"&&save)?save:{};}
+  function pets(){
+    const s=S();
+    return Array.isArray(s.pets)?s.pets:(Array.isArray(s.petInventory)?s.petInventory:null);
+  }
+  function pkey(p){
+    // Same base pet means same species/name and same base bonus identity.
+    return String(p?.baseId ?? p?.species ?? p?.id ?? p?.name ?? "");
+  }
+  function pname(p){return String(p?.name||p?.title||"Pet");}
+  function petBasePct(p){
+    // Never re-roll the original value downward. Use the highest explicit base percentage.
+    const candidates=[p?.basePct,p?.bonusPct,p?.pct,p?.percent,p?.bonus,p?.value];
+    for(const v of candidates){
+      const n=Number(v);
+      if(Number.isFinite(n) && n>0)return n;
+    }
+    return 0;
+  }
+  function effectivePetPct(p){
+    const base=petBasePct(p);
+    const tier=Math.max(0,Number(p?.fusionLevel||0));
+    const mult=Number(p?.fusionMultiplier||Math.pow(1+FUSION_GAIN,tier));
+    return base*mult;
+  }
+  function fusionGroups(){
+    const arr=pets()||[];
+    const map={};
+    arr.forEach((p,i)=>{
+      const k=pkey(p);
+      if(!k)return;
+      (map[k] ||= []).push({p,i});
+    });
+    return Object.values(map).filter(g=>g.length>=FUSION_REQ);
+  }
+  function fuse(group){
+    const arr=pets();
+    if(!arr||!group||group.length<FUSION_REQ)return null;
+
+    const picked=group.slice(0,FUSION_REQ);
+    const strongest=picked
+      .map(x=>x.p)
+      .sort((a,b)=>effectivePetPct(b)-effectivePetPct(a))[0];
+
+    const out=JSON.parse(JSON.stringify(strongest));
+    const oldTier=Math.max(...picked.map(x=>Number(x.p.fusionLevel||0)));
+    out.fusionLevel=oldTier+1;
+    out.fusionMultiplier=Math.pow(1+FUSION_GAIN,out.fusionLevel);
+
+    // Preserve the best base roll; fusion only improves, never rerolls down.
+    const bestBase=Math.max(...picked.map(x=>petBasePct(x.p)));
+    if(bestBase>0){
+      out.basePct=bestBase;
+      out.bonusPct=bestBase;
+    }
+    out.level=Math.max(...picked.map(x=>Number(x.p.level||x.p.lvl||1)))+1;
+    out.lvl=out.level;
+
+    // Consume exactly 3 copies.
+    picked.map(x=>x.i).sort((a,b)=>b-a).forEach(i=>arr.splice(i,1));
+    arr.push(out);
+
+    return out;
+  }
+
+  function renderFusionPanel(){
+    const page=document.getElementById("page-pets");
+    if(!page)return;
+    let panel=page.querySelector("#v224PetFusion");
+    if(!panel){
+      panel=document.createElement("section");
+      panel.id="v224PetFusion";
+      panel.className="card v224-pet-fusion";
+      const anchor=page.querySelector(".pet-grid,.pets-grid,[class*='pet-grid'],[class*='pet-system']")||page.firstElementChild;
+      if(anchor?.parentNode)anchor.parentNode.insertBefore(panel,anchor);
+      else page.prepend(panel);
+    }
+
+    const groups=fusionGroups();
+    panel.innerHTML=`
+      <div class="v224-head">
+        <div>
+          <h3>🧬 Pet összeolvasztás</h3>
+          <small>3 teljesen azonos petből garantáltan erősebb pet készül. A bónusz nem újradobódik, hanem összeadódva erősödik.</small>
+        </div>
+        <div class="v224-rule">3× azonos → +18% pet hatás / fusion szint</div>
+      </div>
+      <div class="v224-groups">
+        ${
+          groups.length
+          ? groups.map((g,i)=>{
+              const sample=g[0].p;
+              const base=petBasePct(sample);
+              const cur=effectivePetPct(sample);
+              const next=base*Math.pow(1+FUSION_GAIN,Math.max(0,Number(sample.fusionLevel||0))+1);
+              return `<div class="v224-fuse-row">
+                <div><b>${pname(sample)} ×${g.length}</b><small>Jelenlegi: ${cur.toFixed(1)}% → Következő fusion: ${next.toFixed(1)}%</small></div>
+                <button data-v224-fuse="${i}">🧬 3 PET ÖSSZEOLVASZTÁSA</button>
+              </div>`;
+            }).join("")
+          : `<div class="v224-empty">Még nincs 3 teljesen azonos peted.</div>`
+        }
+      </div>
+    `;
+
+    panel.querySelectorAll("[data-v224-fuse]").forEach(btn=>{
+      btn.onclick=()=>{
+        const group=fusionGroups()[Number(btn.dataset.v224Fuse)];
+        const result=fuse(group);
+        if(!result)return;
+        if(typeof persist==="function")persist();
+        if(typeof renderAll==="function")renderAll();
+        if(typeof toast==="function"){
+          toast(`🧬 ${pname(result)} Fusion +${result.fusionLevel}: ${effectivePetPct(result).toFixed(1)}%`);
+        }
+        renderFusionPanel();
+      };
+    });
+  }
+
+  // Expose pet multiplier for PvE/PvP balance hooks.
+  function activePetFusionMultiplier(){
+    const s=S();
+    const arr=pets()||[];
+    const activeId=s.activePet;
+    const p=arr.find(x=>String(x.id??x.uid??x.name)===String(activeId)) || arr.find(x=>x.active===true);
+    return p ? Math.max(1, Number(p.fusionMultiplier||1)) : 1;
+  }
+  window.v224PetFusionMultiplier=activePetFusionMultiplier;
+  window.v224EffectivePetPct=effectivePetPct;
+
+  window.addEventListener("load",()=>setTimeout(renderFusionPanel,250));
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.('[data-tab="pets"]'))setTimeout(renderFusionPanel,80);
+  },true);
+})();
+
+/* V22.4 PvE balancing around pet fusion */
+(function(){
+  function petPressure(){
+    const m=window.v224PetFusionMultiplier?.()||1;
+    // only part of pet power feeds enemy scaling so fusion still feels rewarding
+    return 1 + Math.max(0,m-1)*0.42;
+  }
+
+  const oldNormal=window.normalEnemyMaxHp;
+  if(typeof oldNormal==="function"){
+    window.normalEnemyMaxHp=function(){
+      const base=oldNormal();
+      const wave=Math.max(1,Number(save?.wave||1));
+      const progression=1 + Math.pow(Math.max(0,wave-1),1.08)*0.0045;
+      return Math.floor(base*petPressure()*progression);
+    };
+  }
+
+  const oldBoss=window.v10BossMaxHp;
+  if(typeof oldBoss==="function"){
+    window.v10BossMaxHp=function(){
+      const base=oldBoss();
+      const wave=Math.max(1,Number(save?.wave||1));
+      const bossScale=1 + Math.pow(wave,1.10)*0.0035;
+      return Math.floor(base*petPressure()*bossScale);
+    };
+  }
+})();
+
+/* V22.4 pet labels */
+(function(){
+  function annotate(){
+    const p=document.getElementById("page-pets");
+    if(!p)return;
+    p.querySelectorAll("[data-pet],.pet-card").forEach(card=>{
+      const txt=card.textContent||"";
+      if(card.querySelector(".v224-fusion-badge"))return;
+      const name=[...(save?.pets||[])].find(x=>txt.includes(x.name||"___"));
+      if(!name)return;
+      const tier=Number(name.fusionLevel||0);
+      if(tier<=0)return;
+      const b=document.createElement("span");
+      b.className="v224-fusion-badge";
+      b.textContent=`Fusion +${tier} · ${window.v224EffectivePetPct?.(name)?.toFixed?.(1) ?? "?"}%`;
+      card.appendChild(b);
+    });
+  }
+  window.addEventListener("load",()=>setTimeout(annotate,400));
+  document.addEventListener("click",()=>setTimeout(annotate,120),true);
+})();

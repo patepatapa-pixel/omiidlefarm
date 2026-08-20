@@ -369,6 +369,11 @@ async function mainConfig(){
   }catch{return {}}
 }
 function pvpStats(save){
+  const petArr=Array.isArray(save.pets)?save.pets:[];
+  const activePet=petArr.find(p=>String(p.id??p.uid??p.name)===String(save.activePet)) || petArr.find(p=>p.active===true);
+  const fusionMult=Math.max(1,Number(activePet?.fusionMultiplier||1));
+  const fusionTier=Math.max(0,Number(activePet?.fusionLevel||0));
+
   save=save||{};
   const level=Math.max(1,Number(save.level||1));
   const base=save.base||{},ps=save.paragonStats||{};
@@ -381,7 +386,10 @@ function pvpStats(save){
   }
   const hp=Math.floor(220+level*18+def*3+Number(save.paragonLevel||0)*30);
   const crit=Math.min(.55,.05+Number(save.skills?.crit||0)*.015+Number(ps.crit||0)*.005);
-  return {level,atk:Math.max(1,Math.floor(atk)),def:Math.max(0,Math.floor(def)),hp:Math.max(1,hp),crit};
+  const petPvP=1+Math.min(.60,(fusionMult-1)*.55);
+  atk*=petPvP;
+  hp=Math.floor(hp*(1+Math.min(.35,(fusionMult-1)*.30)));
+  return {level,atk:Math.max(1,Math.floor(atk)),def:Math.max(0,Math.floor(def)),hp:Math.max(1,hp),crit,fusionTier,petPvP};
 }
 app.post("/api/admin/player/:id/leaderboard",auth,admin,async(req,res)=>{
   const hidden=Boolean(req.body.hidden);
@@ -429,11 +437,11 @@ app.post("/api/pvp/fight",auth,async(req,res)=>{
     while(ah>0&&bh>0&&turn<200){
       turn++;
       const aCrit=Math.random()<A.crit,bCrit=Math.random()<B.crit;
-      const ad=Math.max(1,Math.floor(A.atk*(aCrit?1.8:1)-B.def*.45));
+      const ad=Math.max(1,Math.floor((A.atk*(aCrit?1.75:1)-B.def*.50)/(1+Math.max(0,B.fusionTier||0)*.025)));
       bh=Math.max(0,bh-ad);
       log.push({turn,from:"a",damage:ad,crit:aCrit,aHp:ah,bHp:bh});
       if(bh<=0)break;
-      const bd=Math.max(1,Math.floor(B.atk*(bCrit?1.8:1)-A.def*.45));
+      const bd=Math.max(1,Math.floor((B.atk*(bCrit?1.75:1)-A.def*.50)/(1+Math.max(0,A.fusionTier||0)*.025)));
       ah=Math.max(0,ah-bd);
       log.push({turn,from:"b",damage:bd,crit:bCrit,aHp:ah,bHp:bh});
     }
