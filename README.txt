@@ -422,3 +422,12 @@ V22.5 ENDGAME DUNGEON GEAR
 - Magasabb dungeon fokozatosan jobb drop esélyt ad, de az endgame gear ritka marad.
 - Mind a 6 gear slothoz eshet: fegyver, sisak, páncél, kesztyű, csizma, gyűrű.
 - Saját rarity vizuál: Immortal / Celestial / Eternal.
+
+V22.6
+- Dungeon oldalon látható Endgame Gear információs rész.
+- Immortal = T1, 55 000+ Dungeon.
+- Celestial = T2, 150 000+ Dungeon.
+- Eternal = T3, 300 000+ Dungeon.
+- Minden Dungeon saját kártyáján kiírja, milyen endgame rarity-k eshetnek belőle.
+- 55 000 alatti Dungeon kártyán külön jelzi, hogy az endgame gear még zárolva van.
+- Az endgame itemek a rarityTier / rarityTierLabel adatot is megkapják.

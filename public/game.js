@@ -4186,16 +4186,16 @@ window.v222AdminSpeedSupported=true;
 (function(){
   const ENDGAME_RARITIES={
     immortal:{
-      name:"Immortal", icon:"♾️", minDungeonPower:55000,
-      gearMult:1.38, optionMult:1.25, dropBase:.035
+      name:"Immortal", icon:"♾️", tier:1, tierLabel:"T1",
+      minDungeonPower:55000, gearMult:1.38, optionMult:1.25, dropBase:.035
     },
     celestial:{
-      name:"Celestial", icon:"🌌", minDungeonPower:150000,
-      gearMult:1.78, optionMult:1.50, dropBase:.020
+      name:"Celestial", icon:"🌌", tier:2, tierLabel:"T2",
+      minDungeonPower:150000, gearMult:1.78, optionMult:1.50, dropBase:.020
     },
     eternal:{
-      name:"Eternal", icon:"🔥", minDungeonPower:300000,
-      gearMult:2.30, optionMult:1.85, dropBase:.010
+      name:"Eternal", icon:"🔥", tier:3, tierLabel:"T3",
+      minDungeonPower:300000, gearMult:2.30, optionMult:1.85, dropBase:.010
     }
   };
   const SLOTS=["weapon","helmet","armor","gloves","boots","ring"];
@@ -4203,6 +4203,13 @@ window.v222AdminSpeedSupported=true;
 
   function S(){return (typeof save!=="undefined"&&save)?save:{};}
   function playerPower(){try{return typeof power==="function"?Number(power()||0):0}catch(e){return 0}}
+
+
+  function eligibleRarities(dungeonPower){
+    return Object.entries(ENDGAME_RARITIES)
+      .filter(([,cfg])=>Number(dungeonPower||0)>=cfg.minDungeonPower)
+      .map(([key,cfg])=>({key,...cfg}));
+  }
 
   function strongestEligibleRarity(dungeonPower){
     if(dungeonPower>=ENDGAME_RARITIES.eternal.minDungeonPower)return "eternal";
@@ -4224,6 +4231,8 @@ window.v222AdminSpeedSupported=true;
       name:`${cfg.name} ${SLOT_NAMES[slot]}`,
       slot,
       rarity,
+      rarityTier:cfg.tier,
+      rarityTierLabel:cfg.tierLabel,
       level:0,
       plus:0,
       power:strength,
@@ -4272,4 +4281,105 @@ window.v222AdminSpeedSupported=true;
 
   window.v225TryDungeonGearDrop=tryDungeonGearDrop;
   window.v225EndgameRarities=ENDGAME_RARITIES;
+})();
+
+
+/* ================= V22.6 DUNGEON RARITY LEVEL DISPLAY ================= */
+(function(){
+  function fmtN(n){return (typeof fmt==="function")?fmt(n):Math.floor(Number(n||0)).toLocaleString("hu-HU");}
+
+  function rarityRowsForDungeon(d){
+    const cfgs=window.v225EndgameRarities||{};
+    return Object.entries(cfgs)
+      .filter(([,cfg])=>Number(d?.reqPower||0)>=Number(cfg.minDungeonPower||0))
+      .map(([key,cfg])=>({key,...cfg}));
+  }
+
+  function injectDungeonRarityInfo(){
+    const root=document.getElementById("v218DungeonSystem");
+    const dungeons=window.DUNGEONS_V218||[];
+    if(!root)return;
+
+    root.querySelectorAll("[data-v218-dungeon]").forEach(btn=>{
+      const id=btn.dataset.v218Dungeon;
+      const d=dungeons.find(x=>x.id===id);
+      const card=btn.closest(".v218-dungeon-card");
+      if(!d||!card)return;
+
+      let box=card.querySelector(".v226-rarity-drop-box");
+      if(!box){
+        box=document.createElement("div");
+        box.className="v226-rarity-drop-box";
+        const reward=card.querySelector(".v218-rewards");
+        if(reward)reward.after(box);
+        else btn.before(box);
+      }
+
+      const rows=rarityRowsForDungeon(d);
+
+      if(Number(d.reqPower||0)<55000){
+        box.innerHTML=`
+          <small>💎 Endgame rare gear</small>
+          <div class="v226-locked">🔒 55 000+ ajánlott erősségű Dungeonban nyílik meg.</div>`;
+        return;
+      }
+
+      box.innerHTML=`
+        <small>💎 Ebből a Dungeonból eshet</small>
+        <div class="v226-rarity-list">
+          ${rows.map(r=>`
+            <span class="v226-rarity ${r.key}">
+              <b>${r.icon} ${r.name}</b>
+              <em>${r.tierLabel || ("T"+r.tier)}</em>
+              <small>${fmtN(r.minDungeonPower)}+ Dungeon</small>
+            </span>
+          `).join("")}
+        </div>`;
+    });
+  }
+
+  function injectGlobalLegend(){
+    const page=document.getElementById("page-dungeon");
+    if(!page)return;
+    let legend=page.querySelector("#v226EndgameLegend");
+    if(!legend){
+      legend=document.createElement("section");
+      legend.id="v226EndgameLegend";
+      legend.className="card v226-endgame-legend";
+      const root=page.querySelector("#v218DungeonSystem");
+      if(root)page.insertBefore(legend,root);
+      else page.prepend(legend);
+    }
+
+    const cfgs=window.v225EndgameRarities||{};
+    legend.innerHTML=`
+      <div class="v226-legend-head">
+        <div>
+          <h3>💎 Endgame Dungeon Gear</h3>
+          <small>A magasabb Dungeonökből egyre magasabb rarity tier nyílik meg.</small>
+        </div>
+      </div>
+      <div class="v226-legend-grid">
+        ${Object.entries(cfgs).map(([key,cfg])=>`
+          <div class="v226-legend-item ${key}">
+            <span>${cfg.icon}</span>
+            <div>
+              <b>${cfg.name} · ${cfg.tierLabel || ("T"+cfg.tier)}</b>
+              <small>${fmtN(cfg.minDungeonPower)}+ ajánlott Dungeon erőtől</small>
+            </div>
+          </div>`).join("")}
+      </div>
+      <p>55 000 alatt ezek a ritkaságok nem eshetnek. Minél magasabb Dungeonba mész, annál magasabb tier válik elérhetővé.</p>`;
+  }
+
+  function refresh(){
+    injectGlobalLegend();
+    injectDungeonRarityInfo();
+  }
+
+  window.v226RefreshDungeonRarityInfo=refresh;
+  window.addEventListener("load",()=>setTimeout(refresh,350));
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.('[data-tab="dungeon"]'))setTimeout(refresh,120);
+  },true);
 })();
