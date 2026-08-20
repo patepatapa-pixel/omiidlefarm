@@ -68,6 +68,7 @@ function renderBuildersV8(){
  });
  if(qs("#contentJson"))qs("#contentJson").value=JSON.stringify(studioConfig,null,2);
  qsa("[data-del]").forEach(b=>b.onclick=async()=>{studioConfig[b.dataset.del].splice(+b.dataset.i,1);await saveConfigV8()});
+ fillEconomyAdmin();
 }
 async function saveConfigV8(){await sa("/api/admin/content-config",{method:"POST",body:JSON.stringify({config:studioConfig})});renderBuildersV8()}
 qsa("[data-add]").forEach(btn=>btn.onclick=async()=>{
@@ -189,6 +190,22 @@ async function loadShopRequests(){
 }
 qs("#refreshShopRequests")?.addEventListener("click",loadShopRequests);
 setTimeout(()=>{fillPvpAdmin();renderShopAdmin();loadShopRequests();fillV11PlayerMeta()},1300);
+
+// V22.19 exchange market and pet economy
+const V219_ECONOMY_DEFAULTS={exchange:{gems:{gold:10000000,amount:25},ore:{gold:1000000,amount:10},tickets:{gold:5000000,amount:1}},petSummonCost:10,petSlotCosts:[50,150,300]};
+function economyAdminCfg(){
+ const e=studioConfig.economy||{},x=e.exchange||{};
+ return {exchange:{gems:{...V219_ECONOMY_DEFAULTS.exchange.gems,...(x.gems||{})},ore:{...V219_ECONOMY_DEFAULTS.exchange.ore,...(x.ore||{})},tickets:{...V219_ECONOMY_DEFAULTS.exchange.tickets,...(x.tickets||{})}},petSummonCost:Number(e.petSummonCost??10),petSlotCosts:Array.isArray(e.petSlotCosts)?e.petSlotCosts:[...V219_ECONOMY_DEFAULTS.petSlotCosts]};
+}
+function fillEconomyAdmin(){
+ const e=economyAdminCfg(),map={cfgExchangeGemsGold:e.exchange.gems.gold,cfgExchangeGemsAmount:e.exchange.gems.amount,cfgExchangeOreGold:e.exchange.ore.gold,cfgExchangeOreAmount:e.exchange.ore.amount,cfgExchangeTicketsGold:e.exchange.tickets.gold,cfgExchangeTicketsAmount:e.exchange.tickets.amount,cfgPetSummonCost:e.petSummonCost,cfgPetSlot2Cost:e.petSlotCosts[0],cfgPetSlot3Cost:e.petSlotCosts[1],cfgPetSlot4Cost:e.petSlotCosts[2]};
+ Object.entries(map).forEach(([id,value])=>{const el=qs("#"+id);if(el)el.value=value});
+}
+qs("#saveEconomyConfig")?.addEventListener("click",async()=>{
+ const positive=id=>Math.max(1,Math.floor(num("#"+id)));
+ studioConfig.economy={exchange:{gems:{gold:positive("cfgExchangeGemsGold"),amount:positive("cfgExchangeGemsAmount")},ore:{gold:positive("cfgExchangeOreGold"),amount:positive("cfgExchangeOreAmount")},tickets:{gold:positive("cfgExchangeTicketsGold"),amount:positive("cfgExchangeTicketsAmount")}},petSummonCost:positive("cfgPetSummonCost"),petSlotCosts:[positive("cfgPetSlot2Cost"),positive("cfgPetSlot3Cost"),positive("cfgPetSlot4Cost")]};
+ await saveConfigV8();fillEconomyAdmin();alert("✅ Váltópiac és pet árak elmentve.");
+});
 
 
 // ================= V11.2 JÁTÉKOS TÖRLÉS =================

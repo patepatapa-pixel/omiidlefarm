@@ -485,8 +485,25 @@ function renderSkills(){
  $("#skills").innerHTML=`<div class="skill-tree-v217"><div class="skill-tree-root">${nodeHtml(root)}</div><div class="skill-tree-trunk"></div><div class="skill-tree-branches">${branch("combat","⚔️ Harci ág")}${branch("farm","💰 Farm ág")}${branch("afk","💤 AFK ág")}${branch("pet","🐾 Pet ág")}</div></div>`;
  $$("[data-tree-skill]").forEach(b=>b.onclick=()=>{const n=SKILL_TREE.find(x=>x.key===b.dataset.treeSkill);if(!n||save.skillPoints<=0||skillRank(n.key)>=n.max||!unlocked(n))return;save.skillPoints--;save.skills[n.key]=skillRank(n.key)+1;persist();renderAll();toast(`🌟 ${n.name}: ${save.skills[n.key]}/${n.max}`)});
 }
+const ECONOMY_DEFAULTS={
+ exchange:{gems:{gold:10000000,amount:25},ore:{gold:1000000,amount:10},tickets:{gold:5000000,amount:1}},
+ petSummonCost:10,petSlotCosts:[50,150,300]
+};
+function economyCfg(){
+ const raw=window.OMI_CONTENT?.economy||{};
+ const offer=key=>({gold:Math.max(1,Math.floor(Number(raw.exchange?.[key]?.gold??ECONOMY_DEFAULTS.exchange[key].gold))),amount:Math.max(1,Math.floor(Number(raw.exchange?.[key]?.amount??ECONOMY_DEFAULTS.exchange[key].amount)))});
+ const slots=Array.isArray(raw.petSlotCosts)?raw.petSlotCosts:ECONOMY_DEFAULTS.petSlotCosts;
+ return {exchange:{gems:offer("gems"),ore:offer("ore"),tickets:offer("tickets")},petSummonCost:Math.max(1,Math.floor(Number(raw.petSummonCost??10))),petSlotCosts:[0,1,2].map(i=>Math.max(1,Math.floor(Number(slots[i]??ECONOMY_DEFAULTS.petSlotCosts[i]))))};
+}
+function renderExchange(){
+ const root=$("#exchangeOffers");if(!root)return;
+ const cfg=economyCfg(),defs=[{key:"gems",icon:"💎",name:"Gyémánt",field:"gems",tone:"gem"},{key:"ore",icon:"⛏️",name:"Érc",field:"ore",tone:"ore"},{key:"tickets",icon:"🎫",name:"Dungeon token",field:"tickets",tone:"ticket"}];
+ if($("#exchangeGold"))$("#exchangeGold").textContent=`${fmt(save.gold)} 💰`;
+ root.innerHTML=defs.map(x=>{const o=cfg.exchange[x.key],can=save.gold>=o.gold;return `<article class="exchange-offer tone-${x.tone}"><div class="exchange-offer-icon">${x.icon}</div><div class="exchange-offer-copy"><small>ARANYBÓL VÁLTHATÓ</small><h3>${x.name}</h3><div class="exchange-rate"><span>${fmt(o.gold)} 💰</span><b>→</b><strong>${fmt(o.amount)} ${x.icon}</strong></div></div><label>Csomagok<select data-exchange-count="${x.key}"><option value="1">1×</option><option value="5">5×</option><option value="10">10×</option><option value="25">25×</option></select></label><button data-exchange-buy="${x.key}" ${can?"":"disabled"}>${can?"ÁTVÁLTÁS":"NINCS ELÉG ARANY"}</button></article>`}).join("");
+ $$('[data-exchange-buy]').forEach(b=>b.onclick=()=>{const key=b.dataset.exchangeBuy,def=defs.find(x=>x.key===key),count=Math.max(1,Math.floor(Number($(`[data-exchange-count="${key}"]`)?.value||1))),o=cfg.exchange[key],cost=o.gold*count,reward=o.amount*count;if(!def||save.gold<cost)return toast(`Nincs elég arany. Szükséges: ${fmt(cost)} 💰`);save.gold-=cost;save[def.field]=Number(save[def.field]||0)+reward;persist();renderAll();toast(`✅ Átváltva: ${fmt(cost)} arany → ${fmt(reward)} ${def.name}`)});
+}
 function renderPets(){
- const costs=[0,25,75,150],active=save.activePets||[];
+ const eco=economyCfg(),costs=[0,...eco.petSlotCosts],active=save.activePets||[];
  const petBonus=p=>`${p.bonus==="damage"?"⚔️ Sebzés":p.bonus==="gold"?"💰 Arany":p.bonus==="drop"?"🎁 Drop":p.bonus==="crit"?"🎯 Krit":"✨ Minden"} +${(Number(p.value||0)*100).toFixed(0)}%`;
  if($("#petSlots"))$("#petSlots").innerHTML=[0,1,2,3].map(i=>{
    const petIndex=active[i],pet=petIndex!==undefined?save.pets[petIndex]:null;
@@ -496,9 +513,10 @@ function renderPets(){
  }).join("");
  $("#pets").innerHTML=save.pets.length?save.pets.map((p,i)=>`<div class="pet-card rarity-${p.rarity} ${active.includes(i)?"active":""}"><div style="font-size:30px">${p.icon}</div><h3>${p.name}</h3><small>${p.bonus==="damage"?"Sebzés":p.bonus==="gold"?"Arany":p.bonus==="drop"?"Drop":p.bonus==="crit"?"Krit":"Minden"} +${(p.value*100).toFixed(0)}%</small><button data-pet="${i}">${active.includes(i)?"Levétel":"Felszerelés"}</button></div>`).join(""):'<p class="muted">Még nincs peted.</p>';
  $$("[data-pet]").forEach(b=>b.onclick=()=>{const i=+b.dataset.pet,pos=save.activePets.indexOf(i);if(pos>=0)save.activePets.splice(pos,1);else if(save.activePets.length>=save.petSlotsUnlocked)return toast("🔒 Nincs több szabad pet hely.");else save.activePets.push(i);save.activePet=save.activePets[0]??null;persist();renderAll();toast(pos>=0?"🐾 Pet levéve":"🐾 Pet felszerelve")});
- $$("[data-buy-pet-slot]").forEach(b=>b.onclick=()=>{const slot=+b.dataset.buyPetSlot,cost=costs[slot];if(slot!==save.petSlotsUnlocked)return;if(save.gems<cost)return toast("Nincs elég gyémánt.");save.gems-=cost;save.petSlotsUnlocked++;persist();renderAll();toast(`🔓 ${slot+1}. pet hely feloldva!`)})
+ $$("[data-buy-pet-slot]").forEach(b=>b.onclick=()=>{const slot=+b.dataset.buyPetSlot,cost=costs[slot];if(slot!==save.petSlotsUnlocked)return;if(save.gems<cost)return toast("Nincs elég gyémánt.");save.gems-=cost;save.petSlotsUnlocked++;persist();renderAll();toast(`🔓 ${slot+1}. pet hely feloldva!`)});
+ const summonBtn=$("#petSummon");if(summonBtn)summonBtn.textContent=`🎲 Pet idézés · ${fmt(eco.petSummonCost)} 💎`;
 }
-function summonPet(){if(save.gems<5)return toast("Nincs elég kristály.");save.gems-=5;let r=Math.random()*100,p=r<2?PET_POOL[4]:r<8?PET_POOL[3]:r<25?PET_POOL[2]:r<55?PET_POOL[1]:PET_POOL[0];save.pets.push({...p});persist();renderAll();toast(`🐾 ${p.name} érkezett!`)}
+function summonPet(){const cost=economyCfg().petSummonCost;if(save.gems<cost)return toast(`Nincs elég gyémánt. A pet idézés ára ${fmt(cost)} 💎.`);save.gems-=cost;let r=Math.random()*100,p=r<2?PET_POOL[4]:r<8?PET_POOL[3]:r<25?PET_POOL[2]:r<55?PET_POOL[1]:PET_POOL[0];save.pets.push({...p});persist();renderAll();toast(`🐾 ${p.name} érkezett!`)}
 function renderDungeons(){
  $("#dungeons").innerHTML=DUNGEONS.map(d=>`<div class="dungeon-card ${power()<d.need?"locked":""}"><div style="font-size:30px">${d.icon}</div><h3>${d.name}</h3><small>Erő: ${fmt(d.need)} · Jegy: ${d.tickets}</small><p>${fmt(d.rewardGold)} 💰 + ${d.rewardGems} 💎</p><button data-dungeon="${d.id}" ${power()<d.need||save.tickets<d.tickets?"disabled":""}>Belépés</button></div>`).join("");
  $$("[data-dungeon]").forEach(b=>b.onclick=()=>runDungeon(b.dataset.dungeon))
@@ -855,6 +873,7 @@ function renderAll(){
  renderUpgrade();
  renderSkills();
  renderPets();
+ renderExchange();
  renderDungeons();
  renderQuests();
  renderStats();
@@ -1527,7 +1546,8 @@ async function v11LoadContent(){
  try{
   const d=await api("/api/content-config");
   V11_CONTENT={...V11_CONTENT,...(d.config||{}),store:{...V11_CONTENT.store,...(d.config?.store||{})},pvp:{...V11_CONTENT.pvp,...(d.config?.pvp||{})}};
-  v11ApplyContent();renderStore();
+  window.OMI_CONTENT={...(window.OMI_CONTENT||{}),...(d.config||{})};
+  v11ApplyContent();renderStore();renderExchange();renderPets();
  }catch(e){console.warn("V11 content",e)}
 }
 

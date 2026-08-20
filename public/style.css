@@ -1332,6 +1332,24 @@ main{width:100%!important;max-width:100%!important}
   .aura-info-grid{grid-template-columns:1fr}
 }
 
+/* V22.19 gold exchange market */
+.exchange-market-v219{overflow:hidden;background:radial-gradient(circle at 82% 0,rgba(240,181,46,.11),transparent 34%),linear-gradient(150deg,#10161d,#080b10)!important}
+.exchange-market-head{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:18px;padding-bottom:17px;border-bottom:1px solid #303945}
+.exchange-market-head h2{margin:3px 0 5px;font-size:26px}.exchange-market-head p{margin:0;color:#929dab}
+.exchange-wallet{display:flex;min-width:230px;flex-direction:column;align-items:flex-end;padding:13px 16px;border:1px solid #5d4b24;border-radius:12px;background:rgba(225,168,35,.07)}
+.exchange-wallet small{color:#9aa4b0;font-size:9px;font-weight:900;letter-spacing:.13em}.exchange-wallet strong{margin-top:3px;color:#ffdc6b;font-size:22px}
+.exchange-offer-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.exchange-offer{position:relative;display:grid;grid-template-columns:auto 1fr;gap:8px 13px;padding:17px;border:1px solid #36414e;border-radius:14px;background:linear-gradient(145deg,#121922,#090d12);box-shadow:0 12px 25px rgba(0,0,0,.2)}
+.exchange-offer.tone-gem{border-color:#354f69}.exchange-offer.tone-ore{border-color:#66562c}.exchange-offer.tone-ticket{border-color:#56436c}
+.exchange-offer-icon{display:grid;place-items:center;width:52px;height:52px;border:1px solid rgba(255,255,255,.1);border-radius:14px;background:rgba(255,255,255,.04);font-size:29px}
+.exchange-offer-copy small{color:#7f8b99;font-size:8px;font-weight:900;letter-spacing:.13em}.exchange-offer-copy h3{margin:3px 0 8px;color:#f4f7fa;font-size:17px}
+.exchange-rate{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.exchange-rate span{color:#f4ca56;font-size:12px;font-weight:850}.exchange-rate b{color:#657282}.exchange-rate strong{color:#dce7f2;font-size:14px}
+.exchange-offer label{grid-column:1/3;display:flex;align-items:center;justify-content:space-between;color:#8f9baa;font-size:10px;font-weight:800}.exchange-offer select{width:92px;margin:0!important;padding:7px!important}
+.exchange-offer button{grid-column:1/3;width:100%;min-height:40px;border-color:#c89932!important;background:linear-gradient(180deg,#e4b946,#9d711d)!important;color:#120d05!important;font-weight:1000!important}.exchange-offer button:disabled{border-color:#313b46!important;background:#151b22!important;color:#66717d!important}
+.exchange-note{margin-top:13px;padding:9px 12px;border-radius:9px;background:rgba(255,255,255,.025);color:#7f8a98;font-size:10px}
+@media(max-width:1000px){.exchange-offer-grid{grid-template-columns:1fr}.exchange-offer{grid-template-columns:auto 1fr}.exchange-market-head{align-items:stretch}.exchange-wallet{min-width:190px}}
+@media(max-width:620px){.exchange-market-head{flex-direction:column}.exchange-wallet{align-items:flex-start}.exchange-offer{padding:14px}}
+
 /* V22.17 branching skill tree */
 .skill-tree-v217{padding:18px 8px 8px}
 .skill-tree-root{display:flex;justify-content:center}

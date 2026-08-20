@@ -79,7 +79,25 @@
 <h2>🛠️ ADMIN GAME STUDIO</h2>
 <p>Minden játékosérték és új játéktartalom kezelése egy helyen.</p>
 <div class="studio-tabs">
-<button data-studio="players">👥 Játékosok</button><button data-studio="gameplay">🎮 Játékmenet</button><button data-studio="pvp">⚔️ PvP</button><button data-studio="store">💳 Feltöltés / Shop</button><button data-studio="bosses">👹 Bossok</button><button data-studio="items">⚔️ Tárgyak</button><button data-studio="pets">🐾 Petek</button><button data-studio="auras">✨ Aurák</button><button data-studio="zones">🗺️ Területek</button><button data-studio="raw">🧬 Haladó</button>
+<button data-studio="players">👥 Játékosok</button><button data-studio="gameplay">🎮 Játékmenet</button><button data-studio="pvp">⚔️ PvP</button><button data-studio="exchange">⚖️ Váltópiac / Pet árak</button><button data-studio="store">💳 Feltöltés / Shop</button><button data-studio="bosses">👹 Bossok</button><button data-studio="items">⚔️ Tárgyak</button><button data-studio="pets">🐾 Petek</button><button data-studio="auras">✨ Aurák</button><button data-studio="zones">🗺️ Területek</button><button data-studio="raw">🧬 Haladó</button>
+</div>
+
+<div class="studio-page" id="studio-exchange">
+ <h3>⚖️ Váltópiac és pet árak</h3>
+ <p class="muted">Minden sorban megadhatod, mennyi aranyba kerüljön egy csomag, és mennyi nyersanyagot kapjon érte a játékos.</p>
+ <div class="admin-stat-grid">
+  <label>💎 Gyémántcsomag aranyára<input id="cfgExchangeGemsGold" type="number" min="1"></label>
+  <label>💎 Kapott gyémánt<input id="cfgExchangeGemsAmount" type="number" min="1"></label>
+  <label>⛏️ Érccsomag aranyára<input id="cfgExchangeOreGold" type="number" min="1"></label>
+  <label>⛏️ Kapott érc<input id="cfgExchangeOreAmount" type="number" min="1"></label>
+  <label>🎫 Tokencsomag aranyára<input id="cfgExchangeTicketsGold" type="number" min="1"></label>
+  <label>🎫 Kapott dungeon token<input id="cfgExchangeTicketsAmount" type="number" min="1"></label>
+  <label>🐾 Pet idézés ára (gyémánt)<input id="cfgPetSummonCost" type="number" min="1"></label>
+  <label>🔓 2. pethely ára (gyémánt)<input id="cfgPetSlot2Cost" type="number" min="1"></label>
+  <label>🔓 3. pethely ára (gyémánt)<input id="cfgPetSlot3Cost" type="number" min="1"></label>
+  <label>🔓 4. pethely ára (gyémánt)<input id="cfgPetSlot4Cost" type="number" min="1"></label>
+ </div>
+ <button id="saveEconomyConfig">💾 Váltópiac és pet árak mentése</button>
 </div>
 
 
