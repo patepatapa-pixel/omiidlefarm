@@ -27,7 +27,7 @@
   <button class="tab" data-tab="pets">🐾 Petek</button>
   <button class="tab" data-tab="dungeon">🏰 Dungeon</button>
   <button class="tab" data-tab="quests">📜 Küldetések</button>
-  <button class="tab" data-tab="stats">📊 Statisztika</button>
+  <button class="tab" data-tab="pvp">⚔️ PvP</button><button class="tab" data-tab="shop">💳 Feltöltés / Discord</button><button class="tab" data-tab="stats">📊 Statisztika</button>
 </nav>
 
 <main>
@@ -358,6 +358,41 @@
 </div>
 </section>
 
+
+<!-- PVP -->
+<section class="page" id="page-pvp">
+ <div class="layout">
+  <section class="card">
+   <div class="title-row"><div><h2>⚔️ Játékos párbaj</h2><small id="pvpRequirement">A párbaj szintkövetelménye betöltés alatt...</small></div><button id="refreshPvp">↻ Ellenfelek</button></div>
+   <div id="pvpOpponents" class="pvp-opponents"></div>
+  </section>
+  <aside class="card">
+   <h2>🏟️ Párbaj aréna</h2>
+   <div id="pvpArena" class="pvp-arena-empty">Válassz egy ellenfelet.</div>
+   <h3 style="margin-top:16px">📜 Legutóbbi párbajok</h3>
+   <div id="pvpHistory"></div>
+  </aside>
+ </div>
+</section>
+
+<!-- SHOP / DISCORD -->
+<section class="page" id="page-shop">
+ <div class="layout">
+  <section class="card">
+   <div class="title-row"><div><h2>💳 Arany és támogatói csomagok</h2><small>A vásárlás privát egyeztetéssel történik.</small></div></div>
+   <div class="shop-warning">⚠️ A weboldal nem kér és nem tárol bankkártyaadatot. Valódi fizetés és a játékbeli jóváírás privát egyeztetéssel történik.</div>
+   <div id="storeProducts" class="store-grid"></div>
+  </section>
+  <aside class="card discord-card">
+   <div class="discord-logo">💬</div>
+   <h2>Discord elérhetőség</h2>
+   <p>Vásárlás, segítség és privát egyeztetés:</p>
+   <strong>nervos11</strong>
+   <p class="muted">A vásárlási igényt a weboldalon is elküldheted, majd Discordon tudod velem egyeztetni.</p>
+  </aside>
+ </div>
+</section>
+
 <!-- STATS -->
 <section class="page" id="page-stats">
 <section class="card">
@@ -386,7 +421,7 @@
     <h2>👤 OMI IDLE FARM</h2>
     <p class="muted">Jelentkezz be, hogy a fejlődésed a szerveren legyen elmentve.</p>
     <div class="auth-tabs"><button class="auth-switch active" data-auth="login">Belépés</button><button class="auth-switch" data-auth="register">Regisztráció</button></div>
-    <input id="authUsername" placeholder="Felhasználónév" maxlength="24">
+    <input id="authUsername" placeholder="Felhasználónév (belépéshez)" maxlength="24"><input id="authPlayerName" class="register-only" placeholder="Játékosnév (ezt látják mások)" maxlength="24" style="display:none">
     <input id="authPassword" type="password" placeholder="Jelszó">
     <button id="authSubmit">Belépés</button>
     <div class="muted" id="authMsg"></div>

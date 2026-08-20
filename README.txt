@@ -100,3 +100,18 @@ V10 TELJES HARC / ADMIN FIX:
 - Normál mob HP regen külön állítható.
 - Játékos/mob támadási idő, boss sebzés, mob sebzés, respawn, boss reward, wave kill és boss HP growth adminból állítható.
 - Wave boss továbbra is blokkolja a továbbhaladást, amíg él.
+
+V11 SOCIAL / PVP / SHOP / CONTENT
+- Regisztrációnál külön belépési felhasználónév és külön játékosnév.
+- Ranglista és PvP a játékosnevet mutatja, nem a felhasználónevet.
+- Admin játékost elrejthet/visszatehet a ranglistára.
+- Admin játékosnevet módosíthat.
+- PvP külön fülön, adminból állítható minimum szint, jutalom, cooldown és rating.
+- PvP arénában mindkét karakter vizuálisan megjelenik HP csíkkal és animált harccal.
+- Discord / Feltöltés külön fül, nervos11 elérhetőséggel.
+- Valódi fizetési adatot a weboldal nem kezel; vásárlási igényt rögzít, az egyeztetés privát Discordon történik.
+- Admin vásárlási csomagokat hozhat létre és az igények státuszát kezelheti.
+- Boss készítő: név, ikon, HP, sebzés, XP, arany, regen %, drop %, minimum szint/terület.
+- Tárgy készítő: név, slot, rarity, ATK, DEF, arany/krit/drop bónusz.
+- Pet, aura és terület készítő bővítve.
+- Adminból létrehozott egyedi területek/petek/aurák/tárgyak/bossok játék közben betöltődnek.

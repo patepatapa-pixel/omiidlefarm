@@ -44,7 +44,13 @@ qs("#studioPlayer")?.addEventListener("change",fillSP);
 qs("#savePlayerStats")?.addEventListener("click",async()=>{let p=curSP(),s=structuredClone(p.save_data||{});Object.assign(s,{level:num("#admLevel"),paragonLevel:num("#admParagon"),prestigeLevel:num("#admPrestige"),gold:num("#admGold"),gems:num("#admGems"),ore:num("#admOre"),soul:num("#admSoul"),tickets:num("#admTickets"),skillPoints:num("#admSkillPoints"),paragonPoints:num("#admParagonPoints"),auraTokens:num("#admAuraTokens"),wave:num("#admWave"),kills:num("#admKills")});s.base={...(s.base||{}),luck:num("#admLuck")};await sa("/api/admin/player-save",{method:"POST",body:JSON.stringify({id:p.id,save:s})});p.save_data=s;fillSP();alert("✅ Mentve")});
 qs("#savePlayerJson")?.addEventListener("click",async()=>{try{let p=curSP(),s=JSON.parse(qs("#playerSaveJson").value);await sa("/api/admin/player-save",{method:"POST",body:JSON.stringify({id:p.id,save:s})});p.save_data=s;fillSP();alert("✅ Teljes mentés frissítve")}catch(e){alert("❌ "+e.message)}});
 qsa("[data-studio]").forEach(b=>b.onclick=()=>{qsa(".studio-page").forEach(x=>x.classList.remove("active"));qs("#studio-"+b.dataset.studio).classList.add("active")});
-const schemas={bosses:[["name","Név"],["icon","Ikon"],["hp","HP","number"],["damage","Sebzés","number"],["gold","Gold jutalom","number"],["xp","XP","number"]],items:[["name","Név"],["icon","Ikon"],["slot","Slot"],["rarity","Ritkaság"],["atk","Támadás","number"],["def","Védelem","number"]],pets:[["name","Név"],["icon","Ikon"],["rarity","Ritkaság"],["damageBonus","Sebzés %","number"],["dropBonus","Drop %","number"]],auras:[["name","Név"],["className","CSS class"],["prestigeNeed","Prestige kell","number"],["cost","Token ár","number"],["damageBonus","Sebzés %","number"]],zones:[["name","Név"],["enemy","Ellenfél"],["level","Minimum level","number"],["hp","HP","number"],["gold","Gold","number"],["xp","XP","number"]]};
+const schemas={
+ bosses:[["id","ID"],["name","Név"],["icon","Ikon"],["hp","HP","number"],["damage","Sebzés","number"],["xp","XP jutalom","number"],["gold","Arany jutalom","number"],["regenPct","HP regen %/mp","number"],["dropChance","Tárgy drop %","number"],["minLevel","Minimum szint","number"],["minZone","Minimum terület index","number"]],
+ items:[["id","ID"],["name","Név"],["icon","Ikon"],["slot","Slot: weapon/armor/helmet/gloves/boots/ring"],["rarity","normal/rare/epic/mythic/legendary"],["atk","Támadás","number"],["def","Védelem","number"],["goldBonus","Arany bónusz %","number"],["critBonus","Krit bónusz %","number"],["dropBonus","Drop bónusz %","number"],["minZone","Minimum terület index","number"]],
+ pets:[["id","ID"],["name","Név"],["icon","Ikon"],["rarity","Ritkaság"],["bonus","damage/gold/drop/crit/all"],["value","Bónusz %","number"]],
+ auras:[["id","ID"],["name","Név"],["className","CSS class"],["prestigeNeed","Prestige kell","number"],["cost","Aura token ár","number"]],
+ zones:[["id","ID"],["name","Név"],["icon","Ikon"],["enemy","Szörny neve"],["hp","Szörny HP","number"],["gold","Arany / kill","number"],["xp","XP / kill","number"],["need","Ajánlott erő","number"],["dropChance","Tárgy drop %","number"]]
+};
 function renderBuildersV8(){Object.entries(schemas).forEach(([type,fields])=>{let base=type.slice(0,-1),b=qs("#"+base+"Builder"),l=qs("#"+base+"List");b.innerHTML=`<div class="builder-form">${fields.map(([k,n,t="text"])=>`<label>${n}<input data-field="${k}" type="${t}"></label>`).join("")}</div>`;l.innerHTML=(studioConfig[type]||[]).map((x,i)=>`<div class="builder-entry"><b>${x.icon||"•"} ${x.name}</b><small>${Object.entries(x).map(([k,v])=>`${k}: ${v}`).join(" · ")}</small><button data-del="${type}" data-i="${i}">Törlés</button></div>`).join("")});qs("#contentJson").value=JSON.stringify(studioConfig,null,2);qsa("[data-del]").forEach(b=>b.onclick=async()=>{studioConfig[b.dataset.del].splice(+b.dataset.i,1);await saveConfigV8()})}
 async function saveConfigV8(){await sa("/api/admin/content-config",{method:"POST",body:JSON.stringify({config:studioConfig})});renderBuildersV8()}
 qsa("[data-add]").forEach(btn=>btn.onclick=async()=>{let type=btn.dataset.add,base=type.slice(0,-1),o={};qs("#"+base+"Builder").querySelectorAll("[data-field]").forEach(i=>o[i.dataset.field]=i.type==="number"?Number(i.value||0):i.value);if(!o.name)return alert("Adj nevet!");studioConfig[type].push(o);await saveConfigV8();alert("✅ Létrehozva")});
@@ -107,3 +113,51 @@ qs("#saveGameplayConfig")?.addEventListener("click",async()=>{
  }catch(e){alert("❌ "+e.message)}
 });
 setTimeout(fillV10Gameplay,1000);
+
+
+// ================= V11 ADMIN SOCIAL / SHOP =================
+function fillV11PlayerMeta(){
+ const p=curSP();if(!p)return;
+ if(qs("#admPlayerName"))qs("#admPlayerName").value=p.player_name||p.username||"";
+ const b=qs("#toggleLeaderboard");if(b)b.textContent=p.leaderboard_hidden?"🏆 Vissza a ranglistára":"🏆 Ranglistáról elrejtés";
+}
+const oldFillSP=fillSP;
+fillSP=function(){oldFillSP();fillV11PlayerMeta()};
+qs("#savePlayerProfile")?.addEventListener("click",async()=>{
+ const p=curSP();if(!p)return;
+ try{await sa(`/api/admin/player/${p.id}/profile`,{method:"POST",body:JSON.stringify({player_name:qs("#admPlayerName").value})});p.player_name=qs("#admPlayerName").value;alert("✅ Játékosnév mentve.")}catch(e){alert("❌ "+e.message)}
+});
+qs("#toggleLeaderboard")?.addEventListener("click",async()=>{
+ const p=curSP();if(!p)return;
+ const hidden=!Boolean(p.leaderboard_hidden);
+ try{await sa(`/api/admin/player/${p.id}/leaderboard`,{method:"POST",body:JSON.stringify({hidden})});p.leaderboard_hidden=hidden;fillV11PlayerMeta();alert(hidden?"✅ Játékos elrejtve a ranglistáról.":"✅ Játékos újra látszik a ranglistán.")}catch(e){alert("❌ "+e.message)}
+});
+
+function fillPvpAdmin(){
+ const p={minLevel:20,rewardGold:500,cooldownSec:10,ratingChange:18,...(studioConfig.pvp||{})};
+ [["#cfgPvpMinLevel","minLevel"],["#cfgPvpRewardGold","rewardGold"],["#cfgPvpCooldown","cooldownSec"],["#cfgPvpRating","ratingChange"]].forEach(([id,k])=>{if(qs(id))qs(id).value=p[k]});
+}
+qs("#savePvpConfig")?.addEventListener("click",async()=>{
+ studioConfig.pvp={minLevel:num("#cfgPvpMinLevel"),rewardGold:num("#cfgPvpRewardGold"),cooldownSec:num("#cfgPvpCooldown"),ratingChange:num("#cfgPvpRating")};
+ await saveConfigV8();fillPvpAdmin();alert("✅ PvP beállítások mentve.");
+});
+
+function renderShopAdmin(){
+ studioConfig.store={discord:"nervos11",products:[],...(studioConfig.store||{})};
+ qs("#shopProductList").innerHTML=(studioConfig.store.products||[]).map((p,i)=>`<div class="builder-entry"><b>${p.icon||"💰"} ${p.name}</b><small>${p.priceText||""} · ${p.description||""}</small><button data-shop-del="${i}">Törlés</button></div>`).join("");
+ qsa("[data-shop-del]").forEach(b=>b.onclick=async()=>{studioConfig.store.products.splice(Number(b.dataset.shopDel),1);await saveConfigV8();renderShopAdmin()});
+}
+qs("#addShopProduct")?.addEventListener("click",async()=>{
+ const p={id:qs("#shopProductId").value.trim()||"product_"+Date.now(),name:qs("#shopProductName").value.trim(),icon:qs("#shopProductIcon").value.trim()||"💰",priceText:qs("#shopProductPrice").value.trim(),description:qs("#shopProductDesc").value.trim()};
+ if(!p.name)return alert("Adj terméknevet!");
+ studioConfig.store={discord:"nervos11",products:[],...(studioConfig.store||{})};studioConfig.store.products.push(p);await saveConfigV8();renderShopAdmin();alert("✅ Csomag létrehozva.");
+});
+async function loadShopRequests(){
+ try{
+  const d=await sa("/api/admin/shop-requests");
+  qs("#shopRequests").innerHTML=d.rows.map(r=>`<div class="builder-entry"><b>${r.player_name} · ${r.product_name}</b><small>${r.price_text||""} · ${new Date(r.created_at).toLocaleString("hu-HU")} · státusz: ${r.status}</small><select data-request-status="${r.id}"><option>new</option><option>contacted</option><option>paid</option><option>delivered</option><option>cancelled</option></select></div>`).join("")||"<small>Nincs igény.</small>";
+  qsa("[data-request-status]").forEach(s=>{s.value=d.rows.find(x=>String(x.id)===s.dataset.requestStatus)?.status||"new";s.onchange=()=>sa(`/api/admin/shop-request/${s.dataset.requestStatus}/status`,{method:"POST",body:JSON.stringify({status:s.value})})});
+ }catch(e){console.error(e)}
+}
+qs("#refreshShopRequests")?.addEventListener("click",loadShopRequests);
+setTimeout(()=>{fillPvpAdmin();renderShopAdmin();loadShopRequests();fillV11PlayerMeta()},1300);

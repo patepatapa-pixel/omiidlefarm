@@ -490,7 +490,7 @@ function openAuth(mode="login"){
  authMode=mode;
  $("#authModal").classList.add("open");
  $$(".auth-switch").forEach(x=>x.classList.toggle("active",x.dataset.auth===mode));
- $("#authSubmit").textContent=mode==="login"?"Belépés":"Regisztráció";
+ $("#authSubmit").textContent=mode==="login"?"Belépés":"Regisztráció";if($("#authPlayerName"))$("#authPlayerName").style.display=mode==="register"?"block":"none";
  $("#authMsg").textContent="";
 }
 function closeAuth(){$("#authModal").classList.remove("open")}
@@ -504,7 +504,7 @@ async function loadMe(){
      enemyHp=ZONES[save.zone]?.hp||ZONES[0].hp;
    }
    cloudReady=true;
-   $("#onlineUser").innerHTML=`<span class="online-badge">●</span> ${currentUser.username}`;
+   $("#onlineUser").innerHTML=`<span class="online-badge">●</span> ${currentUser.player_name||currentUser.username}`;
    $("#authBtn").textContent="Kilépés";
    
    renderAll();
@@ -537,7 +537,7 @@ async function loadLeaderboard(){
  try{
   const d=await api("/api/leaderboard");
   $("#leaderboard").innerHTML=`<div class="leader-row head"><span>HELY</span><span>JÁTÉKOS</span><span>ERŐ</span><span>SZINT</span><span>KILL</span></div>`+
-   d.rows.map(r=>`<div class="leader-row"><span class="leader-rank">${r.rank<=3?["🥇","🥈","🥉"][r.rank-1]:"#"+r.rank}</span><span class="leader-name">${r.username}</span><span>${fmt(r.power)}</span><span>Lv.${r.level}</span><span>${fmt(r.kills)}</span></div>`).join("");
+   d.rows.map(r=>`<div class="leader-row"><span class="leader-rank">${r.rank<=3?["🥇","🥈","🥉"][r.rank-1]:"#"+r.rank}</span><span class="leader-name">${r.player_name||r.username}</span><span>${fmt(r.power)}</span><span>Lv.${r.level}</span><span>${fmt(r.kills)}</span></div>`).join("");
  }catch(e){$("#leaderboard").innerHTML=`<p class="muted">${e.message}</p>`}
 }
 $("#adminPanelBtn").onclick=()=>location.href="/admin";
@@ -547,10 +547,10 @@ $("#authModal").onclick=e=>{if(e.target.id==="authModal")closeAuth()};
 $$(".auth-switch").forEach(b=>b.onclick=()=>openAuth(b.dataset.auth));
 $("#authSubmit").onclick=async()=>{
  try{
-   const username=$("#authUsername").value.trim(),password=$("#authPassword").value;
-   const d=await api(authMode==="login"?"/api/login":"/api/register",{method:"POST",body:JSON.stringify({username,password})});
+   const username=$("#authUsername").value.trim(),password=$("#authPassword").value,player_name=$("#authPlayerName")?.value.trim()||"";
+   const d=await api(authMode==="login"?"/api/login":"/api/register",{method:"POST",body:JSON.stringify({username,password,player_name})});
    currentUser=d.user;save=normalizeV6Save(d.save||save);cloudReady=true;closeAuth();enemyHp=ZONES[save.zone]?.hp||ZONES[0].hp;renderAll();
-   $("#onlineUser").innerHTML=`<span class="online-badge">●</span> ${currentUser.username}`;$("#authBtn").textContent="Kilépés";toast("✅ Sikeres "+(authMode==="login"?"belépés":"regisztráció"));
+   $("#onlineUser").innerHTML=`<span class="online-badge">●</span> ${currentUser.player_name||currentUser.username}`;$("#authBtn").textContent="Kilépés";toast("✅ Sikeres "+(authMode==="login"?"belépés":"regisztráció"));
  }catch(e){$("#authMsg").textContent="❌ "+e.message}
 };
 $("#leaderboardBtn").onclick=()=>{$$(".tab").forEach(x=>x.classList.remove("active"));$$(".page").forEach(x=>x.classList.remove("active"));$("#page-leaderboard").classList.add("active");loadLeaderboard()};
@@ -758,3 +758,185 @@ async function v10LoadGameplay(){
  v10RestartTimers();v10Render();
 }
 setTimeout(v10LoadGameplay,700);
+
+
+// ================= V11 PVP / SHOP / DYNAMIC CONTENT =================
+let V11_CONTENT={bosses:[],items:[],pets:[],auras:[],zones:[],store:{discord:"nervos11",products:[]},pvp:{minLevel:20,rewardGold:500,cooldownSec:10,ratingChange:18}};
+
+function v11ApplyContent(){
+ const c=V11_CONTENT;
+ // Custom zones
+ (c.zones||[]).forEach((z,i)=>{
+   if(ZONES.some(x=>x._customId===z.id||x.name===z.name))return;
+   ZONES.push({
+    _customId:z.id||`custom-zone-${i}`,name:z.name||"Új terület",icon:z.icon||"🗺️",
+    enemy:z.enemy||"Szörny",hp:Math.max(1,Number(z.hp||1000)),gold:Math.max(0,Number(z.gold||100)),
+    xp:Math.max(0,Number(z.xp||20)),need:Math.max(1,Number(z.need||z.minPower||1)),
+    drop:Math.max(0,Number(z.dropChance??z.drop??10))/100
+   });
+ });
+ // Custom pets
+ (c.pets||[]).forEach((p,i)=>{
+   if(PET_POOL.some(x=>x._customId===p.id||x.name===p.name))return;
+   PET_POOL.push({_customId:p.id||`pet-${i}`,name:p.name||"Pet",icon:p.icon||"🐾",bonus:p.bonus||"damage",value:Number(p.value??p.damageBonus??5)/100,rarity:p.rarity||"rare"});
+ });
+ // Custom auras
+ if(typeof AURAS!=="undefined"){
+  (c.auras||[]).forEach((a,i)=>{
+   if(AURAS.some(x=>x._customId===a.id||x.name===a.name))return;
+   AURAS.push({_customId:a.id||`aura-${i}`,id:a.id||`customAura${i}`,name:a.name||"Aura",className:a.className||"aura-gold",cost:Number(a.cost||1),need:Number(a.prestigeNeed||0)});
+  });
+ }
+ renderAll();
+}
+function v11CustomItem(){
+ const arr=(V11_CONTENT.items||[]).filter(x=>Number(x.minZone||0)<=save.zone);
+ if(!arr.length)return null;
+ const x=arr[Math.floor(Math.random()*arr.length)];
+ return {id:save.uid++,slot:x.slot||"weapon",rarity:x.rarity||"rare",name:x.name||"Egyedi tárgy",plus:0,
+   atk:Number(x.atk||0),def:Number(x.def||0),gold:Number(x.goldBonus||0)/100,crit:Number(x.critBonus||0)/100,drop:Number(x.dropBonus||0)/100};
+}
+const v11OriginalCreateItem=createItem;
+createItem=function(){
+ if((V11_CONTENT.items||[]).length && Math.random()<.35){
+   const it=v11CustomItem();if(it)return it;
+ }
+ return v11OriginalCreateItem();
+};
+
+function v11Boss(){
+ const arr=(V11_CONTENT.bosses||[]).filter(x=>Number(x.minLevel||1)<=save.level && Number(x.minZone||0)<=save.zone);
+ if(!arr.length)return null;
+ return arr[(save.wave-1)%arr.length];
+}
+const v11BaseBossMax=v10BossMaxHp;
+v10BossMaxHp=function(){
+ const b=v11Boss();
+ if(!b)return v11BaseBossMax();
+ const growth=1+(save.wave-1)*(V10CFG.bossHpGrowthPct/100);
+ return Math.max(1,Math.floor(Number(b.hp||1000)*growth));
+};
+const v11BaseRawDamage=v10RawEnemyDamage;
+v10RawEnemyDamage=function(){
+ const b=save.waveBoss?v11Boss():null;
+ if(!b)return v11BaseRawDamage();
+ let raw=Number(b.damage||10)*V10CFG.bossDamageMult;
+ return Math.max(1,Math.floor(raw));
+};
+const v11BaseAwardBoss=v10AwardBossKill;
+v10AwardBossKill=function(){
+ const b=v11Boss();
+ if(!b)return v11BaseAwardBoss();
+ const reward=Math.floor(Number(b.gold||0)*goldBonus()*V10CFG.bossRewardMult);
+ save.gold+=reward;save.stats.goldEarned+=reward;
+ save.xp+=Number(b.xp||0);save.gems+=Number(b.gems||0);save.soul+=Number(b.soul||0);save.stats.bosses++;
+ while(save.xp>=needXp()){save.xp-=needXp();save.level++;save.skillPoints++}
+ if(Math.random()<(Number(b.dropChance||80)/100))addItem(createItem());
+ const old=save.wave;save.waveBoss=false;save.wave++;save.waveKills=0;save.waveGoal=Math.max(1,Math.floor(V10CFG.waveKills+Math.floor(save.wave/5)*2));save.bossHp=0;enemyHp=ZONES[save.zone].hp;
+ $("#combatLog").textContent=`🏆 ${b.name||"Boss"} legyőzve! +${fmt(reward)} arany · +${fmt(Number(b.xp||0))} XP · Wave ${save.wave}`;
+ toast(`🏆 ${b.name||"Boss"} legyőzve!`);persist();
+};
+const v11BaseRegen=v10Regen;
+v10Regen=function(){
+ if(save.waveBoss){
+   const b=v11Boss(),old=V10CFG.bossRegenPct;
+   if(b && b.regenPct!==undefined)V10CFG.bossRegenPct=Number(b.regenPct);
+   v11BaseRegen();
+   V10CFG.bossRegenPct=old;
+ }else v11BaseRegen();
+};
+const v11BaseRender=v10Render;
+v10Render=function(){
+ v11BaseRender();
+ if(save.waveBoss){
+   const b=v11Boss();
+   if(b){
+    if($("#enemyName"))$("#enemyName").textContent=b.name||"Boss";
+    if($("#enemyIcon"))$("#enemyIcon").textContent=b.icon||"👹";
+    if($("#enemyRegenText"))$("#enemyRegenText").textContent=`💚 Regen ${b.regenPct??V10CFG.bossRegenPct}%/mp`;
+   }
+ }
+};
+
+async function v11LoadContent(){
+ try{
+  const d=await api("/api/content-config");
+  V11_CONTENT={...V11_CONTENT,...(d.config||{}),store:{...V11_CONTENT.store,...(d.config?.store||{})},pvp:{...V11_CONTENT.pvp,...(d.config?.pvp||{})}};
+  v11ApplyContent();renderStore();
+ }catch(e){console.warn("V11 content",e)}
+}
+
+// PvP
+async function loadPvp(){
+ if(!currentUser){$("#pvpOpponents").innerHTML='<p class="muted">Jelentkezz be a PvP használatához.</p>';return}
+ try{
+  const d=await api("/api/pvp/opponents");
+  $("#pvpRequirement").textContent=`PvP minimum szint: ${d.minLevel}`;
+  if(d.locked){$("#pvpOpponents").innerHTML=`<div class="shop-warning">🔒 A PvP ${d.minLevel}. szinttől érhető el.</div>`;return}
+  $("#pvpOpponents").innerHTML=d.rows.length?d.rows.map(x=>`
+   <div class="pvp-player-card">
+    <div class="mini-avatar">${pvpAvatarHtml(x)}</div>
+    <div><b>${x.player_name}</b><small>Lv.${x.level} · Erő ${fmt(x.power)} · Rating ${x.pvp_rating}</small></div>
+    <button data-pvp="${x.id}" data-pvp-name="${x.player_name}">⚔️ Párbaj</button>
+   </div>`).join(""):'<p class="muted">Nincs elérhető ellenfél.</p>';
+  $$("[data-pvp]").forEach(b=>b.onclick=()=>startPvp(Number(b.dataset.pvp),b.dataset.pvpName));
+  loadPvpHistory();
+ }catch(e){$("#pvpOpponents").innerHTML=`<p>${e.message}</p>`}
+}
+function pvpAvatarHtml(x){
+ const inv=x.avatar?.inventory||[],eq=x.avatar?.equipped||{};
+ const w=inv.find(i=>i.id===eq.weapon),a=inv.find(i=>i.id===eq.armor),h=inv.find(i=>i.id===eq.helmet);
+ return `<div class="mini-head">${h?"🧙":"🙂"}</div><div class="mini-body ${a?"equipped":""}"></div><div class="mini-weapon">${w?"⚔️":""}</div>`;
+}
+async function startPvp(id,name){
+ try{
+  $("#pvpArena").innerHTML=`<div class="pvp-loading">⚔️ Párbaj indul ${name} ellen...</div>`;
+  const d=await api("/api/pvp/fight",{method:"POST",body:JSON.stringify({defender_id:id})});
+  animatePvp(d.battle);
+ }catch(e){$("#pvpArena").innerHTML=`<div class="shop-warning">❌ ${e.message}</div>`}
+}
+function animatePvp(b){
+ const me=b.a.id===currentUser.id?b.a:b.b,op=b.a.id===currentUser.id?b.b:b.a;
+ const winner=b.winnerId===currentUser.id;
+ $("#pvpArena").innerHTML=`
+ <div class="pvp-stage">
+  <div class="duelist"><div class="duel-avatar">🧙<span>⚔️</span></div><b>${me.name}</b><div class="duel-hp"><i id="duelMyHp"></i></div><small id="duelMyText">${fmt(me.hp)} HP</small></div>
+  <div class="versus">VS</div>
+  <div class="duelist"><div class="duel-avatar enemy-avatar">🧙<span>🛡️</span></div><b>${op.name}</b><div class="duel-hp"><i id="duelOpHp"></i></div><small id="duelOpText">${fmt(op.hp)} HP</small></div>
+ </div><div class="pvp-result" id="pvpResult">Harc...</div>`;
+ let i=0,myHp=me.hp,opHp=op.hp;
+ const log=b.log||[];
+ const t=setInterval(()=>{
+   if(i>=log.length){clearInterval(t);$("#pvpResult").innerHTML=winner?`🏆 GYŐZELEM! +${fmt(b.rewardGold)} arany`:"💀 Vereség";loadPvp();return}
+   const e=log[i++],fromMe=(e.from==="a"&&b.a.id===me.id)||(e.from==="b"&&b.b.id===me.id);
+   if(fromMe)opHp=Math.max(0,opHp-e.damage);else myHp=Math.max(0,myHp-e.damage);
+   $("#duelMyHp").style.width=(myHp/me.hp*100)+"%";$("#duelOpHp").style.width=(opHp/op.hp*100)+"%";
+   $("#duelMyText").textContent=fmt(myHp)+" HP";$("#duelOpText").textContent=fmt(opHp)+" HP";
+   $("#pvpResult").textContent=`${fromMe?me.name:op.name}: ${e.crit?"KRIT ":""}-${fmt(e.damage)}`;
+ },180);
+}
+async function loadPvpHistory(){
+ try{const d=await api("/api/pvp/history");$("#pvpHistory").innerHTML=d.rows.map(x=>`<div class="pvp-history-row"><span>${x.challenger} ⚔️ ${x.defender}</span><small>${x.winner_id===currentUser.id?"🏆 Győzelem":""}</small></div>`).join("")||'<small>Nincs párbaj.</small>'}catch{}
+}
+$("#refreshPvp")?.addEventListener("click",loadPvp);
+
+// Shop
+function renderStore(){
+ const s=V11_CONTENT.store||{},products=s.products||[];
+ $("#storeProducts").innerHTML=products.length?products.map((p,i)=>`
+  <div class="store-product">
+   <div class="store-icon">${p.icon||"💰"}</div><h3>${p.name||"Csomag"}</h3>
+   <p>${p.description||""}</p><strong>${p.priceText||"Privát ár"}</strong>
+   <button data-buy-product="${p.id||i}">💬 Vásárlási igény</button>
+  </div>`).join(""):'<p class="muted">Jelenleg nincs beállított vásárlási csomag. Discord: nervos11</p>';
+ $$("[data-buy-product]").forEach(b=>b.onclick=async()=>{
+   if(!currentUser)return openAuth("login");
+   try{const d=await api("/api/shop/request",{method:"POST",body:JSON.stringify({product_id:String(b.dataset.buyProduct),note:"Weboldalról küldött igény"})});alert(d.message)}catch(e){alert(e.message)}
+ });
+}
+setTimeout(v11LoadContent,1000);
+
+document.addEventListener("click",e=>{
+ const t=e.target.closest('[data-tab="pvp"]');if(t)setTimeout(loadPvp,50);
+ const s=e.target.closest('[data-tab="shop"]');if(s)setTimeout(renderStore,50);
+});
