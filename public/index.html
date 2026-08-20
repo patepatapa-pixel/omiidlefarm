@@ -10,7 +10,7 @@
 <header class="topbar">
   <div class="brand"><span>⚔️ OMI</span> IDLE FARM <em>COMPLETE</em></div>
   <div class="top-actions">
-    <span class="build-version" id="buildVersionBadge">V16.1</span><span id="onlineUser">👤 Vendég</span>
+    <span class="build-version" id="buildVersionBadge">V16.4</span><span id="onlineUser">👤 Vendég</span>
     <button class="ghost" id="leaderboardBtn">🏆 Ranglista</button>
     <button class="ghost admin-only-btn" id="adminPanelBtn" style="display:none">⚙️ Adminpanel</button><button class="ghost" id="authBtn">Belépés</button>
     <span id="saveState">💾 Mentve</span>
@@ -223,7 +223,19 @@
   </section>
 </section>
 
+
 <section class="page" id="page-farm">
+  <section class="card combat-speed-panel-v163">
+    <div class="combat-speed-head"><div><h3>⚡ Harci / Wave sebesség</h3><small>A karaktered egyéni sebessége.</small></div><b id="combatSpeedState">Aktív: 1×</b></div>
+    <div class="combat-speed-buttons">
+      <button class="combat-speed-btn active" data-speed="1">1×</button>
+      <button class="combat-speed-btn" data-speed="2">⚡ 2×</button>
+      <button class="combat-speed-btn" data-speed="3">⚡ 3×</button>
+      <button class="combat-speed-btn locked" data-speed="4">🔒 4×</button>
+    </div>
+    <small class="speed-note">A 2× és 3× minden játékosnak elérhető. A 4× prémium és a Feltöltés / Discord fülön aktiválható.</small>
+  </section>
+
 <div class="layout">
   <div class="stack">
     <section class="card battle-card">
@@ -295,7 +307,23 @@
 </section>
 
 <!-- INVENTORY -->
+
 <section class="page" id="page-inventory">
+  <section class="card inventory-tools-v163">
+    <div class="inventory-tools-head">
+      <div><h2>⚔️ Felszerelés kezelés</h2><small>Egy kattintással legjobb felszerelés, tömeges törlés vagy eladás.</small></div>
+      <button id="equipBestV163" class="gold-btn">⚡ EQUIP BEST</button>
+    </div>
+    <div class="bulk-rarity-grid">
+      <div class="bulk-rarity normal"><b>Common / Normal</b><button data-bulk-delete="normal">🗑️ Törlés</button><button data-bulk-sell="normal">💰 Eladás</button></div>
+      <div class="bulk-rarity rare"><b>Rare</b><button data-bulk-delete="rare">🗑️ Törlés</button><button data-bulk-sell="rare">💰 Eladás</button></div>
+      <div class="bulk-rarity epic"><b>Epic</b><button data-bulk-delete="epic">🗑️ Törlés</button><button data-bulk-sell="epic">💰 Eladás</button></div>
+      <div class="bulk-rarity mythic"><b>Mythic</b><button data-bulk-delete="mythic">🗑️ Törlés</button><button data-bulk-sell="mythic">💰 Eladás</button></div>
+      <div class="bulk-rarity legendary"><b>Legendary</b><button data-bulk-delete="legendary">🗑️ Törlés</button><button data-bulk-sell="legendary">💰 Eladás</button></div>
+    </div>
+    <small class="bulk-note">A felszerelt tárgyakat a rendszer soha nem törli és nem adja el tömeges művelettel.</small>
+  </section>
+
   <section class="card">
     <div class="title-row"><div><h2>🎒 Inventory</h2><small>Maximum 120 tárgy</small></div>
       <div class="inventory-actions"><button id="sellNormal">Normál eladása</button><button id="sortInventory">Rendezés</button></div>

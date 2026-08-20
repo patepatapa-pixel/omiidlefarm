@@ -345,6 +345,64 @@ function renderEquipped(){
 }
 function itemSummary(it){let st=itemStats(it),a=[];if(st.atk)a.push("ATK "+fmt(st.atk));if(st.def)a.push("DEF "+fmt(st.def));if(st.gold)a.push("Arany +"+(st.gold*100).toFixed(1)+"%");if(st.crit)a.push("Krit +"+(st.crit*100).toFixed(1)+"%");if(st.drop)a.push("Drop +"+(st.drop*100).toFixed(1)+"%");return a.join(" · ")}
 function renderBonuses(){let b=bonuses(),p=petObj();$("#activeBonuses").innerHTML=`<div><span>⚔️ Felszerelés ATK</span><b>${fmt(b.atk)}</b></div><div><span>💰 Arany bónusz</span><b>+${((goldBonus()-1)*100).toFixed(1)}%</b></div><div><span>🎯 Krit</span><b>${(critChance()*100).toFixed(1)}%</b></div><div><span>🎁 Drop</span><b>+${(dropBonus()*100).toFixed(1)}%</b></div><div><span>🐾 Aktív pet</span><b>${p?p.icon+" "+p.name:"Nincs"}</b></div>`}
+
+function itemPowerScore(it){
+ if(!it)return -1;
+ ensureItemOptions(it);
+ const st=itemStats(it);
+ let score=
+   Number(st.atk||0)*5+
+   Number(st.def||0)*4+
+   Number(st.crit||0)*1000+
+   Number(st.gold||0)*450+
+   Number(st.drop||0)*700+
+   Number(it.plus||0)*30;
+
+ const rarityScore={normal:0,rare:80,epic:180,mythic:320,legendary:520}[it.rarity]||0;
+ score+=rarityScore;
+
+ const optWeight={atkPct:35,hpPct:22,defPct:25,crit:42,gold:15,drop:24,hpRegen:35,bossDmg:26,pvpDmg:20};
+ (it.options||[]).forEach(o=>score+=Number(o.value||0)*(optWeight[o.key]||10));
+ return score;
+}
+function equipBestItems(){
+ const slots=Object.keys(SLOT_NAMES);
+ let changed=0;
+ slots.forEach(slot=>{
+   const candidates=save.inventory.filter(it=>it.slot===slot);
+   if(!candidates.length)return;
+   candidates.sort((a,b)=>itemPowerScore(b)-itemPowerScore(a));
+   const best=candidates[0],current=equipObj(slot);
+   if(!current||itemPowerScore(best)>itemPowerScore(current)){
+     save.equipped[slot]=best.id;changed++;
+   }
+ });
+ persist();renderAll();
+ toast(changed?`⚔️ ${changed} sloton felraktam a legerősebb tárgyat.`:"✅ Már a legjobb felszerelések vannak rajtad.");
+}
+function deleteInventoryByRarity(rarity){
+ const equipped=new Set(Object.values(save.equipped));
+ const matches=save.inventory.filter(it=>it.rarity===rarity&&!equipped.has(it.id));
+ if(!matches.length)return toast(`Nincs törölhető ${rarityName(rarity)} tárgy.`);
+ if(!confirm(`Biztosan törlöd az összes NEM felszerelt ${rarityName(rarity)} tárgyat?\n\n${matches.length} db tárgy törlődik.`))return;
+ const ids=new Set(matches.map(x=>x.id));
+ save.inventory=save.inventory.filter(it=>!ids.has(it.id));
+ persist();renderAll();
+ toast(`🗑️ ${matches.length} db ${rarityName(rarity)} tárgy törölve.`);
+}
+function sellInventoryByRarity(rarity){
+ const equipped=new Set(Object.values(save.equipped));
+ const matches=save.inventory.filter(it=>it.rarity===rarity&&!equipped.has(it.id));
+ if(!matches.length)return toast(`Nincs eladható ${rarityName(rarity)} tárgy.`);
+ const total=matches.reduce((s,it)=>s+sellValue(it),0);
+ if(!confirm(`Eladod az összes NEM felszerelt ${rarityName(rarity)} tárgyat?\n\n${matches.length} db · ${fmt(total)} arany`))return;
+ const ids=new Set(matches.map(x=>x.id));
+ save.inventory=save.inventory.filter(it=>!ids.has(it.id));
+ save.gold+=total;
+ persist();renderAll();
+ toast(`💰 ${matches.length} db tárgy eladva · +${fmt(total)} arany`);
+}
+
 function renderInventory(){
  $("#inventory").innerHTML=save.inventory.length?save.inventory.map(it=>{
    ensureItemOptions(it);
@@ -577,7 +635,10 @@ function renderVisibleHeroEquipment(){
      if(it){
        const plus=Math.max(0,Math.min(15,Number(it.plus||0)));
        el.title=`${it.name} +${plus}`;
-       el.dataset.rarity=it.rarity||"normal";
+       el.dataset.rarity=["normal","rare","epic","mythic","legendary"].includes(it.rarity)?it.rarity:"normal";
+     }else{
+       delete el.dataset.rarity;
+       el.removeAttribute("title");
      }
    });
    if(it){
@@ -625,8 +686,13 @@ function renderV15ExactCharacter(){
      }else el.textContent="Üres";
    }
    if(box){
-     box.classList.remove("rarity-normal","rarity-rare","rarity-epic","rarity-mythic","rarity-legendary");
-     if(it)box.classList.add("rarity-"+it.rarity);
+     box.classList.remove("rarity-empty","rarity-normal","rarity-rare","rarity-epic","rarity-mythic","rarity-legendary");
+     if(it){
+       const rarity=["normal","rare","epic","mythic","legendary"].includes(it.rarity)?it.rarity:"normal";
+       box.classList.add("rarity-"+rarity);
+     }else{
+       box.classList.add("rarity-empty");
+     }
    }
  });
 
@@ -849,6 +915,13 @@ $("#landingLoginBtn")?.addEventListener("click",landingLogin);
 $("#landingPassword")?.addEventListener("keydown",e=>{if(e.key==="Enter")landingLogin()});
 $("#landingUsername")?.addEventListener("keydown",e=>{if(e.key==="Enter")$("#landingPassword")?.focus()});
 $("#landingRegisterBtn")?.addEventListener("click",()=>openAuth("register"));
+
+
+document.addEventListener("click",e=>{
+ const eb=e.target.closest?.("#equipBestV163");if(eb){e.preventDefault();equipBestItems();return}
+ const d=e.target.closest?.("[data-bulk-delete]");if(d){e.preventDefault();deleteInventoryByRarity(d.dataset.bulkDelete);return}
+ const s=e.target.closest?.("[data-bulk-sell]");if(s){e.preventDefault();sellInventoryByRarity(s.dataset.bulkSell);return}
+});
 
 setAuthenticatedUI(null);loadMe();
 // V10 combat timers are started after gameplay config loads;
@@ -1092,8 +1165,8 @@ function v10RestartTimers(){
  if(v10PlayerTimer)clearInterval(v10PlayerTimer);
  if(v10EnemyTimer)clearInterval(v10EnemyTimer);
  if(v10RegenTimer)clearInterval(v10RegenTimer);
- v10PlayerTimer=setInterval(v10PlayerAttack,Math.max(200,V10CFG.playerAttackSec*1000));
- v10EnemyTimer=setInterval(v10EnemyAttack,Math.max(200,V10CFG.enemyAttackSec*1000));
+ v10PlayerTimer=setInterval(v10PlayerAttack,Math.max(120,(V10CFG.playerAttackSec*1000)/Math.max(1,Number(save.combatSpeed||1))));
+ v10EnemyTimer=setInterval(v10EnemyAttack,Math.max(120,(V10CFG.enemyAttackSec*1000)/Math.max(1,Number(save.combatSpeed||1))));
  v10RegenTimer=setInterval(v10Regen,1000);
 }
 async function v10LoadGameplay(){

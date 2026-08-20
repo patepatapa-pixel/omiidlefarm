@@ -150,3 +150,7 @@ V15.8: Javítva a 'Cannot access V10CFG before initialization' belépési hiba. 
 V16.1: élő gold/wave/XP kijelzés frissítés nélkül; kezdő mob sebzésvédelem; halálkor azonnali MAX HP + respawn védelem.
 
 V16.2: játékosonként 1x/2x/3x/4x harci és wave sebesség. 4x prémium, 3 EUR, Feltöltés/Discord oldalon megjelenítve; entitlement mentésben speed4Unlocked.
+
+V16.3: Equip Best; tömeges rarity törlés/eladás; speed panel biztosan Farm fülön; 2x/3x/4x ténylegesen gyorsítja a player/enemy combat timereket.
+
+V16.4: karakter gear ikonok újraigazítva; ritkaság szerinti helyes keretek: Normal szürke, Rare kék, Epic magenta, Mythic lila, Legendary arany/sárga.
