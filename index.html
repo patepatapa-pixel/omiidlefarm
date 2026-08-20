@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OMI Idle Farm — Complete</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span>⚔️ OMI</span> IDLE FARM <em>COMPLETE</em></div>
+  <div class="top-actions">
+    <span id="onlineUser">👤 Vendég</span>
+    <button class="ghost" id="leaderboardBtn">🏆 Ranglista</button>
+    <button class="ghost admin-only-btn" id="adminPanelBtn">⚙️ Adminpanel</button><button class="ghost" id="authBtn">Belépés</button>
+    <span id="saveState">💾 Mentve</span>
+    <button class="ghost" id="exportBtn">Export</button>
+    <button class="ghost" id="importBtn">Import</button>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" data-tab="character">🧙 Karakter</button><button class="tab" data-tab="farm">⚔️ Farm</button>
+  <button class="tab" data-tab="inventory">🎒 Inventory</button>
+  <button class="tab" data-tab="upgrade">🔨 Fejlesztés</button>
+  <button class="tab" data-tab="skills">✨ Képességek</button>
+  <button class="tab" data-tab="pets">🐾 Petek</button>
+  <button class="tab" data-tab="dungeon">🏰 Dungeon</button>
+  <button class="tab" data-tab="quests">📜 Küldetések</button>
+  <button class="tab" data-tab="pvp">⚔️ PvP</button><button class="tab" data-tab="shop">💳 Feltöltés / Discord</button><button class="tab" data-tab="stats">📊 Statisztika</button>
+</nav>
+
+<main>
+<section class="hero card">
+  <div>
+    <div class="eyebrow">AUTOMATA FARM RPG</div>
+    <h1>Farmolj automatikusan, építs egyre erősebb karaktert.</h1>
+    <p>A karaktered magától harcol. Te döntöd el, mit fejlesztesz, mit szerelsz fel, melyik petet használod és melyik területet farmolod.</p>
+  </div>
+  <div class="hero-power"><small>ÖSSZERŐ</small><strong id="power">0</strong><span id="rankName">Kezdő</span></div>
+</section>
+
+<section class="resource-grid">
+  <div class="resource card"><span>💰 Arany</span><strong id="gold">0</strong><small id="gps">0 / mp</small></div>
+  <div class="resource card"><span>💎 Kristály</span><strong id="gems">0</strong><small>ritka valuta</small></div>
+  <div class="resource card"><span>⛏️ Érc</span><strong id="ore">0</strong><small>fejlesztéshez</small></div>
+  <div class="resource card"><span>🧿 Lélekkő</span><strong id="soul">0</strong><small>ritka fejlesztés</small></div>
+  <div class="resource card"><span>🎫 Dungeon jegy</span><strong id="tickets">0</strong><small>bossokhoz</small></div>
+  <div class="resource card"><span>⭐ Szint</span><strong id="level">1</strong><small id="xpText">0 / 100 XP</small></div>
+</section>
+
+<!-- FARM -->
+
+<section class="page active" id="page-character">
+<div class="character-page-grid">
+<section class="card hero-character-card">
+  <div class="title-row">
+    <div><div class="eyebrow">SAJÁT HŐSÖD</div><h2 style="font-size:22px;margin:5px 0">🧙 Karakter</h2><small>A felszerelt tárgyak, aura és pet vizuálisan is megjelennek.</small></div>
+    <div class="character-power-badge"><small>ÖSSZERŐ</small><b id="v5CharPower">0</b><span id="v5CharRank">Kezdő</span></div>
+  </div>
+  <div class="v5-character-scene">
+    <div class="v5-scene-bg" id="v5SceneBg"></div>
+    <div class="v5-aura" id="v5Aura"></div>
+
+    <div class="v5-slot v5-slot-head"><span>🪖</span><small>SISAK</small><b id="v5Helmet">Üres</b></div>
+    <div class="v5-slot v5-slot-weapon"><span>⚔️</span><small>FEGYVER</small><b id="v5Weapon">Üres</b></div>
+    <div class="v5-slot v5-slot-armor"><span>🛡️</span><small>PÁNCÉL</small><b id="v5Armor">Üres</b></div>
+    <div class="v5-slot v5-slot-gloves"><span>🧤</span><small>KESZTYŰ</small><b id="v5Gloves">Üres</b></div>
+    <div class="v5-slot v5-slot-boots"><span>🥾</span><small>CSIZMA</small><b id="v5Boots">Üres</b></div>
+    <div class="v5-slot v5-slot-ring"><span>💍</span><small>GYŰRŰ</small><b id="v5Ring">Üres</b></div>
+
+    
+<div class="v5-hero">
+  <div class="v5-hero-shadow"></div>
+
+  <svg class="hero-svg dark-warrior-svg" viewBox="0 0 300 470" aria-label="Sötét fantasy harcos">
+    <defs>
+      <linearGradient id="metalG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#59606d"/><stop offset=".32" stop-color="#1d2028"/><stop offset=".7" stop-color="#08090d"/><stop offset="1" stop-color="#29202d"/></linearGradient>
+      <linearGradient id="clothG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#381148"/><stop offset=".5" stop-color="#17091f"/><stop offset="1" stop-color="#050508"/></linearGradient>
+      <linearGradient id="goldG"><stop offset="0" stop-color="#ffe084"/><stop offset=".45" stop-color="#b98019"/><stop offset="1" stop-color="#5a3407"/></linearGradient>
+      <radialGradient id="voidG"><stop offset="0" stop-color="#9d38ff"/><stop offset=".35" stop-color="#42116d"/><stop offset="1" stop-color="#050208"/></radialGradient>
+      <filter id="heroShadow"><feDropShadow dx="0" dy="10" stdDeviation="8" flood-opacity=".9"/></filter>
+      <filter id="purpleGlow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    </defs>
+    <g filter="url(#heroShadow)">
+      <!-- spectral aura -->
+      <path d="M57 355 Q18 278 59 199 Q35 122 108 92 Q148 45 194 91 Q270 128 239 207 Q281 286 226 370 Q174 422 82 389Z" fill="url(#voidG)" opacity=".24" filter="url(#purpleGlow)"/>
+      <!-- tattered cloak -->
+      <path id="svgCloak" d="M73 159 Q150 113 227 159 L253 342 L218 326 L201 376 L174 348 L149 394 L123 348 L91 377 L78 329 L46 346Z" fill="#0b0710" stroke="#48235d" stroke-width="5"/>
+      <!-- armored legs -->
+      <path d="M101 300 L145 300 L138 432 L84 432 L91 366Z" fill="url(#metalG)" stroke="#4b4055" stroke-width="5"/>
+      <path d="M155 300 L199 300 L216 432 L162 432 Z" fill="url(#metalG)" stroke="#4b4055" stroke-width="5"/>
+      <path id="svgBootL" d="M82 410 L141 410 L143 454 L67 454 Q67 429 82 410Z" fill="#101218" stroke="#7040a0" stroke-width="5"/>
+      <path id="svgBootR" d="M159 410 L218 410 Q235 431 232 454 L157 454Z" fill="#101218" stroke="#7040a0" stroke-width="5"/>
+      <!-- torso -->
+      <path id="svgArmor" d="M91 151 L119 128 L150 142 L181 128 L209 151 L220 286 Q150 321 80 286Z" fill="url(#metalG)" stroke="#786187" stroke-width="5"/>
+      <path d="M112 163 L150 150 L188 163 L180 267 L150 287 L120 267Z" fill="url(#clothG)" stroke="#522a63" stroke-width="3"/>
+      <path d="M150 158 L168 205 L150 249 L132 205Z" fill="#7c27ba" opacity=".7" filter="url(#purpleGlow)"/>
+      <!-- spiked shoulders -->
+      <path id="svgShoulderL" d="M91 149 L54 142 L27 178 L67 175 L42 201 L101 190Z" fill="url(#metalG)" stroke="#73558b" stroke-width="5"/>
+      <path id="svgShoulderR" d="M209 149 L246 142 L273 178 L233 175 L258 201 L199 190Z" fill="url(#metalG)" stroke="#73558b" stroke-width="5"/>
+      <!-- armored arms -->
+      <path d="M64 181 L98 188 L87 275 L53 268Z" fill="url(#metalG)" stroke="#55445f" stroke-width="4"/>
+      <path d="M236 181 L202 188 L213 275 L247 268Z" fill="url(#metalG)" stroke="#55445f" stroke-width="4"/>
+      <path id="svgGloveL" d="M48 259 L86 259 L82 298 L47 291Z" fill="#17111d" stroke="#8d49ba" stroke-width="5"/>
+      <path id="svgGloveR" d="M214 259 L252 259 L253 291 L218 298Z" fill="#17111d" stroke="#8d49ba" stroke-width="5"/>
+      <!-- hood + helmet, no childish face -->
+      <path d="M103 115 Q91 53 119 22 L150 4 L181 22 Q209 53 197 115 L177 143 L123 143Z" fill="#090a0f" stroke="#493557" stroke-width="5"/>
+      <path id="svgHelmet" d="M111 100 L105 55 L129 22 L150 9 L171 22 L195 55 L189 100 L170 128 L130 128Z" fill="url(#metalG)" stroke="#7b6689" stroke-width="5" opacity="1"/>
+      <path d="M122 65 L145 78 L132 88 L114 82Z" fill="#ff9d2e" filter="url(#purpleGlow)"/>
+      <path d="M178 65 L155 78 L168 88 L186 82Z" fill="#ff9d2e" filter="url(#purpleGlow)"/>
+      <path d="M145 78 L150 119 L155 78 L168 88 L160 111 L150 127 L140 111 L132 88Z" fill="#08090d" stroke="#5c4b67" stroke-width="3"/>
+      <path d="M104 55 L84 34 L111 39 M196 55 L216 34 L189 39" fill="none" stroke="url(#goldG)" stroke-width="7"/>
+      <!-- belt/skull -->
+      <path d="M83 281 L217 281 L208 313 L92 313Z" fill="#17131a" stroke="#775722" stroke-width="4"/>
+      <circle cx="150" cy="297" r="18" fill="url(#goldG)"/><path d="M141 294 L147 289 L150 296 L153 289 L159 294 L156 303 L144 303Z" fill="#171016"/>
+      <!-- giant cursed blade -->
+      <g id="svgWeapon" transform="translate(220 151) rotate(-15)">
+        <path d="M13 -8 L39 39 L27 174 L15 210 L3 174 L-9 39Z" fill="#211028" stroke="#d28cff" stroke-width="4" filter="url(#purpleGlow)"/>
+        <path d="M15 4 L24 45 L15 162 L6 45Z" fill="#9a34e8"/>
+        <rect x="-15" y="184" width="60" height="13" rx="4" fill="url(#goldG)"/>
+        <rect x="9" y="196" width="13" height="65" rx="5" fill="#241414" stroke="#8d6421" stroke-width="3"/>
+      </g>
+      <circle id="svgRingGlow" cx="238" cy="276" r="15" fill="none" stroke="#b745ff" stroke-width="6" opacity=".8" filter="url(#purpleGlow)"/>
+    </g>
+  </svg>
+
+  <div class="v5-pet" id="v5Pet">🐾</div>
+</div>
+
+    <div class="v5-character-footer">
+      <div><small>AURA</small><b id="v5AuraName">Nincs</b></div>
+      <div><small>PET</small><b id="v5PetName">Nincs</b></div>
+      <div><small>WAVE</small><b id="v5WaveLabel">1</b></div>
+      <div><small>PARAGON</small><b id="v5ParagonLabel">0</b></div>
+    </div>
+  </div>
+  <button id="equipBestBtn" class="equip-best-btn">✨ EQUIP BEST – Legjobb felszerelés automatikusan</button>
+
+  <div class="character-attributes">
+    <div class="char-attr"><span>💪 Erő</span><b id="charStatPower">0</b></div>
+    <div class="char-attr"><span>⚔️ Sebzés</span><b id="charStatDamage">0</b></div>
+    <div class="char-attr"><span>❤️ Életerő</span><b id="charStatHP">0 / 0</b></div>
+    <div class="char-attr"><span>🛡️ Védelem</span><b id="charStatDefense">0</b></div>
+    <div class="char-attr"><span>💀 Halál</span><b id="charStatDeaths">0</b></div>
+    <div class="char-attr"><span>🍀 Szerencse</span><b id="charStatLuck">0</b></div>
+    <div class="char-attr"><span>🎯 Krit esély</span><b id="charStatCrit">0%</b></div>
+    <div class="char-attr"><span>🎁 Drop bónusz</span><b id="charStatDrop">0%</b></div>
+    <div class="char-attr"><span>⭐ Szint</span><b id="charStatLevel">1</b></div>
+    <div class="char-attr"><span>🌟 Paragon</span><b id="charStatParagon">0</b></div>
+    <div class="char-attr"><span>👑 Prestige</span><b id="charStatPrestige">0</b></div>
+    <div class="char-attr"><span>📌 Paragon pont</span><b id="charStatPoints">0</b></div>
+    <div class="char-attr"><span>✨ Aura token</span><b id="charStatAuraTokens">0</b></div>
+    <div class="char-attr"><span>🌊 Wave</span><b id="charStatWave">1</b></div>
+    <div class="char-attr"><span>☠️ Összes kill</span><b id="charStatKills">0</b></div>
+  </div>
+</section>
+
+<aside class="stack">
+<section class="card">
+  <h2>🌟 Paragon / Prestige</h2>
+  <div class="prestige-summary">
+    <div><small>Prestige</small><b id="prestigeLevel">0</b></div>
+    <div><small>Paragon</small><b id="paragonLevel">0</b></div>
+    <div><small>Statpont</small><b id="paragonPoints">0</b></div>
+    <div><small>Aura token</small><b id="auraTokens">0</b></div>
+  </div>
+  <div class="prestige-progress"><div id="prestigeProgress"></div></div>
+  <small id="prestigeText">200-as szinten prestigelhetsz.</small>
+  <button id="prestigeBtn" class="prestige-btn" disabled>🌟 PRESTIGE</button>
+</section>
+
+<section class="card">
+  <h2>📌 Paragon statpontok</h2>
+  <div id="paragonStats" class="paragon-stat-list"></div>
+</section>
+
+<section class="card">
+  <h2>✨ Prestige Aura Shop</h2>
+  <div id="auraShop" class="aura-shop"></div>
+</section>
+</aside>
+</div>
+</section>
+
+<section class="page" id="page-farm">
+<div class="layout">
+  <div class="stack">
+    <section class="card battle-card">
+      <div class="title-row"><h2>⚔️ Automata harc</h2><span class="online">● AUTOMATA FARM</span></div>
+<div class="wave-panel">
+ <div><small>WAVE</small><b id="waveNumber">1</b></div>
+ <div><small>KILL</small><b><span id="waveKills">0</span>/<span id="waveGoal">10</span></b></div>
+ <div><small>ÁLLAPOT</small><b id="waveState">Farm</b></div>
+ <div><small>BOSS</small><b id="bossState">Várakozik</b></div>
+</div>
+      <div class="zone-head">
+        <div><small>AKTUÁLIS TERÜLET</small><h3 id="zoneName">Zöld mező</h3></div>
+        <button id="bossBtn" disabled>👹 Automata Boss</button>
+      </div>
+      <div class="enemy">
+        <div class="enemy-icon" id="enemyIcon">🐗</div>
+        <div class="enemy-data">
+          <b id="enemyName">Vadkan</b>
+          <div class="hp"><i id="hpbar"></i></div>
+          <small><span id="enemyHp">0</span> / <span id="enemyMaxHp">0</span> HP</small>
+        </div>
+      </div>
+      <div class="v10-combat-status">
+        <div class="v10-fighter player">
+          <div class="v10-fighter-head"><b>🧙 Saját karakter</b><span id="playerHpText">0 / 0 HP</span></div>
+          <div class="v10-player-hp"><i id="playerHpBar"></i></div>
+          <div class="v10-detail"><span id="playerCombatState">⚔️ Harcol</span><span>🛡️ DEF <b id="combatDefense">0</b></span></div>
+        </div>
+        <div class="v10-fighter monster">
+          <div class="v10-fighter-head"><b>👹 Ellenfél</b><span>DMG <strong id="enemyDamageText">0</strong></span></div>
+          <div class="v10-detail"><span id="enemyRegenText">💚 Regen 0%/mp</span><span id="enemyAttackSpeedText">⏱️ 1.35 mp</span></div>
+        </div>
+      </div>
+      <div class="combat-log" id="combatLog">A farm elindult...</div>
+      <div class="battle-stats">
+        <div><small>Sebzés / ütés</small><b id="damageText">0</b></div>
+        <div><small>Krit esély</small><b id="critText">0%</b></div>
+        <div><small>Drop bónusz</small><b id="dropText">0%</b></div>
+        <div><small>Offline max</small><b>12 óra</b></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="title-row"><h2>🗺️ Farmterületek</h2><small>Erősebb terület = jobb drop</small></div>
+      <div id="zones" class="zones"></div>
+    </section>
+
+    <section class="card">
+      <div class="title-row"><h2>🧰 Alap fejlesztések</h2><small>Biztos erősödés</small></div>
+      <div id="baseUpgrades" class="upgrade-list"></div>
+    </section>
+  </div>
+
+  <aside class="stack">
+    <section class="card">
+      <h2>🛡️ Felszerelés</h2>
+      <div id="equipped" class="equipment-grid"></div>
+    </section>
+    <section class="card">
+      <h2>🎁 Legutóbbi drop</h2>
+      <div id="lastDrop" class="last-drop">Még nincs felszerelés drop.</div>
+    </section>
+    <section class="card">
+      <h2>🔥 Aktív bónuszok</h2>
+      <div id="activeBonuses" class="bonus-list"></div>
+    </section>
+  </aside>
+</div>
+</section>
+
+<!-- INVENTORY -->
+<section class="page" id="page-inventory">
+  <section class="card">
+    <div class="title-row"><div><h2>🎒 Inventory</h2><small>Maximum 120 tárgy</small></div>
+      <div class="inventory-actions"><button id="sellNormal">Normál eladása</button><button id="sortInventory">Rendezés</button></div>
+    </div>
+    <div id="inventory" class="inventory-grid"></div>
+  </section>
+</section>
+
+<!-- UPGRADE -->
+<section class="page" id="page-upgrade">
+<div class="layout">
+  <section class="card">
+    <h2>🔨 Felszerelés fejlesztés +0 → +15</h2>
+    <p class="muted">Válassz egy felszerelt tárgyat. A fejlesztés növeli a tárgy statjait. Magasabb szinten csökken a siker esélye.</p>
+    <div id="upgradeSlots" class="upgrade-targets"></div>
+  </section>
+  <aside class="card">
+    <h2>📈 Fejlesztési esély</h2>
+    <div id="upgradeInfo"></div>
+  </aside>
+</div>
+</section>
+
+<!-- SKILLS -->
+<section class="page" id="page-skills">
+<section class="card">
+  <div class="title-row"><div><h2>✨ Képességek</h2><small>Szintlépésenként 1 képességpont</small></div><b><span id="skillPoints">0</span> pont</b></div>
+  <div id="skills" class="skill-grid"></div>
+</section>
+</section>
+
+<!-- PETS -->
+<section class="page" id="page-pets">
+<section class="card">
+  <div class="title-row"><div><h2>🐾 Pet rendszer</h2><small>Petek passzív bónuszt adnak</small></div><button id="petSummon">🎲 Pet idézés · 5 💎</button></div>
+  <div id="pets" class="pet-grid"></div>
+</section>
+</section>
+
+<!-- DUNGEON -->
+<section class="page" id="page-dungeon">
+<div class="layout">
+<section class="card">
+  <h2>🏰 Dungeonök</h2>
+  <div id="dungeons" class="dungeon-grid"></div>
+</section>
+<aside class="card">
+  <h2>👹 Dungeon harc</h2>
+  <div id="dungeonBattle" class="dungeon-battle">Válassz egy dungeont.</div>
+</aside>
+</div>
+</section>
+
+<!-- QUESTS -->
+<section class="page" id="page-quests">
+<div class="layout">
+<section class="card"><h2>📜 Napi küldetések</h2><div id="dailyQuests"></div></section>
+<aside class="card"><h2>🏆 Achievementek</h2><div id="achievements"></div></aside>
+</div>
+</section>
+
+
+<!-- PVP -->
+<section class="page" id="page-pvp">
+ <div class="layout">
+  <section class="card">
+   <div class="title-row"><div><h2>⚔️ Játékos párbaj</h2><small id="pvpRequirement">A párbaj szintkövetelménye betöltés alatt...</small></div><button id="refreshPvp">↻ Ellenfelek</button></div>
+   <div id="pvpOpponents" class="pvp-opponents"></div>
+  </section>
+  <aside class="card">
+   <h2>🏟️ Párbaj aréna</h2>
+   <div id="pvpArena" class="pvp-arena-empty">Válassz egy ellenfelet.</div>
+   <h3 style="margin-top:16px">📜 Legutóbbi párbajok</h3>
+   <div id="pvpHistory"></div>
+  </aside>
+ </div>
+</section>
+
+<!-- SHOP / DISCORD -->
+<section class="page" id="page-shop">
+ <div class="layout">
+  <section class="card">
+   <div class="title-row"><div><h2>💳 Arany és támogatói csomagok</h2><small>A vásárlás privát egyeztetéssel történik.</small></div></div>
+   <div class="shop-warning">⚠️ A weboldal nem kér és nem tárol bankkártyaadatot. Valódi fizetés és a játékbeli jóváírás privát egyeztetéssel történik.</div>
+   <div id="storeProducts" class="store-grid"></div>
+  </section>
+  <aside class="card discord-card">
+   <div class="discord-logo">💬</div>
+   <h2>Discord elérhetőség</h2>
+   <p>Vásárlás, segítség és privát egyeztetés:</p>
+   <strong>nervos11</strong>
+   <p class="muted">A vásárlási igényt a weboldalon is elküldheted, majd Discordon tudod velem egyeztetni.</p>
+  </aside>
+ </div>
+</section>
+
+<!-- STATS -->
+<section class="page" id="page-stats">
+<section class="card">
+  <h2>📊 Karakter statisztika</h2>
+  <div id="statsPanel" class="stats-panel"></div>
+  <hr>
+  <div class="danger-zone">
+    <h3>⚠️ Mentés kezelése</h3>
+    <button id="hardReset" class="danger">TELJES JÁTÉK RESET</button>
+  </div>
+</section>
+</section>
+</main>
+
+
+<section class="page" id="page-leaderboard">
+  <section class="card">
+    <div class="title-row"><div><h2>🏆 Online ranglista</h2><small>A játékosok összereje alapján</small></div><button id="refreshLeaderboard">↻ Frissítés</button></div>
+    <div id="leaderboard" class="leaderboard"></div>
+  </section>
+</section>
+
+<div class="modal" id="authModal">
+  <div class="modal-box">
+    <button class="modal-x" id="authClose">×</button>
+    <h2>👤 OMI IDLE FARM</h2>
+    <p class="muted">Jelentkezz be, hogy a fejlődésed a szerveren legyen elmentve.</p>
+    <div class="auth-tabs"><button class="auth-switch active" data-auth="login">Belépés</button><button class="auth-switch" data-auth="register">Regisztráció</button></div>
+    <input id="authUsername" placeholder="Felhasználónév (belépéshez)" maxlength="24"><input id="authPlayerName" class="register-only" placeholder="Játékosnév (ezt látják mások)" maxlength="24" style="display:none">
+    <input id="authPassword" type="password" placeholder="Jelszó">
+    <button id="authSubmit">Belépés</button>
+    <div class="muted" id="authMsg"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<input id="importFile" type="file" accept=".json" hidden>
+<script src="game.js"></script>
+</body></html>

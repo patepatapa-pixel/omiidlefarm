@@ -117,3 +117,5 @@ V11 SOCIAL / PVP / SHOP / CONTENT
 - Adminból létrehozott egyedi területek/petek/aurák/tárgyak/bossok játék közben betöltődnek.
 
 V11.2: Admin Játékosok listájából normál játékos végleg törölhető kétlépcsős megerősítéssel. Adminfiók nem törölhető innen.
+
+V12: teljes dark-fantasy vizuális frissítés a jóváhagyott mockup irányában; sötét harcos, arany/lila UI, karakter-színpad effektek. V11.3 játékostörlés megmaradt.
