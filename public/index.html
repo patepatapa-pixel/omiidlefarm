@@ -10,7 +10,7 @@
 <header class="topbar">
   <div class="brand"><span>⚔️ OMI</span> IDLE FARM <em>COMPLETE</em></div>
   <div class="top-actions">
-    <span class="build-version" id="buildVersionBadge">V17.4</span><span id="onlineUser">👤 Vendég</span>
+    <span class="build-version" id="buildVersionBadge">V18.4</span><span id="onlineUser">👤 Vendég</span>
     <button class="ghost" id="leaderboardBtn">🏆 Ranglista</button>
     <button class="ghost admin-only-btn" id="adminPanelBtn" style="display:none">⚙️ Adminpanel</button><button class="ghost" id="authBtn">Belépés</button>
     <span id="saveState">💾 Mentve</span>
@@ -25,45 +25,66 @@
   <button class="tab" data-tab="upgrade">🔨 Fejlesztés</button>
   <button class="tab" data-tab="skills">✨ Képességek</button>
   <button class="tab" data-tab="pets">🐾 Petek</button>
-  <button class="tab" data-tab="aurashop">✨ Prestige Aura Shop</button>
+  <button class="tab" data-tab="aurashop">✨ Aura Shop</button>
   <button class="tab" data-tab="dungeon">🏰 Dungeon</button>
   <button class="tab" data-tab="quests">📜 Küldetések</button>
-  <button class="tab" data-tab="pvp">⚔️ PvP</button><button class="tab" data-tab="shop">💳 Feltöltés / Discord</button><button class="tab" data-tab="stats">📊 Statisztika</button>
+  <button class="tab" data-tab="pvp">⚔️ PvP</button><button class="tab" data-tab="shop">💳 Shop / Discord</button><button class="tab" data-tab="stats">📊 Statisztika</button>
 </nav>
 
 
-<section id="guestLanding" class="guest-landing">
-  <div class="guest-hero">
-    <div class="guest-copy">
-      <div class="eyebrow">⚔️ OMI IDLE FARM ONLINE</div>
-      <h1>Építs sötét fantasy karaktert, farmolj automatikusan és juss egyre magasabb wave-ekre.</h1>
-      <p>A karaktered automatikusan harcol, te pedig felszerelést fejlesztesz, opciókat forgatsz, peteket és aurákat szerzel, bossokat győzöl le és PvP-ben is megmérkőzhetsz más játékosokkal.</p>
-      <div class="guest-features">
-        <span>👹 Boss minden 10. wave után</span>
-        <span>⚔️ +0 → +15 felszerelések</span>
-        <span>🎲 Normal → Legendary opt rendszer</span>
-        <span>🌟 Paragon rendszer</span>
-        <span>🏟️ PvP aréna</span>
-        <span>💬 Discord: nervos11</span>
+
+<section id="guestLanding" class="guest-landing v18-landing">
+  <div class="v18-landing-shell">
+    <section class="v18-welcome-card">
+      <div class="v18-welcome-copy">
+        <small class="eyebrow">⚔️ OMI IDLE FARM ONLINE</small>
+        <h1>Automata farm RPG, ahol a karaktered akkor is fejlődik, amikor te csak fejlesztesz és felszerelsz.</h1>
+        <p>Harcolj wave-eken keresztül, győzd le a bossokat, szerezz és fejlessz felszereléseket, forgass opciókat, növeld a Paragon szintedet, gyűjts aurákat és mérkőzz meg más játékosokkal PvP-ben.</p>
+
+        <div class="v18-feature-grid">
+          <div><b>⚔️ Automata harc</b><span>A karaktered folyamatosan támad és halad a wave-ekkel.</span></div>
+          <div><b>👹 Boss rendszer</b><span>Minden 10. wave után Boss érkezik. Halál esetén ugyanazt a wave-et újrakezded.</span></div>
+          <div><b>🛡️ Felszerelés</b><span>Sisak, páncél, fegyver, kesztyű, csizma és gyűrű +0 → +15 fejlesztéssel.</span></div>
+          <div><b>🎲 Item opciók</b><span>Normal–Legendary rarity, maximum 5 opt tárgyanként.</span></div>
+          <div><b>🌟 Paragon</b><span>Paragon 1: Wave 500, majd minden szinthez +10 Wave követelmény.</span></div>
+          <div><b>✨ Aura Shop</b><span>Prestige és Aura Token segítségével különleges aurákat oldhatsz fel.</span></div>
+          <div><b>⚡ Speed</b><span>1× / 2× / 3× ingyenes, 10× prémium gyorsítás.</span></div>
+          <div><b>🏟️ PvP</b><span>Más játékosok ellen is harcolhatsz a szükséges szint elérése után.</span></div>
+          <div><b>🐾 Petek & Dungeon</b><span>Petekkel és Dungeon jutalmakkal tovább erősítheted a karaktered.</span></div>
+        </div>
+
+        <div class="v18-howto">
+          <h3>Hogyan kezdj?</h3>
+          <div><span>1</span><p>Regisztrálj vagy jelentkezz be.</p></div>
+          <div><span>2</span><p>A belépés után automatikusan a Karakter oldalra kerülsz.</p></div>
+          <div><span>3</span><p>Menj a Farm fülre, válassz területet és hagyd harcolni a karaktered.</p></div>
+          <div><span>4</span><p>Az Inventoryban használd az Equip Best funkciót, majd fejleszd a tárgyaidat.</p></div>
+        </div>
       </div>
-    </div>
-    <div class="guest-login-card">
-      <div class="guest-login-logo">🐉</div>
-      <h2>Belépés a játékba</h2>
-      <p>A karaktered és mentésed betöltéséhez jelentkezz be.</p>
-      <input id="landingUsername" autocomplete="username" placeholder="Felhasználónév">
-      <input id="landingPassword" autocomplete="current-password" type="password" placeholder="Jelszó">
-      <button id="landingLoginBtn" class="landing-primary">⚔️ BELÉPÉS</button>
-      <button id="landingRegisterBtn" class="landing-secondary">✨ REGISZTRÁCIÓ</button>
-      <div id="landingMsg"></div>
-      <small>Regisztrációkor külön játékosnevet is megadhatsz. Ezt látják majd a többiek.</small>
-    </div>
-  </div>
-  <div class="guest-info-grid">
-    <div><b>⚔️ Automata farm</b><span>Karaktered folyamatosan harcol és fejlődik.</span></div>
-    <div><b>🛡️ Felszerelések</b><span>Sisak, páncél, fegyver, kesztyű, csizma és gyűrű.</span></div>
-    <div><b>🎲 Opciók</b><span>Maximum 5 opt egy Legendary felszerelésen.</span></div>
-    <div><b>👑 Boss & Paragon</b><span>Boss checkpointok és egyre magasabb Paragon követelmények.</span></div>
+
+      <aside class="v18-login-card">
+        <div class="v18-login-mark">🐉</div>
+        <h2>Belépés</h2>
+        <p>Jelentkezz be, és betöltjük a karakteredet.</p>
+        <input id="landingUsername" autocomplete="username" placeholder="Felhasználónév">
+        <input id="landingPassword" autocomplete="current-password" type="password" placeholder="Jelszó">
+        <button id="landingLoginBtn" class="landing-primary">⚔️ BELÉPÉS</button>
+        <button id="landingRegisterBtn" class="landing-secondary">✨ REGISZTRÁCIÓ</button>
+        <div id="landingMsg"></div>
+        <div class="v18-login-help">
+          <span>💬 Discord: <b>nervos11</b></span>
+          <span>☁️ Online mentés</span>
+          <span>🔒 Saját karakter / saját fejlődés</span>
+        </div>
+      </aside>
+    </section>
+
+    <section class="v18-info-strip">
+      <div><b>Rarity</b><span>Normal → Rare → Epic → Mythic → Legendary</span></div>
+      <div><b>Boss</b><span>Minden 10. Wave</span></div>
+      <div><b>Paragon</b><span>Wave 500-tól</span></div>
+      <div><b>Max tárgy</b><span>+15 / 5 opt</span></div>
+    </section>
   </div>
 </section>
 
@@ -150,7 +171,7 @@
           <div><small>🌊 Wave</small><b id="v17Wave">1</b></div>
         </div>
       </section>
-      <section class="card v15-sidebox">
+      <section class="card v15-sidebox character-only-panel character-paragon-panel">
         <h3>👑 Paragon / Prestige</h3>
         <div class="v15-four">
           <div><small>Prestige</small><b id="v15Prestige">0</b></div>
@@ -163,14 +184,14 @@
         <button id="prestigeBtn" class="prestige-btn">👑 PRESTIGE</button>
       </section>
 
-      <section class="card v15-sidebox">
+      <section class="card v15-sidebox character-only-panel character-paragon-stats-panel">
         <h3>⚔️ Paragon statpontok</h3>
         <div id="paragonStats" class="paragon-stat-list"></div>
       </section>
 </aside>
   </div>
 
-  <div class="character-attributes v15-attributes">
+  <div class="character-attributes v15-attributes character-only-panel">
     <div class="char-attr"><span>💪 Erő</span><b id="charStatPower">0</b></div>
     <div class="char-attr"><span>⚔️ Sebzés</span><b id="charStatDamage">0</b></div>
     <div class="char-attr"><span>❤️ Életerő</span><b id="charStatHP">0 / 0</b></div>
