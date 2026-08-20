@@ -1184,7 +1184,7 @@ const V10_DEFAULTS={
  monsterDamageMult:1,bossDamageMult:1.65,bossRegenPct:.40,mobRegenPct:0,
  playerRegenPct:1.2,playerAttackSec:1,enemyAttackSec:1.35,
  respawnSec:6,respawnHpPct:100,waveKills:10,bossHpGrowthPct:18,
- bossRewardMult:1,mobDamageHpPct:2.1
+ bossRewardMult:1,mobDamageHpPct:2.1,bossGemAmount:1,bossGemDropChance:100
 };
 let V10CFG={...V10_DEFAULTS};
 let v10PlayerTimer=null,v10EnemyTimer=null,v10RegenTimer=null;
@@ -1251,6 +1251,7 @@ function setCombatSpeed(n){
  }
  save.combatSpeed=n;
  persist();
+ if(currentUser&&cloudReady){cloudSave();setTimeout(()=>cloudSave(),750)}
  if(typeof v10RestartTimers==="function")v10RestartTimers();
  renderCombatSpeed();
  toast(`⚡ Harci / Wave sebesség: ${n}×`);
@@ -1331,7 +1332,9 @@ function v10AwardNormalKill(){
 function v10AwardBossKill(){
  const z=ZONES[save.zone];
  const reward=Math.floor(z.gold*(18+save.wave*.55)*goldBonus()*waveRewardMultiplier(save.wave)*V10CFG.bossRewardMult);
- save.gold+=reward;save.stats.goldEarned+=reward;save.gems++;save.soul++;save.stats.bosses++;
+ const bossGemAmount=Math.max(0,Math.floor(Number(V10CFG.bossGemAmount??1))),bossGemChance=Math.max(0,Math.min(100,Number(V10CFG.bossGemDropChance??100)));
+ const bossGemsWon=bossGemAmount>0&&Math.random()*100<bossGemChance?bossGemAmount:0;
+ save.gold+=reward;save.stats.goldEarned+=reward;save.gems+=bossGemsWon;save.soul++;save.stats.bosses++;
  if(Math.random()<.80)addItem(createItem());
 
  const oldWave=save.wave;
@@ -1343,7 +1346,7 @@ function v10AwardBossKill(){
  applyWaveGoal();
  enemyHp=normalEnemyMaxHp();
 
- $("#combatLog").textContent=`🏆 Wave ${oldWave} Boss legyőzve! +${fmt(reward)} arany. Wave ${save.wave} indul.`;
+ $("#combatLog").textContent=`🏆 Wave ${oldWave} Boss legyőzve! +${fmt(reward)} arany${bossGemsWon?` · +${bossGemsWon} gyémánt`:""}. Wave ${save.wave} indul.`;
  if(oldWave%100===0){
    save.gems+=3; save.soul+=3; save.ore+=25;
    toast(`💎 Wave ${oldWave} mérföldkő: +3 kristály, +3 lélekkő, +25 érc`);

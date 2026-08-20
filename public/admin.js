@@ -69,6 +69,7 @@ function renderBuildersV8(){
  if(qs("#contentJson"))qs("#contentJson").value=JSON.stringify(studioConfig,null,2);
  qsa("[data-del]").forEach(b=>b.onclick=async()=>{studioConfig[b.dataset.del].splice(+b.dataset.i,1);await saveConfigV8()});
  fillEconomyAdmin();
+ fillDefaultBossGems();
 }
 async function saveConfigV8(){await sa("/api/admin/content-config",{method:"POST",body:JSON.stringify({config:studioConfig})});renderBuildersV8()}
 qsa("[data-add]").forEach(btn=>btn.onclick=async()=>{
@@ -104,7 +105,9 @@ const V10_GAMEPLAY_DEFAULTS={
  waveKills:10,
  bossHpGrowthPct:18,
  bossRewardMult:1,
- mobDamageHpPct:2.1
+ mobDamageHpPct:2.1,
+ bossGemAmount:1,
+ bossGemDropChance:100
 };
 
 function v10GameplayCfg(){
@@ -123,6 +126,19 @@ function fillV10Gameplay(){
  };
  Object.entries(map).forEach(([id,key])=>{const e=qs("#"+id);if(e)e.value=g[key]});
 }
+
+function fillDefaultBossGems(){
+ const g=v10GameplayCfg();
+ if(qs("#cfgDefaultBossGems"))qs("#cfgDefaultBossGems").value=g.bossGemAmount;
+ if(qs("#cfgDefaultBossGemChance"))qs("#cfgDefaultBossGemChance").value=g.bossGemDropChance;
+}
+qs("#saveDefaultBossGems")?.addEventListener("click",async()=>{
+ const g=v10GameplayCfg();
+ g.bossGemAmount=Math.max(0,Math.floor(num("#cfgDefaultBossGems")));
+ g.bossGemDropChance=Math.max(0,Math.min(100,Number(qs("#cfgDefaultBossGemChance")?.value||0)));
+ studioConfig.gameplay=g;
+ await saveConfigV8();fillDefaultBossGems();alert("✅ Az alap boss gyémántdrop elmentve.");
+});
 qs("#saveGameplayConfig")?.addEventListener("click",async()=>{
  try{
   const g=v10GameplayCfg();
@@ -141,7 +157,7 @@ qs("#saveGameplayConfig")?.addEventListener("click",async()=>{
   alert("✅ Játékmenet elmentve.");
  }catch(e){alert("❌ "+e.message)}
 });
-setTimeout(fillV10Gameplay,1000);
+setTimeout(()=>{fillV10Gameplay();fillDefaultBossGems()},1000);
 
 
 // ================= V11 ADMIN SOCIAL / SHOP =================
