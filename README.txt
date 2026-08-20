@@ -142,3 +142,5 @@ V15.5 WAVE / BOSS / PARAGON
 - Paragon 3 követelmény: Wave 520.
 - Minden további Paragon +10 wave követelményt ad.
 - Paragon szintlépés nem nullázza a wave-et.
+
+V15.6: Full HP respawn; fejleszthető HP regen; max 5 item opt; rarity szerinti 1/2/3/4/5 opt; aranyért opt forgatás; opt magyarázat.

@@ -85,6 +85,7 @@ function normalizeV6Save(s){
  s.ownedAuras=Array.isArray(s.ownedAuras)?s.ownedAuras:["none"];if(!s.ownedAuras.includes("none"))s.ownedAuras.unshift("none");
  s.activeAura=s.activeAura||"none";
  s.playerHp=Number.isFinite(Number(s.playerHp))?Number(s.playerHp):0;
+ s.hpRegenLevel=Math.max(0,Number(s.hpRegenLevel||0));
  s.deaths=Math.max(0,Number(s.deaths||0));
  s.respawnUntil=Math.max(0,Number(s.respawnUntil||0));
  return s;
@@ -126,12 +127,14 @@ function bonuses(){
  return {atk,def,gold,crit,drop}
 }
 function damage(){
- let b=bonuses(),base=6+save.level*1.2+save.base.weaponTraining*4+b.atk;
- return Math.floor(base*(1+save.skills.power*.05+save.paragonStats.damage*.02))
+ let b=bonuses(),io=itemOptionBonuses(),base=6+save.level*1.2+save.base.weaponTraining*4+b.atk;
+ let total=base*(1+save.skills.power*.05+save.paragonStats.damage*.02)*(1+io.atkPct/100);
+ if(save.waveBoss)total*=1+io.bossDmg/100;
+ return Math.floor(total)
 }
-function critChance(){return Math.min(.75,.05+save.skills.crit*.015+bonuses().crit+save.paragonStats.crit*.005)}
-function goldBonus(){return 1+(save.base.armorTraining-1)*.05+save.skills.gold*.06+bonuses().gold+save.paragonStats.gold*.03}
-function dropBonus(){return save.skills.drop*.02+bonuses().drop+(save.base.luck-1)*.01+save.paragonStats.drop*.01}
+function critChance(){let io=itemOptionBonuses();return Math.min(.85,.05+save.skills.crit*.015+bonuses().crit+save.paragonStats.crit*.005+io.crit/100)}
+function goldBonus(){let io=itemOptionBonuses();return 1+(save.base.armorTraining-1)*.05+save.skills.gold*.06+bonuses().gold+save.paragonStats.gold*.03+io.gold/100}
+function dropBonus(){let io=itemOptionBonuses();return save.skills.drop*.02+bonuses().drop+(save.base.luck-1)*.01+save.paragonStats.drop*.01+io.drop/100}
 function power(){let b=bonuses();return Math.floor(damage()*11+b.def*7+save.level*20+save.base.mining*8+save.base.luck*8)}
 function rankName(){let p=power();return p<500?"Kezdő":p<2500?"Harcos":p<10000?"Elit":p<40000?"Mester":p<120000?"Hős":"Isteni"}
 function baseCost(d){return Math.floor(d.base*Math.pow(1.58,save.base[d.key]-1))}
@@ -144,6 +147,68 @@ function rarityRoll(){
  if(r<40+bonus*.45)return RARITIES[1];
  return RARITIES[0]
 }
+
+const ITEM_OPT_DEFS={
+ atkPct:{name:"Sebzés %",desc:"A teljes sebzésedet növeli.",unit:"%",min:1,max:12},
+ hpPct:{name:"Max HP %",desc:"A maximális életerődet növeli.",unit:"%",min:1,max:15},
+ defPct:{name:"Védelem %",desc:"A teljes védelmedet növeli.",unit:"%",min:1,max:12},
+ crit:{name:"Krit esély",desc:"Növeli a kritikus találat esélyét.",unit:"%",min:.5,max:6},
+ gold:{name:"Arany bónusz",desc:"Több aranyat kapsz a farmolásból.",unit:"%",min:2,max:18},
+ drop:{name:"Drop bónusz",desc:"Növeli a felszerelés dobási esélyét.",unit:"%",min:.5,max:8},
+ hpRegen:{name:"HP Regen",desc:"Másodpercenként extra HP%-ot regenerálsz.",unit:"%/mp",min:.1,max:1.5},
+ bossDmg:{name:"Boss sebzés",desc:"Növeli a Bossok ellen okozott sebzést.",unit:"%",min:2,max:15},
+ pvpDmg:{name:"PvP sebzés",desc:"Növeli a játékosok elleni sebzést.",unit:"%",min:1,max:10}
+};
+function rarityOptCount(rarity){
+ return {normal:1,rare:2,epic:3,mythic:4,legendary:5}[rarity]||1;
+}
+function optionScaleByRarity(rarity){
+ return {normal:.55,rare:.72,epic:.88,mythic:1,legendary:1.18}[rarity]||.55;
+}
+function ensureItemOptions(it){
+ if(!it)return it;
+ if(!Array.isArray(it.options))it.options=[];
+ if(it.options.length>5)it.options=it.options.slice(0,5);
+ return it;
+}
+function rollItemOptions(it){
+ ensureItemOptions(it);
+ it.options=[];
+ const count=Math.min(5,rarityOptCount(it.rarity));
+ const used=[];
+ for(let i=0;i<count;i++){
+  const keys=Object.keys(ITEM_OPT_DEFS).filter(k=>!used.includes(k));
+  if(!keys.length)break;
+  const key=keys[Math.floor(Math.random()*keys.length)],d=ITEM_OPT_DEFS[key],scale=optionScaleByRarity(it.rarity);
+  const value=Math.round((d.min+Math.random()*(d.max-d.min)*scale)*10)/10;
+  it.options.push({key,value});used.push(key);
+ }
+ return it;
+}
+function itemOptionText(o){
+ const d=ITEM_OPT_DEFS[o.key];if(!d)return `${o.key}: +${o.value}`;
+ return `${d.name}: +${o.value}${d.unit}`;
+}
+function itemRerollCost(it){
+ const r={normal:1,rare:2,epic:4,mythic:8,legendary:15}[it.rarity]||1;
+ return Math.floor((1500+Number(it.plus||0)*650)*r);
+}
+function rerollItemOptions(id){
+ const it=save.inventory.find(x=>Number(x.id)===Number(id));if(!it)return;
+ const cost=itemRerollCost(it);
+ if(save.gold<cost)return toast("Nincs elég arany az opciók forgatásához.");
+ save.gold-=cost;rollItemOptions(it);persist();renderAll();
+ toast(`🎲 ${it.name} opciói újraforgatva.`);
+}
+function itemOptionBonuses(){
+ const out={atkPct:0,hpPct:0,defPct:0,crit:0,gold:0,drop:0,hpRegen:0,bossDmg:0,pvpDmg:0};
+ Object.keys(save.equipped||{}).forEach(slot=>{
+  const it=equipObj(slot);if(!it)return;ensureItemOptions(it);
+  (it.options||[]).forEach(o=>{if(out[o.key]!==undefined)out[o.key]+=Number(o.value||0)});
+ });
+ return out;
+}
+
 function createItem(){
  let zone=ZONES[save.zone],rar=rarityRoll(),slots=Object.keys(SLOT_NAMES),slot=slots[Math.floor(Math.random()*slots.length)];
  let scale=(1+save.zone*.75)*(1+save.level*.04)*rar.mult;
@@ -155,14 +220,15 @@ function createItem(){
  else if(slot==="ring")it.drop=.012*scale;
  if(Math.random()<.25)it.atk+=Math.floor(2*scale);
  if(Math.random()<.20)it.gold+=.01*scale;
- return it
+ return rollItemOptions(it)
 }
 function rarityName(k){return RARITIES.find(x=>x.key===k)?.name||k}
 function sellValue(it){let r=RARITIES.find(x=>x.key===it.rarity)||RARITIES[0];return Math.floor((30+save.level*8)*(1+save.zone*.7)*r.mult*(1+it.plus*.4))}
 function addItem(it){
+ ensureItemOptions(it);if(!it.options.length)rollItemOptions(it);
  if(save.inventory.length>=120){save.gold+=sellValue(it);return toast("🎒 Inventory tele — tárgy automatikusan eladva.")}
  save.inventory.push(it);save.stats.itemsFound++;if(it.rarity==="legendary")save.stats.legendary++;
- $("#lastDrop").innerHTML=`<b class="rarity-${it.rarity}">${SLOT_ICONS[it.slot]} ${it.name} +${it.plus}</b><small>${rarityName(it.rarity)} felszerelés</small>`;
+ $("#lastDrop").innerHTML=`<b class="rarity-${it.rarity}">${SLOT_ICONS[it.slot]} ${it.name} +${it.plus}</b><small>${rarityName(it.rarity)} · ${it.options.length}/5 opt</small>`;
  toast(`🎁 ${rarityName(it.rarity)} drop: ${it.name}`)
 }
 function kill(){
@@ -277,9 +343,27 @@ function renderEquipped(){
 function itemSummary(it){let st=itemStats(it),a=[];if(st.atk)a.push("ATK "+fmt(st.atk));if(st.def)a.push("DEF "+fmt(st.def));if(st.gold)a.push("Arany +"+(st.gold*100).toFixed(1)+"%");if(st.crit)a.push("Krit +"+(st.crit*100).toFixed(1)+"%");if(st.drop)a.push("Drop +"+(st.drop*100).toFixed(1)+"%");return a.join(" · ")}
 function renderBonuses(){let b=bonuses(),p=petObj();$("#activeBonuses").innerHTML=`<div><span>⚔️ Felszerelés ATK</span><b>${fmt(b.atk)}</b></div><div><span>💰 Arany bónusz</span><b>+${((goldBonus()-1)*100).toFixed(1)}%</b></div><div><span>🎯 Krit</span><b>${(critChance()*100).toFixed(1)}%</b></div><div><span>🎁 Drop</span><b>+${(dropBonus()*100).toFixed(1)}%</b></div><div><span>🐾 Aktív pet</span><b>${p?p.icon+" "+p.name:"Nincs"}</b></div>`}
 function renderInventory(){
- let order={legendary:5,mythic:4,epic:3,rare:2,normal:1};
- $("#inventory").innerHTML=save.inventory.length?save.inventory.map(it=>`<div class="inventory-item rarity-${it.rarity}"><div class="icon">${SLOT_ICONS[it.slot]}</div><b>${it.name} +${it.plus}</b><small>${rarityName(it.rarity)} · ${SLOT_NAMES[it.slot]}</small><small>${itemSummary(it)}</small><small>Eladási ár: ${fmt(sellValue(it))} 💰</small><div class="actions"><button data-equip="${it.id}">Felszerel</button><button data-sell="${it.id}">Elad</button></div></div>`).join(""):'<p class="muted">Az inventory üres.</p>';
+ $("#inventory").innerHTML=save.inventory.length?save.inventory.map(it=>{
+   ensureItemOptions(it);if(!it.options.length)rollItemOptions(it);
+   const opts=it.options.slice(0,5).map(o=>`<div class="item-opt-line"><b>${itemOptionText(o)}</b><small>${ITEM_OPT_DEFS[o.key]?.desc||""}</small></div>`).join("");
+   const equipped=Object.values(save.equipped).includes(it.id);
+   return `<div class="inventory-item rarity-${it.rarity}">
+    <div class="icon">${SLOT_ICONS[it.slot]}</div>
+    <b>${it.name} +${Math.max(0,Math.min(15,Number(it.plus||0)))}</b>
+    <small>${rarityName(it.rarity)} · ${SLOT_NAMES[it.slot]} · ${it.options.length}/5 opt</small>
+    <small>${itemSummary(it)}</small>
+    <div class="item-options">${opts}</div>
+    <small>Eladási ár: ${fmt(sellValue(it))} 💰</small>
+    <div class="actions">
+      <button data-equip="${it.id}">${equipped?"Felszerelve":"Felszerel"}</button>
+      <button data-reroll="${it.id}">🎲 Opt forgatás · ${fmt(itemRerollCost(it))} 💰</button>
+      <button data-sell="${it.id}">Elad</button>
+    </div>
+   </div>`
+ }).join(""):'<p class="muted">Az inventory üres.</p>';
+
  $$("[data-equip]").forEach(b=>b.onclick=()=>{let it=save.inventory.find(x=>x.id==b.dataset.equip);save.equipped[it.slot]=it.id;persist();renderAll();toast("🛡️ Felszerelve: "+it.name)});
+ $$("[data-reroll]").forEach(b=>b.onclick=()=>rerollItemOptions(+b.dataset.reroll));
  $$("[data-sell]").forEach(b=>b.onclick=()=>{let id=+b.dataset.sell,it=save.inventory.find(x=>x.id===id);if(Object.values(save.equipped).includes(id))return toast("Előbb vedd le / cseréld le.");save.gold+=sellValue(it);save.inventory=save.inventory.filter(x=>x.id!==id);persist();renderAll()})
 }
 function upgradeChance(plus){return [100,100,95,90,82,74,64,54,44,35,28,22,17,12,8,5][plus]||0}
@@ -504,6 +588,15 @@ function renderVisibleHeroEquipment(){
    :"Nincs felszerelt tárgy";
 }
 
+function renderHpRegenAndOptions(){
+ const lv=$("#hpRegenLevel"),pct=$("#hpRegenPct"),cost=$("#hpRegenCost"),btn=$("#hpRegenUpgradeBtn");
+ if(lv)lv.textContent=save.hpRegenLevel||0;
+ if(pct)pct.textContent=playerHpRegenPct().toFixed(2)+"% / mp";
+ if(cost)cost.textContent="Ár: "+fmt(hpRegenUpgradeCost())+" arany";
+ if(btn)btn.onclick=upgradeHpRegen;
+ const g=$("#optionGlossary");
+ if(g)g.innerHTML=Object.values(ITEM_OPT_DEFS).map(d=>`<div class="opt-help-row"><b>${d.name}</b><span>${d.min}–${d.max}${d.unit}</span><small>${d.desc}</small></div>`).join("");
+}
 function renderV15ExactCharacter(){
  if(!$("#v15Power"))return;
  renderVisibleHeroEquipment();
@@ -563,7 +656,7 @@ function renderAll(){
  renderQuests();
  renderStats();
  renderCharacterAttributes();
-}
+;renderHpRegenAndOptions();}
 $("#bossBtn").onclick=()=>toast("👹 A boss automatikusan jön minden wave végén.");
 $("#petSummon").onclick=summonPet;
 $("#sellNormal").onclick=()=>{let equipped=new Set(Object.values(save.equipped));let sold=0;save.inventory=save.inventory.filter(it=>{if(it.rarity==="normal"&&!equipped.has(it.id)){save.gold+=sellValue(it);sold++;return false}return true});persist();renderAll();toast(`${sold} normál tárgy eladva`)};
@@ -734,12 +827,13 @@ let V10CFG={...V10_DEFAULTS};
 let v10PlayerTimer=null,v10EnemyTimer=null,v10RegenTimer=null;
 
 function v10Defense(){
- const b=bonuses();
- return Math.max(0,Math.floor((b.def||0)+(save.base?.armorTraining||1)*3+(save.level||1)*.8+save.prestigeLevel*5));
+ const b=bonuses(),io=itemOptionBonuses();
+ return Math.max(0,Math.floor(((b.def||0)+(save.base?.armorTraining||1)*3+(save.level||1)*.8+save.prestigeLevel*5)*(1+io.defPct/100)));
 }
 function v10MaxHp(){
+ const io=itemOptionBonuses();
  return Math.max(1,Math.floor(
-   V10CFG.basePlayerHp+(save.level-1)*V10CFG.hpPerLevel+v10Defense()*2+save.paragonLevel*20
+   (V10CFG.basePlayerHp+(save.level-1)*V10CFG.hpPerLevel+v10Defense()*2+save.paragonLevel*20)*(1+io.hpPct/100)
  ));
 }
 function v10BossMaxHp(){
@@ -845,6 +939,20 @@ function v10EnemyAttack(){
  }
  v10Render();
 }
+function playerHpRegenPct(){
+ const io=itemOptionBonuses();
+ return Math.max(0,Number(V10CFG.playerRegenPct||0)+Number(save.hpRegenLevel||0)*0.35+io.hpRegen);
+}
+function hpRegenUpgradeCost(){
+ return Math.floor(2500*Math.pow(1.42,Number(save.hpRegenLevel||0)));
+}
+function upgradeHpRegen(){
+ const cost=hpRegenUpgradeCost();
+ if(save.gold<cost)return toast("Nincs elég arany a HP Regen fejlesztéshez.");
+ save.gold-=cost;save.hpRegenLevel++;persist();renderAll();
+ toast(`❤️ HP Regen Lv.${save.hpRegenLevel}`);
+}
+
 function v10Regen(){
  const enemyMax=v10EnemyMaxHp();
  const regenPct=save.waveBoss?V10CFG.bossRegenPct:V10CFG.mobRegenPct;
@@ -856,12 +964,12 @@ function v10Regen(){
    const left=save.respawnUntil-Date.now();
    if(left<=0){
      save.respawnUntil=0;
-     save.playerHp=Math.max(1,Math.floor(v10MaxHp()*(V10CFG.respawnHpPct/100)));
+     save.playerHp=v10MaxHp();
      $("#combatLog").textContent="❤️ Újraéledtél. Az automata harc folytatódik.";
      persist();
    }
- }else if(save.playerHp<v10MaxHp()&&V10CFG.playerRegenPct>0){
-   save.playerHp=Math.min(v10MaxHp(),save.playerHp+v10MaxHp()*(V10CFG.playerRegenPct/100));
+ }else if(save.playerHp<v10MaxHp()&&playerHpRegenPct()>0){
+   save.playerHp=Math.min(v10MaxHp(),save.playerHp+v10MaxHp()*(playerHpRegenPct()/100));
  }
  v10Render();
 }

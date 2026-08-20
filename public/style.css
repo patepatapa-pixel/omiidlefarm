@@ -568,3 +568,19 @@ body.auth-open .topbar,body.auth-open .nav,body.auth-open main{
 #authModal.open{
  display:flex!important;
 }
+
+/* V15.6 item options + HP regen */
+.hp-regen-box{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.hp-regen-box>div{border:1px solid #303a46;border-radius:8px;padding:9px;background:#080c11}
+.hp-regen-box small,.hp-regen-box b{display:block}.hp-regen-box b{font-size:17px;color:#ff6b78;margin-top:3px}
+#hpRegenUpgradeBtn{width:100%;margin-bottom:7px}
+.item-option-help{margin-top:12px;border-color:#7c4195!important}
+.option-glossary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.opt-help-row{display:grid;grid-template-columns:1fr auto;gap:4px;padding:9px;border:1px solid #303743;border-radius:9px;background:#080b10}
+.opt-help-row b{color:#e8b84b}.opt-help-row span{color:#bd81ff;font-size:10px}.opt-help-row small{grid-column:1/-1;color:#9ba4ad;line-height:1.35}
+.item-options{display:grid;gap:5px;margin:9px 0;padding:8px;border:1px solid #2e3540;border-radius:8px;background:#06090d}
+.item-opt-line{display:grid;gap:2px}.item-opt-line b{font-size:11px;color:#e7bd58}.item-opt-line small{font-size:9px;color:#8f99a4}
+.inventory-item.rarity-legendary{border-color:#e4aa29!important;box-shadow:0 0 20px #e4aa2937}
+.inventory-item.rarity-mythic{border-color:#ed477a!important;box-shadow:0 0 18px #ed477a36}
+.inventory-item.rarity-epic{border-color:#b83ae8!important}.inventory-item.rarity-rare{border-color:#218fd9!important}
+@media(max-width:800px){.option-glossary{grid-template-columns:1fr}}
