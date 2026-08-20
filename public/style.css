@@ -3021,3 +3021,129 @@ body.v202-is-admin .admin-studio-only-v202{
 @media(max-width:560px){
   .v218-dungeon-stats{grid-template-columns:1fr 1fr!important}
 }
+
+/* ================= V21.9 DUNGEON BOSS FIGHT ================= */
+.v219-boss-preview{
+  display:flex!important;
+  align-items:center!important;
+  gap:8px!important;
+  margin:8px 0!important;
+  padding:7px 8px!important;
+  border:1px solid #5a3740!important;
+  border-radius:8px!important;
+  background:linear-gradient(90deg,#17090d,#0b0d12)!important;
+}
+.v219-boss-preview>span{
+  display:grid!important;
+  place-items:center!important;
+  width:38px!important;
+  height:38px!important;
+  font-size:25px!important;
+  border-radius:8px!important;
+  background:#090d13!important;
+}
+.v219-boss-preview small,
+.v219-boss-preview b{display:block!important}
+.v219-boss-preview small{font-size:8px!important;color:#9b7b82!important}
+.v219-boss-preview b{margin-top:1px!important;color:#ff8794!important}
+
+#v219DungeonBattle{
+  margin-bottom:12px!important;
+  padding:12px!important;
+  border:1px solid #8a6626!important;
+  border-radius:11px!important;
+  background:radial-gradient(circle at 50% 0,#171119,#080c11 62%)!important;
+}
+#v219DungeonBattle.hidden{display:none!important}
+
+.v219-battle-title{
+  display:flex!important;
+  justify-content:space-between!important;
+  align-items:center!important;
+  gap:10px!important;
+  margin-bottom:11px!important;
+}
+.v219-battle-title h3{margin:2px 0 0!important;color:#f1c34f!important}
+.v219-battle-round{
+  padding:6px 9px!important;
+  border:1px solid #38434f!important;
+  border-radius:7px!important;
+  background:#080c11!important;
+  font-weight:800!important;
+}
+
+.v219-fighters{
+  display:grid!important;
+  grid-template-columns:1fr 54px 1fr!important;
+  gap:10px!important;
+  align-items:center!important;
+}
+.v219-fighter{
+  display:flex!important;
+  gap:9px!important;
+  align-items:center!important;
+  padding:10px!important;
+  border:1px solid #34404c!important;
+  border-radius:9px!important;
+  background:#080d12!important;
+}
+.v219-fighter.boss{border-color:#6a313b!important}
+.v219-fighter-icon,
+.v219-boss-icon{
+  display:grid!important;
+  place-items:center!important;
+  flex:0 0 54px!important;
+  width:54px!important;
+  height:54px!important;
+  border-radius:10px!important;
+  background:#111720!important;
+  font-size:34px!important;
+}
+.v219-boss-icon{
+  background:#1a0b0f!important;
+  box-shadow:0 0 20px rgba(225,65,85,.14)!important;
+}
+.v219-fighter-main{flex:1!important;min-width:0!important}
+.v219-name-row{
+  display:flex!important;
+  justify-content:space-between!important;
+  gap:8px!important;
+  margin-bottom:6px!important;
+}
+.v219-name-row span{font-size:9px!important;color:#a7b0ba!important}
+.v219-hp{
+  height:11px!important;
+  overflow:hidden!important;
+  border-radius:99px!important;
+  background:#261014!important;
+  border:1px solid #47212a!important;
+  margin-bottom:5px!important;
+}
+.v219-hp>div{
+  height:100%!important;
+  background:linear-gradient(90deg,#d03e4d,#f16b77)!important;
+  transition:width .35s ease!important;
+}
+.v219-hp.boss>div{
+  background:linear-gradient(90deg,#a61e32,#ef4d61)!important;
+}
+.v219-versus{
+  text-align:center!important;
+  font-size:17px!important;
+  font-weight:1000!important;
+  color:#f0c24f!important;
+}
+.v219-combat-log{
+  margin-top:9px!important;
+  padding:7px 9px!important;
+  border:1px solid #303a45!important;
+  border-radius:7px!important;
+  background:#06090d!important;
+  color:#aab4be!important;
+  text-align:center!important;
+}
+
+@media(max-width:760px){
+  .v219-fighters{grid-template-columns:1fr!important}
+  .v219-versus{padding:2px!important}
+}

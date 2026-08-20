@@ -348,3 +348,13 @@ V21.8
 - Minden kazamata kiírja a saját aktuális sikeresélyedet.
 - Magasabb kazamaták jobb arany/érc/gyémánt/lélekkő jutalmakat adnak.
 - Futás/siker/bukás/teljesítésszám statisztika bekerült.
+
+V21.9
+- Dungeon harc most látványos boss csatát mutat.
+- Játékos HP csík és Boss HP csík látható, PvP-szerű elrendezéssel.
+- Minden kazamata egy konkrét, saját nevű és ikonnal rendelkező bosst kapott.
+- A boss ikon a kazamata kártyán is látható.
+- Belépés után a HP csíkok animáltan csökkennek a harc során.
+- Az első kazamata továbbra is biztonságos, nem tud megölni.
+- A második kazamatától a korábbi esélyalapú siker/bukás rendszer marad.
+- Bukás után teljes HP-val folytatod.

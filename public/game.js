@@ -3333,6 +3333,8 @@ document.addEventListener("click",e=>{
       id:"training_cave",
       name:"Kezdők barlangja",
       icon:"🪨",
+      bossName:"Barlangi Gólem",
+      bossIcon:"🗿",
       reqPower:250,
       ticketCost:1,
       safe:true,
@@ -3344,6 +3346,8 @@ document.addEventListener("click",e=>{
       id:"forgotten_mine",
       name:"Elfeledett bánya",
       icon:"⛏️",
+      bossName:"Bányarém",
+      bossIcon:"👹",
       reqPower:900,
       ticketCost:1,
       safe:false,
@@ -3354,6 +3358,8 @@ document.addEventListener("click",e=>{
       id:"wolf_den",
       name:"Farkasverem",
       icon:"🐺",
+      bossName:"Alfa Vérfarkas",
+      bossIcon:"🐺",
       reqPower:2200,
       ticketCost:1,
       safe:false,
@@ -3364,6 +3370,8 @@ document.addEventListener("click",e=>{
       id:"crypt",
       name:"Elátkozott kripta",
       icon:"☠️",
+      bossName:"Kripta Ura",
+      bossIcon:"💀",
       reqPower:5200,
       ticketCost:2,
       safe:false,
@@ -3374,6 +3382,8 @@ document.addEventListener("click",e=>{
       id:"demon_tower",
       name:"Démon torony",
       icon:"🔥",
+      bossName:"Démon Hadúr",
+      bossIcon:"😈",
       reqPower:11000,
       ticketCost:2,
       safe:false,
@@ -3384,6 +3394,8 @@ document.addEventListener("click",e=>{
       id:"dragon_valley",
       name:"Sárkány-völgy",
       icon:"🐉",
+      bossName:"Ősi Sárkány",
+      bossIcon:"🐉",
       reqPower:24000,
       ticketCost:3,
       safe:false,
@@ -3394,6 +3406,8 @@ document.addEventListener("click",e=>{
       id:"storm_keep",
       name:"Vihartorony",
       icon:"🌩️",
+      bossName:"Vihar Titán",
+      bossIcon:"⚡",
       reqPower:50000,
       ticketCost:3,
       safe:false,
@@ -3404,6 +3418,8 @@ document.addEventListener("click",e=>{
       id:"void_temple",
       name:"Üresség temploma",
       icon:"🕳️",
+      bossName:"Void Őrző",
+      bossIcon:"👁️",
       reqPower:100000,
       ticketCost:4,
       safe:false,
@@ -3414,6 +3430,8 @@ document.addEventListener("click",e=>{
       id:"celestial_gate",
       name:"Isteni kapu",
       icon:"👁️",
+      bossName:"Mennyei Bíró",
+      bossIcon:"🪽",
       reqPower:200000,
       ticketCost:5,
       safe:false,
@@ -3424,6 +3442,8 @@ document.addEventListener("click",e=>{
       id:"abyss",
       name:"Mélység ura",
       icon:"🦑",
+      bossName:"A Mélység Ura",
+      bossIcon:"🦑",
       reqPower:400000,
       ticketCost:6,
       safe:false,
@@ -3619,11 +3639,275 @@ document.addEventListener("click",e=>{
     });
   }
 
+  window.DUNGEONS_V218=DUNGEONS_V218;
   window.v218RenderDungeon=renderDungeonV218;
   window.v218RunDungeon=runDungeon;
 
   window.addEventListener("load",()=>setTimeout(renderDungeonV218,250));
   document.addEventListener("click",e=>{
     if(e.target.closest?.('[data-tab="dungeon"]')) setTimeout(renderDungeonV218,80);
+  },true);
+})();
+
+
+/* ================= V21.9 DUNGEON BOSS HP / VISUAL FIGHT ================= */
+(function(){
+  let activeBattle=null;
+  let battleTimer=null;
+
+  function S(){ return (typeof save!=="undefined"&&save)?save:{}; }
+  function P(){ return (typeof power==="function")?Number(power()||0):0; }
+  function F(n){ return (typeof fmt==="function")?fmt(Number(n||0)):Math.floor(Number(n||0)).toLocaleString("hu-HU"); }
+
+  function maxPlayerHp(){
+    const s=S();
+    try{
+      if(typeof v10MaxHp==="function") return Math.max(1,Number(v10MaxHp()||1));
+    }catch(e){}
+    return Math.max(1,Number(s.maxHp||s.playerHp||100));
+  }
+
+  function bossMaxHp(d){
+    return Math.max(
+      250,
+      Math.floor(Number(d.reqPower||100) * (d.safe ? 2.2 : 4.8))
+    );
+  }
+
+  function ensureBattlePanel(root){
+    let panel=root.querySelector("#v219DungeonBattle");
+    if(!panel){
+      panel=document.createElement("section");
+      panel.id="v219DungeonBattle";
+      panel.className="v219-dungeon-battle hidden";
+      root.prepend(panel);
+    }
+    return panel;
+  }
+
+  function drawBattle(){
+    const root=document.getElementById("v218DungeonSystem");
+    if(!root)return;
+    const panel=ensureBattlePanel(root);
+
+    if(!activeBattle){
+      panel.classList.add("hidden");
+      return;
+    }
+
+    const b=activeBattle;
+    const php=Math.max(0,Math.min(100,(b.playerHp/b.playerMaxHp)*100));
+    const bhp=Math.max(0,Math.min(100,(b.bossHp/b.bossMaxHp)*100));
+
+    panel.classList.remove("hidden");
+    panel.innerHTML=`
+      <div class="v219-battle-title">
+        <div>
+          <small>⚔️ KAZAMATA HARC</small>
+          <h3>${b.dungeon.name}</h3>
+        </div>
+        <div class="v219-battle-round">Kör ${b.round}</div>
+      </div>
+
+      <div class="v219-fighters">
+        <div class="v219-fighter player">
+          <div class="v219-fighter-icon">🧙</div>
+          <div class="v219-fighter-main">
+            <div class="v219-name-row"><b>Saját karakter</b><span>${F(Math.max(0,b.playerHp))} / ${F(b.playerMaxHp)} HP</span></div>
+            <div class="v219-hp"><div style="width:${php}%"></div></div>
+            <small>⚔️ Erő: ${F(P())}</small>
+          </div>
+        </div>
+
+        <div class="v219-versus">VS</div>
+
+        <div class="v219-fighter boss">
+          <div class="v219-boss-icon">${b.dungeon.bossIcon||"👹"}</div>
+          <div class="v219-fighter-main">
+            <div class="v219-name-row"><b>${b.dungeon.bossName||"Kazamata Boss"}</b><span>${F(Math.max(0,b.bossHp))} / ${F(b.bossMaxHp)} HP</span></div>
+            <div class="v219-hp boss"><div style="width:${bhp}%"></div></div>
+            <small>☠️ Boss erő: ${F(b.dungeon.reqPower)}</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="v219-combat-log">${b.log||"A harc elkezdődött..."}</div>
+    `;
+  }
+
+  function finishBattle(win){
+    if(!activeBattle)return;
+    const b=activeBattle;
+    const d=b.dungeon;
+    const s=S();
+
+    clearInterval(battleTimer);
+    battleTimer=null;
+
+    if(win){
+      const rw=(function(){
+        const r=d.rewards||{};
+        function rr(x){const a=Number(x?.[0]||0),c=Number(x?.[1]??a);return Math.floor(a+Math.random()*(c-a+1))}
+        const out={gold:rr(r.gold),ore:rr(r.ore),gems:rr(r.gems),soul:rr(r.soul)};
+        s.gold=Number(s.gold||0)+out.gold;
+        s.ore=Number(s.ore||0)+out.ore;
+        s.gems=Number(s.gems||0)+out.gems;
+        s.soul=Number(s.soul||0)+out.soul;
+        return out;
+      })();
+
+      s.dungeonStats.wins++;
+      s.dungeonStats.streak++;
+      s.dungeonClears[d.id]=Number(s.dungeonClears[d.id]||0)+1;
+
+      b.bossHp=0;
+      b.log=`🏆 ${d.bossName} legyőzve! +${F(rw.gold)} arany${rw.ore?` · +${rw.ore} érc`:""}${rw.gems?` · +${rw.gems} gyémánt`:""}${rw.soul?` · +${rw.soul} lélekkő`:""}`;
+      drawBattle();
+      if(typeof toast==="function")toast(`🏆 ${d.name} teljesítve!`);
+    }else{
+      s.dungeonStats.losses++;
+      s.dungeonStats.streak=0;
+      b.playerHp=0;
+      b.log=`💀 ${d.bossName} legyőzött. A jegy elfogyott, de teljes HP-val éledsz újra.`;
+      drawBattle();
+
+      const mh=maxPlayerHp();
+      s.playerHp=mh;
+      if(typeof toast==="function")toast(`💀 ${d.name} sikertelen.`);
+    }
+
+    if(typeof persist==="function")persist();
+    if(typeof renderAll==="function")renderAll();
+
+    setTimeout(()=>{
+      activeBattle=null;
+      if(typeof window.v218RenderDungeon==="function")window.v218RenderDungeon();
+    },1800);
+  }
+
+  function startBattle(d){
+    const s=S();
+    if(!s.dungeonStats)s.dungeonStats={runs:0,wins:0,losses:0,streak:0};
+    if(!s.dungeonClears)s.dungeonClears={};
+
+    const tickets=Number(s.tickets||0);
+    if(tickets<Number(d.ticketCost||1)){
+      if(typeof toast==="function")toast(`🎫 Nincs elég Dungeon jegyed. Kell: ${d.ticketCost}`);
+      return;
+    }
+
+    if(activeBattle)return;
+
+    s.tickets=tickets-Number(d.ticketCost||1);
+    s.dungeonStats.runs++;
+
+    const chance=(function(){
+      if(d.safe)return 1;
+      const p=Math.max(1,P()), r=Math.max(1,Number(d.reqPower||1)), ratio=p/r;
+      let c;
+      if(ratio<.50)c=.08+ratio*.20;
+      else if(ratio<.80)c=.20+(ratio-.50)*.70;
+      else if(ratio<1.00)c=.45+(ratio-.80)*1.25;
+      else if(ratio<1.50)c=.70+(ratio-1.00)*.40;
+      else c=.90+Math.min(.05,(ratio-1.50)*.03);
+      return Math.max(.05,Math.min(.95,c));
+    })();
+
+    const predeterminedWin=d.safe || Math.random()<chance;
+    const ph=maxPlayerHp();
+    const bh=bossMaxHp(d);
+
+    activeBattle={
+      dungeon:d,
+      playerHp:ph,
+      playerMaxHp:ph,
+      bossHp:bh,
+      bossMaxHp:bh,
+      round:1,
+      win:predeterminedWin,
+      log:`${d.bossIcon||"👹"} ${d.bossName||"Boss"} megjelent!`
+    };
+
+    drawBattle();
+
+    battleTimer=setInterval(()=>{
+      if(!activeBattle)return;
+      const b=activeBattle;
+      b.round++;
+
+      // Visual damage tuned so the pre-rolled result remains consistent with the displayed success chance.
+      const roundsTarget=7+Math.floor(Math.random()*4);
+
+      if(b.win){
+        const bossDmg=Math.max(1,Math.floor(b.bossMaxHp/roundsTarget*(.82+Math.random()*.35)));
+        const incoming=d.safe
+          ? Math.max(1,Math.floor(b.playerMaxHp*.035))
+          : Math.max(1,Math.floor(b.playerMaxHp*(.045+Math.random()*.045)));
+        b.bossHp=Math.max(0,b.bossHp-bossDmg);
+        b.playerHp=d.safe
+          ? Math.max(Math.floor(b.playerMaxHp*.35),b.playerHp-incoming)
+          : Math.max(1,b.playerHp-incoming);
+        b.log=`⚔️ ${F(bossDmg)} sebzés a bossnak · ☠️ ${F(incoming)} sebzés érkezett.`;
+
+        if(b.bossHp<=0 || b.round>=12){
+          b.bossHp=0;
+          finishBattle(true);
+          return;
+        }
+      }else{
+        const bossDmg=Math.max(1,Math.floor(b.bossMaxHp*(.045+Math.random()*.045)));
+        const incoming=Math.max(1,Math.floor(b.playerMaxHp*(.11+Math.random()*.09)));
+        b.bossHp=Math.max(Math.floor(b.bossMaxHp*.18),b.bossHp-bossDmg);
+        b.playerHp=Math.max(0,b.playerHp-incoming);
+        b.log=`⚔️ ${F(bossDmg)} sebzés a bossnak · 💥 ${F(incoming)} sebzést kaptál.`;
+
+        if(b.playerHp<=0 || b.round>=10){
+          b.playerHp=0;
+          finishBattle(false);
+          return;
+        }
+      }
+      drawBattle();
+    },480);
+  }
+
+  // Enhance the current V21.8 renderer with boss card presentation + bind battle start.
+  const oldRender=window.v218RenderDungeon;
+  function enhancedRender(){
+    if(typeof oldRender==="function")oldRender();
+
+    const root=document.getElementById("v218DungeonSystem");
+    if(!root)return;
+
+    ensureBattlePanel(root);
+
+    root.querySelectorAll("[data-v218-dungeon]").forEach(btn=>{
+      const id=btn.dataset.v218Dungeon;
+      const d=(window.DUNGEONS_V218||[]).find(x=>x.id===id);
+      if(!d)return;
+
+      const card=btn.closest(".v218-dungeon-card");
+      if(card && !card.querySelector(".v219-boss-preview")){
+        const title=card.querySelector(".v218-dungeon-title");
+        const boss=document.createElement("div");
+        boss.className="v219-boss-preview";
+        boss.innerHTML=`
+          <span>${d.bossIcon||"👹"}</span>
+          <div><small>Boss</small><b>${d.bossName||"Kazamata Boss"}</b></div>`;
+        if(title)title.after(boss);
+      }
+
+      btn.onclick=()=>startBattle(d);
+    });
+
+    if(activeBattle)drawBattle();
+  }
+
+  window.v218RenderDungeon=enhancedRender;
+  window.v219StartDungeonBattle=startBattle;
+
+  window.addEventListener("load",()=>setTimeout(enhancedRender,320));
+  document.addEventListener("click",e=>{
+    if(e.target.closest?.('[data-tab="dungeon"]'))setTimeout(enhancedRender,100);
   },true);
 })();
