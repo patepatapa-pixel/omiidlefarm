@@ -207,5 +207,3 @@ V18.9
 - Dinamikus karakter/felszerelés rendszer visszaállítva.
 - Karakter státusz, Paragon/Prestige és Paragon statpontok visszaállítva.
 - A tárgyak rarity és +szintje továbbra is a tényleges equipped itemekből jön.
-
-V19.0: Paragon / Prestige és Paragon statpontok új külön felső fülre kerültek.

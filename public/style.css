@@ -2109,14 +2109,3 @@ nav.tabs{
   .character-main-v189 .v15-character-stage{height:560px!important;min-height:560px!important}
   .character-attributes{grid-template-columns:1fr 1fr!important}
 }
-
-/* V19 separate Paragon / Prestige tab */
-#page-paragon{display:none!important}
-#page-paragon.active{display:block!important}
-.paragon-page-v19{width:min(1180px,calc(100vw - 28px));margin:0 auto;display:grid;gap:12px}
-.paragon-header-v19{border-color:#8e6828!important}
-.paragon-header-v19 h2{margin:4px 0;color:#f2c24f}
-.paragon-header-v19 p{margin:5px 0 0;color:#929da8}
-.paragon-grid-v19{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
-#page-paragon .character-paragon-panel,#page-paragon .character-paragon-stats-panel{display:block!important}
-@media(max-width:850px){.paragon-grid-v19{grid-template-columns:1fr}}
