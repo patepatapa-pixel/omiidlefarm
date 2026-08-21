@@ -5570,6 +5570,15 @@ window.v222AdminSpeedSupported=true;
 
   function hideLegacyPvpWaitV310(left){
     const p=page();if(!p)return;
+    // V23.11: remove the old compact/top countdown; only #v306PvpCooldown remains visible.
+    p.querySelectorAll("[id*='cooldown'],[class*='cooldown'],[id*='countdown'],[class*='countdown']").forEach(el=>{
+      if(el.id==="v306PvpCooldown"||el.closest?.("#v306PvpCooldown"))return;
+      const t=(el.textContent||"").toLowerCase();
+      if(t.includes("párbaj")||t.includes("várakozás")||/\b\d{2}:\d{2}\b/.test(t)){
+        el.style.setProperty("display","none","important");
+        el.dataset.v311LegacyPvpCountdown="1";
+      }
+    });
     p.querySelectorAll(".shop-warning,.pvp-warning,.v229-error,[class*='warning'],[class*='error']").forEach(el=>{
       const t=(el.textContent||"").toLowerCase();
       if((t.includes("várj")&&t.includes("párbaj")) || (t.includes("másodpercet")&&t.includes("párbaj"))){

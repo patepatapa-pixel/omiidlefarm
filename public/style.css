@@ -4717,3 +4717,21 @@ nav.tabs{display:flex!important;flex-wrap:wrap!important;justify-content:center;
   .v310-left strong{font-size:21px}
   .v310-middle>b{font-size:22px}
 }
+
+/* V23.11 hide old duplicate/top PvP countdown */
+#page-pvp [id*="cooldown"]:not(#v306PvpCooldown),
+#page-pvp [class*="cooldown"]:not(#v306PvpCooldown):not(.v310-pvp-countdown),
+#page-pvp [id*="countdown"]:not(#v306PvpCooldown),
+#page-pvp [class*="countdown"]:not(.v310-pvp-countdown):not(.v310-bar){
+  /* Only the V23.10/V23.11 main countdown should be shown. */
+}
+#page-pvp .pvp-cooldown,
+#page-pvp .pvp-countdown,
+#page-pvp .pvp-wait-timer,
+#page-pvp .pvp-timer,
+#page-pvp .v229-cooldown,
+#page-pvp .v291-cooldown,
+#page-pvp .v306-legacy,
+#page-pvp [data-pvp-cooldown]{
+  display:none!important;
+}
