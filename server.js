@@ -338,6 +338,10 @@ async function init(){
     updateContent.updates.unshift({id:"v22_74",version:"V22.74",title:"Paragon túlfarm-védelem",date:"2026-08-21",summary:"Az Automata farm továbbra is kényelmes, de a Paragonra kész karakterrel nem termelhető végtelen wave és teljes aranyjutalom.",changes:["A Paragon wave-követelményéig minden farmjutalom 100%-os.","A Paragon elérése után még 25 wave teljes jutalmú türelmi szakasz jár.","Ezután 25 wave-enként fokozatosan csökken a normál és boss arany, valamint a tárgydrop esélye.","A Paragon-követelmény felett 100 wave-nél a wave-haladás megáll.","A farm tovább futhat, de a limitnél csak 10%-os arany- és dropjutalmat ad.","A prémium Automata Paragon a jogosult játékosnál automatikusan új ciklust indít.","A Farm felület élőben mutatja a teljes jutalmat, a türelmi szakaszt, a csökkentést és a wave-limitet.","A rendszerhez nem kell dungeon, fejlesztés vagy aktivitáspont."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_75")){
+    updateContent.updates.unshift({id:"v22_75",version:"V22.75",title:"Játékos DEF teljes újrabalanszolása",date:"2026-08-21",summary:"A saját DEF többé nem szalad el a mobokhoz és bossokhoz képest; minden védelmi érték az adott terület ajánlott céljához igazodik.",changes:["A meglévő felszerelések DEF-je egyszeri 28%-os arányos átskálázást kap, ezért a tárgyak és fejlesztéseik nem vesznek el.","Az új páncélok, sisakok és csizmák lényegesen kisebb, kezelhető DEF-értékekkel esnek.","A Páncéledzés, karakterszint és Prestige DEF-hozzájárulása csökkent.","Az effektív DEF lágy plafont kapott: extrém régi vagy admin tárgyakkal sem nőhet értelmetlenül több ezres értékre.","Az ajánlott DEF terület- és wave-alapú görbéje az új tárgyértékekhez igazodik.","Ajánlott DEF körül nagyjából 40–50% sebzéscsökkentés érhető el.","Ajánlott DEF körül a blokk esélye körülbelül 12–16%. Alacsonyabb DEF gyengébb, kétszeres DEF erős, de nem halhatatlan.","A 75%-os sebzéscsökkentési és 25%-os blokkplafon csak komoly végjátékos túlépítéssel közelíthető meg.","A DEF-ből származó maximális HP 2,5-ről 1,75 HP/DEF értékre csökkent.","A mob-, boss- és dungeonsebzés továbbra is ugyanahhoz az ajánlott DEF-célhoz igazodik."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
   const capMigration="v2246_wallet_caps";
   const capDone=(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[capMigration])).rows[0];
   if(!capDone){
@@ -387,7 +391,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.74.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.75.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{

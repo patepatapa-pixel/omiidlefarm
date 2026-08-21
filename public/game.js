@@ -167,6 +167,10 @@ function normalizeV6Save(s){
 }
  s.inventory=Array.isArray(s.inventory)?s.inventory:[];
  s.inventory.forEach(it=>{if(!it||typeof it!=="object")return;it.gold=0;if(Array.isArray(it.options))it.options=it.options.filter(o=>o?.key!=="gold")});
+ if(!s.defBalanceV275){
+   s.inventory.forEach(it=>{if(!it||typeof it!=="object"||!Number.isFinite(Number(it.def))||Number(it.def)<=0)return;it.def=Math.max(1,Math.round(Number(it.def)*.28))});
+   s.defBalanceV275=true;
+ }
  s.equipped={weapon:null,helmet:null,armor:null,gloves:null,boots:null,ring:null,...(s.equipped||{})};
  const removedStarterIds=new Set(s.inventory.filter(it=>it&&(it.starterV260||(it.unsellable&&String(it.name||"").startsWith("Kalandor ")))).map(it=>it.id));s.inventory=s.inventory.filter(it=>!removedStarterIds.has(it?.id));Object.keys(s.equipped).forEach(slot=>{if(removedStarterIds.has(s.equipped[slot]))s.equipped[slot]=null});
  s.pets=Array.isArray(s.pets)?s.pets:[];
@@ -255,7 +259,7 @@ function fixedZoneGold(zoneIndex=save.zone){
 function zoneMobGold(zoneIndex=save.zone){return fixedZoneGold(zoneIndex)}
 function bossGoldReward(baseGold){return Math.max(0,Math.floor(Math.max(0,Number(baseGold||0))*goldBonus()))}
 function dropBonus(){let io=itemOptionBonuses();return skillBonus("drop")+bonuses().drop+(save.base.luck-1)*.01+save.paragonStats.drop*.01*save.paragonLevel+io.drop/100}
-function power(){let b=bonuses();return Math.floor(damage()*1.2+b.def*.8+save.level*.8+save.base.mining*.5+save.base.luck*.5)}
+function power(){return Math.floor(damage()*1.2+v10Defense()*.8+save.level*.8+save.base.mining*.5+save.base.luck*.5)}
 function rankName(){let p=power();return p<25?"Kezdő":p<180?"Harcos":p<1000?"Elit":p<5000?"Mester":p<15000?"Hős":"Isteni"}
 function baseCost(d){return Math.floor(d.base*Math.pow(1.32,save.base[d.key]-1))}
 function rarityRoll(){
@@ -338,12 +342,12 @@ function createItem(){
  let scale=(1+save.zone*.75)*(1+save.level*.04)*rar.mult;
  let it={id:save.uid++,slot,rarity:rar.key,name:`${rar.name} ${SLOT_NAMES[slot]}`,plus:0,atk:0,def:0,crit:0,drop:0};
  if(slot==="weapon")it.atk=Math.max(2,Math.floor(7*scale));
- else if(slot==="armor"||slot==="helmet")it.def=Math.max(2,Math.floor(6*scale));
+ else if(slot==="armor"||slot==="helmet")it.def=Math.max(2,Math.floor(2.25*scale));
  else if(slot==="gloves")it.crit=.005*scale;
- else if(slot==="boots")it.def=Math.max(1,Math.floor(3*scale));
+ else if(slot==="boots")it.def=Math.max(1,Math.floor(1.2*scale));
  else if(slot==="ring")it.drop=.012*scale;
  if(Math.random()<.25)it.atk+=Math.floor(2*scale);
- if(Math.random()<.20)it.def+=Math.max(1,Math.floor(1.5*scale));
+ if(Math.random()<.20)it.def+=Math.max(1,Math.floor(.55*scale));
  return rollItemOptions(it)
 }
 function rarityName(k){return RARITIES.find(x=>x.key===k)?.name||k}
@@ -618,7 +622,7 @@ function ensureNpcStockV246(){
  for(let i=0;i<Math.max(1,Math.min(8,Number(cfg.gearOffers||4)));i++){
   const slot=slots[Math.floor(r()*slots.length)],rarity=rarityPick(),mult=rm[rarity],scale=(1+Math.max(0,save.zone)*.55)*(1+Math.min(250,save.level)*.018)*mult;
   const item={slot,rarity,name:`${rarityName(rarity)} ${SLOT_NAMES[slot]}`,plus:0,atk:0,def:0,crit:0,drop:0};
-  if(slot==="weapon")item.atk=Math.max(3,Math.floor(8*scale));else if(["armor","helmet"].includes(slot))item.def=Math.max(3,Math.floor(7*scale));else if(slot==="gloves")item.crit=.006*scale;else if(slot==="boots")item.def=Math.max(2,Math.floor(4*scale));else item.drop=.012*scale;
+  if(slot==="weapon")item.atk=Math.max(3,Math.floor(8*scale));else if(["armor","helmet"].includes(slot))item.def=Math.max(3,Math.floor(2.6*scale));else if(slot==="gloves")item.crit=.006*scale;else if(slot==="boots")item.def=Math.max(2,Math.floor(1.45*scale));else item.drop=.012*scale;
   offers.push({id:`gear_${i}`,type:"gear",icon:SLOT_ICONS[slot],title:item.name,subtitle:`${SLOT_NAMES[slot]} · ${rarityName(rarity)} · 1–5 opció`,item,cost:{gold:Math.floor(Number(cfg.gearGoldBase)*mult*(1+save.zone*.35)),ore:Math.max(1,Math.floor(Number(cfg.gearOreBase)*mult))},limit:1,bought:0,rarity});
  }
  offers.push({id:"arrows",type:"arrows",icon:"🏹",title:"Edzett nyílvesszőcsomag",subtitle:`${fmt(cfg.arrowAmount)} lövés · +${Number(cfg.arrowDamagePct)}% sebzés`,cost:{gold:Math.max(0,Math.floor(Number(cfg.arrowGoldCost)))},amount:Math.max(1,Math.floor(Number(cfg.arrowAmount))),limit:10,bought:0,rarity:"rare"});
@@ -1540,11 +1544,14 @@ let v10PlayerTimer=null,v10EnemyTimer=null,v10RegenTimer=null,v265GuardUntil=0;
 
 function v10Defense(){
  const b=bonuses(),io=itemOptionBonuses();
- return Math.max(0,Math.floor(((b.def||0)+(save.base?.armorTraining||1)*3.5+(save.level||1)*.45+save.prestigeLevel*2.5)*(1+io.defPct/100)));
+ const raw=Math.max(0,((b.def||0)+(save.base?.armorTraining||1)*2+(save.level||1)*.3+save.prestigeLevel*1.5)*(1+io.defPct/100)),target=recommendedDefenseV271();
+ // A túlméretezett régi vagy admin tárgyak sem tehetik értelmetlenné a PvE-t:
+ // az effektív DEF fokozatosan közelít a terület ajánlott értékének háromszorosához.
+ return Math.max(0,Math.floor(target*(3*raw/(raw+target*2))));
 }
-function defenseReductionV265(){const d=v10Defense(),g=window.OMI_CONTENT?.gameplay||{},cap=Math.max(.1,Math.min(.85,Number(g.defenseReductionCapPct??75)/100)),rating=Math.max(10,Number(g.defenseRatingBase??55)+save.zone*30+Math.pow(Math.max(1,save.wave),.72)*1.2);return Math.min(cap,d/(d+rating))}
-function defenseGuardChanceV265(){const d=Math.sqrt(Math.max(0,v10Defense())),g=window.OMI_CONTENT?.gameplay||{},cap=Math.max(0,Math.min(.4,Number(g.defenseGuardCapPct??25)/100));return Math.min(cap,(d/(d+18))*.35)}
-function recommendedDefenseV271(zone=save.zone,wave=save.wave){return Math.max(8,Math.floor(16*(1+Math.max(0,Number(zone||0))*1.05)*Math.pow(1+Math.max(0,Number(wave||1))/90,.52)))}
+function defenseReductionV265(){const d=v10Defense(),g=window.OMI_CONTENT?.gameplay||{},cap=Math.max(.1,Math.min(.85,Number(g.defenseReductionCapPct??75)/100)),target=recommendedDefenseV271();return Math.min(cap,cap*d/(d+target*.65))}
+function defenseGuardChanceV265(){const d=v10Defense(),g=window.OMI_CONTENT?.gameplay||{},cap=Math.max(0,Math.min(.4,Number(g.defenseGuardCapPct??25)/100)),target=recommendedDefenseV271();return Math.min(cap,cap*1.2*d/(d+target))}
+function recommendedDefenseV271(zone=save.zone,wave=save.wave){return Math.max(10,Math.floor(30*(1+Math.max(0,Number(zone||0))*1.2)*Math.pow(1+Math.max(0,Number(wave||1))/100,.5)))}
 function defensePressureV271(){const ratio=v10Defense()/Math.max(1,recommendedDefenseV271());return Math.max(.78,Math.min(1.45,1+(1-ratio)*.45))}
 function dungeonRecommendedDefenseV271(d){return Math.max(15,Math.floor(20+Math.sqrt(Math.max(1,Number(d?.reqPower||d?.need||100)))*4.2))}
 function dungeonDefenseModifierV266(d){const ratio=v10Defense()/Math.max(1,dungeonRecommendedDefenseV271(d));return Math.max(-.18,Math.min(.25,(ratio-1)*.16+defenseGuardChanceV265()*.18))}
@@ -1554,7 +1561,7 @@ function v10MaxHp(){
  const io=itemOptionBonuses();
  const cfg=(typeof V10CFG!=="undefined"&&V10CFG)?V10CFG:V10_DEFAULTS;
  return Math.max(1,Math.floor(
-   (cfg.basePlayerHp+(save.level-1)*cfg.hpPerLevel+v10Defense()*2.5+save.paragonLevel*8)*(1+io.hpPct/100)
+   (cfg.basePlayerHp+(save.level-1)*cfg.hpPerLevel+v10Defense()*1.75+save.paragonLevel*8)*(1+io.hpPct/100)
  ));
 }
 function v10BossMaxHp(){
