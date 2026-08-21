@@ -157,7 +157,10 @@ const V10_GAMEPLAY_DEFAULTS={
  goldBonusCapPct:100,
  mobTargetHits:2,
  zoneHpMultipliers:[100,100,100,100,100,100,100,100],
- zoneFixedGold:[5,9,16,28,48,80,130,210]
+ zoneFixedGold:[5,9,16,28,48,80,130,210],
+ zoneSoulDropChancePct:[1,1.5,2,2.5,3,3.5,4,5],
+ zoneSoulDropMin:[1,1,1,1,1,1,1,1],
+ zoneSoulDropMax:[1,1,1,2,2,2,3,3]
 };
 
 function v10GameplayCfg(){
@@ -186,15 +189,18 @@ function fillDefaultBossGems(){
 const V226_ZONE_NAMES=["Zöld mező","Sötét erdő","Elhagyott bánya","Démon torony","Sárkány-völgy","Mennydörgés fennsík","Üresség","Isteni kapu"];
 function v226ZoneNames(){return [...V226_ZONE_NAMES,...(studioConfig.zones||[]).map(z=>z.name||"Egyedi terület")]}
 function fillZoneHpBalance(){
- const g=v10GameplayCfg(),multipliers=Array.isArray(g.zoneHpMultipliers)?g.zoneHpMultipliers:[],fixedGold=Array.isArray(g.zoneFixedGold)?g.zoneFixedGold:V10_GAMEPLAY_DEFAULTS.zoneFixedGold;
+ const g=v10GameplayCfg(),multipliers=Array.isArray(g.zoneHpMultipliers)?g.zoneHpMultipliers:[],fixedGold=Array.isArray(g.zoneFixedGold)?g.zoneFixedGold:V10_GAMEPLAY_DEFAULTS.zoneFixedGold,soulChance=Array.isArray(g.zoneSoulDropChancePct)?g.zoneSoulDropChancePct:V10_GAMEPLAY_DEFAULTS.zoneSoulDropChancePct,soulMin=Array.isArray(g.zoneSoulDropMin)?g.zoneSoulDropMin:V10_GAMEPLAY_DEFAULTS.zoneSoulDropMin,soulMax=Array.isArray(g.zoneSoulDropMax)?g.zoneSoulDropMax:V10_GAMEPLAY_DEFAULTS.zoneSoulDropMax;
  if(qs("#cfgMobTargetHits"))qs("#cfgMobTargetHits").value=Number(g.mobTargetHits||2);
- const root=qs("#zoneHpBalanceEditor");if(root)root.innerHTML=v226ZoneNames().map((name,i)=>`<article class="zone-balance-card"><h4>🗺️ ${name}</h4><label>❤️ Mob HP szorzó %<input data-zone-hp-mult="${i}" type="number" min="10" max="1000" step="1" value="${Number(multipliers[i]??100)}"></label><label>💰 Fix arany / mob<input data-zone-fixed-gold="${i}" type="number" min="0" step="1" value="${Number(fixedGold[i]??studioConfig.zones?.[i-8]?.gold??0)}"></label><small>A normál mob mindig pontosan ezt adja; az aranydropp-bónusz csak a bossokra hat.</small></article>`).join("");
+ const root=qs("#zoneHpBalanceEditor");if(root)root.innerHTML=v226ZoneNames().map((name,i)=>`<article class="zone-balance-card"><h4>🗺️ ${name}</h4><label>❤️ Mob HP szorzó %<input data-zone-hp-mult="${i}" type="number" min="10" max="1000" step="1" value="${Number(multipliers[i]??100)}"></label><label>💰 Fix arany / mob<input data-zone-fixed-gold="${i}" type="number" min="0" step="1" value="${Number(fixedGold[i]??studioConfig.zones?.[i-8]?.gold??0)}"></label><div class="v23201-soul-admin"><label>🔵 Lélekkő drop %<input data-zone-soul-chance="${i}" type="number" min="0" max="100" step="0.1" value="${Number(soulChance[i]??0)}"></label><label>🔵 Minimum db<input data-zone-soul-min="${i}" type="number" min="0" step="1" value="${Number(soulMin[i]??0)}"></label><label>🔵 Maximum db<input data-zone-soul-max="${i}" type="number" min="0" step="1" value="${Number(soulMax[i]??0)}"></label></div><small>0% = nincs Lélekkő drop. Minden normál mobnál külön dobás történik.</small></article>`).join("");
 }
 qs("#saveZoneHpBalance")?.addEventListener("click",async()=>{
  const g=v10GameplayCfg();g.mobTargetHits=Math.max(1,Number(qs("#cfgMobTargetHits")?.value||2));
  g.zoneHpMultipliers=v226ZoneNames().map((_,i)=>Math.max(10,Math.min(1000,Number(qs(`[data-zone-hp-mult="${i}"]`)?.value||100))));
  g.zoneFixedGold=v226ZoneNames().map((_,i)=>Math.max(0,Math.floor(Number(qs(`[data-zone-fixed-gold="${i}"]`)?.value??0))));
- studioConfig.gameplay=g;await saveConfigV8();fillZoneHpBalance();alert("✅ A területi HP- és aranyszorzók elmentve.");
+ g.zoneSoulDropChancePct=v226ZoneNames().map((_,i)=>Math.max(0,Math.min(100,Number(qs(`[data-zone-soul-chance="${i}"]`)?.value??0))));
+ g.zoneSoulDropMin=v226ZoneNames().map((_,i)=>Math.max(0,Math.floor(Number(qs(`[data-zone-soul-min="${i}"]`)?.value??0))));
+ g.zoneSoulDropMax=v226ZoneNames().map((_,i)=>Math.max(g.zoneSoulDropMin[i],Math.floor(Number(qs(`[data-zone-soul-max="${i}"]`)?.value??g.zoneSoulDropMin[i]))));
+ studioConfig.gameplay=g;await saveConfigV8();fillZoneHpBalance();alert("✅ Területi HP, arany és Lélekkő drop elmentve.");
 });
 qs("#saveDefaultBossGems")?.addEventListener("click",async()=>{
  const g=v10GameplayCfg();

@@ -269,6 +269,25 @@ function fixedZoneGold(zoneIndex=save.zone){
  return Math.max(0,Math.floor(Number.isFinite(value)?value:0));
 }
 function zoneMobGold(zoneIndex=save.zone){return fixedZoneGold(zoneIndex)}
+
+/* V23.20.1 - Farmterületi Lélekkő drop, adminból állítható */
+function zoneSoulDropCfgV23201(zoneIndex=save.zone){
+ const g=window.OMI_CONTENT?.gameplay||{};
+ const chanceArr=Array.isArray(g.zoneSoulDropChancePct)?g.zoneSoulDropChancePct:[1,1.5,2,2.5,3,3.5,4,5];
+ const minArr=Array.isArray(g.zoneSoulDropMin)?g.zoneSoulDropMin:[1,1,1,1,1,1,1,1];
+ const maxArr=Array.isArray(g.zoneSoulDropMax)?g.zoneSoulDropMax:[1,1,1,2,2,2,3,3];
+ const i=Math.max(0,Math.floor(Number(zoneIndex||0)));
+ const chance=Math.max(0,Math.min(100,Number(chanceArr[i]??0)));
+ const min=Math.max(0,Math.floor(Number(minArr[i]??0)));
+ const max=Math.max(min,Math.floor(Number(maxArr[i]??min)));
+ return {chance,min,max};
+}
+function rollZoneSoulDropV23201(zoneIndex=save.zone){
+ const c=zoneSoulDropCfgV23201(zoneIndex);
+ if(c.chance<=0||c.max<=0||Math.random()*100>=c.chance)return 0;
+ return c.min+Math.floor(Math.random()*(c.max-c.min+1));
+}
+
 function bossGoldReward(baseGold){return Math.max(0,Math.floor(Math.max(0,Number(baseGold||0))*goldBonus()))}
 function dropBonus(){let io=itemOptionBonuses();return skillBonus("drop")+bonuses().drop+(save.base.luck-1)*.01+save.paragonStats.drop*.01*save.paragonLevel+io.drop/100}
 function mountBonusPctV288(level){const raw=Math.max(0,Math.floor(Number(level||0)))*.02,cap=.25;return cap*raw/(raw+cap)}
@@ -482,7 +501,7 @@ function renderZones(){
  const best=strongestUnlockedZone();
  if(save.zone!==best){save.zone=best;save.waveBoss=false;save.waveRiftBossV284=false;save.bossHp=0;save.waveKills=0;enemyHp=normalEnemyMaxHp();persist()}
  const thresholds=zoneWaveThresholdsV285();
- $("#zones").innerHTML=ZONES.map((z,i)=>{const weak=i<best,locked=i>best;return `<div class="zone ${i===save.zone?"active":""} ${locked?"locked":""} ${weak?"zone-too-weak":""}" data-zone="${i}"><b>${z.icon} ${z.name}</b><small>🌊 Feloldás: Wave ${fmt(thresholds[i])} · ⚔️ Minimum erő: ${fmt(zoneMinPowerV319(i))} · 🛡️ Ajánlott DEF: ${fmt(recommendedDefenseV271(i,save.wave))}</small><small>Drop: ${(z.drop*100).toFixed(0)}% · 💰 Fix ${fmt(zoneMobGold(i))} arany / mob · Paragon cél: Wave ${fmt(paragonWaveRequirement())}</small>${weak?'<strong class="zone-cap-badge">⬆️ TELJESÍTETT TERÜLET</strong>':locked?`<strong class="zone-cap-badge">🔒 WAVE ${fmt(thresholds[i])} SZÜKSÉGES</strong>`:""}</div>`}).join("");
+ $("#zones").innerHTML=ZONES.map((z,i)=>{const weak=i<best,locked=i>best;return `<div class="zone ${i===save.zone?"active":""} ${locked?"locked":""} ${weak?"zone-too-weak":""}" data-zone="${i}"><b>${z.icon} ${z.name}</b><small>🌊 Feloldás: Wave ${fmt(thresholds[i])} · ⚔️ Minimum erő: ${fmt(zoneMinPowerV319(i))} · 🛡️ Ajánlott DEF: ${fmt(recommendedDefenseV271(i,save.wave))}</small><small>Drop: ${(z.drop*100).toFixed(0)}% · 💰 Fix ${fmt(zoneMobGold(i))} arany / mob · 🔵 Lélekkő ${zoneSoulDropCfgV23201(i).chance.toFixed(1)}% (${zoneSoulDropCfgV23201(i).min}–${zoneSoulDropCfgV23201(i).max}) · Paragon cél: Wave ${fmt(paragonWaveRequirement())}</small>${weak?'<strong class="zone-cap-badge">⬆️ TELJESÍTETT TERÜLET</strong>':locked?`<strong class="zone-cap-badge">🔒 WAVE ${fmt(thresholds[i])} SZÜKSÉGES</strong>`:""}</div>`}).join("");
  $$("[data-zone]").forEach(e=>e.onclick=()=>{let i=+e.dataset.zone,current=strongestUnlockedZone();if(i>current)return toast("🔒 Ezt a területet még nem oldottad fel.");if(i<current)return toast("⛔ A teljesített terület végleg lezárult ebben a Paragon-ciklusban.");grantStarterGearV260(i);save.zone=i;save.waveKills=0;save.waveBoss=false;save.bossHp=0;enemyHp=normalEnemyMaxHp();persist();renderAll();toast("🗺️ "+ZONES[i].name)})
 }
 function zoneWaveThresholdsV285(){
@@ -1443,7 +1462,7 @@ document.addEventListener("click",e=>{
 let away=Math.min((12+skillRank("afkCap")+skillRank("endurance")+skillRank("dreamMaster"))*3600,Math.max(0,(Date.now()-save.last)/1000));
 if(away>15){
  let z=ZONES[save.zone],eff=Math.min(3.5,.55+skillBonus("offline")),kills=Math.floor(away*damage()/z.hp*eff);
- if(kills>0){let g=Math.floor(kills*zoneMobGold(save.zone)*paragonOverfarmV274().rewardMult);save.gold+=g;save.stats.goldEarned+=g;save.kills+=kills;save.xp+=kills*z.xp;toast(`🌙 Offline farm: ${fmt(kills)} kill · ${fmt(g)} arany`)}
+ if(kills>0){let g=Math.floor(kills*zoneMobGold(save.zone)*paragonOverfarmV274().rewardMult);const sc=zoneSoulDropCfgV23201(save.zone),expected=kills*(sc.chance/100)*((sc.min+sc.max)/2),offlineSoul=Math.max(0,Math.floor(expected+(Math.random()-.5)*Math.sqrt(Math.max(1,expected))));save.gold+=g;save.stats.goldEarned+=g;save.kills+=kills;save.xp+=kills*z.xp;save.soul+=offlineSoul;toast(`🌙 Offline farm: ${fmt(kills)} kill · ${fmt(g)} arany${offlineSoul?` · 🔵 +${fmt(offlineSoul)} Lélekkő`:""}`)}
 }
 while(save.xp>=needXp()){save.xp-=needXp();save.level++}
 
@@ -1783,8 +1802,8 @@ function v10AwardNormalKill(){
  ensurePowerAppropriateZone();
  const z=ZONES[save.zone],overfarm=paragonOverfarmV274(),g=Math.floor(zoneMobGold(save.zone)*overfarm.rewardMult);
  casinoFarmGoldV256(g);save.stats.goldEarned+=g;save.xp+=z.xp;save.kills++;
- if(Math.random()<(.07+save.base.mining*.005)*overfarm.rewardMult)save.ore++;
- if(Math.random()<(.007+dropBonus()*.05)*overfarm.rewardMult)save.soul++;
+ if(Math.random()<(.07+save.base.mining*.005)*overfarm.rewardMult)save.ore++;  const soulDropV23201=rollZoneSoulDropV23201(save.zone);
+  if(soulDropV23201>0)save.soul+=soulDropV23201;
  if(Math.random()<.006*overfarm.rewardMult)save.tickets++;
  if(Math.random()<(z.drop+dropBonus())*overfarm.rewardMult){addItem(createItem());addFarmActivityV264("drops",1)}
  while(save.xp>=needXp()){save.xp-=needXp();save.level++;toast(`⭐ Szintlépés! Lv.${save.level}`)}
@@ -1811,7 +1830,7 @@ function v10AwardNormalKill(){
    }
  }else{
    enemyHp=normalEnemyMaxHp();
-   $("#combatLog").textContent=`${z.enemy} legyőzve · +${fmt(g)} arany · Wave ${save.wave}: ${save.waveKills}/${save.waveGoal}`;
+   $("#combatLog").textContent=`${z.enemy} legyőzve · +${fmt(g)} arany${soulDropV23201?` · 🔵 +${soulDropV23201} Lélekkő`:""} · Wave ${save.wave}: ${save.waveKills}/${save.waveGoal}`;
  }
  v161LiveHud();
 }

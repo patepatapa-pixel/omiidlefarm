@@ -4840,3 +4840,7 @@ nav.tabs{display:flex!important;flex-wrap:wrap!important;justify-content:center;
 .v2320-ecoin-balance{display:flex;align-items:center;gap:14px;margin:0 0 14px;padding:14px 16px;border:1px solid #c39a36;border-radius:13px;background:linear-gradient(115deg,#171207,#0d1219);box-shadow:0 0 18px rgba(224,177,54,.12)}
 .v2320-ecoin-balance>span{font-size:32px}.v2320-ecoin-balance small{display:block;color:#d8a83e;font-weight:1000;letter-spacing:.1em}.v2320-ecoin-balance b{display:block;color:#ffe184;font-size:22px}.v2320-ecoin-balance em{display:block;color:#929dac;font-style:normal;font-size:11px;margin-top:3px}
 .v2320-ecoin-info{border-color:#b78d31!important}
+
+/* V23.20.1 farmterületi Lélekkő admin */
+.v23201-soul-admin{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(90,130,190,.22)}
+@media(max-width:800px){.v23201-soul-admin{grid-template-columns:1fr}}
