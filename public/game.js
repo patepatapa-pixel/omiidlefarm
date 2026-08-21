@@ -2143,14 +2143,18 @@ $("#refreshPvp")?.addEventListener("click",loadPvp);
 
 // Shop
 function renderStore(){
- const s=V11_CONTENT.store||{},products=s.products||[],visibleProducts=products.filter(p=>p.visible!==false);
+ const s=V11_CONTENT.store||{},rawProducts=Array.isArray(s.products)?s.products:[],fallbackFullAuto={id:"full_auto_20_eur",name:"Teljes Automata Rendszer",icon:"🤖",priceText:"20 €",description:"Teljes automatikus fejlődés Prestige-ig: Equip Best, item fejlesztés és opcióforgatás, alap fejlesztések, Paragon statok, automata selejtezés, Auto Paragon és Auto Prestige.",visible:true};
+ const products=[...rawProducts];
+ if(!products.some(p=>p?.id==="full_auto_20_eur"))products.unshift(fallbackFullAuto);
+ const visibleProducts=products.filter(p=>p.visible!==false);
  $("#storeProducts").innerHTML=visibleProducts.length?visibleProducts.map((p,i)=>`
-  <div class="store-product">
+  <div class="store-product ${p.id==="full_auto_20_eur"?"v300-full-auto-product":""}">
    <div class="store-icon">${p.icon||"💰"}</div><h3>${p.name||"Csomag"}</h3>
    <p>${p.description||""}</p><strong>${p.priceText||"Privát ár"}</strong>
-   <button data-buy-product="${p.id||i}">💬 Vásárlási igény</button>
+   ${p.id==="full_auto_20_eur"?`<small class="v300-auto-state">${save.fullAutoUnlocked?"✅ Fiókodon feloldva": "🔒 Admin aktiválás szükséges vásárlás után"}</small>`:""}
+   <button data-buy-product="${p.id||i}">${p.id==="full_auto_20_eur"&&save.fullAutoUnlocked?"✅ MÁR AKTÍV":"💬 Vásárlási igény"}</button>
   </div>`).join(""):'<p class="muted">Jelenleg nincs beállított vásárlási csomag.</p>';
- const speed=products.find(p=>p.id==="premium_speed_10x"),auto=products.find(p=>p.id==="auto_paragon_10_eur"),dungeonBatch=products.find(p=>p.id==="dungeon_batch_10_eur");
+ const speed=products.find(p=>p.id==="premium_speed_10x"),auto=products.find(p=>p.id==="auto_paragon_10_eur"),dungeonBatch=products.find(p=>p.id==="dungeon_batch_10_eur"),fullAuto=products.find(p=>p.id==="full_auto_20_eur")||fallbackFullAuto;
  const speedPrice=document.querySelector(".premium-price-v165");if(speedPrice&&speed)speedPrice.textContent=speed.priceText||"3 €";
  const autoPrice=document.querySelector(".auto-paragon-v237>div>b");if(autoPrice&&auto)autoPrice.textContent=auto.priceText||"10 €";
  const speedCard=document.querySelector(".premium-speed-v165"),autoCard=document.querySelector(".auto-paragon-v237");
@@ -2158,9 +2162,11 @@ function renderStore(){
  if(autoCard&&auto){autoCard.querySelector("h2").textContent=auto.name||"Auto Paragon szintelő";autoCard.querySelector("p").textContent=auto.description||"Automatikus Paragon szintlépés";autoCard.style.display=auto.visible===false?"none":""}
  window.V238_AUTO_PARAGON_PRODUCT=auto||{id:"auto_paragon_10_eur",name:"Auto Paragon szintelő",priceText:"10 €",visible:true};
  window.V279_DUNGEON_BATCH_PRODUCT=dungeonBatch||{id:"dungeon_batch_10_eur",name:"Dungeon 10× prémium futam",priceText:"10 €",visible:true};
+ window.V300_FULL_AUTO_PRODUCT=fullAuto;
  window.dispatchEvent(new CustomEvent("store-config-updated"));
  $$("[data-buy-product]").forEach(b=>b.onclick=async()=>{
    if(!currentUser)return openAuth("login");
+   if(String(b.dataset.buyProduct)==="full_auto_20_eur"&&save.fullAutoUnlocked){toast("✅ A Teljes Automata Rendszer már fel van oldva a fiókodon.");return}
    try{const d=await api("/api/shop/request",{method:"POST",body:JSON.stringify({product_id:String(b.dataset.buyProduct),note:"Weboldalról küldött igény"})});alert(d.message)}catch(e){alert(e.message)}
  });
 }
@@ -5540,3 +5546,18 @@ window.v222AdminSpeedSupported=true;
  window.addEventListener("beforeunload",()=>{if(active&&typeof navigator!=="undefined"&&navigator.sendBeacon){try{navigator.sendBeacon("/api/pvp/session/end",new Blob(["{}"],{type:"application/json"}))}catch{}}});
 })();
 
+
+/* V23.00 full auto availability refresh */
+setInterval(()=>{
+ try{
+  const p=document.getElementById("v299FullAutoPanel");
+  if(p&&typeof window.v299FullAutoTick==="function"){
+    const input=p.querySelector("#v299FullAutoToggle");
+    if(input){
+      input.disabled=!save.fullAutoUnlocked;
+      if(!save.fullAutoUnlocked)input.checked=false;
+    }
+  }
+  if(document.getElementById("page-shop")?.classList.contains("active")&&typeof renderStore==="function")renderStore();
+ }catch(e){}
+},5000);
