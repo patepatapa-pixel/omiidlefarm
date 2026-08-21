@@ -211,7 +211,6 @@ save.waveBoss=Boolean(save.waveBoss||false);
 save.bossHp=Number(save.bossHp||0);
 save.paragonLevel=Number(save.paragonLevel||0);
 save.prestigeLevel=Number(save.prestigeLevel||0);
-save.eCoins=Math.max(0,Math.floor(Number(save.eCoins||0)));save.fullAutoUnlocked=Boolean(save.fullAutoUnlocked);save.fullAutoEnabled=Boolean(save.fullAutoUnlocked&&save.fullAutoEnabled);
 save.prestigeTokens=Number(save.prestigeTokens||0);
 save.paragonPoints=Number(save.paragonPoints||0);
 save.auraTokens=Number(save.auraTokens||0);
@@ -254,7 +253,7 @@ function damageCoreV281(bossContext=false){
  let total=base*(1+skillBonus("power")+Math.min(4,save.paragonStats.damage*.02*save.paragonLevel))*(1+io.atkPct/100)*(1+Math.min(.5,Number(save.prestigeLevel||0)*.005));
  if(bossContext)total*=1+io.bossDmg/100;
  if(bossContext)total*=1+skillBonus("boss");
- return Math.max(1,Math.min(70000,Math.floor(total)))
+ return Math.max(1,Math.min(30000,Math.floor(total)))
 }
 function damage(){return damageCoreV281(Boolean(save.waveBoss))}
 function critChance(){let io=itemOptionBonuses();return Math.min(.85,.05+skillBonus("crit")+bonuses().crit+save.paragonStats.crit*.005*save.paragonLevel+io.crit/100)}
@@ -269,45 +268,13 @@ function fixedZoneGold(zoneIndex=save.zone){
  return Math.max(0,Math.floor(Number.isFinite(value)?value:0));
 }
 function zoneMobGold(zoneIndex=save.zone){return fixedZoneGold(zoneIndex)}
-
-/* V23.20.2 - Fix XP / mob, adminból területenként állítható */
-function fixedZoneXpV23202(zoneIndex=save.zone){
- const g=window.OMI_CONTENT?.gameplay||{};
- const fixed=Array.isArray(g.zoneFixedXp)?g.zoneFixedXp:[6,15,35,85,220,600,1650,4500];
- const fallback=ZONES[zoneIndex]?.xp??0;
- const v=Number(fixed[Math.max(0,Math.floor(Number(zoneIndex||0)))]??fallback);
- return Math.max(0,Math.floor(Number.isFinite(v)?v:fallback));
-}
-
-
-/* V23.20.1 - Farmterületi Lélekkő drop, adminból állítható */
-function zoneSoulDropCfgV23201(zoneIndex=save.zone){
- const g=window.OMI_CONTENT?.gameplay||{};
- const chanceArr=Array.isArray(g.zoneSoulDropChancePct)?g.zoneSoulDropChancePct:[1,1.5,2,2.5,3,3.5,4,5];
- const minArr=Array.isArray(g.zoneSoulDropMin)?g.zoneSoulDropMin:[1,1,1,1,1,1,1,1];
- const maxArr=Array.isArray(g.zoneSoulDropMax)?g.zoneSoulDropMax:[1,1,1,2,2,2,3,3];
- const i=Math.max(0,Math.floor(Number(zoneIndex||0)));
- const chance=Math.max(0,Math.min(100,Number(chanceArr[i]??0)));
- const min=Math.max(0,Math.floor(Number(minArr[i]??0)));
- const max=Math.max(min,Math.floor(Number(maxArr[i]??min)));
- return {chance,min,max};
-}
-function rollZoneSoulDropV23201(zoneIndex=save.zone){
- const c=zoneSoulDropCfgV23201(zoneIndex);
- if(c.chance<=0||c.max<=0||Math.random()*100>=c.chance)return 0;
- return c.min+Math.floor(Math.random()*(c.max-c.min+1));
-}
-
 function bossGoldReward(baseGold){return Math.max(0,Math.floor(Math.max(0,Number(baseGold||0))*goldBonus()))}
 function dropBonus(){let io=itemOptionBonuses();return skillBonus("drop")+bonuses().drop+(save.base.luck-1)*.01+save.paragonStats.drop*.01*save.paragonLevel+io.drop/100}
 function mountBonusPctV288(level){const raw=Math.max(0,Math.floor(Number(level||0)))*.02,cap=.25;return cap*raw/(raw+cap)}
 function mountPowerMultiplierV277(){const m=save.mounts?.[save.activeMount];return 1+mountBonusPctV288(m?.level)}
 function rawPowerV280(){return (damageCoreV281(false)*1.2+v10Defense()*.8+save.level*.8+save.base.mining*.5+save.base.luck*.5)*mountPowerMultiplierV277()}
-function power(){
- const raw=Math.max(0,rawPowerV280()),cap=100000;
- return Math.min(cap,Math.floor(cap*raw/(raw+cap*.42)));
-}
-function rankName(){let p=power();return p<1000?"Kezdő":p<5000?"Harcos":p<15000?"Elit":p<35000?"Mester":p<65000?"Hős":p<90000?"Legenda":"Isteni"}
+function power(){const raw=Math.max(0,rawPowerV280()),cap=30000;return Math.floor(cap*raw/(raw+cap))}
+function rankName(){let p=power();return p<25?"Kezdő":p<180?"Harcos":p<1000?"Elit":p<5000?"Mester":p<15000?"Hős":"Isteni"}
 function baseCost(d){return Math.floor(d.base*Math.pow(1.32,save.base[d.key]-1))}
 function rarityRoll(){
  let bonus=(save.base.luck-1)*.25+skillBonus("drop")*15;
@@ -502,35 +469,23 @@ function renderCharacterVisual(){
 
 function renderCore(){
  let z=ZONES[save.zone];
- $("#gold").textContent=fmt(save.gold);$("#gems").textContent=fmt(save.gems);$("#ore").textContent=fmt(save.ore);$("#soul").textContent=fmt(save.soul);$("#tickets").textContent=fmt(save.tickets);$("#level").textContent=save.level;$("#xpText").textContent=`${fmt(save.xp)} / ${fmt(needXp())} XP`;updateXpBarV23203();$("#power").textContent=fmt(power());$("#rankName").textContent=rankName();$("#gps").textContent=`~${fmt(zoneMobGold(save.zone)*damage()/Math.max(1,z.hp))} / mp`;
+ $("#gold").textContent=fmt(save.gold);$("#gems").textContent=fmt(save.gems);$("#ore").textContent=fmt(save.ore);$("#soul").textContent=fmt(save.soul);$("#tickets").textContent=fmt(save.tickets);$("#level").textContent=save.level;$("#xpText").textContent=`${fmt(save.xp)} / ${fmt(needXp())} XP`;$("#power").textContent=fmt(power());$("#rankName").textContent=rankName();$("#gps").textContent=`~${fmt(zoneMobGold(save.zone)*damage()/Math.max(1,z.hp))} / mp`;
  $("#zoneName").textContent=z.name;$("#enemyIcon").textContent=z.icon;$("#enemyName").textContent=z.enemy;$("#enemyHp").textContent=fmt(Math.max(0,enemyHp));$("#enemyMaxHp").textContent=fmt(z.hp);$("#hpbar").style.width=Math.max(0,enemyHp/z.hp*100)+"%";$("#damageText").textContent=fmt(damage());$("#critText").textContent=(critChance()*100).toFixed(1)+"%";$("#dropText").textContent=(dropBonus()*100).toFixed(1)+"%";
  renderEquipped();renderBonuses();renderCharacterVisual()
 }
 function renderZones(){
- instantZoneAdvanceV305(false);
  const best=strongestUnlockedZone();
  if(save.zone!==best){save.zone=best;save.waveBoss=false;save.waveRiftBossV284=false;save.bossHp=0;save.waveKills=0;enemyHp=normalEnemyMaxHp();persist()}
  const thresholds=zoneWaveThresholdsV285();
- $("#zones").innerHTML=ZONES.map((z,i)=>{const weak=i<best,locked=i>best;return `<div class="zone ${i===save.zone?"active":""} ${locked?"locked":""} ${weak?"zone-too-weak":""}" data-zone="${i}"><b>${z.icon} ${z.name}</b><small>🌊 Feloldás: Wave ${fmt(thresholds[i])} · ⚔️ Minimum erő: ${fmt(zoneMinPowerV319(i))} · 🛡️ Ajánlott DEF: ${fmt(recommendedDefenseV271(i,save.wave))}</small><small>Drop: ${(z.drop*100).toFixed(0)}% · 💰 Fix ${fmt(zoneMobGold(i))} arany / mob · ⭐ Fix ${fmt(fixedZoneXpV23202(i))} XP / mob · 🔵 Lélekkő ${zoneSoulDropCfgV23201(i).chance.toFixed(1)}% (${zoneSoulDropCfgV23201(i).min}–${zoneSoulDropCfgV23201(i).max}) · Paragon cél: Wave ${fmt(paragonWaveRequirement())}</small>${weak?'<strong class="zone-cap-badge">⬆️ TELJESÍTETT TERÜLET</strong>':locked?`<strong class="zone-cap-badge">🔒 WAVE ${fmt(thresholds[i])} SZÜKSÉGES</strong>`:""}</div>`}).join("");
+ $("#zones").innerHTML=ZONES.map((z,i)=>{const weak=i<best,locked=i>best;return `<div class="zone ${i===save.zone?"active":""} ${locked?"locked":""} ${weak?"zone-too-weak":""}" data-zone="${i}"><b>${z.icon} ${z.name}</b><small>🌊 Feloldás: Wave ${fmt(thresholds[i])} · 🛡️ Ajánlott DEF: ${fmt(recommendedDefenseV271(i,save.wave))}</small><small>Drop: ${(z.drop*100).toFixed(0)}% · 💰 Fix ${fmt(zoneMobGold(i))} arany / mob · Paragon cél: Wave ${fmt(paragonWaveRequirement())}</small>${weak?'<strong class="zone-cap-badge">⬆️ TELJESÍTETT TERÜLET</strong>':locked?`<strong class="zone-cap-badge">🔒 WAVE ${fmt(thresholds[i])} SZÜKSÉGES</strong>`:""}</div>`}).join("");
  $$("[data-zone]").forEach(e=>e.onclick=()=>{let i=+e.dataset.zone,current=strongestUnlockedZone();if(i>current)return toast("🔒 Ezt a területet még nem oldottad fel.");if(i<current)return toast("⛔ A teljesített terület végleg lezárult ebben a Paragon-ciklusban.");grantStarterGearV260(i);save.zone=i;save.waveKills=0;save.waveBoss=false;save.bossHp=0;enemyHp=normalEnemyMaxHp();persist();renderAll();toast("🗺️ "+ZONES[i].name)})
 }
 function zoneWaveThresholdsV285(){
  const count=Math.max(1,ZONES.length),req=Math.max(1,paragonWaveRequirement());
  if(count===1)return [1];
- return Array.from({length:count},(_,i)=>i===0?1:i===count-1?Math.max(2,req-18):Math.max(2,Math.round(req*Math.pow(i/(count-1),1.08))));
+ return Array.from({length:count},(_,i)=>i===0?1:i===count-1?req:Math.max(2,Math.round(req*Math.pow(i/(count-1),1.12))));
 }
-function zoneMinPowerV319(zone){
- const gates=[0,1500,4000,9000,18000,32000,52000,75000];
- zone=Math.max(0,Math.min(gates.length-1,Math.floor(Number(zone||0))));
- return gates[zone];
-}
-function progressionMinimumZoneV260(){
- const w=Math.max(1,Number(save.wave||1)),p=Math.max(0,Number(power()||0)),waveSteps=zoneWaveThresholdsV285();
- let byWave=0,byPower=0;
- waveSteps.forEach((n,i)=>{if(w>=n)byWave=i});
- for(let i=0;i<ZONES.length;i++){if(p>=zoneMinPowerV319(i))byPower=i}
- return Math.min(ZONES.length-1,byWave,byPower);
-}
+function progressionMinimumZoneV260(){const w=Math.max(1,Number(save.wave||1)),waveSteps=zoneWaveThresholdsV285();let byWave=0;waveSteps.forEach((n,i)=>{if(w>=n)byWave=i});return Math.min(ZONES.length-1,byWave)}
 function equipBestSilentV260(){Object.keys(SLOT_NAMES).forEach(slot=>{const choices=save.inventory.filter(x=>x&&x.slot===slot&&Number.isFinite(Number(x.id))).sort((a,b)=>itemScore(b)-itemScore(a));if(choices.length)save.equipped[slot]=choices[0].id})}
 function grantStarterGearV260(){equipBestSilentV260();return false}
 function strongestUnlockedZone(){const best=progressionMinimumZoneV260();save.highestZoneEver=best;return best}
@@ -894,10 +849,7 @@ const AURAS=[
  {id:"eternal",name:"Eternal citromfény",className:"aura-gold",cost:45,need:60},
  {id:"centurion",name:"Prestige 100 korona",className:"aura-gold",cost:75,need:100}
 ];
-function prestigeParagonRequirement(){
- const p=Math.max(0,Number(save.prestigeLevel||0));
- return Math.min(16,8+Math.floor(p/8));
-}
+function prestigeParagonRequirement(){const p=Math.max(0,Number(save.prestigeLevel||0));return p>=96?35:Math.min(35,10+Math.floor(p/4))}
 function prestigeCap(){return 100}
 const PRESTIGE_MILESTONES_V257=[
  {level:1,title:"Az első újjászületés",reward:"1 Prestige token",icon:"👑"},
@@ -1071,12 +1023,12 @@ function doPrestige(automatic=false){
  renderAll();
   toast(`🌟 Paragon ${save.paragonLevel}! 1 Sebzés statpont most +${save.paragonLevel*2}%-ot ad.`);
 }
-function doTruePrestige(automatic=false){
+function doTruePrestige(){
  const cap=prestigeCap(),req=prestigeParagonRequirement();
  if(save.prestigeLevel>=cap)return toast("👑 Elérted a Prestige 100 maximumot!");
  if(save.paragonLevel<req)return toast(`🔒 Prestige ${save.prestigeLevel+1} követelménye: ${req} Paragon.`);
  const next=save.prestigeLevel+1,tokenReward=1+(next%10===0?2:0);
- if(!automatic&&!confirm(`PRESTIGE ${next}?\n\nKövetelmény teljesítve: ${save.paragonLevel} / ${req} Paragon.\nJutalom: ${tokenReward} Prestige token és állandó Prestige erősítés.\n\nRESETELŐDIK: Paragon-szint, kiosztott Paragon statok/pontok, PvP statok, wave, karakter szint/XP, normál fejlesztések, inventory, felszerelés, arany, gyémánt és érc.\nMEGMARAD: teljes képességfa, Prestige tokenek, lélekkő, dungeon- és aura token, petek, hátasok, aurák, achievementek, kill, PvP rating és prémium szorzók.\n\nPvP újraépítési kedvezmény: Paragononként -1%, Prestige szintenként -2%, maximum -70%.`))return;
+ if(!confirm(`PRESTIGE ${next}?\n\nKövetelmény teljesítve: ${save.paragonLevel} / ${req} Paragon.\nJutalom: ${tokenReward} Prestige token és állandó Prestige erősítés.\n\nRESETELŐDIK: Paragon-szint, kiosztott Paragon statok/pontok, PvP statok, wave, karakter szint/XP, normál fejlesztések, inventory, felszerelés, arany, gyémánt és érc.\nMEGMARAD: teljes képességfa, Prestige tokenek, lélekkő, dungeon- és aura token, petek, hátasok, aurák, achievementek, kill, PvP rating és prémium szorzók.\n\nPvP újraépítési kedvezmény: Paragononként -1%, Prestige szintenként -2%, maximum -70%.`))return;
  save.prestigeLevel=next;save.prestigeTokens=Number(save.prestigeTokens||0)+tokenReward;
  // V22.98: Prestige után a PvP és kiosztott Paragon statok újraépítendők.
  save.paragonStats={damage:0,gold:0,drop:0,crit:0};
@@ -1472,7 +1424,7 @@ document.addEventListener("click",e=>{
 let away=Math.min((12+skillRank("afkCap")+skillRank("endurance")+skillRank("dreamMaster"))*3600,Math.max(0,(Date.now()-save.last)/1000));
 if(away>15){
  let z=ZONES[save.zone],eff=Math.min(3.5,.55+skillBonus("offline")),kills=Math.floor(away*damage()/z.hp*eff);
- if(kills>0){let g=Math.floor(kills*zoneMobGold(save.zone)*paragonOverfarmV274().rewardMult);const sc=zoneSoulDropCfgV23201(save.zone),expected=kills*(sc.chance/100)*((sc.min+sc.max)/2),offlineSoul=Math.max(0,Math.floor(expected+(Math.random()-.5)*Math.sqrt(Math.max(1,expected))));save.gold+=g;save.stats.goldEarned+=g;save.kills+=kills;save.xp+=kills*fixedZoneXpV23202(save.zone);save.soul+=offlineSoul;toast(`🌙 Offline farm: ${fmt(kills)} kill · ${fmt(g)} arany${offlineSoul?` · 🔵 +${fmt(offlineSoul)} Lélekkő`:""}`)}
+ if(kills>0){let g=Math.floor(kills*zoneMobGold(save.zone)*paragonOverfarmV274().rewardMult);save.gold+=g;save.stats.goldEarned+=g;save.kills+=kills;save.xp+=kills*z.xp;toast(`🌙 Offline farm: ${fmt(kills)} kill · ${fmt(g)} arany`)}
 }
 while(save.xp>=needXp()){save.xp-=needXp();save.level++}
 
@@ -1581,21 +1533,16 @@ function waveRewardMultiplier(wave){
   return 1 + (wave-1)*0.018 + Math.floor((wave-1)/100)*0.35;
 }
 function normalEnemyMaxHp(){
-  const zone=Math.max(0,Math.min(ZONES.length-1,Number(save.zone||0)));
-  const wave=Math.max(1,Number(save.wave||1));
-  const zoneBase=[180,650,1800,4800,11500,24000,43000,72000][zone]||72000;
-  const thresholds=zoneWaveThresholdsV285();
-  const start=Math.max(1,Number(thresholds[zone]||1));
-  const end=Math.max(start+1,Number(thresholds[Math.min(zone+1,thresholds.length-1)]||paragonWaveRequirement()));
-  const local=Math.max(0,Math.min(1,(wave-start)/(end-start)));
-  const waveScale=.82+local*.62;
-  const prestigeScale=1+Math.min(.28,Math.max(0,Number(save.prestigeLevel||0))*.004);
-  return Math.max(10,Math.floor(zoneBase*waveScale*prestigeScale*combatSpeedHpMultiplierV282()));
+  const z=ZONES[save.zone]||ZONES[0];
+  const g=window.OMI_CONTENT?.gameplay||{},hits=Math.max(1,Number(g.mobTargetHits||2));
+  const multipliers=Array.isArray(g.zoneHpMultipliers)?g.zoneHpMultipliers:[],zoneMult=Math.max(.1,Number(multipliers[save.zone]??100)/100);
+  const stage=Math.max(8,Number(z.need||1)),waveScale=1+Math.min(4,Math.max(0,Number(save.wave||1)-1)/375);
+  return Math.max(1,Math.floor(stage*1.5*hits/2*waveScale*zoneMult*combatSpeedHpMultiplierV282()));
 }
 function waveKillRequirement(wave){
   wave=Math.max(1,Number(wave||1));
   // Farm szakaszok: később több mob kell, de nem válik unalmassá.
-  return Math.min(11,6+Math.floor((wave-1)/55));
+  return Math.min(18,8+Math.floor((wave-1)/50));
 }
 function realFarmGearV262(){return Object.keys(save.equipped||{}).map(slot=>equipObj(slot)).filter(it=>it&&!it.starterV260&&!it.unsellable)}
 function farmGearScoreV262(){return Math.floor(realFarmGearV262().reduce((sum,it)=>{const st=itemStats(it),opts=Array.isArray(it.options)?it.options.reduce((n,o)=>n+Math.max(0,Number(o?.value||0))*.7,0):0;return sum+st.atk+st.def*.7+(st.crit+st.drop)*100+opts},0))}
@@ -1637,7 +1584,7 @@ function applyWaveGoal(){
 
 // ================= V15.5 WAVE / BOSS / PARAGON RULES =================
 function paragonWaveRequirement(){
-  return 220;
+  return 400;
 }
 function isBossCheckpointWave(wave){
   return Number(wave||1)>=1;
@@ -1671,14 +1618,9 @@ function v10Defense(){
 }
 function defenseReductionV265(){const d=v10Defense(),g=window.OMI_CONTENT?.gameplay||{},cap=Math.max(.1,Math.min(.85,Number(g.defenseReductionCapPct??75)/100)),target=recommendedDefenseV271();return Math.min(cap,cap*d/(d+target*.65))}
 function defenseGuardChanceV265(){const d=v10Defense(),g=window.OMI_CONTENT?.gameplay||{},cap=Math.max(0,Math.min(.4,Number(g.defenseGuardCapPct??25)/100)),target=recommendedDefenseV271();return Math.min(cap,cap*1.2*d/(d+target))}
-function recommendedDefenseV271(zone=save.zone,wave=save.wave){
- const z=Math.max(0,Math.min(ZONES.length-1,Number(zone||0))),w=Math.max(1,Number(wave||1)),p=Math.max(0,Number(save.prestigeLevel||0));
- const base=[18,45,90,175,310,500,760,1050][z]||1050;
- const scale=1+Math.min(.45,w/500)+Math.min(.25,p*.004);
- return Math.max(10,Math.floor(base*scale));
-}
+function recommendedDefenseV271(zone=save.zone,wave=save.wave){return Math.max(10,Math.floor(30*(1+Math.max(0,Number(zone||0))*1.2)*Math.pow(1+Math.max(0,Number(wave||1))/100,.5)))}
 function defensePressureV271(){const ratio=v10Defense()/Math.max(1,recommendedDefenseV271());return Math.max(.78,Math.min(1.45,1+(1-ratio)*.45))}
-function dungeonRecommendedDefenseV271(d){const r=Math.max(100,Number(d?.reqPower||d?.need||100));return Math.max(20,Math.floor(18+Math.pow(r,.58)*2.15))}
+function dungeonRecommendedDefenseV271(d){return Math.max(15,Math.floor(20+Math.sqrt(Math.max(1,Number(d?.reqPower||d?.need||100)))*4.2))}
 function dungeonDefenseModifierV266(d){const ratio=v10Defense()/Math.max(1,dungeonRecommendedDefenseV271(d));return Math.max(-.18,Math.min(.25,(ratio-1)*.16+defenseGuardChanceV265()*.18))}
 function dungeonIncomingMultiplierV266(d){const ratio=v10Defense()/Math.max(1,dungeonRecommendedDefenseV271(d)),pressure=Math.max(.72,Math.min(1.35,1+(1-ratio)*.35));return Math.max(.25,(1-defenseReductionV265()*.65)*pressure)}
 function dungeonBlockRollV272(amount){const blocked=Math.random()<defenseGuardChanceV265(),g=window.OMI_CONTENT?.gameplay||{},reduction=Math.max(.2,Math.min(.8,Number(g.defenseGuardReductionPct??50)/100));return {blocked,damage:Math.max(1,Math.floor(Number(amount||0)*(blocked?1-reduction:1)))}}
@@ -1690,16 +1632,16 @@ function v10MaxHp(){
  ));
 }
 function v10BossMaxHp(){
- const base=normalEnemyMaxHp(),zone=Math.max(0,Number(save.zone||0)),wave=Math.max(1,Number(save.wave||1));
- const mult=5.5+zone*.42+Math.min(1.8,wave/220*1.8);
- return Math.max(base,Math.floor(base*mult));
+ const base=normalEnemyMaxHp();
+ // Minden wave végén boss jön: komoly fal, de nem irreális.
+ return Math.max(base,Math.floor(base*(4+Math.min(6,save.wave*.006))));
 }
 function v10EnemyMaxHp(){return save.waveBoss?v10BossMaxHp():normalEnemyMaxHp()}
 function v10RawEnemyDamage(){
  const z=ZONES[save.zone],mx=v10MaxHp();
- const mobPct=3.2+save.zone*.10+Math.min(1.5,save.wave/500),bossPct=7.4+save.zone*.18+Math.min(2.4,save.wave/350);
-  let raw=mx*((save.waveBoss?bossPct:mobPct)/100);
-  raw += save.zone*1.5+Math.pow(save.wave,1.02)*.055+z.gold*.00035;
+ const mobPct=4.2+save.zone*.12+Math.min(1.8,save.wave/800),bossPct=9.2+save.zone*.22+Math.min(2.8,save.wave/550);
+ let raw=mx*((save.waveBoss?bossPct:mobPct)/100);
+ raw += save.zone*2+Math.pow(save.wave,1.04)*.08+z.gold*.0005;
  raw*=V10CFG.monsterDamageMult;
  if(save.waveBoss)raw*=Math.max(.5,Number(V10CFG.bossDamageMult||1.45)/1.45);
  raw*=defensePressureV271();
@@ -1797,7 +1739,7 @@ function v161LiveHud(){
  set("#soul",fmt(save.soul));
  set("#tickets",fmt(save.tickets));
  set("#level",save.level);
- set("#xpText",`${fmt(save.xp)} / ${fmt(needXp())} XP`);updateXpBarV23203();
+ set("#xpText",`${fmt(save.xp)} / ${fmt(needXp())} XP`);
  set("#power",fmt(power()));
  set("#waveNumber",save.wave);
  set("#waveKills",save.waveKills);
@@ -1811,9 +1753,9 @@ function v161LiveHud(){
 function v10AwardNormalKill(){
  ensurePowerAppropriateZone();
  const z=ZONES[save.zone],overfarm=paragonOverfarmV274(),g=Math.floor(zoneMobGold(save.zone)*overfarm.rewardMult);
- casinoFarmGoldV256(g);save.stats.goldEarned+=g;save.xp+=fixedZoneXpV23202(save.zone);save.kills++;
- if(Math.random()<(.07+save.base.mining*.005)*overfarm.rewardMult)save.ore++;  const soulDropV23201=rollZoneSoulDropV23201(save.zone);
-  if(soulDropV23201>0)save.soul+=soulDropV23201;
+ casinoFarmGoldV256(g);save.stats.goldEarned+=g;save.xp+=z.xp;save.kills++;
+ if(Math.random()<(.07+save.base.mining*.005)*overfarm.rewardMult)save.ore++;
+ if(Math.random()<(.007+dropBonus()*.05)*overfarm.rewardMult)save.soul++;
  if(Math.random()<.006*overfarm.rewardMult)save.tickets++;
  if(Math.random()<(z.drop+dropBonus())*overfarm.rewardMult){addItem(createItem());addFarmActivityV264("drops",1)}
  while(save.xp>=needXp()){save.xp-=needXp();save.level++;toast(`⭐ Szintlépés! Lv.${save.level}`)}
@@ -1840,11 +1782,11 @@ function v10AwardNormalKill(){
    }
  }else{
    enemyHp=normalEnemyMaxHp();
-   $("#combatLog").textContent=`${z.enemy} legyőzve · +${fmt(g)} arany · ⭐ +${fmt(fixedZoneXpV23202(save.zone))} XP${soulDropV23201?` · 🔵 +${soulDropV23201} Lélekkő`:""} · Wave ${save.wave}: ${save.waveKills}/${save.waveGoal}`;
+   $("#combatLog").textContent=`${z.enemy} legyőzve · +${fmt(g)} arany · Wave ${save.wave}: ${save.waveKills}/${save.waveGoal}`;
  }
  v161LiveHud();
 }
-function rollBossWaveAdvance(){return save.waveRiftBossV284?5:1}
+function rollBossWaveAdvance(){if(save.waveRiftBossV284)return 5;const r=Math.random()*100;if(r<5)return 3;if(r<15)return 2;return 1}
 function riftBossRewardFxV284(){
  if(!document.querySelector('[data-tab="farm"].active')&&!document.getElementById("page-farm")?.classList.contains("active"))return;
  const old=document.querySelector("#riftBossRewardV284");if(old)old.remove();const fx=document.createElement("div");fx.id="riftBossRewardV284";fx.className="rift-boss-reward-v284";fx.innerHTML=`<div class="rift-burst-v284"></div><section><i>🌀</i><small>3%-OS RITKA BOSS</small><h2>HASADÉK BOSS LEGYŐZVE!</h2><strong>+5 WAVE</strong><p>A tér meghasadt, és előreléptél öt teljes wave-et.</p></section>${Array.from({length:24},(_,i)=>`<b style="--i:${i}">${i%3===0?"✦":i%3===1?"◆":"●"}</b>`).join("")}`;document.body.appendChild(fx);setTimeout(()=>fx.remove(),4200);
@@ -1893,7 +1835,7 @@ function v10PlayerAttack(){
  let hit=damage(),crit=Math.random()<critChance(),arrow=Number(save.arrows||0)>0;
  if(arrow){hit*=1+Math.max(0,Number(npcShopCfgV246().arrowDamagePct||15))/100;save.arrows=Math.max(0,Number(save.arrows)-1)}
  if(crit){hit*=2;save.stats.critHits++}
- hit=Math.min(70000,Math.floor(hit));const killed=enemyHp-hit<=0;farmHitEffectV247(hit,crit,arrow,killed,Boolean(save.waveBoss));
+ hit=Math.min(30000,Math.floor(hit));const killed=enemyHp-hit<=0;farmHitEffectV247(hit,crit,arrow,killed,Boolean(save.waveBoss));
  enemyHp-=hit;
  if(save.waveBoss)save.bossHp=Math.max(0,enemyHp);
  if(enemyHp<=0){
@@ -2200,45 +2142,25 @@ $("#refreshPvp")?.addEventListener("click",loadPvp);
 
 // Shop
 function renderStore(){
- const balanceHost=document.getElementById("storeProducts");
- let bal=document.getElementById("v2320ECoinBalance");
- if(balanceHost&&!bal){bal=document.createElement("div");bal.id="v2320ECoinBalance";bal.className="v2320-ecoin-balance";balanceHost.parentNode.insertBefore(bal,balanceHost)}
- if(bal)bal.innerHTML=`<span>🪙</span><div><small>E-ÉRME EGYENLEGED</small><b>${fmt(Number(save.eCoins||0))} E-érme</b><em>Csak admin adhatja · Discord/event jutalomként szerezhető.</em></div>`;
- const s=V11_CONTENT.store||{},rawProducts=Array.isArray(s.products)?s.products:[],fallbackFullAuto={id:"full_auto_20_eur",name:"Teljes Automata Rendszer",icon:"🤖",priceText:"20 E-érme",description:"Teljes automatikus fejlődés Prestige-ig: Equip Best, item fejlesztés és opcióforgatás, alap fejlesztések, Paragon statok, automata selejtezés, Auto Paragon és Auto Prestige.",visible:true};
- const products=[...rawProducts];
- if(!products.some(p=>p?.id==="full_auto_20_eur"))products.unshift(fallbackFullAuto);
- const visibleProducts=products.filter(p=>p.visible!==false);
+ const s=V11_CONTENT.store||{},products=s.products||[],visibleProducts=products.filter(p=>p.visible!==false);
  $("#storeProducts").innerHTML=visibleProducts.length?visibleProducts.map((p,i)=>`
-  <div class="store-product ${p.id==="full_auto_20_eur"?"v300-full-auto-product":""}">
+  <div class="store-product">
    <div class="store-icon">${p.icon||"💰"}</div><h3>${p.name||"Csomag"}</h3>
    <p>${p.description||""}</p><strong>${p.priceText||"Privát ár"}</strong>
-   ${p.id==="full_auto_20_eur"?`<small class="v300-auto-state">${save.fullAutoUnlocked?"✅ Fiókodon feloldva": "🔒 Admin aktiválás szükséges vásárlás után"}</small>`:""}
-   <button data-buy-product="${p.id||i}">${p.id==="full_auto_20_eur"&&save.fullAutoUnlocked?"✅ MÁR AKTÍV":"🪙 KIVÁLTÁS"}</button>
+   <button data-buy-product="${p.id||i}">💬 Vásárlási igény</button>
   </div>`).join(""):'<p class="muted">Jelenleg nincs beállított vásárlási csomag.</p>';
- const speed=products.find(p=>p.id==="premium_speed_10x"),auto=products.find(p=>p.id==="auto_paragon_10_eur"),dungeonBatch=products.find(p=>p.id==="dungeon_batch_10_eur"),fullAuto=products.find(p=>p.id==="full_auto_20_eur")||fallbackFullAuto;
- const speedPrice=document.querySelector(".premium-price-v165");if(speedPrice&&speed)speedPrice.textContent=speed.priceText||"3 E-érme";
- const autoPrice=document.querySelector(".auto-paragon-v237>div>b");if(autoPrice&&auto)autoPrice.textContent=auto.priceText||"10 E-érme";
+ const speed=products.find(p=>p.id==="premium_speed_10x"),auto=products.find(p=>p.id==="auto_paragon_10_eur"),dungeonBatch=products.find(p=>p.id==="dungeon_batch_10_eur");
+ const speedPrice=document.querySelector(".premium-price-v165");if(speedPrice&&speed)speedPrice.textContent=speed.priceText||"3 €";
+ const autoPrice=document.querySelector(".auto-paragon-v237>div>b");if(autoPrice&&auto)autoPrice.textContent=auto.priceText||"10 €";
  const speedCard=document.querySelector(".premium-speed-v165"),autoCard=document.querySelector(".auto-paragon-v237");
  if(speedCard&&speed){speedCard.querySelector("h2").textContent=speed.name||"10× Harci / Wave Sebesség";speedCard.querySelector("p").textContent=speed.description||"Prémium 10× farmsebesség";speedCard.style.display=speed.visible===false?"none":""}
  if(autoCard&&auto){autoCard.querySelector("h2").textContent=auto.name||"Auto Paragon szintelő";autoCard.querySelector("p").textContent=auto.description||"Automatikus Paragon szintlépés";autoCard.style.display=auto.visible===false?"none":""}
- window.V238_AUTO_PARAGON_PRODUCT=auto||{id:"auto_paragon_10_eur",name:"Auto Paragon szintelő",priceText:"10 E-érme",visible:true};
- window.V279_DUNGEON_BATCH_PRODUCT=dungeonBatch||{id:"dungeon_batch_10_eur",name:"Dungeon 10× prémium futam",priceText:"10 E-érme",visible:true};
- window.V300_FULL_AUTO_PRODUCT=fullAuto;
+ window.V238_AUTO_PARAGON_PRODUCT=auto||{id:"auto_paragon_10_eur",name:"Auto Paragon szintelő",priceText:"10 €",visible:true};
+ window.V279_DUNGEON_BATCH_PRODUCT=dungeonBatch||{id:"dungeon_batch_10_eur",name:"Dungeon 10× prémium futam",priceText:"10 €",visible:true};
  window.dispatchEvent(new CustomEvent("store-config-updated"));
  $$("[data-buy-product]").forEach(b=>b.onclick=async()=>{
    if(!currentUser)return openAuth("login");
-   const id=String(b.dataset.buyProduct);
-   const already=(id==="premium_speed_10x"&&save.speed10Unlocked)||(id==="auto_paragon_10_eur"&&save.autoParagonUnlocked)||(id==="dungeon_batch_10_eur"&&save.dungeonBatchUnlocked)||(id==="full_auto_20_eur"&&save.fullAutoUnlocked);
-   if(already){toast("✅ Ez a jogosultság már fel van oldva.");return}
-   try{
-     const d=await api("/api/shop/redeem",{method:"POST",body:JSON.stringify({product_id:id})});
-     save.eCoins=Number(d.eCoins||0);
-     if(id==="premium_speed_10x"){save.speed10Unlocked=true;save.combatSpeed=10}
-     if(id==="auto_paragon_10_eur")save.autoParagonUnlocked=true;
-     if(id==="dungeon_batch_10_eur")save.dungeonBatchUnlocked=true;
-     if(id==="full_auto_20_eur")save.fullAutoUnlocked=true;
-     persist();renderAll();renderStore();toast(d.message||"✅ E-érme beváltás sikeres.");
-   }catch(e){alert(e.message)}
+   try{const d=await api("/api/shop/request",{method:"POST",body:JSON.stringify({product_id:String(b.dataset.buyProduct),note:"Weboldalról küldött igény"})});alert(d.message)}catch(e){alert(e.message)}
  });
 }
 setTimeout(v11LoadContent,1000);
@@ -3485,24 +3407,7 @@ document.addEventListener("click",e=>{
     };
   }
 
-  /* V23.20.3 - vizuális XP haladás */
-function updateXpBarV23203(){
- const current=Math.max(0,Number(save?.xp||0));
- const need=Math.max(1,Number(needXp()||1));
- const pct=Math.max(0,Math.min(100,current/need*100));
- const bar=document.getElementById("xpBarV23203");
- const pctEl=document.getElementById("xpPctV23203");
- if(bar){
-   bar.style.width=pct.toFixed(2)+"%";
-   bar.setAttribute("aria-valuenow",String(Math.round(pct)));
-   bar.setAttribute("aria-valuemin","0");
-   bar.setAttribute("aria-valuemax","100");
-   bar.setAttribute("role","progressbar");
- }
- if(pctEl)pctEl.textContent=Math.floor(pct)+"%";
-}
-
-function render(){
+  function render(){
     const v=values();
     document.querySelectorAll("[data-context-bar] [data-val]").forEach(el=>{
       const key=el.dataset.val;
@@ -3630,11 +3535,6 @@ function render(){
         <b>♻️ Pet összeolvasztás / reroll</b>
         <small>3 teljesen azonos petből 1 erősebb változat készíthető.</small>
       </div>
-      <div class="v213-reroll-actions">
-        <button type="button" id="v315RerollAllPets" class="v315-reroll-all" ${groups.length?"":"disabled"}>
-          ⚡ ÖSSZES EGYSZERRE
-        </button>
-      </div>
       <div class="v213-reroll-list">${
         groups.length ? groups.map((g,n)=>`
           <button type="button" data-v213-reroll="${n}">
@@ -3642,31 +3542,6 @@ function render(){
           </button>`).join("") :
           `<span class="v213-muted">Nincs még 3 egyforma peted.</span>`
       }</div>`;
-    const allBtn=panel.querySelector("#v315RerollAllPets");
-    if(allBtn)allBtn.onclick=()=>{
-      let crafted=0,guard=0;
-      while(guard++<5000){
-        const currentGroups=duplicateGroups();
-        if(!currentGroups.length)break;
-        const group=currentGroups[0],arr=petCollection();
-        if(!group||!arr||group.length<3)break;
-        const selected=group.slice(0,3);
-        const base=JSON.parse(JSON.stringify(selected[0].p));
-        base.level=Math.max(...selected.map(x=>petLevel(x.p)))+1;
-        base.lvl=base.level;
-        base.rerollTier=Number(base.rerollTier||0)+1;
-        base.powerMultiplier=Number(base.powerMultiplier||1)*1.15;
-        base.bonusMultiplier=Number(base.bonusMultiplier||1)*1.15;
-        selected.map(x=>x.i).sort((a,b)=>b-a).forEach(i=>arr.splice(i,1));
-        arr.push(base);
-        crafted++;
-      }
-      if(!crafted)return typeof toast==="function"&&toast("Nincs 3 teljesen azonos pet az összeolvasztáshoz.");
-      try{if(typeof persist==="function")persist()}catch(e){}
-      try{if(typeof renderAll==="function")renderAll()}catch(e){}
-      if(typeof toast==="function")toast(`⚡ ${crafted} pet összeolvasztás elkészült egyszerre.`);
-      ensurePetReroll();
-    };
     panel.querySelectorAll("[data-v213-reroll]").forEach(btn=>{
       btn.onclick=()=>{
         const group=duplicateGroups()[Number(btn.dataset.v213Reroll)];
@@ -4269,8 +4144,8 @@ function render(){
 
   // V22.41 compact, readable progression scale.
   const V2241_DUNGEON_BALANCE=[
-    [1200,[1200,1800]],[3000,[2500,3800]],[6500,[5000,7500]],[11000,[9000,13500]],[18000,[15000,22000]],
-    [28000,[24000,35000]],[40000,[36000,52000]],[55000,[52000,76000]],[72000,[76000,110000]],[90000,[115000,165000]]
+    [40,[80,120]],[110,[140,220]],[260,[240,360]],[550,[420,650]],[1100,[700,1050]],
+    [2200,[1100,1600]],[4000,[1700,2500]],[7000,[2600,3800]],[12000,[4000,5800]],[20000,[6500,9000]]
   ];
   DUNGEONS_V218.forEach((d,i)=>{const b=V2241_DUNGEON_BALANCE[i];if(!b)return;d.reqPower=b[0];d.rewards.gold=b[1]});
 
@@ -4280,18 +4155,23 @@ function render(){
 
   function successChance(d){
     if(d.safe) return 1;
-    const p=Math.max(1,p218()),r=Math.max(1,Number(d.reqPower||1)),ratio=p/r;
+    if(typeof damageCoreV281==="function"&&Number(damageCoreV281(true)||0)>=Math.max(250,Number(d.reqPower||100)*4.8))return 1;
+
+    const p=Math.max(1,p218());
+    const r=Math.max(1,Number(d.reqPower||1));
+    const ratio=p/r;
+
+    // Recommended power = ~70% chance, not guaranteed.
+    // Underpowered players still have a small chance; overpowered players approach 95%, never 100%.
     let c;
-    if(ratio<.35)c=.01;
-    else if(ratio<.50)c=.04;
-    else if(ratio<.70)c=.10+(ratio-.50)*.50;
-    else if(ratio<.90)c=.20+(ratio-.70)*1.25;
-    else if(ratio<1.00)c=.45+(ratio-.90)*2.0;
-    else if(ratio<1.15)c=.65+(ratio-1.00)*1.2;
-    else if(ratio<1.50)c=.83+(ratio-1.15)*.28;
-    else c=.93+Math.min(.05,(ratio-1.50)*.04);
+    if(ratio < .50) c = .08 + ratio*.20;       // ~8–18%
+    else if(ratio < .80) c = .20 + (ratio-.50)*.70; // ~20–41%
+    else if(ratio < 1.00) c = .45 + (ratio-.80)*1.25; // ~45–70%
+    else if(ratio < 1.50) c = .70 + (ratio-1.00)*.40; // 70–90%
+    else c = .90 + Math.min(.05,(ratio-1.50)*.03);    // max 95%
+
     c+=typeof dungeonDefenseModifierV266==="function"?dungeonDefenseModifierV266(d):0;
-    return Math.max(.01,Math.min(.98,c));
+    return Math.max(.05,Math.min(.95,c));
   }
 
   function rollRange([a,b]){
@@ -4538,8 +4418,10 @@ function render(){
   }
 
   function bossMaxHp(d){
-    const req=Math.max(100,Number(d.reqPower||100));
-    return Math.max(500,Math.floor(req*(d.safe?2.8:6.2)));
+    return Math.max(
+      250,
+      Math.floor(Number(d.reqPower||100) * (d.safe ? 2.2 : 4.8))
+    );
   }
 
   function ensureBattlePanel(root){
@@ -4837,343 +4719,6 @@ function render(){
     if(e.target.closest?.('[data-tab="dungeon"]'))setTimeout(enhancedRender,100);
   },true);
 })();
-
-
-/* ================= V22.99 FULL AUTO SYSTEM · 20 EUR ================= */
-(function(){
-  let busy=false,lastPersist=0;
-  const RARITY_RANK={normal:0,rare:1,epic:2,mythic:3,legendary:4,imperial:5,celestial:6,eternal:7};
-
-  function S(){return (typeof save!=="undefined"&&save)?save:null}
-  function enabled(){const s=S();return Boolean(s&&s.fullAutoUnlocked&&s.fullAutoEnabled)}
-  function quietPersist(){
-    if(Date.now()-lastPersist<3500)return;
-    lastPersist=Date.now();
-    try{if(typeof persist==="function")persist()}catch(e){}
-  }
-  function scoreOpt(o){
-    const w={atkPct:24,defPct:20,crit:18,bossDmg:14,hpPct:5,hpRegen:3,drop:1,pvpDmg:1};
-    return (w[o?.key]||1)*Math.max(.1,Number(o?.value||0));
-  }
-  function rarityRankV314(it){
-    return Number(RARITY_RANK[String(it?.rarity||"normal").toLowerCase()] ?? -1);
-  }
-  function itemValueV314(it){
-    if(!it)return -Infinity;
-    let score=0;
-    try{
-      const st=typeof itemStats==="function"?itemStats(it):{};
-      score+=Number(st.atk||it.atk||0)*28;
-      score+=Number(st.def||it.def||0)*18;
-      score+=Number(st.crit||it.crit||0)*2400;
-      score+=Number(st.drop||it.drop||0)*120;
-    }catch(e){}
-    score+=Number(it.plus||0)*240;
-    (Array.isArray(it.options)?it.options:[]).forEach(o=>{
-      const w={atkPct:170,bossDmg:95,crit:110,defPct:125,hpPct:30,hpRegen:15,drop:8,pvpDmg:8}[o?.key]||6;
-      score+=Math.max(0,Number(o?.value||0))*w;
-    });
-    return score;
-  }
-  function compareGearV314(a,b){
-    // Absolute priority: higher rarity always wins.
-    const rr=rarityRankV314(b)-rarityRankV314(a);
-    if(rr!==0)return rr;
-    // Same rarity: choose the item with the highest real combat/value score.
-    const value=itemValueV314(b)-itemValueV314(a);
-    if(value!==0)return value;
-    // Final tie-breakers.
-    const plus=Number(b?.plus||0)-Number(a?.plus||0);
-    if(plus!==0)return plus;
-    return Number(b?.id||0)-Number(a?.id||0);
-  }
-  function gearScore(it){
-    // Kept for cleanup/reroll compatibility; rarity dominates by a huge margin.
-    return rarityRankV314(it)*1e12 + itemValueV314(it);
-  }
-
-  function equipBestSilent(){
-    const s=S();if(!s||!Array.isArray(s.inventory))return 0;
-    s.equipped=s.equipped||{};
-    let changed=0;
-    Object.keys(typeof SLOT_NAMES!=="undefined"?SLOT_NAMES:{weapon:1,helmet:1,armor:1,gloves:1,boots:1,ring:1}).forEach(slot=>{
-      const list=s.inventory
-        .filter(x=>x&&x.slot===slot&&Number.isFinite(Number(x.id)))
-        .sort(compareGearV314);
-      const best=list[0];
-      if(best&&String(s.equipped[slot])!==String(best.id)){
-        s.equipped[slot]=best.id;
-        changed++;
-      }
-    });
-    return changed;
-  }
-
-  function autoBaseUpgrades(){
-    const s=S();if(!s||typeof BASE_UPS==="undefined"||typeof baseCost!=="function")return 0;
-    let n=0,guard=0;
-    while(guard++<12){
-      const candidates=BASE_UPS.map(d=>({d,c:baseCost(d)})).filter(x=>Number(s.gold||0)>=x.c);
-      if(!candidates.length)break;
-      // Power focus: direct combat stats first.
-      const powerPriority={weaponTraining:0,armorTraining:1,luck:2,mining:3};
-      candidates.sort((a,b)=>(powerPriority[a.d.key]??9)-(powerPriority[b.d.key]??9)||(a.c-b.c));
-      const x=candidates[0];s.gold-=x.c;s.base[x.d.key]=Number(s.base[x.d.key]||1)+1;n++;
-    }
-    return n;
-  }
-
-  function autoParagonStats(){
-    const s=S();if(!s)return 0;
-    s.paragonStats={damage:0,gold:0,drop:0,crit:0,...(s.paragonStats||{})};
-    let pts=Math.max(0,Math.floor(Number(s.paragonPoints||0))),spent=0;
-    // Power focus: damage and crit first.
-    const order=["damage","damage","crit","damage","damage","crit","damage","damage","damage","crit"];
-    while(pts>0&&spent<1000){const k=order[spent%order.length];s.paragonStats[k]=Number(s.paragonStats[k]||0)+1;pts--;spent++}
-    s.paragonPoints=pts;
-    return spent;
-  }
-
-  function autoUpgradeGear(){
-    const s=S();if(!s||!Array.isArray(s.inventory)||typeof upgradeCost!=="function"||typeof oreCost!=="function")return 0;
-    const equipped=new Set(Object.values(s.equipped||{}).map(String));
-    const items=s.inventory.filter(it=>equipped.has(String(it.id))&&Number(it.plus||0)<15).sort((a,b)=>Number(a.plus||0)-Number(b.plus||0));
-    let attempts=0;
-    for(const it of items){
-      if(attempts>=4)break;
-      const gc=upgradeCost(it),oc=oreCost(it);
-      if(Number(s.gold||0)<gc||Number(s.ore||0)<oc)continue;
-      s.gold-=gc;s.ore-=oc;
-      if(Math.random()*100<(typeof upgradeChance==="function"?upgradeChance(it.plus):100))it.plus=Number(it.plus||0)+1;
-      attempts++;
-    }
-    return attempts;
-  }
-
-  function autoRerollEquipped(){
-    const s=S();if(!s||!Array.isArray(s.inventory)||typeof itemRerollCost!=="function"||typeof rollItemOptions!=="function")return 0;
-    const equipped=new Set(Object.values(s.equipped||{}).map(String));
-    let rolls=0;
-    for(const it of s.inventory.filter(x=>equipped.has(String(x.id)))){
-      if(rolls>=3)break;
-      if((RARITY_RANK[String(it.rarity||"normal").toLowerCase()]||0)<2)continue; // Epic+
-      const opts=Array.isArray(it.options)?it.options:[];
-      const current=opts.reduce((n,o)=>n+scoreOpt(o),0);
-      const target=(RARITY_RANK[String(it.rarity||"normal").toLowerCase()]||1)*35;
-      const cost=itemRerollCost(it);
-      if(current>=target||Number(s.gold||0)<cost*2)continue;
-      let best=JSON.parse(JSON.stringify(opts)),bestScore=current;
-      for(let r=0;r<2;r++){
-        if(Number(s.gold||0)<cost)break;
-        s.gold-=cost;rollItemOptions(it);rolls++;
-        const sc=(it.options||[]).reduce((n,o)=>n+scoreOpt(o),0);
-        if(sc>bestScore){bestScore=sc;best=JSON.parse(JSON.stringify(it.options||[]))}
-      }
-      it.options=best;
-    }
-    return rolls;
-  }
-
-  function autoCleanInventory(){
-    const s=S();if(!s||!Array.isArray(s.inventory))return 0;
-    const equipped=new Set(Object.values(s.equipped||{}).map(String));
-    const bestBySlot={};
-    for(const it of s.inventory){const sc=gearScore(it);if(!bestBySlot[it.slot]||sc>bestBySlot[it.slot])bestBySlot[it.slot]=sc}
-    let removed=0;
-    for(let i=s.inventory.length-1;i>=0;i--){
-      const it=s.inventory[i];if(!it||equipped.has(String(it.id))||it.locked||it.favorite||it.starterV260||it.unsellable)continue;
-      const rar=RARITY_RANK[String(it.rarity||"normal").toLowerCase()]||0;
-      const best=Number(bestBySlot[it.slot]||0),sc=gearScore(it);
-      // Never auto-delete Legendary+; keep competitive backups within 72% of best.
-      if(rar>=4||sc>=best*.72)continue;
-      s.inventory.splice(i,1);removed++;
-    }
-    return removed;
-  }
-
-  function autoSkills(){
-    const s=S();if(!s||typeof SKILL_TREE==="undefined"||typeof soulCost!=="function"||typeof skillRank!=="function"||typeof unlocked!=="function")return 0;
-    // Power focus: combat nodes first, economy after.
-    const priority=["power","combat","crit","berserk","precision","slayer","warMaster","pet","offline","drop","gold"];
-    let bought=0,guard=0;
-    while(guard++<20){
-      const nodes=SKILL_TREE.filter(n=>unlocked(n)&&skillRank(n.key)<Number(n.max||0)&&Number(s.soul||0)>=soulCost(n));
-      if(!nodes.length)break;
-      nodes.sort((a,b)=>{
-        const ai=priority.includes(a.branch)?priority.indexOf(a.branch):priority.includes(a.key)?priority.indexOf(a.key):99;
-        const bi=priority.includes(b.branch)?priority.indexOf(b.branch):priority.includes(b.key)?priority.indexOf(b.key):99;
-        return ai-bi || soulCost(a)-soulCost(b);
-      });
-      const n=nodes[0],cost=soulCost(n);
-      // Keep a small soul reserve for PvP / other systems.
-      if(Number(s.soul||0)-cost<Math.min(25,Math.max(5,Number(s.prestigeLevel||0)*2)))break;
-      s.soul-=cost;s.skills[n.key]=skillRank(n.key)+1;bought++;
-    }
-    return bought;
-  }
-
-  function autoBestZone(){
-    const s=S();if(!s)return 0;
-    try{
-      const best=typeof strongestUnlockedZone==="function"?strongestUnlockedZone():Number(s.zone||0);
-      if(Number(s.zone||0)!==Number(best)){
-        s.zone=best;s.waveKills=0;s.waveBoss=false;s.waveRiftBossV284=false;s.bossHp=0;
-        try{enemyHp=typeof normalEnemyMaxHp==="function"?normalEnemyMaxHp():enemyHp}catch(e){}
-        return 1;
-      }
-    }catch(e){}
-    return 0;
-  }
-
-  function autoFarmSwitch(){
-    const s=S();if(!s)return 0;
-    let changed=0;
-    // Keep the fastest owned combat speed active.
-    const desired=s.speed10Unlocked?10:3;
-    if(Number(s.combatSpeed||1)!==desired){s.combatSpeed=desired;changed++}
-    // Re-enable systems that Paragon reset may disable.
-    if(s.autoDeleteSettings && s.fullAutoUnlocked && s.autoDeleteSettings.enabled!==true){
-      s.autoDeleteSettings.enabled=true;changed++;
-    }
-    return changed;
-  }
-
-  function autoPetsAndMount(){
-    try{if(typeof equipBestPets==="function")equipBestPets()}catch(e){}
-    try{
-      const s=S();
-      if(Array.isArray(s?.mounts)){
-        // compatibility for array-based mount collections
-        let best=-1,bestScore=-Infinity;
-        s.mounts.forEach((m,i)=>{const sc=Number(m?.level||0)*10000+Number(m?.power||0)*100+Number(m?.value||0)*10+Number(m?.bonusPct||0);if(sc>bestScore){bestScore=sc;best=i}});
-        if(best>=0){s.activeMount=best}
-      }
-    }catch(e){}
-    try{document.getElementById("equipBestMount")?.click()}catch(e){}
-  }
-
-  function maybeAdvance(){
-    const s=S();if(!s)return;
-    try{
-      if(typeof paragonWaveRequirement==="function"&&Number(s.wave||0)>=paragonWaveRequirement()&&typeof doPrestige==="function"){
-        doPrestige(true);return "paragon";
-      }
-      if(typeof prestigeParagonRequirement==="function"&&Number(s.paragonLevel||0)>=prestigeParagonRequirement()&&Number(s.prestigeLevel||0)<(typeof prestigeCap==="function"?prestigeCap():100)&&typeof doTruePrestige==="function"){
-        doTruePrestige(true);return "prestige";
-      }
-    }catch(e){}
-    return "";
-  }
-
-  function ensurePanel(){
-    // V23.02: always place the premium controller on the Character page,
-    // where it is easy to find after the admin unlocks it.
-    const host=document.getElementById("page-character")||document.getElementById("page-paragon")||document.getElementById("page-farm");
-    if(!host)return;
-    let p=document.getElementById("v299FullAutoPanel");
-    if(!p){
-      p=document.createElement("section");
-      p.id="v299FullAutoPanel";
-      p.className="card v299-full-auto v302-character-auto";
-      host.prepend(p);
-    }else if(p.parentElement!==host){
-      host.prepend(p);
-    }
-    const s=S()||{};
-    const unlocked=Boolean(s.fullAutoUnlocked);
-    const active=Boolean(unlocked&&s.fullAutoEnabled);
-    p.innerHTML=`<div class="v302-auto-copy"><small>🤖 20 E-ÉRME · AUTOMATA RENDSZER</small><h3>Teljes Automata Rendszer</h3><p>POWER FÓKUSZÚ automatizálás: a lehető legnagyobb karaktererőt célozza. Rarity szerint a legjobb felszerelést választja, azonos rarityn belül a magasabb harci értéket; előre veszi az ATK/DEF fejlesztést, harci skilleket, Paragon damage/crit statokat, petet és hátast. Nem kap rejtett szorzót, ugyanazokat az erőforrásokat használja, mint a kézi játék.</p><em>${unlocked?"✅ Admin által feloldva":"🔒 Előbb az adminnak kell feloldania a fiókodon."}</em>${active?`<strong class="v303-auto-progress">⚙️ Haladás: Wave ${Number(s.wave||1)} · Paragon ${Number(s.paragonLevel||0)} · Prestige ${Number(s.prestigeLevel||0)} · Erő ${typeof power==="function"?fmt(power()):"..."}</strong>`:""}</div><button id="v299FullAutoToggleBtn" class="v302-auto-toggle ${active?"active":""}" ${unlocked?"":"disabled"}>${active?"🟢 AUTOMATA AKTÍV":"🤖 "+(unlocked?"AUTOMATA BEKAPCSOLÁSA":"NINCS FELOLDVA")}</button>`;
-    p.querySelector("#v299FullAutoToggleBtn")?.addEventListener("click",()=>{
-      if(!s.fullAutoUnlocked){if(typeof toast==="function")toast("🔒 Az admin még nem oldotta fel a Teljes Automata Rendszert.");return}
-      s.fullAutoEnabled=!s.fullAutoEnabled;
-      quietPersist();
-      ensurePanel();
-      if(typeof toast==="function")toast(s.fullAutoEnabled?"🤖 Teljes Automata Rendszer bekapcsolva.":"🤖 Teljes Automata Rendszer kikapcsolva.");
-    });
-  }
-
-  async function tick(){
-    if(busy||!enabled())return;
-    busy=true;
-    try{
-      const s=S();if(!s)return;
-      // Full Auto includes the existing Auto Paragon entitlement while active.
-      s.autoParagonUnlocked=true;s.autoParagonEnabled=true;
-      let changed=0;
-      changed+=autoFarmSwitch();
-      changed+=autoBestZone();
-      changed+=equipBestSilent();
-      changed+=autoBaseUpgrades();
-      changed+=autoSkills();
-      changed+=autoParagonStats();
-      changed+=autoUpgradeGear();
-      // After upgrading, re-evaluate equipment before rerolling.
-      changed+=equipBestSilent();
-      changed+=autoRerollEquipped();
-      changed+=autoCleanInventory();
-      autoPetsAndMount();
-      // Re-evaluate one more time after cleanup/pet/mount changes.
-      changed+=equipBestSilent();
-      const advanced=maybeAdvance();
-      if(changed||advanced)quietPersist();
-      ensurePanel();
-      try{if(typeof renderDynamicEquipment==="function")renderDynamicEquipment()}catch(e){}
-    }finally{busy=false}
-  }
-
-  setInterval(tick,1800);
-  window.addEventListener("load",()=>setTimeout(ensurePanel,350));
-  document.addEventListener("click",e=>{if(e.target.closest?.('[data-tab="character"],[data-tab="paragon"],[data-tab="farm"]'))setTimeout(ensurePanel,80)},true);
-  window.v299FullAutoTick=tick;
-})();
-
-
-/* V23.05 - GLOBAL instant zone progression fix
-   A Wave határozza meg a kötelező aktuális területet minden játékosnál.
-   Nem csak Full Auto mellett működik. */
-let v305LastForcedZone=-1;
-function instantZoneAdvanceV305(showToast=true){
-  try{
-    if(!save || typeof strongestUnlockedZone!=="function")return false;
-    const best=Number(strongestUnlockedZone());
-    const current=Number(save.zone||0);
-
-    // The player must always be on the highest area unlocked by the current Wave.
-    if(Number.isFinite(best) && best>current){
-      save.zone=best;
-      save.highestZoneEver=Math.max(Number(save.highestZoneEver||0),best);
-      save.waveKills=0;
-      save.waveBoss=false;
-      save.waveRiftBossV284=false;
-      save.bossHp=0;
-      save.respawnUntil=0;
-      try{
-        enemyHp=typeof normalEnemyMaxHp==="function"
-          ? normalEnemyMaxHp()
-          : Number(ZONES?.[best]?.hp||1);
-      }catch(e){}
-
-      if(typeof persist==="function")persist();
-      if(typeof renderAll==="function")renderAll();
-
-      if(showToast && v305LastForcedZone!==best && typeof toast==="function"){
-        toast(`🗺️ Új terület feloldva: ${ZONES?.[best]?.name||("Terület "+(best+1))} · Wave ${Number(save.wave||1)}`);
-      }
-      v305LastForcedZone=best;
-      return true;
-    }
-
-    if(best===current)v305LastForcedZone=best;
-  }catch(e){}
-  return false;
-}
-
-// Very fast guard so a player cannot remain on an outdated lower area.
-setInterval(()=>instantZoneAdvanceV305(true),200);
-window.instantZoneAdvanceV305=instantZoneAdvanceV305;
-
-// Backward compatibility for the V23.04 calls already placed in the combat flow.
-function instantFullAutoZoneAdvanceV304(){ return instantZoneAdvanceV305(true); }
 
 /* V22.2 admin 10x compatibility: existing combat speed uses save.speed10Unlocked */
 window.v222AdminSpeedSupported=true;
@@ -5543,8 +5088,6 @@ window.v222AdminSpeedSupported=true;
 (function(){
   let v229BattleTimer=null;
   let v229Battle=null;
-  let v306CooldownUntil=0;
-  let v306CooldownTimer=null;
 
   function page(){return document.getElementById("page-pvp");}
   function F(n){return (typeof fmt==="function")?fmt(Number(n||0)):Math.floor(Number(n||0)).toLocaleString("hu-HU");}
@@ -5557,7 +5100,7 @@ window.v222AdminSpeedSupported=true;
     });
     let d={};
     try{d=await r.json()}catch(e){}
-    if(!r.ok){const err=new Error(d.error||d.message||`HTTP ${r.status}`);err.data=d;throw err;}
+    if(!r.ok)throw new Error(d.error||d.message||`HTTP ${r.status}`);
     return d;
   }
 
@@ -5686,140 +5229,6 @@ window.v222AdminSpeedSupported=true;
     },420);
   }
 
-  let v309CooldownRemaining=0;
-  let v309CooldownTotal=60;
-  let v309Ticker=null;
-  let v309SyncTimer=null;
-
-  function ensureCooldownBoxV309(){
-    const p=page();if(!p)return null;
-    let box=p.querySelector("#v306PvpCooldown");
-    if(!box){
-      box=document.createElement("div");
-      box.id="v306PvpCooldown";
-      box.className="v306-pvp-cooldown";
-      const arena=ensureArena();
-      if(arena?.parentNode)arena.parentNode.insertBefore(box,arena.nextSibling);
-      else p.prepend(box);
-    }
-    return box;
-  }
-
-  function setFightButtonsCooldownV309(left){
-    const p=page();if(!p)return;
-    p.querySelectorAll("[data-pvp-fight],[data-fight],[data-defender],.pvp-fight-btn,.fight-pvp-btn,button[data-player-id]").forEach(btn=>{
-      if(left>0){
-        btn.disabled=true;
-        btn.dataset.v309Cooldown="1";
-      }else if(btn.dataset.v309Cooldown==="1"){
-        btn.disabled=false;
-        delete btn.dataset.v309Cooldown;
-      }
-    });
-  }
-
-  function hideLegacyPvpWaitV310(left){
-    const p=page();if(!p)return;
-    // V23.11: remove the old compact/top countdown; only #v306PvpCooldown remains visible.
-    p.querySelectorAll("[id*='cooldown'],[class*='cooldown'],[id*='countdown'],[class*='countdown']").forEach(el=>{
-      if(el.id==="v306PvpCooldown"||el.closest?.("#v306PvpCooldown"))return;
-      const t=(el.textContent||"").toLowerCase();
-      if(t.includes("párbaj")||t.includes("várakozás")||/\b\d{2}:\d{2}\b/.test(t)){
-        el.style.setProperty("display","none","important");
-        el.dataset.v311LegacyPvpCountdown="1";
-      }
-    });
-    p.querySelectorAll(".shop-warning,.pvp-warning,.v229-error,[class*='warning'],[class*='error']").forEach(el=>{
-      const t=(el.textContent||"").toLowerCase();
-      if((t.includes("várj")&&t.includes("párbaj")) || (t.includes("másodpercet")&&t.includes("párbaj"))){
-        el.style.display=left>0?"none":"";
-        el.dataset.v310Hidden=left>0?"1":"";
-      }else if(left<=0 && el.dataset.v310Hidden==="1"){
-        el.style.display="";
-        delete el.dataset.v310Hidden;
-      }
-    });
-  }
-
-  function drawCooldownV309(){
-    const box=ensureCooldownBoxV309();if(!box)return;
-    const left=Math.max(0,Math.floor(Number(v309CooldownRemaining||0)));
-    const total=60;
-    const pct=Math.max(0,Math.min(100,left/total*100));
-    setFightButtonsCooldownV309(left);
-    if(typeof hideLegacyPvpWaitV310==="function")hideLegacyPvpWaitV310(left);
-
-    if(left>0){
-      box.classList.add("active");
-      box.innerHTML=`
-        <div class="v313-pvp-countdown">
-          <div class="v313-label">⏳ KÖVETKEZŐ PÁRBAJ</div>
-          <div class="v313-number">${left}<small> mp</small></div>
-          <div class="v313-bar"><i style="width:${pct}%"></i></div>
-          <div class="v313-note">60 másodperces PvP várakozás</div>
-        </div>`;
-    }else{
-      box.classList.remove("active");
-      box.innerHTML=`
-        <div class="v313-pvp-ready">
-          <span>⚔️</span>
-          <div><small>PVP ARÉNA</small><b>Új párbaj indítható</b></div>
-        </div>`;
-    }
-  }
-
-  function startLocalTickerV309(){
-    clearInterval(v309Ticker);
-    drawCooldownV309();
-    v309Ticker=setInterval(()=>{
-      if(v309CooldownRemaining>0){
-        v309CooldownRemaining=Math.max(0,v309CooldownRemaining-1);
-        drawCooldownV309();
-      }
-      if(v309CooldownRemaining<=0){
-        clearInterval(v309Ticker);
-        v309Ticker=null;
-        drawCooldownV309();
-      }
-    },1000);
-  }
-
-  async function syncCooldownFromServerV309(){
-    try{
-      const d=await api229("/api/pvp/cooldown");
-      v309CooldownTotal=60;
-      v309CooldownRemaining=Math.max(0,Number(d.remaining||0));
-      startLocalTickerV309();
-      return d;
-    }catch(e){
-      drawCooldownV309();
-      return null;
-    }
-  }
-
-  function startCooldownV306(seconds=60){
-    v309CooldownTotal=60;
-    v309CooldownRemaining=60;
-    startLocalTickerV309();
-    // Re-sync shortly after so the visual timer follows the database exactly.
-    setTimeout(syncCooldownFromServerV309,2200);
-  }
-
-  function resumeCooldownV308(){
-    syncCooldownFromServerV309();
-  }
-
-  clearInterval(v309SyncTimer);
-  v309SyncTimer=setInterval(()=>{
-    const p=page();
-    if(p && (p.classList.contains("active") || p.offsetParent!==null)){
-      syncCooldownFromServerV309();
-    }
-  },5000);
-
-  window.v308ResumePvpCooldown=resumeCooldownV308;
-  window.v309SyncPvpCooldown=syncCooldownFromServerV309;
-
   async function fight(defenderId,button){
     if(!defenderId)return;
     const old=button?.textContent;
@@ -5834,7 +5243,6 @@ window.v222AdminSpeedSupported=true;
       });
       if(!data?.battle)throw new Error("A szerver nem adott vissza párbaj adatot.");
       playBattle(data.battle);
-      startCooldownV306(Number(data.cooldownSec||60));
       if(typeof toast==="function"){
         const meId=data.battle?.a?.id;
         const won=Number(data.battle.winnerId)===Number(meId);
@@ -5844,15 +5252,9 @@ window.v222AdminSpeedSupported=true;
       if(typeof renderPvp==="function")setTimeout(renderPvp,800);
       if(typeof renderAll==="function")setTimeout(renderAll,900);
     }catch(e){
-      if(Number(e?.data?.cooldownRemaining)>0){
-        v309CooldownTotal=60;
-        v309CooldownRemaining=Math.max(1,Number(e.data.cooldownRemaining));
-        startLocalTickerV309();
-      }
       if(typeof toast==="function")toast("❌ "+e.message);
       const arena=ensureArena();
-      if(arena && !Number(e?.data?.cooldownRemaining||0))arena.innerHTML=`<div class="v229-error">❌ ${e.message}</div>`;
-      if(Number(e?.data?.cooldownRemaining||0)>0)hideLegacyPvpWaitV310(Number(e.data.cooldownRemaining));
+      if(arena)arena.innerHTML=`<div class="v229-error">❌ ${e.message}</div>`;
     }finally{
       if(button){
         button.disabled=false;
@@ -5901,7 +5303,6 @@ window.v222AdminSpeedSupported=true;
   function setup(){
     ensureArena();
     drawBattle();
-    syncCooldownFromServerV309();
     bindFightButtons();
   }
 
@@ -5911,7 +5312,6 @@ window.v222AdminSpeedSupported=true;
   window.addEventListener("load",()=>{setTimeout(setup,250);setTimeout(setup,800)});
   document.addEventListener("click",e=>{
     if(e.target.closest?.('[data-tab="pvp"]')){
-      setTimeout(syncCooldownFromServerV309,60);
       setTimeout(setup,100);
       setTimeout(bindFightButtons,400);
     }
@@ -5977,48 +5377,3 @@ window.v222AdminSpeedSupported=true;
  window.addEventListener("beforeunload",()=>{if(active&&typeof navigator!=="undefined"&&navigator.sendBeacon){try{navigator.sendBeacon("/api/pvp/session/end",new Blob(["{}"],{type:"application/json"}))}catch{}}});
 })();
 
-
-/* V23.00 full auto availability refresh */
-setInterval(()=>{
- try{
-  const p=document.getElementById("v299FullAutoPanel");
-  if(p&&typeof window.v299FullAutoTick==="function"){
-    const btn=p.querySelector("#v299FullAutoToggleBtn");
-    if(btn)btn.disabled=!save.fullAutoUnlocked;
-  }
-  if(document.getElementById("page-shop")?.classList.contains("active")&&typeof renderStore==="function")renderStore();
- }catch(e){}
-},5000);
-
-/* V23.16 FULL BALANCE */
-window.OMI_BALANCE_V2316={powerCap:100000,damageCap:70000,paragonWave:220,targetWeeklyPrestige:50,seasonPrestigeTarget:50};
-
-
-/* V23.18 EQUAL PROGRESSION
-   Manual and Full Auto use the exact same combat engine, mob HP/DEF, drops,
-   wave requirements, boss rules and Paragon/Prestige requirements.
-   Full Auto only removes repetitive clicks/management; it grants no hidden
-   damage, XP, gold, drop, wave or Prestige speed multiplier. */
-window.OMI_BALANCE_V2318={
-  manualProgressMultiplier:1,
-  fullAutoProgressMultiplier:1,
-  manualDropMultiplier:1,
-  fullAutoDropMultiplier:1,
-  manualEnemyMultiplier:1,
-  fullAutoEnemyMultiplier:1
-};
-function progressionMultiplierV318(){return 1}
-function automationProgressBonusV318(){return 1}
-
-/* V23.19 WORLD BALANCE */
-window.OMI_BALANCE_V2319={
- zoneMinPower:[0,1500,4000,9000,18000,32000,52000,75000],
- dungeonRecommendedPower:[1200,3000,6500,11000,18000,28000,40000,55000,72000,90000],
- powerCap:100000
-};
-
-/* V23.20.8 STABLE FULL RESTORE
-   Based on V23.20.3 stable UI/render/combat.
-   Restored: skill tree, base upgrades, item upgrades, farm zones, pets, dungeons, Paragon/Prestige.
-   Added only isolated Full Auto Power Focus. */
-window.OMI_STABLE_FULL_RESTORE_V23208=true;

@@ -30,7 +30,7 @@
   <button class="tab" data-tab="aurashop">✨ Prestige Aura Shop</button>
   <button class="tab" data-tab="dungeon">🏰 Dungeon</button>
   <button class="tab" data-tab="quests">📜 Küldetések</button>
-  <button class="tab" data-tab="pvp">⚔️ PvP</button><button class="tab" data-tab="shop">🪙 E-érme</button><button class="tab" data-tab="stats">📊 Statisztika</button>
+  <button class="tab" data-tab="pvp">⚔️ PvP</button><button class="tab" data-tab="shop">💳 Feltöltés</button><button class="tab" data-tab="stats">📊 Statisztika</button>
   <button class="tab" data-tab="mounts">🐎 Hátasok</button>
   <button class="tab" data-tab="npcshop">🏪 Vándorkereskedő</button>
   <button class="tab" data-tab="casino">🎰 Kaszinó</button>
@@ -91,17 +91,7 @@
   <div class="resource card"><span>🧿 Lélekkő</span><strong id="soul">0</strong><small>ritka fejlesztés</small></div>
   <div class="resource card"><span>🎫 Dungeon jegy</span><strong id="tickets">0</strong><small>bossokhoz</small></div>
   <div class="resource card mount-shard-resource-v239"><span>🧩 Hátastöredék</span><strong id="mountShardsTop">0</strong><small>ritka boss drop</small></div>
-  <div class="resource card v23203-level-card">
-  <div class="v23203-level-head"><span>⭐ Szint</span><strong id="level">1</strong></div>
-  <div class="v23203-xp-wrap" aria-label="XP haladás">
-    <div id="xpBarV23203" class="v23203-xp-bar" style="width:0%"></div>
-    <div id="xpBarShineV23203" class="v23203-xp-shine"></div>
-  </div>
-  <div class="v23203-xp-info">
-    <small id="xpText">0 / 100 XP</small>
-    <small id="xpPctV23203">0%</small>
-  </div>
-</div>
+  <div class="resource card"><span>⭐ Szint</span><strong id="level">1</strong><small id="xpText">0 / 100 XP</small></div>
 </section>
 
 <!-- CHARACTER -->
@@ -707,20 +697,9 @@
   <div class="v212-resource" data-res="auratokens"><span>✨ Aura token</span><b data-val="auratokens">0</b></div>
 </div>
 
-  <section class="v2317-support-notice v2320-ecoin-info">
-    <div class="v2317-support-heart">🪙</div>
-    <div>
-      <small>E-ÉRME RENDSZER</small>
-      <h2>Az E-érme nem vásárolható közvetlenül ezen az oldalon</h2>
-      <p>Az E-érmét kizárólag admin tudja jóváírni. E-érmét Discord nyereményjátékokból, eventekből, közösségi jutalmakból vagy más admin által meghirdetett lehetőségekből szerezhetsz.</p>
-      <p>Ha van elegendő E-érméd, a lent látható kényelmi funkciókat közvetlenül kiválthatod belőle. Az E-érme egy játékbeli beváltási pont, nem kötelező a normál játékhoz.</p>
-      <strong>✓ Csak admin adhatja &nbsp; • &nbsp; ✓ Discordon/eventeken nyerhető &nbsp; • &nbsp; ✓ Nem szükséges a normál fejlődéshez</strong>
-    </div>
-  </section>
-
   <section class="shop-discord-contact-v240">
     <div class="shop-discord-icon-v240">💬</div>
-    <div><small>E-ÉRME ÉS KÖZÖSSÉGI JUTALMAK</small><h2>Keress Discordon</h2><p>Discordon nyereményjátékok, eventek és egyéb közösségi jutalmak során E-érmét szerezhetsz. Az E-érmét az admin írja jóvá.</p></div>
+    <div><small>VÁSÁRLÁS ÉS AKTIVÁLÁS</small><h2>Keress Discordon</h2><p>A csomagok, a 10× gyorsítás és az Auto Paragon megvásárlásához írj privát üzenetet.</p></div>
     <strong>nervos11</strong>
   </section>
 
@@ -729,19 +708,19 @@
     <div>
       <div class="eyebrow">PRÉMIUM</div>
       <h2>10× Harci / Wave Sebesség</h2>
-      <p>3 E-érméért végleg feloldható 10× harci / wave sebesség.</p>
-      <div><b class="premium-price-v165">3 E-érme</b> <span id="speed10PurchaseState">🔒 Nincs aktiválva</span></div>
-      <small>Az E-érme egyenlegedből azonnal kiváltható.</small>
+      <p>A saját karaktered támadási sebességét 10×-re állíthatod, így gyorsabban haladsz a wave-ekkel.</p>
+      <div><b class="premium-price-v165">3 €</b> <span id="speed10PurchaseState">🔒 Nincs aktiválva</span></div>
+      <small>Az aktiválás a webes vásárlási igény elküldése után történik.</small>
     </div>
   </section>
   <section class="card auto-paragon-v237">
-    <div class="auto-paragon-icon-v237">🌟</div><div><span class="eyebrow">PRÉMIUM AUTOMATIZÁLÁS</span><h2>Auto Paragon szintelő</h2><p>Amikor eléred a következő Paragon wave-követelményét, automatikusan végrehajtja a szintlépést és azonnal folytatja a farmolást.</p><b>10 E-érme</b> <span id="autoParagonPurchaseState">🔒 Nincs aktiválva</span><small>Egyszeri E-érme beváltással végleg feloldható.</small></div><button data-buy-product="auto_paragon_10_eur">🪙 KIVÁLTÁS</button>
+    <div class="auto-paragon-icon-v237">🌟</div><div><span class="eyebrow">PRÉMIUM AUTOMATIZÁLÁS</span><h2>Auto Paragon szintelő</h2><p>Amikor eléred a következő Paragon wave-követelményét, automatikusan végrehajtja a szintlépést és azonnal folytatja a farmolást.</p><b>10 €</b> <span id="autoParagonPurchaseState">🔒 Nincs aktiválva</span><small>Egyszeri, admin által aktivált jogosultság.</small></div><button data-buy-product="auto_paragon_10_eur">💬 VÁSÁRLÁSI IGÉNY</button>
   </section>
 
  <div class="layout">
   <section class="card">
-   <div class="title-row"><div><h2>🪙 E-érméért kiváltható funkciók</h2><small>Az E-érmét csak admin adhatja; Discord eventeken, nyereményeken és egyéb közösségi alkalmakon szerezhető.</small></div></div>
-   <div class="shop-warning">🪙 E-érme: játékbeli beváltási pont. Ezen a felületen nincs eurós fizetés és nincs bankkártyás vásárlás.</div>
+   <div class="title-row"><div><h2>💳 Arany és támogatói csomagok</h2><small>A vásárlás privát egyeztetéssel történik.</small></div></div>
+   <div class="shop-warning">⚠️ A weboldal nem kér és nem tárol bankkártyaadatot. Valódi fizetés és a játékbeli jóváírás privát egyeztetéssel történik.</div>
    <div id="storeProducts" class="store-grid"></div>
   </section>
  </div>

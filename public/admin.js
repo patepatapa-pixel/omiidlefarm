@@ -157,11 +157,7 @@ const V10_GAMEPLAY_DEFAULTS={
  goldBonusCapPct:100,
  mobTargetHits:2,
  zoneHpMultipliers:[100,100,100,100,100,100,100,100],
- zoneFixedGold:[5,9,16,28,48,80,130,210],
- zoneFixedXp:[6,15,35,85,220,600,1650,4500],
- zoneSoulDropChancePct:[1,1.5,2,2.5,3,3.5,4,5],
- zoneSoulDropMin:[1,1,1,1,1,1,1,1],
- zoneSoulDropMax:[1,1,1,2,2,2,3,3]
+ zoneFixedGold:[5,9,16,28,48,80,130,210]
 };
 
 function v10GameplayCfg(){
@@ -190,19 +186,15 @@ function fillDefaultBossGems(){
 const V226_ZONE_NAMES=["Zöld mező","Sötét erdő","Elhagyott bánya","Démon torony","Sárkány-völgy","Mennydörgés fennsík","Üresség","Isteni kapu"];
 function v226ZoneNames(){return [...V226_ZONE_NAMES,...(studioConfig.zones||[]).map(z=>z.name||"Egyedi terület")]}
 function fillZoneHpBalance(){
- const g=v10GameplayCfg(),multipliers=Array.isArray(g.zoneHpMultipliers)?g.zoneHpMultipliers:[],fixedGold=Array.isArray(g.zoneFixedGold)?g.zoneFixedGold:V10_GAMEPLAY_DEFAULTS.zoneFixedGold,fixedXp=Array.isArray(g.zoneFixedXp)?g.zoneFixedXp:V10_GAMEPLAY_DEFAULTS.zoneFixedXp,soulChance=Array.isArray(g.zoneSoulDropChancePct)?g.zoneSoulDropChancePct:V10_GAMEPLAY_DEFAULTS.zoneSoulDropChancePct,soulMin=Array.isArray(g.zoneSoulDropMin)?g.zoneSoulDropMin:V10_GAMEPLAY_DEFAULTS.zoneSoulDropMin,soulMax=Array.isArray(g.zoneSoulDropMax)?g.zoneSoulDropMax:V10_GAMEPLAY_DEFAULTS.zoneSoulDropMax;
+ const g=v10GameplayCfg(),multipliers=Array.isArray(g.zoneHpMultipliers)?g.zoneHpMultipliers:[],fixedGold=Array.isArray(g.zoneFixedGold)?g.zoneFixedGold:V10_GAMEPLAY_DEFAULTS.zoneFixedGold;
  if(qs("#cfgMobTargetHits"))qs("#cfgMobTargetHits").value=Number(g.mobTargetHits||2);
- const root=qs("#zoneHpBalanceEditor");if(root)root.innerHTML=v226ZoneNames().map((name,i)=>`<article class="zone-balance-card"><h4>🗺️ ${name}</h4><label>❤️ Mob HP szorzó %<input data-zone-hp-mult="${i}" type="number" min="10" max="1000" step="1" value="${Number(multipliers[i]??100)}"></label><label>💰 Fix arany / mob<input data-zone-fixed-gold="${i}" type="number" min="0" step="1" value="${Number(fixedGold[i]??studioConfig.zones?.[i-8]?.gold??0)}"></label><label>⭐ Fix XP / mob<input data-zone-fixed-xp="${i}" type="number" min="0" step="1" value="${Number(fixedXp[i]??studioConfig.zones?.[i-8]?.xp??0)}"></label><div class="v23201-soul-admin"><label>🔵 Lélekkő drop %<input data-zone-soul-chance="${i}" type="number" min="0" max="100" step="0.1" value="${Number(soulChance[i]??0)}"></label><label>🔵 Minimum db<input data-zone-soul-min="${i}" type="number" min="0" step="1" value="${Number(soulMin[i]??0)}"></label><label>🔵 Maximum db<input data-zone-soul-max="${i}" type="number" min="0" step="1" value="${Number(soulMax[i]??0)}"></label></div><small>0% = nincs Lélekkő drop. Minden normál mobnál külön dobás történik.</small></article>`).join("");
+ const root=qs("#zoneHpBalanceEditor");if(root)root.innerHTML=v226ZoneNames().map((name,i)=>`<article class="zone-balance-card"><h4>🗺️ ${name}</h4><label>❤️ Mob HP szorzó %<input data-zone-hp-mult="${i}" type="number" min="10" max="1000" step="1" value="${Number(multipliers[i]??100)}"></label><label>💰 Fix arany / mob<input data-zone-fixed-gold="${i}" type="number" min="0" step="1" value="${Number(fixedGold[i]??studioConfig.zones?.[i-8]?.gold??0)}"></label><small>A normál mob mindig pontosan ezt adja; az aranydropp-bónusz csak a bossokra hat.</small></article>`).join("");
 }
 qs("#saveZoneHpBalance")?.addEventListener("click",async()=>{
  const g=v10GameplayCfg();g.mobTargetHits=Math.max(1,Number(qs("#cfgMobTargetHits")?.value||2));
  g.zoneHpMultipliers=v226ZoneNames().map((_,i)=>Math.max(10,Math.min(1000,Number(qs(`[data-zone-hp-mult="${i}"]`)?.value||100))));
  g.zoneFixedGold=v226ZoneNames().map((_,i)=>Math.max(0,Math.floor(Number(qs(`[data-zone-fixed-gold="${i}"]`)?.value??0))));
- g.zoneFixedXp=v226ZoneNames().map((_,i)=>Math.max(0,Math.floor(Number(qs(`[data-zone-fixed-xp="${i}"]`)?.value??0))));
- g.zoneSoulDropChancePct=v226ZoneNames().map((_,i)=>Math.max(0,Math.min(100,Number(qs(`[data-zone-soul-chance="${i}"]`)?.value??0))));
- g.zoneSoulDropMin=v226ZoneNames().map((_,i)=>Math.max(0,Math.floor(Number(qs(`[data-zone-soul-min="${i}"]`)?.value??0))));
- g.zoneSoulDropMax=v226ZoneNames().map((_,i)=>Math.max(g.zoneSoulDropMin[i],Math.floor(Number(qs(`[data-zone-soul-max="${i}"]`)?.value??g.zoneSoulDropMin[i]))));
- studioConfig.gameplay=g;await saveConfigV8();fillZoneHpBalance();alert("✅ Területi HP, arany, fix XP és Lélekkő drop elmentve.");
+ studioConfig.gameplay=g;await saveConfigV8();fillZoneHpBalance();alert("✅ A területi HP- és aranyszorzók elmentve.");
 });
 qs("#saveDefaultBossGems")?.addEventListener("click",async()=>{
  const g=v10GameplayCfg();
@@ -263,10 +255,9 @@ qs("#savePvpConfig")?.addEventListener("click",async()=>{
 function renderShopAdmin(){
  studioConfig.store={discord:"nervos11",products:[],...(studioConfig.store||{})};
  const defaults=[
-  {id:"premium_speed_10x",name:"10× Harci / Wave Sebesség",icon:"⚡",priceText:"3 E-érme",description:"Prémium 10× farmsebesség",visible:true},
-  {id:"auto_paragon_10_eur",name:"Auto Paragon szintelő",icon:"🌟",priceText:"10 E-érme",description:"Automatikus Paragon szintlépés",visible:true},
-  {id:"full_auto_20_eur",name:"Teljes Automata Rendszer",icon:"🤖",priceText:"20 E-érme",description:"Teljes automatikus fejlődés Prestige-ig",visible:true},
-  {id:"dungeon_batch_10_eur",name:"Dungeon 2× / 3× / 5× futam",icon:"🏰",priceText:"10 E-érme",description:"Egyszerre több dungeon külön jutalom- és droppróbával",visible:true}
+  {id:"premium_speed_10x",name:"10× Harci / Wave Sebesség",icon:"⚡",priceText:"3 €",description:"Prémium 10× farmsebesség",visible:true},
+  {id:"auto_paragon_10_eur",name:"Auto Paragon szintelő",icon:"🌟",priceText:"10 €",description:"Automatikus Paragon szintlépés",visible:true},
+  {id:"dungeon_batch_10_eur",name:"Dungeon 2× / 3× / 5× futam",icon:"🏰",priceText:"10 €",description:"Egyszerre több dungeon külön jutalom- és droppróbával",visible:true}
  ];
  defaults.forEach(d=>{if(!studioConfig.store.products.some(p=>p.id===d.id))studioConfig.store.products.unshift(d)});
  qs("#shopProductList").innerHTML=(studioConfig.store.products||[]).map((p,i)=>`<div class="builder-entry"><b>${p.icon||"💰"} ${p.name}</b><small>${p.priceText||""} · ${p.visible===false?"REJTVE":"LÁTHATÓ"} · ${p.description||""}</small><button data-shop-edit="${i}">Szerkesztés</button><button data-shop-del="${i}">Törlés</button></div>`).join("");
@@ -411,7 +402,7 @@ function v222FillEditor(){
   if(!selected)return;
   const s=selected.game?.save_data||{};
   v222Set("v222Gold",s.gold||0);
-  v222Set("v222Gems",s.gems||0);v222Set("v222ECoins",s.eCoins||0);
+  v222Set("v222Gems",s.gems||0);
   v222Set("v222Ore",s.ore||0);
   v222Set("v222Soul",s.soul||0);
   v222Set("v222Tickets",s.tickets||0);
@@ -455,7 +446,7 @@ async function v222ReloadSelected(){
 }
 function v222Payload(){
   return {
-    gold:v222Num("v222Gold"),gems:v222Num("v222Gems"),eCoins:v222Num("v222ECoins"),ore:v222Num("v222Ore"),
+    gold:v222Num("v222Gold"),gems:v222Num("v222Gems"),ore:v222Num("v222Ore"),
     soul:v222Num("v222Soul"),tickets:v222Num("v222Tickets"),level:v222Num("v222Level"),
     xp:v222Num("v222Xp"),wave:v222Num("v222Wave"),paragonLevel:v222Num("v222Paragon"),
     prestigeLevel:v222Num("v222Prestige"),paragonStatPoints:v222Num("v222ParagonPoints"),
@@ -474,8 +465,6 @@ function v222Payload(){
     },
     speed10Unlocked:Boolean(document.getElementById("v222Speed10")?.checked),
     autoParagonUnlocked:Boolean(document.getElementById("v237AutoParagon")?.checked),
-     fullAutoUnlocked:Boolean(document.getElementById("v299FullAuto")?.checked),
-     fullAutoEnabled:Boolean((curSP()?.save_data?.fullAutoEnabled ?? false) && document.getElementById("v299FullAuto")?.checked),
     dungeonBatchUnlocked:Boolean(document.getElementById("v279DungeonBatch")?.checked),
     combatSpeed:Number(document.getElementById("v222CombatSpeed")?.value||1)
   };
