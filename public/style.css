@@ -4878,3 +4878,8 @@ nav.tabs{display:flex!important;flex-wrap:wrap!important;justify-content:center;
 .rarity-imperial{border-color:#e85dff!important;box-shadow:0 0 14px rgba(232,93,255,.20)}
 .rarity-celestial{border-color:#63d8ff!important;box-shadow:0 0 16px rgba(99,216,255,.22)}
 .rarity-eternal{border-color:#ffdf68!important;box-shadow:0 0 18px rgba(255,223,104,.26)}
+
+/* V23.19.8: final zone unlock and Paragon display are separated */
+.v23198-zone-unlock{display:flex;flex-direction:column;gap:5px}
+.v23198-zone-unlock b{font-size:12px}
+.v23198-zone-unlock span{font-size:11px;font-weight:900}

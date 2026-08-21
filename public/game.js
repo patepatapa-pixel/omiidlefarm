@@ -520,11 +520,18 @@ function renderZones(){
    <small>Drop: ${(z.drop*100).toFixed(0)}% · 💰 Fix ${fmt(zoneMobGold(i))} arany / mob · ❤️ Mob HP: ${fmt(i===save.zone?normalEnemyMaxHp():Math.max(10,Math.floor(([160,520,1450,3800,9000,19000,35000,60000][i]||60000)*.90)))} · 👹 Boss: ~${(5+i*.38).toFixed(1)}× mob</small>
    ${i===ZONES.length-1?(()=>{
      const f=finalZoneParagonStateV23195();
+     // A Paragon panel csak akkor jelenik meg, ha a végső terület
+     // feloldási Wave + Erő célja már teljesült és a játékos ténylegesen ott van.
+     if(!f.waveDone || !f.powerDone || !f.onFinalZone){
+       const zoneWaveDone=g.waveDone, zonePowerDone=g.powerDone;
+       return `<div class="v23195-paragon-final v23198-zone-unlock">
+         <b>🔒 TERÜLET FELOLDÁSA</b>
+         <span>${zoneWaveDone?"✅":"🌊"} Wave: ${fmt(g.waveNow)} / ${fmt(g.waveNeed)}${zoneWaveDone?" · TELJESÍTVE":""}</span>
+         <span>${zonePowerDone?"✅":"⚔️"} Erő: ${fmt(g.powerNow)} / ${fmt(g.powerNeed)}${zonePowerDone?" · TELJESÍTVE":""}</span>
+       </div>`;
+     }
      if(f.eligible)return '<div class="v23195-paragon-final ready">🌟 PARAGON SZINTLÉPÉS ELÉRHETŐ</div>';
-     const miss=[];
-     if(!f.waveDone)miss.push(`Wave ${fmt(f.waveNeed)}`);
-     if(!f.powerDone)miss.push(`${fmt(Math.max(0,f.powerNeed-f.powerNow))} ERŐ`);
-     return `<div class="v23195-paragon-final">🌟 PARAGON CÉL · ${miss.length?miss.join(" · "):"Érd el ezt a területet"}</div>`;
+     return '<div class="v23195-paragon-final">🌟 PARAGON CÉL AKTÍV</div>';
    })():""}
    ${weak?'<strong class="zone-cap-badge">⬆️ TELJESÍTETT TERÜLET</strong>':locked
      ? `<strong class="zone-cap-badge">${g.waveDone&&!g.powerDone?`⚔️ MÉG ${fmt(Math.max(0,g.powerNeed-g.powerNow))} ERŐ KELL`:!g.waveDone?`🌊 WAVE CÉL HIÁNYZIK`:"🔒 ZÁROLVA"}</strong>`
@@ -1699,7 +1706,7 @@ function normalEnemyMaxHp(){
  const end=Math.max(start+1,Number(thresholds[Math.min(zone+1,thresholds.length-1)]||paragonWaveRequirement()));
  const local=Math.max(0,Math.min(1,(wave-start)/(end-start)));
  const waveScale=.88+local*.72;
- const prestigeScale=1+Math.min(.32,prestige*.004);
+ const prestigeScale=1 + prestige*.018 + Math.pow(prestige,1.28)*.0032;
  const speedScale=typeof combatSpeedHpMultiplierV282==="function"?combatSpeedHpMultiplierV282():1;
  return Math.max(10,Math.floor(zoneBase*waveScale*prestigeScale*speedScale));
 }
@@ -1748,7 +1755,10 @@ function applyWaveGoal(){
 
 // ================= V15.5 WAVE / BOSS / PARAGON RULES =================
 function paragonWaveRequirement(){
-  return 500;
+ const p=Math.max(0,Number(save?.prestigeLevel||0));
+ // Hosszútávú görbe: az első Paragon 500 Wave, utána fokozatosan nő.
+ // P100 környékére már ~2000 Wave kell egy újabb Paragonhoz.
+ return Math.floor(500 + p*10 + Math.pow(p,1.35)*2.15);
 }
 function isBossCheckpointWave(wave){
   return Number(wave||1)>=1;
@@ -4621,7 +4631,8 @@ document.addEventListener("click",e=>{
   function bossMaxHp(d){
     const req=Math.max(100,Number(d.reqPower||100));
     const idx=Math.max(0,DUNGEONS_V218.findIndex(x=>x.id===d.id));
-    const mult=(d.safe?2.6:5.4)*(1+Math.min(.25,idx*.025));
+    const p=Math.max(0,Number(save?.prestigeLevel||0));
+    const mult=(d.safe?2.6:5.4)*(1+Math.min(.25,idx*.025))*(1+p*.012+Math.pow(p,1.18)*.002);
     return Math.max(500,Math.floor(req*mult));
   }
 
@@ -6177,3 +6188,24 @@ window.OMI_BALANCE_V23196={
  zonePower:[0,650,1400,2600,4500,7000,10500,15000,21000],
  rarities:["normal","rare","epic","mythic","legendary","imperial","celestial","eternal"]
 };
+
+/* V23.19.7 LONG-TERM PRESTIGE BALANCE
+   Goal: Prestige/Paragon 100 should NOT be realistically reachable in one week.
+   - Wave requirement rises after every Paragon.
+   - Required final-zone power rises progressively.
+   - Farm mob/boss difficulty scales with Paragon.
+   - Dungeon bosses scale with Paragon.
+   - 100,000 maximum power remains intact.
+*/
+window.OMI_LONGTERM_PRESTIGE_V23197={
+ firstWave:500,
+ target:"P100 is long-term progression, not a 7-day target",
+ maxPower:100000
+};
+
+/* V23.19.8 PARAGON DISPLAY FIX
+   Final farm area unlock requirements are shown first.
+   Paragon status is hidden until the final area Wave + Power gate is completed
+   and the player has actually reached that area.
+*/
+window.OMI_PARAGON_DISPLAY_FIX_V23198=true;
