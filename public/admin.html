@@ -4,8 +4,9 @@
 <header class="topbar"><div class="brand"><span>⚙️ OMI</span> ADMIN</div><div class="top-actions"><a href="/" style="color:#ddd">← Játék</a><button class="ghost" id="adminLogout">Kilépés</button></div></header>
 <main>
 <section class="hero card"><div><div class="eyebrow">ADMIN PANEL</div><h1>OMI Idle Farm kezelőfelület</h1><p>Játékosok, mentések, tiltások, jutalmak és ranglista ellenőrzése.</p></div><div class="hero-power"><small>JÁTÉKOSOK</small><strong id="playerCount">0</strong></div></section>
-<nav class="tabs" style="position:static;margin:12px 0"><button class="tab active" data-a="players">👥 Játékosok</button><button class="tab" data-a="logs">📜 Admin napló</button></nav>
+<nav class="tabs" style="position:static;margin:12px 0"><button class="tab active" data-a="players">👥 Játékosok</button><button class="tab" data-a="anticheat">🛡️ Csalásfigyelő <span id="antiCheatCountV276">0</span></button><button class="tab" data-a="logs">📜 Admin napló</button></nav>
 <section class="page active" id="a-players"><section class="card"><div class="title-row"><h2>👥 Játékosok</h2><button id="refreshPlayers">↻ Frissítés</button></div><div id="players"></div></section></section>
+<section class="page" id="a-anticheat"><section class="card anticheat-admin-v276"><div class="title-row"><div><h2>🛡️ Autoclicker-értesítések</h2><p class="muted">Az észlelés figyelmeztetés, nem automatikus bizonyíték. Tiltás előtt ellenőrizd a mintát.</p></div><button id="refreshAntiCheatV276">↻ Frissítés</button></div><div id="antiCheatAlertsV276"></div></section></section>
 <section class="page" id="a-logs"><section class="card"><h2>📜 Admin műveletek</h2><div id="logs"></div></section></section>
 </main>
 <div class="modal" id="playerModal"><div class="modal-box" style="width:min(650px,100%)"><button class="modal-x" id="playerClose">×</button><h2 id="pmName">Játékos</h2>

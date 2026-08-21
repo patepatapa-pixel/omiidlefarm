@@ -133,6 +133,18 @@ async function init(){
       action TEXT NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+    CREATE TABLE IF NOT EXISTS anticheat_alerts(
+      id BIGSERIAL PRIMARY KEY,
+      user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      alert_type TEXT NOT NULL DEFAULT 'autoclicker',
+      risk_level TEXT NOT NULL DEFAULT 'suspicious',
+      evidence JSONB NOT NULL DEFAULT '{}'::jsonb,
+      status TEXT NOT NULL DEFAULT 'new',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      reviewed_at TIMESTAMPTZ,
+      reviewed_by BIGINT REFERENCES users(id) ON DELETE SET NULL
+    );
+    CREATE INDEX IF NOT EXISTS anticheat_alerts_user_created_idx ON anticheat_alerts(user_id,created_at DESC);
     CREATE TABLE IF NOT EXISTS admin_pending_overrides(
       user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
       patch JSONB NOT NULL DEFAULT '{}'::jsonb,
@@ -342,6 +354,10 @@ async function init(){
     updateContent.updates.unshift({id:"v22_75",version:"V22.75",title:"Játékos DEF teljes újrabalanszolása",date:"2026-08-21",summary:"A saját DEF többé nem szalad el a mobokhoz és bossokhoz képest; minden védelmi érték az adott terület ajánlott céljához igazodik.",changes:["A meglévő felszerelések DEF-je egyszeri 28%-os arányos átskálázást kap, ezért a tárgyak és fejlesztéseik nem vesznek el.","Az új páncélok, sisakok és csizmák lényegesen kisebb, kezelhető DEF-értékekkel esnek.","A Páncéledzés, karakterszint és Prestige DEF-hozzájárulása csökkent.","Az effektív DEF lágy plafont kapott: extrém régi vagy admin tárgyakkal sem nőhet értelmetlenül több ezres értékre.","Az ajánlott DEF terület- és wave-alapú görbéje az új tárgyértékekhez igazodik.","Ajánlott DEF körül nagyjából 40–50% sebzéscsökkentés érhető el.","Ajánlott DEF körül a blokk esélye körülbelül 12–16%. Alacsonyabb DEF gyengébb, kétszeres DEF erős, de nem halhatatlan.","A 75%-os sebzéscsökkentési és 25%-os blokkplafon csak komoly végjátékos túlépítéssel közelíthető meg.","A DEF-ből származó maximális HP 2,5-ről 1,75 HP/DEF értékre csökkent.","A mob-, boss- és dungeonsebzés továbbra is ugyanahhoz az ajánlott DEF-célhoz igazodik."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_76")){
+    updateContent.updates.unshift({id:"v22_76",version:"V22.76",title:"Autoclicker-figyelő és adminértesítés",date:"2026-08-21",summary:"A játék felismeri a tartósan gépies kattintásmintákat, figyelmezteti a játékost és ellenőrizhető értesítést küld az adminnak.",changes:["A rendszer a kattintási sebességet, az időközök szabályosságát és az azonos cél ismétlését együtt vizsgálja.","Egyetlen gyors kattintás vagy rövid sorozat nem vált ki jelzést.","A beépített Automata farm és a weboldal saját programozott eseményei nem számítanak autoclickernek.","Gyanú esetén teljes képernyős figyelmeztetés jelzi, hogy az autoclicker használata kitiltással járhat.","Az esemény szerveroldali adatbázisba kerül, és nem tűnik el oldalfrissítéskor.","Az adminpanel új Csalásfigyelő füle mutatja a játékost, időpontot, kattintás/másodperc értéket, szabályosságot és azonos cél arányát.","Az admin közvetlenül megnyithatja a jelzett játékos adatlapját és ellenőrzöttnek jelölheti az értesítést.","Az ismétlődő jelentések 90 másodperces szerveroldali korlátozást kaptak.","A rendszer nem oszt automatikus bant; a végleges döntést az admin hozza meg."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
   const capMigration="v2246_wallet_caps";
   const capDone=(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[capMigration])).rows[0];
   if(!capDone){
@@ -391,7 +407,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.75.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.76.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{
@@ -650,6 +666,40 @@ app.get("/api/admin/players",auth,admin,async(req,res)=>{
     ORDER BY u.role DESC,g.power DESC,u.id ASC
   `)).rows;
   res.json({rows});
+});
+
+app.post("/api/anticheat/autoclicker",auth,async(req,res)=>{
+ try{
+  if(req.user.role==="admin")return res.json({ok:true,ignored:true});
+  const src=req.body?.evidence||{},clean=(v,min,max)=>Math.max(min,Math.min(max,Number(v)||0));
+  const evidence={
+   samples:Math.floor(clean(src.samples,0,100)),
+   cps:clean(src.cps,0,50),
+   meanIntervalMs:clean(src.meanIntervalMs,0,5000),
+   regularity:clean(src.regularity,0,1),
+   sameTargetRatio:clean(src.sameTargetRatio,0,1),
+   target:String(src.target||"game-action").slice(0,80)
+  };
+  if(evidence.samples<24||evidence.cps<5||evidence.regularity<.72||evidence.sameTargetRatio<.7)return res.status(400).json({error:"A minta nem érte el az értesítési küszöböt."});
+  const recent=(await q("SELECT id FROM anticheat_alerts WHERE user_id=$1 AND alert_type='autoclicker' AND created_at>NOW()-INTERVAL '90 seconds' LIMIT 1",[req.user.id])).rows[0];
+  if(recent)return res.json({ok:true,deduplicated:true});
+  const risk=evidence.cps>=8&&evidence.regularity>=.88&&evidence.sameTargetRatio>=.85?"high":"suspicious";
+  const row=(await q("INSERT INTO anticheat_alerts(user_id,alert_type,risk_level,evidence) VALUES($1,'autoclicker',$2,$3) RETURNING id",[req.user.id,risk,evidence])).rows[0];
+  res.json({ok:true,alert_id:row.id,risk_level:risk});
+ }catch(e){console.error(e);res.status(500).json({error:"Az autoclicker-jelzés mentése nem sikerült."})}
+});
+
+app.get("/api/admin/anticheat-alerts",auth,admin,async(req,res)=>{
+ try{
+  const rows=(await q(`SELECT a.id,a.user_id,a.alert_type,a.risk_level,a.evidence,a.status,a.created_at,a.reviewed_at,u.username,u.player_name
+    FROM anticheat_alerts a JOIN users u ON u.id=a.user_id ORDER BY (a.status='new') DESC,a.created_at DESC LIMIT 200`)).rows;
+  res.json({rows});
+ }catch(e){console.error(e);res.status(500).json({error:"Az értesítések betöltése nem sikerült."})}
+});
+
+app.post("/api/admin/anticheat-alert/:id/read",auth,admin,async(req,res)=>{
+ try{await q("UPDATE anticheat_alerts SET status='read',reviewed_at=NOW(),reviewed_by=$1 WHERE id=$2",[req.user.id,req.params.id]);res.json({ok:true})}
+ catch(e){console.error(e);res.status(500).json({error:"Az értesítés frissítése nem sikerült."})}
 });
 
 app.get("/api/admin/player/:id",auth,admin,async(req,res)=>{

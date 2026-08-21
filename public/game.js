@@ -1442,6 +1442,30 @@ window.OMI_CONTENT={bosses:[],items:[],pets:[],auras:[],zones:[]};fetch("/api/co
  setTimeout(syncCharacterVisibility,0);
 })();
 
+// V22.76 — autoclicker mintafelismerés. A beépített Auto Farm eseményeit nem figyeli.
+(()=>{
+ const samples=[];let lastReport=0;
+ const targetKey=el=>{const t=el?.closest?.("button,.enemy,.enemy-icon,[data-casino-play],[data-v216-dungeon-start]");if(!t)return "";return String(t.id||t.dataset?.casinoPlay||t.dataset?.v216DungeonStart||[...t.classList].slice(0,2).join(".")||t.tagName).slice(0,80)};
+ function warning(risk){
+  let box=document.querySelector("#autoClickWarningV276");if(!box){box=document.createElement("div");box.id="autoClickWarningV276";box.className="autoclick-warning-v276";box.innerHTML=`<div><i>🛡️</i><h2>AUTOCLICKER-GYANÚ ÉSZLELVE</h2><p>A külső autoclicker használata tilos, és kitiltást vonhat maga után. Az eseményről értesítést kapott az admin.</p><button>MEGÉRTETTEM</button></div>`;document.body.appendChild(box);box.querySelector("button").onclick=()=>box.classList.remove("show")}box.classList.toggle("high",risk==="high");box.classList.add("show")
+ }
+ async function report(evidence){
+  if(!currentUser||currentUser.role==="admin"||Date.now()-lastReport<90000)return;lastReport=Date.now();
+  const risk=evidence.cps>=8&&evidence.regularity>=.88&&evidence.sameTargetRatio>=.85?"high":"suspicious";warning(risk);
+  try{await api("/api/anticheat/autoclicker",{method:"POST",body:JSON.stringify({evidence})})}catch(err){console.warn("Anti-cheat report:",err.message)}
+ }
+ document.addEventListener("pointerdown",e=>{
+  if(!e.isTrusted||!currentUser||e.button!==0||e.target.closest?.("input,textarea,select,[contenteditable],nav.tabs,.topbar,.modal"))return;
+  const key=targetKey(e.target);if(!key||!e.target.closest?.("#gameShell"))return;
+  const now=performance.now();samples.push({t:now,key});while(samples.length>50||samples[0]&&now-samples[0].t>9000)samples.shift();if(samples.length<24)return;
+  const intervals=samples.slice(1).map((x,i)=>x.t-samples[i].t).filter(x=>x>0),mean=intervals.reduce((a,b)=>a+b,0)/intervals.length;
+  const variance=intervals.reduce((a,b)=>a+(b-mean)**2,0)/intervals.length,cv=Math.sqrt(variance)/Math.max(1,mean),regularity=Math.max(0,1-Math.min(1,cv/.35));
+  const counts={};samples.forEach(x=>counts[x.key]=(counts[x.key]||0)+1);const [target,sameTarget]=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0]||["",0];
+  const duration=Math.max(1,samples.at(-1).t-samples[0].t),cps=(samples.length-1)/(duration/1000),sameTargetRatio=Number(sameTarget)/samples.length;
+  if(cps>=5&&regularity>=.72&&sameTargetRatio>=.7){report({samples:samples.length,cps,meanIntervalMs:mean,regularity,sameTargetRatio,target});samples.length=0}
+ },true);
+})();
+
 
 
 

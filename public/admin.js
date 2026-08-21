@@ -33,10 +33,20 @@ $("#banBtn").onclick=async()=>{if(!selected)return;try{await api(`/api/admin/pla
 $("#resetBtn").onclick=async()=>{if(!selected||!confirm("Biztosan teljesen reseteljük ennek a játékosnak a mentését?"))return;try{await api(`/api/admin/player/${selected.user.id}/reset`,{method:"POST",body:"{}"});toast("Mentés resetelve.");$("#playerModal").classList.remove("open");loadPlayers()}catch(e){toast(e.message)}};
 $("#grantBtn").onclick=async()=>{if(!selected)return;try{await api(`/api/admin/player/${selected.user.id}/grant`,{method:"POST",body:JSON.stringify({type:$("#grantType").value,amount:Number($("#grantAmount").value)})});toast("Jutalom hozzáadva.");openPlayer(selected.user.id)}catch(e){toast(e.message)}};
 async function loadLogs(){try{let d=await api("/api/admin/logs");$("#logs").innerHTML=d.rows.map(x=>`<div class="quest"><b>${x.action}</b><small>${x.admin_name||"?"} → ${x.target_name||"?"} · ${new Date(x.created_at).toLocaleString("hu-HU")}</small></div>`).join("")||"<p>Nincs napló.</p>"}catch(e){toast(e.message)}}
-$$("[data-a]").forEach(b=>b.onclick=()=>{$$("[data-a]").forEach(x=>x.classList.remove("active"));$$("[id^='a-']").forEach(x=>x.classList.remove("active"));b.classList.add("active");$("#a-"+b.dataset.a).classList.add("active");if(b.dataset.a==="logs")loadLogs()});
+async function loadAntiCheatV276(){
+ try{
+  const d=await api("/api/admin/anticheat-alerts"),rows=d.rows||[],unread=rows.filter(x=>x.status==="new").length;
+  $("#antiCheatCountV276").textContent=unread;
+  $("#antiCheatAlertsV276").innerHTML=rows.length?rows.map(x=>{const e=x.evidence||{};return `<article class="anticheat-alert-v276 ${x.status==="new"?"new":"read"}"><div class="anticheat-risk-v276"><b>${x.risk_level==="high"?"MAGAS":"GYANÚS"}</b><span>${Number(e.cps||0).toFixed(1)} katt/mp</span></div><div><h3>⚠️ ${x.player_name||x.username}</h3><p>${Number(e.samples||0)} kattintás · szabályosság ${Math.round(Number(e.regularity||0)*100)}% · azonos cél ${Math.round(Number(e.sameTargetRatio||0)*100)}%</p><small>${new Date(x.created_at).toLocaleString("hu-HU")} · Jelzés #${x.id}</small></div><div class="anticheat-actions-v276">${x.status==="new"?`<button data-anticheat-read="${x.id}">✓ Megnéztem</button>`:"<span>✓ Ellenőrizve</span>"}<button data-anticheat-player="${x.user_id}">👤 Játékos</button></div></article>`}).join(""):"<div class='anticheat-empty-v276'>✅ Nincs autoclicker-gyanús esemény.</div>";
+  $$('[data-anticheat-read]').forEach(b=>b.onclick=async()=>{await api(`/api/admin/anticheat-alert/${b.dataset.anticheatRead}/read`,{method:"POST",body:"{}"});loadAntiCheatV276()});
+  $$('[data-anticheat-player]').forEach(b=>b.onclick=()=>openPlayer(b.dataset.anticheatPlayer));
+ }catch(e){toast(e.message)}
+}
+$$("[data-a]").forEach(b=>b.onclick=()=>{$$("[data-a]").forEach(x=>x.classList.remove("active"));$$("[id^='a-']").forEach(x=>x.classList.remove("active"));b.classList.add("active");$("#a-"+b.dataset.a).classList.add("active");if(b.dataset.a==="logs")loadLogs();if(b.dataset.a==="anticheat")loadAntiCheatV276()});
 $("#refreshPlayers").onclick=loadPlayers;
+$("#refreshAntiCheatV276").onclick=loadAntiCheatV276;
 $("#adminLogout").onclick=async()=>{try{await api("/api/logout",{method:"POST",body:"{}"})}catch{}location.href="/"};
-ensureAdmin();
+ensureAdmin();setTimeout(loadAntiCheatV276,500);setInterval(loadAntiCheatV276,20000);
 
 
 // V8 ADMIN STUDIO
