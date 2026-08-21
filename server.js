@@ -178,6 +178,10 @@ async function init(){
     updateContent.updates.unshift({id:"v22_42",version:"V22.42",title:"Admin által vezérelt frissítések",date:"2026-08-21",summary:"Új, átlátható fejlesztési napló került a játékba.",changes:["Minden új verzió automatikusan bekerül az admin Frissítések oldalára.","Az admin bejegyzésenként közzéteheti vagy elrejtheti a frissítéseket.","A játékosok kizárólag a közzétett változásokat látják.","A legújabb látható frissítés ÚJ jelvényt kap."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_43")){
+    updateContent.updates.unshift({id:"v22_43",version:"V22.43",title:"Gyorsabb váltópiac",date:"2026-08-21",summary:"A nagyobb nyersanyag- és tokencsomagok kényelmesebben megvásárolhatók.",changes:["Külön megmarad a kiválasztott csomagméret gyémántnál, ércnél és dungeon tokennél.","A választott mennyiségek a játékos szerveres mentésébe kerülnek.","Új 50× és 100× csomagméret került be.","Vásárlás előtt látható a teljes aranyár és a teljes jutalom.","Vásárlás után nem áll vissza a kiválasztás 1×-re."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
 
   await q(`
     CREATE TABLE IF NOT EXISTS discord_links(
@@ -220,7 +224,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.42.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.43.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{

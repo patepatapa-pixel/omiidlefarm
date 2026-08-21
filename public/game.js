@@ -566,12 +566,18 @@ function economyCfg(){
  const slots=Array.isArray(raw.petSlotCosts)?raw.petSlotCosts:ECONOMY_DEFAULTS.petSlotCosts;
  return {exchange:{gems:offer("gems"),ore:offer("ore"),tickets:offer("tickets")},petSummonCost:Math.max(1,Math.floor(Number(raw.petSummonCost??10))),petSlotCosts:[0,1,2].map(i=>Math.max(1,Math.floor(Number(slots[i]??ECONOMY_DEFAULTS.petSlotCosts[i])))),petSummonRates:{...ECONOMY_DEFAULTS.petSummonRates,...(raw.petSummonRates||{})}};
 }
+function exchangeCountsV243(){
+ save.exchangeBuyCounts={gems:1,ore:1,tickets:1,...(save.exchangeBuyCounts||{})};
+ return save.exchangeBuyCounts;
+}
 function renderExchange(){
  const root=$("#exchangeOffers");if(!root)return;
  const cfg=economyCfg(),defs=[{key:"gems",icon:"💎",name:"Gyémánt",field:"gems",tone:"gem"},{key:"ore",icon:"⛏️",name:"Érc",field:"ore",tone:"ore"},{key:"tickets",icon:"🎫",name:"Dungeon token",field:"tickets",tone:"ticket"}];
  if($("#exchangeGold"))$("#exchangeGold").textContent=`${fmt(save.gold)} 💰`;
- root.innerHTML=defs.map(x=>{const o=cfg.exchange[x.key],can=save.gold>=o.gold;return `<article class="exchange-offer tone-${x.tone}"><div class="exchange-offer-icon">${x.icon}</div><div class="exchange-offer-copy"><small>ARANYBÓL VÁLTHATÓ</small><h3>${x.name}</h3><div class="exchange-rate"><span>${fmt(o.gold)} 💰</span><b>→</b><strong>${fmt(o.amount)} ${x.icon}</strong></div></div><label>Csomagok<select data-exchange-count="${x.key}"><option value="1">1×</option><option value="5">5×</option><option value="10">10×</option><option value="25">25×</option></select></label><button data-exchange-buy="${x.key}" ${can?"":"disabled"}>${can?"ÁTVÁLTÁS":"NINCS ELÉG ARANY"}</button></article>`}).join("");
- $$('[data-exchange-buy]').forEach(b=>b.onclick=()=>{const key=b.dataset.exchangeBuy,def=defs.find(x=>x.key===key),count=Math.max(1,Math.floor(Number($(`[data-exchange-count="${key}"]`)?.value||1))),o=cfg.exchange[key],cost=o.gold*count,reward=o.amount*count;if(!def||save.gold<cost)return toast(`Nincs elég arany. Szükséges: ${fmt(cost)} 💰`);save.gold-=cost;save[def.field]=Number(save[def.field]||0)+reward;persist();renderAll();toast(`✅ Átváltva: ${fmt(cost)} arany → ${fmt(reward)} ${def.name}`)});
+ const savedCounts=exchangeCountsV243();
+ root.innerHTML=defs.map(x=>{const o=cfg.exchange[x.key],count=[1,5,10,25,50,100].includes(Number(savedCounts[x.key]))?Number(savedCounts[x.key]):1,cost=o.gold*count,reward=o.amount*count,can=save.gold>=cost;return `<article class="exchange-offer tone-${x.tone}"><div class="exchange-offer-icon">${x.icon}</div><div class="exchange-offer-copy"><small>ARANYBÓL VÁLTHATÓ</small><h3>${x.name}</h3><div class="exchange-rate"><span>${fmt(o.gold)} 💰</span><b>→</b><strong>${fmt(o.amount)} ${x.icon}</strong></div></div><label>Csomagok<select data-exchange-count="${x.key}">${[1,5,10,25,50,100].map(n=>`<option value="${n}" ${n===count?"selected":""}>${n}×</option>`).join("")}</select></label><div class="exchange-total-v243" data-exchange-total="${x.key}"><small>TELJES VÁLTÁS</small><b>${fmt(cost)} 💰 → ${fmt(reward)} ${x.icon}</b></div><button data-exchange-buy="${x.key}" ${can?"":"disabled"}>${can?`ÁTVÁLTÁS · ${count}×`:"NINCS ELÉG ARANY"}</button></article>`}).join("");
+ $$('[data-exchange-count]').forEach(s=>s.onchange=()=>{save.exchangeBuyCounts[s.dataset.exchangeCount]=Math.max(1,Math.floor(Number(s.value||1)));persist();renderExchange()});
+ $$('[data-exchange-buy]').forEach(b=>b.onclick=()=>{const key=b.dataset.exchangeBuy,def=defs.find(x=>x.key===key),count=Math.max(1,Math.floor(Number(save.exchangeBuyCounts?.[key]||1))),o=cfg.exchange[key],cost=o.gold*count,reward=o.amount*count;if(!def||save.gold<cost)return toast(`Nincs elég arany. Szükséges: ${fmt(cost)} 💰`);save.gold-=cost;save[def.field]=Number(save[def.field]||0)+reward;persist();renderAll();toast(`✅ ${count}× csomag: ${fmt(cost)} arany → ${fmt(reward)} ${def.name}. A ${count}× választás megmaradt.`)});
 }
 function petEquipScore(p){
  if(!p)return -1;

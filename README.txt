@@ -1,4 +1,10 @@
-OMI IDLE FARM ONLINE V22.42
+OMI IDLE FARM ONLINE V22.43
+
+V22.43 GYORSABB VÁLTÓPIAC:
+- A kiválasztott 1×/5×/10×/25×/50×/100× mennyiség vásárlás után is megmarad.
+- Gyémánt, érc és dungeon/boss token külön választást jegyez meg.
+- A választások a játékos szerveres mentésébe kerülnek, ezért újbóli belépéskor is megmaradnak.
+- Vásárlás előtt látható a teljes ár és a teljes kapott mennyiség.
 
 V22.42 ADMIN ÁLTAL VEZÉRELT FRISSÍTÉSEK:
 - Új Frissítések oldal a játékosoknak.
