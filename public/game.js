@@ -5544,10 +5544,10 @@ window.v222AdminSpeedSupported=true;
     const left=cooldownLeftV306();
     if(left>0){
       box.classList.add("active");
-      box.innerHTML=`<span>⏳</span><div><small>KÖVETKEZŐ PÁRBAJ</small><b>${left} másodperc</b></div><i><em style="width:${Math.max(0,Math.min(100,left/60*100))}%"></em></i>`;
+      box.innerHTML=`<div class="v307-cd-orb"><span>⚔️</span><strong>${left}</strong></div><div class="v307-cd-copy"><small>⚔️ PVP VÁRAKOZÁS</small><b>${left} másodperc</b><em>Készülj a következő párbajra!</em></div><div class="v307-cd-ring" style="--p:${Math.max(0,Math.min(100,left/60*100))}%"><i></i></div><div class="v307-cd-sparks"><i>✦</i><i>✧</i><i>✦</i></div>`;
     }else{
       box.classList.remove("active");
-      box.innerHTML=`<span>⚔️</span><div><small>PVP</small><b>Új párbaj indítható</b></div>`;
+      box.innerHTML=`<div class="v307-ready-icon">⚔️</div><div class="v307-cd-copy"><small>PVP ARÉNA</small><b>Új párbaj indítható</b><em>Válassz ellenfelet!</em></div>`;
     }
     p.querySelectorAll("[data-pvp-fight],[data-fight],[data-defender],.pvp-fight-btn,.fight-pvp-btn,button[data-player-id]").forEach(btn=>{
       if(left>0){btn.disabled=true;btn.dataset.v306Cooldown="1"}
