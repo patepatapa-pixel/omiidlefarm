@@ -358,6 +358,10 @@ async function init(){
     updateContent.updates.unshift({id:"v22_76",version:"V22.76",title:"Autoclicker-figyelő és adminértesítés",date:"2026-08-21",summary:"A játék felismeri a tartósan gépies kattintásmintákat, figyelmezteti a játékost és ellenőrizhető értesítést küld az adminnak.",changes:["A rendszer a kattintási sebességet, az időközök szabályosságát és az azonos cél ismétlését együtt vizsgálja.","Egyetlen gyors kattintás vagy rövid sorozat nem vált ki jelzést.","A beépített Automata farm és a weboldal saját programozott eseményei nem számítanak autoclickernek.","Gyanú esetén teljes képernyős figyelmeztetés jelzi, hogy az autoclicker használata kitiltással járhat.","Az esemény szerveroldali adatbázisba kerül, és nem tűnik el oldalfrissítéskor.","Az adminpanel új Csalásfigyelő füle mutatja a játékost, időpontot, kattintás/másodperc értéket, szabályosságot és azonos cél arányát.","Az admin közvetlenül megnyithatja a jelzett játékos adatlapját és ellenőrzöttnek jelölheti az értesítést.","Az ismétlődő jelentések 90 másodperces szerveroldali korlátozást kaptak.","A rendszer nem oszt automatikus bant; a végleges döntést az admin hozza meg."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_77")){
+    updateContent.updates.unshift({id:"v22_77",version:"V22.77",title:"Egységes, stabil összerő",date:"2026-08-21",summary:"Megszűnt az a hiba, amely miatt ugyanaz a karakter egyszer 17k, máskor 33k erőt mutathatott.",changes:["A hibát a hátas erőbónuszának késleltetett, második számítása okozta.","A hátas bónusza most közvetlenül az egyetlen központi erőképlet része.","A később betöltődő, erőt újraszámoló hátaskód eltávolításra került.","A Karakter, Farm, Statisztika, dungeon és PvP ugyanazt az erőt mutatja.","A szervermentés és az online ranglista is pontosan ezt az egységes értéket kapja.","Fülváltás, oldalbetöltés és automatikus frissítés közben többé nem ugorhat két erőérték között.","A hátas tényleges százalékos erőbónusza változatlanul megmarad."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
   const capMigration="v2246_wallet_caps";
   const capDone=(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[capMigration])).rows[0];
   if(!capDone){
@@ -407,7 +411,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.76.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.77.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{

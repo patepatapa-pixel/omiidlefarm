@@ -259,7 +259,8 @@ function fixedZoneGold(zoneIndex=save.zone){
 function zoneMobGold(zoneIndex=save.zone){return fixedZoneGold(zoneIndex)}
 function bossGoldReward(baseGold){return Math.max(0,Math.floor(Math.max(0,Number(baseGold||0))*goldBonus()))}
 function dropBonus(){let io=itemOptionBonuses();return skillBonus("drop")+bonuses().drop+(save.base.luck-1)*.01+save.paragonStats.drop*.01*save.paragonLevel+io.drop/100}
-function power(){return Math.floor(damage()*1.2+v10Defense()*.8+save.level*.8+save.base.mining*.5+save.base.luck*.5)}
+function mountPowerMultiplierV277(){const m=save.mounts?.[save.activeMount],level=Math.max(0,Math.floor(Number(m?.level||0)));return 1+level*.02}
+function power(){const base=damage()*1.2+v10Defense()*.8+save.level*.8+save.base.mining*.5+save.base.luck*.5;return Math.floor(base*mountPowerMultiplierV277())}
 function rankName(){let p=power();return p<25?"Kezdő":p<180?"Harcos":p<1000?"Elit":p<5000?"Mester":p<15000?"Hős":"Isteni"}
 function baseCost(d){return Math.floor(d.base*Math.pow(1.32,save.base[d.key]-1))}
 function rarityRoll(){
