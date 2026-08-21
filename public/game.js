@@ -1347,7 +1347,7 @@ async function loadLeaderboard(){
  try{
   const d=await api("/api/leaderboard");
   $("#leaderboard").innerHTML=`<div class="leader-row head"><span>HELY</span><span>JÁTÉKOS</span><span>PVP RATING</span><span>ERŐ</span><span>SZINT</span><span>KILL</span></div>`+
-   d.rows.map(r=>{const pg=Math.max(0,Number(r.paragon_level||0)),pr=Math.max(0,Math.min(100,Number(r.prestige_level||0)));return `<div class="leader-row ${pr>0?"leader-prestige-v257":pg>0?"leader-paragon":""}"><span class="leader-rank">${r.rank<=3?["🥇","🥈","🥉"][r.rank-1]:"#"+r.rank}</span><span class="leader-name">${r.player_name||r.username}${pr>0?`<b class="prestige-rank-badge-v257">👑 PRESTIGE ${pr}</b>`:""}${pg>0?`<b class="paragon-rank-badge">✦ PARAGON ${pg}</b>`:""}</span><span class="leader-pvp-rating-v244">⚔️ ${fmt(r.pvp_rating||0)}</span><span>${fmt(r.power)}</span><span>Lv.${r.level}</span><span>${fmt(r.kills)}</span></div>`}).join("");
+   d.rows.map(r=>{const pg=Math.max(0,Number(r.paragon_level||0)),pr=Math.max(0,Math.min(100,Number(r.prestige_level||0)));return `<div class="leader-row ${pr>0?"leader-prestige-v257":pg>0?"leader-paragon":""}"><span class="leader-rank">${r.rank<=3?["🥇","🥈","🥉"][r.rank-1]:"#"+r.rank}</span><span class="leader-name">${r.player_name||r.username}${pr>0?`<b class="prestige-rank-badge-v257">👑 PRESTIGE ${pr}</b>`:""}${(pg>0||pr>0)?`<b class="paragon-rank-badge">✦ PARAGON ${pg}</b>`:""}</span><span class="leader-pvp-rating-v244">⚔️ ${fmt(r.pvp_rating||0)}</span><span>${fmt(r.power)}</span><span>Lv.${r.level}</span><span>${fmt(r.kills)}</span></div>`}).join("");
  }catch(e){$("#leaderboard").innerHTML=`<p class="muted">${e.message}</p>`}
 }
 $("#adminPanelBtn").onclick=()=>location.href="/admin";
