@@ -258,6 +258,10 @@ async function init(){
     updateContent.updates.unshift({id:"v22_54",version:"V22.54",title:"Kaszinó és automata farm szétválasztása",date:"2026-08-21",summary:"A háttérben futó automata farm többé nem fedheti el a kaszinó vesztes tétlevonását.",changes:["A kaszinópörgetés alatt az automata harc rövid időre szünetel.","Vesztes eredmény után 2,5 másodpercig változatlan marad az elszámolt egyenleg.","A kaszinóeredmény után az automata farm magától folytatódik.","A vesztes kör továbbra is pontosan a teljes tétet vonja le.","Minden kaszinógomb kizárólag az új elszámolófüggvényt hívja."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_55")){
+    updateContent.updates.unshift({id:"v22_55",version:"V22.55",title:"Látványos kaszinóeredmények",date:"2026-08-21",summary:"Minden kaszinójáték animációval és részletes naplóval jelzi a jutalmat vagy veszteséget.",changes:["Nyeréskor aranyszínű felvillanás és felúszó jutalom jelenik meg.","Vesztéskor vörös effekt mutatja a levont tétet.","Minden játékkártya megőrzi a saját utolsó eredményét.","Látható a valuta típusa, a tét, a kifizetés és az egyenlegváltozás.","Az ingyen pörgetés jutalma külön animált jelzést kap.","Új kaszinónapló mutatja az utolsó 8 részletes eredményt."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
   const capMigration="v2246_wallet_caps";
   const capDone=(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[capMigration])).rows[0];
   if(!capDone){
@@ -307,7 +311,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.54.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.55.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{
