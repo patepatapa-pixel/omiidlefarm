@@ -318,6 +318,10 @@ async function init(){
     updateContent.updates.unshift({id:"v22_69",version:"V22.69",title:"Stabil dungeon harcfelület",date:"2026-08-21",summary:"A dungeon újraindításakor a harci panel és az oldal görgetési helyzete többé nem ugrál el.",changes:["A dungeon harcpanel állandó helyet kapott a kazamatafelület tetején.","A panel többé nem költözik bele a kiválasztott dungeon kártyájába.","Jutalom- és statfrissítéskor a harcpanel megmarad, nem épül újra más pozícióban.","Új dungeon indításakor az oldal megtartja az aktuális görgetési pozíciót.","A harc befejezése után a panel ugyanott záródik be.","Az ismételt dungeonindítás ugyanazon a stabil felületen jelenik meg."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_70")){
+    updateContent.updates.unshift({id:"v22_70",version:"V22.70",title:"Boss minden wave végén és helyben nyíló dungeonharc",date:"2026-08-21",summary:"Minden wave utolsó normál killje bosst idéz, a dungeonharc pedig a kiválasztott kártyán belül marad.",changes:["Minden wave utolsó szükséges normál killje után automatikusan boss jelenik meg.","A következő wave kizárólag a boss legyőzése után indul el.","A korábbi minden 10. wave-es bossrendszer megszűnt.","A dungeon harcpanel közvetlenül a megnyitott dungeon kártyájának alján jelenik meg.","A harc lefelé nyitja ki a kártyát, ezért nem kell a lap tetejére görgetni.","Dungeon megnyitásakor és újraindításakor a görgetési pozíció változatlan marad.","Jutalom- és statfrissítéskor a panel ugyanabban a dungeon kártyában marad."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
   const capMigration="v2246_wallet_caps";
   const capDone=(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[capMigration])).rows[0];
   if(!capDone){
@@ -367,7 +371,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.69.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.70.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{

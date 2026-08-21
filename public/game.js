@@ -1525,7 +1525,7 @@ function paragonWaveRequirement(){
   return Math.min(1500,1000+(next-20)*50);
 }
 function isBossCheckpointWave(wave){
-  return Number(wave||1)%10===0;
+  return Number(wave||1)>=1;
 }
 function restartCurrentBossWave(){
   save.waveBoss=false;
@@ -1563,7 +1563,7 @@ function v10MaxHp(){
 }
 function v10BossMaxHp(){
  const base=normalEnemyMaxHp();
- // Boss minden 10. wave-en komoly fal, de nem irreális.
+ // Minden wave végén boss jön: komoly fal, de nem irreális.
  return Math.max(base,Math.floor(base*(4+Math.min(6,save.wave*.006))));
 }
 function v10EnemyMaxHp(){return save.waveBoss?v10BossMaxHp():normalEnemyMaxHp()}
@@ -1678,7 +1678,7 @@ function v10AwardNormalKill(){
  if(save.waveKills>=save.waveGoal){
    // A normál wave teljesítve.
    if(isBossCheckpointWave(save.wave)){
-     // Minden 10. wave után automatikusan boss jön.
+     // Minden wave utolsó normál killje után automatikusan boss jön.
      save.waveBoss=true;
      save.bossHp=v10BossMaxHp();
      enemyHp=save.bossHp;
@@ -4300,7 +4300,8 @@ document.addEventListener("click",e=>{
       panel.id="v219DungeonBattle";
       panel.className="v219-dungeon-battle hidden";
     }
-    if(panel.parentNode!==root||root.firstElementChild!==panel)root.prepend(panel);
+    const activeId=activeBattle?.dungeon?.id,activeButton=activeId?root.querySelector(`[data-v218-dungeon="${activeId}"]`):null,activeCard=activeButton?.closest(".v218-dungeon-card"),target=activeCard||root;
+    if(panel.parentNode!==target||target.lastElementChild!==panel)target.append(panel);
     panel.classList.toggle("hidden",!activeBattle);
     return panel;
   }
