@@ -270,6 +270,10 @@ async function init(){
     updateContent.updates.unshift({id:"v22_57",version:"V22.57",title:"Prestige 100 fejlődési rendszer",date:"2026-08-21",summary:"A Paragon, Prestige, ranglista és Prestige Shop teljes hosszú távú fejlődési rendszerré alakult.",changes:["A valódi Prestige-rendszer maximuma 100.","Prestige 1-hez 10 Paragon kell, majd 4 Prestige-szintenként +1, legfeljebb 35.","A Paragon wave-követelménye fokozatosan 250-ről maximum 1500-ig nő.","Minden Prestige +0,5% sebzést és +0,25% automatafarm-sebességet ad.","Látható jutalomút készült a fontos Prestige-mérföldkövekhez.","Prestige 100 feloldja az ötödik pethelyet.","A Prestige Shop külön Prestige tokennel működik, új Prestige 15–100 aurákkal.","A Prestige-játékosok citromsárga ranglistasort és jelvényt kapnak.","A ranglista Prestige, Paragon, PvP rating, erő, szint és kill alapján rendez.","Az Automata Paragon kapcsoló az Autofarm oldalon is elérhető az admin által engedélyezett játékosoknak.","A 10× gyorsító, Automata Paragon, képességfa és gyűjthető rendszerek Prestige után megmaradnak."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_58")){
+    updateContent.updates.unshift({id:"v22_58",version:"V22.58",title:"Rendezett navigáció és összecsukható frissítések",date:"2026-08-21",summary:"A felső menü többé nem lóg ki a képernyőről, a frissítési napló pedig tömören kezelhető.",changes:["A navigáció több sorba rendeződik vízszintes görgetés nélkül.","A menügombok automatikusan tömörödnek a rendelkezésre álló szélességhez.","Mobilon kétoszlopos, jól érinthető navigáció jelenik meg.","A frissítések alapból összecsukható kártyák.","A legújabb frissítés nyitva, a korábbiak zárva jelennek meg.","A like és dislike szám összecsukott állapotban is látható.","Új Összes megnyitása és Összes bezárása vezérlők készültek."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
   const capMigration="v2246_wallet_caps";
   const capDone=(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[capMigration])).rows[0];
   if(!capDone){
@@ -319,7 +323,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.57.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.58.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{
