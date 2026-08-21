@@ -1649,6 +1649,18 @@ function v10EnsurePlayerHp(){
 }
 
 
+// V22.96 - premium unlocks are sticky once the account has received them.
+function preservePremiumUnlocksV296(){
+  try{
+    const key=currentUser?.id?`omiPremiumV296:${currentUser.id}`:"omiPremiumV296:guest";
+    const old=JSON.parse(localStorage.getItem(key)||"{}");
+    if(old.speed10Unlocked)save.speed10Unlocked=true;
+    if(old.dungeonBatchUnlocked)save.dungeonBatchUnlocked=true;
+    if(save.speed10Unlocked||save.dungeonBatchUnlocked)localStorage.setItem(key,JSON.stringify({speed10Unlocked:Boolean(save.speed10Unlocked||old.speed10Unlocked),dungeonBatchUnlocked:Boolean(save.dungeonBatchUnlocked||old.dungeonBatchUnlocked)}));
+  }catch(e){}
+}
+setInterval(()=>{if(typeof save==="object")preservePremiumUnlocksV296()},1500);
+
 function effectiveCombatSpeed(){
  const n=[1,2,3,10].includes(Number(save.combatSpeed))?Number(save.combatSpeed):1;
  const allowed=n===10&&!save.speed10Unlocked?3:n;
@@ -4217,6 +4229,7 @@ document.addEventListener("click",e=>{
   }
 
   function renderDungeonV218(){
+    preservePremiumUnlocksV296();
     const p=document.getElementById("page-dungeon");
     if(!p)return;
     ensureDungeonState();

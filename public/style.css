@@ -4484,3 +4484,25 @@ nav.tabs{display:flex!important;flex-wrap:wrap!important;justify-content:center;
 
 /* V22.94 game assistant + PvP pending soul */
 .game-assistant-examples{display:grid;gap:7px;margin:12px 0;padding:13px;border:1px solid #34404c;border-radius:10px;background:#0a1016}.game-assistant-examples span{display:block;padding:7px 9px;border-radius:7px;background:#111a23;color:#c7d2dc}.game-assistant-change-list{display:grid;gap:5px;margin-top:8px}.v291-soul small{display:block;margin-top:5px;color:#79dca8;font-size:10px}
+
+/* V22.96 - compact rare +5 boss notification */
+.rift-boss-reward-v284{
+  inset:auto 18px 18px auto!important;
+  width:min(390px,calc(100vw - 28px))!important;
+  height:auto!important;
+  display:block!important;
+  overflow:visible!important;
+  background:transparent!important;
+  animation:riftOverlayV284 3.2s ease forwards!important;
+}
+.rift-boss-reward-v284 section{
+  width:auto!important;padding:14px 16px!important;border-radius:14px!important;
+  box-shadow:0 0 18px #18c7ff66!important;text-align:left!important;
+  display:grid!important;grid-template-columns:42px 1fr auto!important;gap:4px 10px!important;align-items:center!important;
+}
+.rift-boss-reward-v284 section>i{font-size:34px!important;grid-row:1/4!important;animation:none!important}
+.rift-boss-reward-v284 small{font-size:10px!important;letter-spacing:.12em!important}
+.rift-boss-reward-v284 h2{font-size:15px!important;margin:0!important;grid-column:2!important}
+.rift-boss-reward-v284 strong{font-size:22px!important;grid-column:3!important;grid-row:1/4!important}
+.rift-boss-reward-v284 p,.rift-boss-reward-v284>b,.rift-burst-v284{display:none!important}
+@media(max-width:600px){.rift-boss-reward-v284{left:12px!important;right:12px!important;bottom:12px!important;width:auto!important}}

@@ -741,9 +741,9 @@ app.post("/api/save",auth,async(req,res)=>{
     const overrideApplied=Boolean(pending?.patch && Object.keys(pending.patch).length);
     if(overrideApplied)data=deepMergeSave(data,pending.patch);
     const premiumSource=overrideApplied?data:stored;
-    data.speed10Unlocked=Boolean(premiumSource.speed10Unlocked);
+    data.speed10Unlocked=Boolean(stored.speed10Unlocked || premiumSource.speed10Unlocked);
     data.autoParagonUnlocked=Boolean(premiumSource.autoParagonUnlocked);
-    data.dungeonBatchUnlocked=Boolean(premiumSource.dungeonBatchUnlocked);
+    data.dungeonBatchUnlocked=Boolean(stored.dungeonBatchUnlocked || premiumSource.dungeonBatchUnlocked);
     // PvP progression/session is server-authoritative. A stale browser autosave must never roll it back.
     if(stored && stored.pvpBuild && typeof stored.pvpBuild==="object")data.pvpBuild=pvpBuild(stored);
     if(stored && stored.pvpSoulSession && stored.pvpSoulSession.active){
@@ -1248,9 +1248,9 @@ app.post("/api/admin/player/:id/state",auth,admin,async(req,res)=>{
       }
     }
 
-    s.speed10Unlocked=Boolean(b.speed10Unlocked);
+    s.speed10Unlocked=Boolean(s.speed10Unlocked || b.speed10Unlocked);
     s.autoParagonUnlocked=Boolean(b.autoParagonUnlocked);
-    s.dungeonBatchUnlocked=Boolean(b.dungeonBatchUnlocked);
+    s.dungeonBatchUnlocked=Boolean(s.dungeonBatchUnlocked || b.dungeonBatchUnlocked);
     const spd=Number(b.combatSpeed||1);
     s.combatSpeed=[1,2,3,10].includes(spd) ? (spd===10 && !s.speed10Unlocked ? 3 : spd) : 1;
 
@@ -1295,6 +1295,11 @@ app.post("/api/admin/player/:id/quick",auth,admin,async(req,res)=>{
     }else if(action==="remove10x"){
       s.speed10Unlocked=false;
       if(Number(s.combatSpeed)===10)s.combatSpeed=3;
+    }else if(action==="giveDungeon10x"){
+      s.dungeonBatchUnlocked=true;
+    }else if(action==="removeDungeon10x"){
+      s.dungeonBatchUnlocked=false;
+      if(s.dungeonBatchV278&&typeof s.dungeonBatchV278==="object")for(const k of Object.keys(s.dungeonBatchV278))if(Number(s.dungeonBatchV278[k])===10)s.dungeonBatchV278[k]=5;
     }else if(action==="fullhp"){
       const baseHp=Math.max(100,1000+Number(s.level||1)*80+Number(s.paragonLevel||0)*20);
       s.playerHp=Math.max(Number(s.playerHp||0),baseHp);
