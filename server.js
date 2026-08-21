@@ -250,6 +250,10 @@ async function init(){
     updateContent.updates.unshift({id:"v22_52",version:"V22.52",title:"Rejtett kaszinóesélyek",date:"2026-08-21",summary:"A kaszinó pontos nyerési százalékai kizárólag az admin számára láthatók.",changes:["A játékoskártyákról eltűnt a nyerési esély százaléka.","Az ingyen pörgetés megszerzési százaléka sem látható a játékosnak.","A kifizetési szorzó és a meglévő ingyen pörgetések száma továbbra is látható.","Az adminpanelben minden esély továbbra is állítható."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_53")){
+    updateContent.updates.unshift({id:"v22_53",version:"V22.53",title:"Kötelező kaszinó tétlevonás",date:"2026-08-21",summary:"Minden kaszinójáték vesztes köre garantáltan levonja a teljes tétet.",changes:["Vesztes kör: kezdőegyenleg mínusz a teljes tét.","Nyertes kör: a kisorsolt nyeremény hozzáadódik a kezdőegyenleghez.","A szabály az aranyra, gyémántra és ércre is azonos.","A vesztes eredményen látszik az előtte és utána egyenleg.","A kaszinógombok közvetlenül az egyetlen új elszámolófüggvényt használják.","A kör végi eredmény azonnal felhőbe mentődik."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
   const capMigration="v2246_wallet_caps";
   const capDone=(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[capMigration])).rows[0];
   if(!capDone){
@@ -299,7 +303,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.52.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.53.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{

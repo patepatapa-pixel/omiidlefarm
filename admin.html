@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OMI Idle Farm Admin</title><link rel="stylesheet" href="style.css"></head>
-<body>
+<body class="admin-page-v247">
 <header class="topbar"><div class="brand"><span>⚙️ OMI</span> ADMIN</div><div class="top-actions"><a href="/" style="color:#ddd">← Játék</a><button class="ghost" id="adminLogout">Kilépés</button></div></header>
 <main>
 <section class="hero card"><div><div class="eyebrow">ADMIN PANEL</div><h1>OMI Idle Farm kezelőfelület</h1><p>Játékosok, mentések, tiltások, jutalmak és ranglista ellenőrzése.</p></div><div class="hero-power"><small>JÁTÉKOSOK</small><strong id="playerCount">0</strong></div></section>
@@ -55,6 +55,7 @@
 
   <div class="v222-premium-row">
     <label class="v222-check"><input id="v222Speed10" type="checkbox"> ⚡ 10× gyorsítás feloldva</label>
+    <label class="v222-check"><input id="v237AutoParagon" type="checkbox"> 🌟 Auto Paragon (10 €) feloldva</label>
     <label>Aktív speed
       <select id="v222CombatSpeed">
         <option value="1">1×</option>
@@ -73,13 +74,51 @@
   </div>
   <div id="v222EditorStatus"></div>
 </section>
-<hr><h3>🎁 Jutalom hozzáadása</h3><p class="muted">A kiválasztott játékos egyenlegéhez adja hozzá az értéket.</p><div style="display:grid;grid-template-columns:1fr 1fr auto;gap:7px"><select id="grantType"><option value="gold">💰 Arany</option><option value="gems">💎 Gyémánt</option><option value="ore">⛏️ Érc</option><option value="soul">🔵 Lélekkő</option><option value="tickets">🎫 Dungeon jegy</option><option value="skillPoints">📚 Skill pont</option><option value="paragonStatPoints">📌 Paragon pont</option><option value="auraTokens">✨ Aura token</option></select><input id="grantAmount" type="number" min="1" value="1000"><button id="grantBtn">➕ Hozzáadás</button></div><hr><div style="display:flex;gap:7px;flex-wrap:wrap"><button id="banBtn" class="danger">Tiltás</button><button id="resetBtn" class="danger">Mentés teljes reset</button></div></div></div>
+<hr><h3>🎁 Jutalom hozzáadása</h3><p class="muted">A kiválasztott játékos egyenlegéhez adja hozzá az értéket.</p><div style="display:grid;grid-template-columns:1fr 1fr auto;gap:7px"><select id="grantType"><option value="gold">💰 Arany</option><option value="gems">💎 Gyémánt</option><option value="ore">⛏️ Érc</option><option value="soul">🔵 Lélekkő</option><option value="tickets">🎫 Dungeon jegy</option><option value="achievementPoints">🏆 Achievement pont</option><option value="skillPoints">📚 Skill pont</option><option value="paragonStatPoints">📌 Paragon pont</option><option value="auraTokens">✨ Aura token</option></select><input id="grantAmount" type="number" min="1" value="1000"><button id="grantBtn">➕ Hozzáadás</button></div><hr><div style="display:flex;gap:7px;flex-wrap:wrap"><button id="banBtn" class="danger">Tiltás</button><button id="resetBtn" class="danger">Mentés teljes reset</button></div></div></div>
 <div id="toast"></div>
 <section class="card admin-studio">
 <h2>🛠️ ADMIN GAME STUDIO</h2>
 <p>Minden játékosérték és új játéktartalom kezelése egy helyen.</p>
 <div class="studio-tabs">
-<button data-studio="players">👥 Játékosok</button><button data-studio="gameplay">🎮 Játékmenet</button><button data-studio="pvp">⚔️ PvP</button><button data-studio="store">💳 Feltöltés / Shop</button><button data-studio="bosses">👹 Bossok</button><button data-studio="items">⚔️ Tárgyak</button><button data-studio="pets">🐾 Petek</button><button data-studio="auras">✨ Aurák</button><button data-studio="zones">🗺️ Területek</button><button data-studio="raw">🧬 Haladó</button>
+<button data-studio="players">👥 Játékosok</button><button data-studio="gameplay">🎮 Játékmenet</button><button data-studio="pvp">⚔️ PvP</button><button data-studio="exchange">⚖️ Váltópiac / Pet árak</button><button data-studio="store">💳 Feltöltés / Shop</button><button data-studio="npcshop">🏪 NPC bolt</button><button data-studio="casino">🎰 Kaszinó</button><button data-studio="updates">📢 Frissítések</button><button data-studio="bosses">👹 Bossok</button><button data-studio="items">⚔️ Tárgyak</button><button data-studio="pets">🐾 Petek</button><button data-studio="auras">✨ Aurák</button><button data-studio="zones">🗺️ Területek</button><button data-studio="raw">🧬 Haladó</button>
+</div>
+
+<div class="studio-page" id="studio-exchange">
+ <h3>⚖️ Váltópiac és pet árak</h3>
+ <p class="muted">Minden sorban megadhatod, mennyi aranyba kerüljön egy csomag, és mennyi nyersanyagot kapjon érte a játékos.</p>
+ <div class="admin-stat-grid">
+  <label>💎 Gyémántcsomag aranyára<input id="cfgExchangeGemsGold" type="number" min="1"></label>
+  <label>💎 Kapott gyémánt<input id="cfgExchangeGemsAmount" type="number" min="1"></label>
+  <label>⛏️ Érccsomag aranyára<input id="cfgExchangeOreGold" type="number" min="1"></label>
+  <label>⛏️ Kapott érc<input id="cfgExchangeOreAmount" type="number" min="1"></label>
+  <label>🎫 Tokencsomag aranyára<input id="cfgExchangeTicketsGold" type="number" min="1"></label>
+  <label>🎫 Kapott dungeon token<input id="cfgExchangeTicketsAmount" type="number" min="1"></label>
+  <label>🐾 Pet idézés ára (gyémánt)<input id="cfgPetSummonCost" type="number" min="1"></label>
+  <label>🔓 2. pethely ára (gyémánt)<input id="cfgPetSlot2Cost" type="number" min="1"></label>
+  <label>🔓 3. pethely ára (gyémánt)<input id="cfgPetSlot3Cost" type="number" min="1"></label>
+  <label>🔓 4. pethely ára (gyémánt)<input id="cfgPetSlot4Cost" type="number" min="1"></label>
+  <label>💎 Beváltás pontköltsége<input id="cfgAchGemsPoints" type="number" min="1"></label>
+  <label>💎 Kapott gyémánt<input id="cfgAchGemsAmount" type="number" min="1"></label>
+  <label>⛏️ Beváltás pontköltsége<input id="cfgAchOrePoints" type="number" min="1"></label>
+  <label>⛏️ Kapott érc<input id="cfgAchOreAmount" type="number" min="1"></label>
+  <label>🎫 Beváltás pontköltsége<input id="cfgAchTicketsPoints" type="number" min="1"></label>
+  <label>🎫 Kapott dungeon ticket<input id="cfgAchTicketsAmount" type="number" min="1"></label>
+ </div>
+ <button id="saveEconomyConfig">💾 Váltópiac és pet árak mentése</button>
+ <hr><h3>🐎 Hátasrendszer balansz</h3>
+ <p class="muted">A töredék legyen ritka. Példa: 2% esély átlagosan körülbelül 50 bosskillenként ad töredéket.</p>
+ <div class="admin-stat-grid">
+  <label>🧩 Boss töredékesély %<input id="cfgMountShardChance" type="number" min="0" max="100" step="0.1"></label>
+  <label>🧩 Kapott töredék / siker<input id="cfgMountShardAmount" type="number" min="1" step="1"></label>
+  <label>🎁 Ládához szükséges töredék<input id="cfgMountShardRequired" type="number" min="1" step="1"></label>
+  <label>💰 Ládanyitás arany<input id="cfgMountChestGold" type="number" min="0"></label>
+  <label>💎 Ládanyitás gyémánt<input id="cfgMountChestGems" type="number" min="0"></label>
+  <label>⛏️ Ládanyitás érc<input id="cfgMountChestOre" type="number" min="0"></label>
+  <label>🔵 Ládanyitás lélekkő<input id="cfgMountChestSoul" type="number" min="0"></label>
+  <label>🎫 Ládanyitás dungeon token<input id="cfgMountChestTickets" type="number" min="0"></label>
+  <label>⬆️ Fejlesztési költségszorzó<input id="cfgMountUpgradeMult" type="number" min="0.1" step="0.1"></label>
+ </div>
+ <button id="saveMountConfig">💾 Hátasbeállítások mentése</button>
 </div>
 
 
@@ -89,7 +128,8 @@
   <label>Minimum szint<input id="cfgPvpMinLevel" type="number" min="1"></label>
   <label>Győztes aranyjutalom<input id="cfgPvpRewardGold" type="number" min="0"></label>
   <label>Párbaj cooldown mp<input id="cfgPvpCooldown" type="number" min="0"></label>
-  <label>Rating változás<input id="cfgPvpRating" type="number" min="1"></label>
+  <label>Győzelem rating jutalom<input id="cfgPvpRatingWin" type="number" min="1" value="18"></label>
+  <label>Vereség rating levonás<input id="cfgPvpRatingLoss" type="number" min="1" value="20"></label>
  </div>
  <button id="savePvpConfig">💾 PvP mentése</button>
 </div>
@@ -103,13 +143,45 @@
   <label>Ikon<input id="shopProductIcon" placeholder="💰"></label>
   <label>Ár kiírás<input id="shopProductPrice" placeholder="pl. 5 EUR"></label>
   <label>Leírás<input id="shopProductDesc" placeholder="Játékbeli aranycsomag"></label>
+  <label class="v222-check"><input id="shopProductVisible" type="checkbox" checked> Látható a Feltöltés oldalon</label>
+  <input id="shopProductEditIndex" type="hidden" value="">
  </div>
- <button id="addShopProduct">+ Új vásárlási csomag</button>
+ <button id="addShopProduct">💾 Csomag mentése</button><button id="cancelShopProductEdit" type="button">Mégse / új csomag</button>
  <div id="shopProductList" class="builder-list"></div>
  <h3 style="margin-top:18px">📨 Vásárlási igények</h3>
  <button id="refreshShopRequests">↻ Frissítés</button>
  <div id="shopRequests" class="builder-list"></div>
 </div>
+
+<div class="studio-page" id="studio-npcshop">
+ <h3>🏪 Játékon belüli NPC bolt</h3><p class="muted">A kereskedő forgó készletének, árazásának és ritkaságának beállításai.</p>
+ <div class="admin-stat-grid">
+  <label>Kínálat frissülése (óra)<input id="cfgNpcRefreshHours" type="number" min="1"></label>
+  <label>Felszerelések száma<input id="cfgNpcGearOffers" type="number" min="1" max="8"></label>
+  <label>Ritka pet esély %<input id="cfgNpcRarePetChance" type="number" min="0" max="100" step="0.1"></label>
+  <label>Nyílvessző / csomag<input id="cfgNpcArrowAmount" type="number" min="1"></label>
+  <label>Nyílvessző sebzésbónusz %<input id="cfgNpcArrowDamage" type="number" min="0" max="200" step="1"></label>
+  <label>Nyílcsomag aranyára<input id="cfgNpcArrowGold" type="number" min="0"></label>
+  <label>Felszerelés alap aranyára<input id="cfgNpcGearGold" type="number" min="0"></label>
+  <label>Felszerelés alap ércára<input id="cfgNpcGearOre" type="number" min="0"></label>
+  <label>Pet alap gyémántára<input id="cfgNpcPetGems" type="number" min="0"></label>
+  <label>Játékos maximum arany<input id="cfgWalletGoldCap" type="number" min="1"></label>
+  <label>Játékos maximum gyémánt<input id="cfgWalletGemsCap" type="number" min="1"></label>
+  <label>Játékos maximum érc<input id="cfgWalletOreCap" type="number" min="1"></label>
+  <label>Játékos maximum lélekkő<input id="cfgWalletSoulCap" type="number" min="1"></label>
+ </div><button id="saveNpcShopConfig">💾 NPC bolt mentése</button>
+</div>
+
+<div class="studio-page" id="studio-casino"><h3>🎰 Kaszinó beállítások</h3><p class="muted">A kifizetési szorzó a teljes visszakapott összeget jelenti. Az alapértékek mindhárom játéknál házelőnyt tartanak.</p><div class="admin-stat-grid">
+ <label>Minimum aranytét<input id="cfgCasinoMinGold" type="number" min="1"></label><label>Maximum aranytét<input id="cfgCasinoMaxGold" type="number" min="1"></label>
+ <label>Minimum gyémánttét<input id="cfgCasinoMinGems" type="number" min="1"></label><label>Maximum gyémánttét<input id="cfgCasinoMaxGems" type="number" min="1"></label>
+ <label>Minimum érctét<input id="cfgCasinoMinOre" type="number" min="1"></label><label>Maximum érctét<input id="cfgCasinoMaxOre" type="number" min="1"></label>
+ <label>Coin Flip nyerési esély %<input id="cfgCasinoCoinChance" type="number" min="0" max="100" step="0.1"></label><label>Coin Flip szorzó<input id="cfgCasinoCoinMult" type="number" min="1" step="0.1"></label>
+ <label>Koponya nyerési esély %<input id="cfgCasinoSkullChance" type="number" min="0" max="100" step="0.1"></label><label>Koponya szorzó<input id="cfgCasinoSkullMult" type="number" min="1" step="0.1"></label>
+ <label>Koponya free-spin esély %<input id="cfgCasinoSkullFreeChance" type="number" min="0" max="100" step="0.1"></label><label>Koponya kapott free spin<input id="cfgCasinoSkullFreeAmount" type="number" min="0"></label>
+ <label>Sárkány Slot nyerési esély %<input id="cfgCasinoDragonChance" type="number" min="0" max="100" step="0.1"></label><label>Sárkány Slot szorzó<input id="cfgCasinoDragonMult" type="number" min="1" step="0.1"></label>
+ <label>Sárkány free-spin esély %<input id="cfgCasinoDragonFreeChance" type="number" min="0" max="100" step="0.1"></label><label>Sárkány kapott free spin<input id="cfgCasinoDragonFreeAmount" type="number" min="0"></label>
+ </div><button id="saveCasinoConfig">💾 Kaszinó mentése</button></div>
 
 <div class="studio-page" id="studio-gameplay">
  <h3>🎮 Harcrendszer / Játékmenet</h3>
@@ -132,14 +204,15 @@
 
    <label>🌊 Kill / wave<input id="cfgWaveKills" type="number" min="1"></label>
    <label>📈 Boss HP növekedés % / wave<input id="cfgBossHpGrowthPct" type="number" min="0" step="0.1"></label>
-   <label>🏆 Boss jutalom szorzó<input id="cfgBossRewardMult" type="number" min="0" step="0.1"></label>
    <label>🧟 Mob sebzés alap % HP alapján<input id="cfgMobDamageHpPct" type="number" min="0" step="0.01"></label>
+   <label>💰 Boss aranydropp-bónusz maximum %<input id="cfgGoldBonusCapPct" type="number" min="0" max="1000" step="1"></label>
  </div>
  <button id="saveGameplayConfig">💾 JÁTÉKMENET MENTÉSE</button>
  <div class="gameplay-explain">
   <b>Hogyan működik:</b> a karakter és az ellenfél automatikusan támadja egymást.
   Ha a karakter meghal, a farm megáll a respawn végéig. Minden wave végén automatikus boss érkezik.
-  A boss HP-t regenerál, ezért addig nem juthat tovább a játékos, amíg ténylegesen le nem tudja győzni.
+  A boss HP-t regenerál, ezért addig nem juthat tovább a játékos, amíg ténylegesen le nem tudja győzni.<br>
+  Az aranydropp-bónusz kizárólag a bossok alap aranyát növeli: 10 bossarany + 100% bónusz = 20 arany. A normál mobok fix aranyára nem hat. A normál bónusz maximumát ez a mező korlátozza; fölé csak a Paragon arany stat emelhet.
  </div>
 </div>
 
@@ -154,11 +227,28 @@
 <button id="savePlayerStats">💾 Statok mentése</button> <button id="savePlayerProfile">🎮 Játékosnév mentése</button> <button id="toggleLeaderboard">🏆 Ranglistáról elrejtés</button>
 <h3>Teljes játékos mentés</h3><textarea id="playerSaveJson" class="json-editor"></textarea><button id="savePlayerJson">💾 Teljes mentés felülírása</button>
 </div>
-<div class="studio-page" id="studio-bosses"><h3>👹 Boss készítő</h3><p class="muted">Boss-onként állítható a gyémánt mennyisége és a gyémántdrop esélye is. Példa: 3 db, 25% esély.</p><div id="bossBuilder"></div><button data-add="bosses">+ Boss létrehozása</button><div id="bossList"></div></div>
+<div class="studio-page" id="studio-bosses"><h3>👹 Wave boss alapjutalmak</h3><p class="muted">A beállított bossarany az alapérték, amelyet az aranydropp-bónusz növel. Példa: 10 alap bossarany + 100% aranydropp = 20 arany. Területi és wave-szorzó nem hat rá.</p><div class="admin-stat-grid"><label>💰 Wave boss alap arany<input id="cfgDefaultBossFixedGold" type="number" min="0" step="1"></label><label>💎 Alap boss gyémánt (db)<input id="cfgDefaultBossGems" type="number" min="0"></label><label>🎲 Alap boss gyémántdrop esély %<input id="cfgDefaultBossGemChance" type="number" min="0" max="100" step="0.1"></label></div><button id="saveDefaultBossGems">💾 WAVE BOSS JUTALMAK MENTÉSE</button><hr><h3>➕ Egyedi boss készítése</h3><p class="muted">Az „Arany jutalom” az egyedi boss alap aranya; ezt is csak az aranydropp-bónusz növeli.</p><div id="bossBuilder"></div><button data-add="bosses">+ Boss létrehozása</button><div id="bossList"></div></div>
 <div class="studio-page" id="studio-items"><h3>⚔️ Tárgy készítő</h3><p class="muted">Saját nevű fegyver, páncél, sisak, kesztyű, csizma vagy gyűrű készíthető.</p><div id="itemBuilder"></div><button data-add="items">+ Tárgy létrehozása</button><div id="itemList"></div></div>
-<div class="studio-page" id="studio-pets"><h3>🐾 Pet készítő</h3><div id="petBuilder"></div><button data-add="pets">+ Pet létrehozása</button><div id="petList"></div></div>
+<div class="studio-page" id="studio-pets"><h3>🐾 Pet készítő</h3><div id="petBuilder"></div><button data-add="pets">+ Pet létrehozása</button><div id="petList"></div><hr><h3>🎲 Petlehívási rarity esélyek</h3><p class="muted">A százalékok súlyozott esélyként működnek. Celestial, Imperial és Eternal közvetlenül soha nem hívható le; ezek kizárólag a kraftláncból szerezhetők.</p><div class="admin-stat-grid"><label>Common esély %<input id="cfgPetRateCommon" type="number" min="0" step="0.1"></label><label>Rare esély %<input id="cfgPetRateRare" type="number" min="0" step="0.1"></label><label>Epic esély %<input id="cfgPetRateEpic" type="number" min="0" step="0.1"></label><label>Mythic esély %<input id="cfgPetRateMythic" type="number" min="0" step="0.1"></label><label>Legendary esély %<input id="cfgPetRateLegendary" type="number" min="0" step="0.1"></label></div><button id="savePetSummonRates">💾 LEHÍVÁSI ESÉLYEK MENTÉSE</button><hr><h3>🧬 Pet kraftolási beállítások</h3><p class="muted">A kraftlánc sorrendje fix: Common → Rare → Mythic → Legendary → Celestial → Imperial → Eternal. Az egyes lépésekhez szükséges darabszám és gyémántár külön állítható.</p><h4>Szükséges egyforma petek</h4><div class="admin-stat-grid"><label>Common → Rare darab<input id="cfgPetReqRare" type="number" min="2"></label><label>Rare → Mythic darab<input id="cfgPetReqMythic" type="number" min="2"></label><label>Mythic → Legendary darab<input id="cfgPetReqLegendary" type="number" min="2"></label><label>Legendary → Celestial darab<input id="cfgPetReqCelestial" type="number" min="2"></label><label>Celestial → Imperial darab<input id="cfgPetReqImperial" type="number" min="2"></label><label>Imperial → Eternal darab<input id="cfgPetReqEternal" type="number" min="2"></label></div><h4>Kraftolási gyémántárak</h4><div class="admin-stat-grid"><label>Rare kraft ára 💎<input id="cfgPetFusionRare" type="number" min="0"></label><label>Mythic kraft ára 💎<input id="cfgPetFusionMythic" type="number" min="0"></label><label>Legendary kraft ára 💎<input id="cfgPetFusionLegendary" type="number" min="0"></label><label>Celestial kraft ára 💎<input id="cfgPetFusionCelestial" type="number" min="0"></label><label>Imperial kraft ára 💎<input id="cfgPetFusionImperial" type="number" min="0"></label><label>Eternal kraft ára 💎<input id="cfgPetFusionEternal" type="number" min="0"></label></div><button id="savePetFusionCosts">💾 PET KRAFT BEÁLLÍTÁSOK MENTÉSE</button></div>
+<script type="text/x-omi-admin-fragment" id="petMultiOptionAdminTemplate"><hr><h3>✨ Imperial / Eternal többopciós kraft</h3><p class="muted">A Celestial pet még nem lehet többopciós. Új extra adottság kizárólag Imperial vagy Eternal kraft után nyílhat; a meglévő adottságok értékei összeadódnak.</p><div class="admin-stat-grid"><label>Imperial többopció esély %<input id="cfgPetMultiImperialChance" type="number" min="0" max="100" step="0.1"></label><label>Eternal többopció esély %<input id="cfgPetMultiEternalChance" type="number" min="0" max="100" step="0.1"></label><label>Új opció minimum %<input id="cfgPetMultiMinPct" type="number" min="0" step="0.1"></label><label>Új opció maximum %<input id="cfgPetMultiMaxPct" type="number" min="0" step="0.1"></label><label>Maximum extra opció<input id="cfgPetMultiMaxOptions" type="number" min="1" max="3"></label></div><button id="savePetMultiOption">💾 TÖBBOPCIÓS KRAFT MENTÉSE</button></script>
 <div class="studio-page" id="studio-auras"><h3>✨ Aura készítő</h3><div id="auraBuilder"></div><button data-add="auras">+ Aura létrehozása</button><div id="auraList"></div></div>
-<div class="studio-page" id="studio-zones"><h3>🗺️ Terület készítő</h3><div id="zoneBuilder"></div><button data-add="zones">+ Terület létrehozása</button><div id="zoneList"></div></div>
+<div class="studio-page" id="studio-zones"><h3>🗺️ Farmterületek HP-ja és fix mobaranya</h3><p class="muted">Területenként megadható a normál mob fix aranya. Ezt sem az aranydropp-bónusz, sem a wave száma nem növeli; az offline farm is ugyanezt használja. Az aranydropp-bónusz csak bossaranyra hat.</p><div class="admin-stat-grid"><label>⚔️ Célzott találat / normál mob<input id="cfgMobTargetHits" type="number" min="1" max="100" step="0.1"></label></div><div id="zoneHpBalanceEditor" class="admin-stat-grid zone-balance-editor"></div><button id="saveZoneHpBalance">💾 TERÜLETI HP ÉS FIX MOBARANY MENTÉSE</button><hr><h3>➕ Új terület készítése</h3><div id="zoneBuilder"></div><button data-add="zones">+ Terület létrehozása</button><div id="zoneList"></div></div>
+<div class="studio-page" id="studio-updates">
+ <h3>📢 Frissítések kezelése</h3>
+ <p class="muted">Az új verzió automatikusan bekerül ide rejtve. Te döntöd el, melyik bejegyzést mikor látják a játékosok.</p>
+ <div class="builder-form update-editor-v242">
+  <label>Verzió<input id="updateVersion" placeholder="V22.42"></label>
+  <label>Cím<input id="updateTitle" placeholder="Frissítések felület"></label>
+  <label>Dátum<input id="updateDate" type="date"></label>
+  <label>Rövid összefoglaló<input id="updateSummary" placeholder="A frissítés legfontosabb tartalma"></label>
+  <label class="update-changes-field-v242">Változások – soronként egy<textarea id="updateChanges" placeholder="Új funkció\nJavítás\nBalanszmódosítás"></textarea></label>
+  <label class="v222-check"><input id="updateVisible" type="checkbox"> Azonnal látható a játékosoknak</label>
+  <input id="updateEditIndex" type="hidden" value="">
+ </div>
+ <button id="saveUpdateEntry">💾 Frissítés mentése</button><button id="cancelUpdateEdit" type="button">Mégse / új bejegyzés</button>
+ <div id="adminUpdatesList" class="builder-list update-admin-list-v242"></div>
+</div>
+
 <div class="studio-page" id="studio-raw"><h3>🧬 Teljes konfiguráció</h3><textarea id="contentJson" class="json-editor"></textarea><button id="saveContentJson">💾 Konfiguráció mentése</button></div>
 </section>
 

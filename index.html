@@ -10,7 +10,7 @@
 <header class="topbar">
   <div class="brand"><span>⚔️ OMI</span> IDLE FARM <em>COMPLETE</em></div>
   <div class="top-actions">
-    <span class="build-version" id="buildVersionBadge">V22.3</span><span id="onlineUser">👤 Vendég</span>
+    <span class="build-version" id="buildVersionBadge">V22.53</span><span id="onlineUser">👤 Vendég</span>
     <button class="ghost" id="leaderboardBtn">🏆 Ranglista</button>
     <button class="ghost admin-only-btn" id="adminPanelBtn" style="display:none">⚙️ Adminpanel</button><button class="ghost" id="authBtn">Belépés</button>
     <span id="saveState">💾 Mentve</span>
@@ -25,11 +25,16 @@
   <button class="tab" data-tab="upgrade">🔨 Fejlesztés</button>
   <button class="tab" data-tab="skills">✨ Képességek</button>
   <button class="tab" data-tab="pets">🐾 Petek</button>
+  <button class="tab" data-tab="exchange">⚖️ Váltópiac</button>
   <button class="tab" data-tab="paragon">👑 Paragon / Prestige</button>
   <button class="tab" data-tab="aurashop">✨ Prestige Aura Shop</button>
   <button class="tab" data-tab="dungeon">🏰 Dungeon</button>
   <button class="tab" data-tab="quests">📜 Küldetések</button>
-  <button class="tab" data-tab="pvp">⚔️ PvP</button><button class="tab" data-tab="shop">💳 Feltöltés / Discord</button><button class="tab" data-tab="stats">📊 Statisztika</button>
+  <button class="tab" data-tab="pvp">⚔️ PvP</button><button class="tab" data-tab="shop">💳 Feltöltés</button><button class="tab" data-tab="stats">📊 Statisztika</button>
+  <button class="tab" data-tab="mounts">🐎 Hátasok</button>
+  <button class="tab" data-tab="npcshop">🏪 Vándorkereskedő</button>
+  <button class="tab" data-tab="casino">🎰 Kaszinó</button>
+  <button class="tab" data-tab="updates">📢 Frissítések</button>
 </nav>
 
 
@@ -45,7 +50,6 @@
         <span>🎲 Normal → Legendary opt rendszer</span>
         <span>🌟 Paragon rendszer</span>
         <span>🏟️ PvP aréna</span>
-        <span>💬 Discord: nervos11</span>
       </div>
     </div>
     <div class="guest-login-card">
@@ -70,7 +74,8 @@
 
 <div id="gameShell" class="game-shell auth-locked">
 <main>
-<section class="hero card">
+<section class="page active" id="page-character">
+<section class="hero card v228-character-summary">
   <div>
     <div class="v200-character-header eyebrow">AUTOMATA FARM RPG</div>
     <h1>Farmolj automatikusan, építs egyre erősebb karaktert.</h1>
@@ -79,21 +84,19 @@
   <div class="hero-power"><small>ÖSSZERŐ</small><strong id="power">0</strong><span id="rankName">Kezdő</span></div>
 </section>
 
-<section class="resource-grid">
+<section class="resource-grid v228-character-resources">
   <div class="resource card"><span>💰 Arany</span><strong id="gold">0</strong><small id="gps">0 / mp</small></div>
   <div class="resource card"><span>💎 Kristály</span><strong id="gems">0</strong><small>ritka valuta</small></div>
   <div class="resource card"><span>⛏️ Érc</span><strong id="ore">0</strong><small>fejlesztéshez</small></div>
   <div class="resource card"><span>🧿 Lélekkő</span><strong id="soul">0</strong><small>ritka fejlesztés</small></div>
   <div class="resource card"><span>🎫 Dungeon jegy</span><strong id="tickets">0</strong><small>bossokhoz</small></div>
+  <div class="resource card mount-shard-resource-v239"><span>🧩 Hátastöredék</span><strong id="mountShardsTop">0</strong><small>ritka boss drop</small></div>
   <div class="resource card"><span>⭐ Szint</span><strong id="level">1</strong><small id="xpText">0 / 100 XP</small></div>
 </section>
 
-<!-- FARM -->
-
-
-<section class="page active" id="page-character">
+<!-- CHARACTER -->
   <div class="v15-main-grid">
-    <aside class="v15-left card">
+    <aside class="v15-left card admin-studio-panel-v230">
       <div class="admin-studio-only-v202 v15-section-title">👥 ADMIN GAME STUDIO</div>
       <small>Játékosok kezelése és moderálása</small>
       <div class="v15-search">🔎 Játékos keresése...</div>
@@ -109,7 +112,6 @@
     <section class="v15-character card">
       <div class="v15-character-top">
         <div><h2>⚔️ Saját karakter</h2><small>Felszereld a tárgyakat, aurákat és peteket, hogy egyre erősebb legyél!</small></div>
-        <div class="v15-power-box"><small>ÖSSZERŐ</small><b id="v15Power">0</b></div>
       </div>
 
       <div class="v15-character-stage">
@@ -146,19 +148,16 @@
   </div>
 
   <div class="character-attributes v15-attributes">
-    <div class="char-attr"><span>💪 Erő</span><b id="charStatPower">0</b></div>
     <div class="char-attr"><span>⚔️ Sebzés</span><b id="charStatDamage">0</b></div>
     <div class="char-attr"><span>❤️ Életerő</span><b id="charStatHP">0 / 0</b></div>
     <div class="char-attr"><span>🛡️ Védelem</span><b id="charStatDefense">0</b></div>
     <div class="char-attr"><span>🍀 Szerencse</span><b id="charStatLuck">0</b></div>
     <div class="char-attr"><span>🎯 Krit esély</span><b id="charStatCrit">0%</b></div>
     <div class="char-attr"><span>🎁 Drop bónusz</span><b id="charStatDrop">0%</b></div>
-    <div class="char-attr"><span>⭐ Szint</span><b id="charStatLevel">1</b></div>
-    <div class="char-attr"><span>🌟 Paragon</span><b id="charStatParagon">0</b></div>
+    <div class="char-attr"><span>💰 Aranydrop bónusz</span><b id="charStatGoldDrop">0% / 100% normál limit</b></div>
     <div class="char-attr"><span>👑 Prestige</span><b id="charStatPrestige">0</b></div>
     <div class="char-attr"><span>📌 Paragon pont</span><b id="charStatPoints">0</b></div>
     <div class="char-attr"><span>✨ Aura token</span><b id="charStatAuraTokens">0</b></div>
-    <div class="char-attr"><span>🌊 Wave</span><b id="charStatWave">1</b></div>
     <div class="char-attr"><span>☠️ Összes kill</span><b id="charStatKills">0</b></div>
     <div class="char-attr"><span>💀 Halál</span><b id="charStatDeaths">0</b></div>
   </div>
@@ -215,7 +214,19 @@
         <div class="prestige-progress"><div id="prestigeProgress"></div></div>
         <small id="prestigeText">200-as szinten prestigelhetsz.</small>
         <button id="prestigeBtn" class="prestige-btn">👑 PRESTIGE</button>
+        <div class="auto-paragon-control-v238" id="autoParagonControl">
+          <div><b>🌟 Automata Paragon szintelő</b><small id="autoParagonHint">Prémium jogosultság szükséges.</small></div>
+          <label class="auto-paragon-switch-v238"><input type="checkbox" id="autoParagonToggle"><span>BEKAPCSOLÁS</span></label>
+          <button type="button" id="autoParagonShopLink">💳 FELTÖLTÉS</button>
+        </div>
       </section>
+    <section class="card paragon-guide-v224">
+      <div class="paragon-guide-head"><div><small>MIÉRT ÉRI MEG?</small><h3>🌟 Minél magasabb a Paragon, annál könnyebb a következő kör</h3></div><span>ÁLLANDÓ FEJLŐDÉS</span></div>
+      <p>A kiosztott Paragon statjaid minden új Paragon szinten erősebbé válnak. A már kiosztott pontok és bónuszaik az újrakezdés után is megmaradnak.</p>
+      <div class="paragon-scale-examples"><div><b>Paragon 1</b><strong>1 Sebzés pont = +2%</strong></div><div><b>Paragon 2</b><strong>1 Sebzés pont = +4%</strong></div><div><b>Paragon 3</b><strong>1 Sebzés pont = +6%</strong></div><div><b>Paragon 5</b><strong>1 Sebzés pont = +10%</strong></div></div>
+      <div class="paragon-reset-grid"><div class="paragon-lost"><h4>🔄 A karakter újrakezdésekor resetelődik</h4><span>⭐ Karakterszint és XP</span><span>🌊 Wave számod és wave-haladásod</span><span>📊 Normál karakterstatok és alap fejlesztések</span><span>🌳 Teljes skillfa és el nem költött pontok</span><span>⚔️ Inventory és minden felszerelés</span><span>💰 Arany · 💎 Gyémánt · ⛏️ Érc</span></div><div class="paragon-kept"><h4>✅ Megmarad</h4><span>☠️ Teljes kill számod</span><span>🔵 Lélekkő · 🎫 Dungeon token</span><span>🐾 Petek és megnyitott pethelyek</span><span>🏆 Achievementek · aurák · gyorsítás</span><span>🌟 Kiosztott Paragon statok</span></div></div>
+      <div class="paragon-guide-note">Minden Paragon szintlépés után 5 új Paragon statpontot és 1 Aura tokent kapsz.</div>
+    </section>
     <section class="card v15-sidebox">
         <h3>⚔️ Paragon statpontok</h3>
         <div id="paragonStats" class="paragon-stat-list"></div>
@@ -287,7 +298,7 @@
           <button class="combat-speed-btn" data-speed="3">⚡ 3×</button>
           <button class="combat-speed-btn locked" data-speed="10">🔒 10×</button>
         </div>
-        <small class="speed-note-v165">1× / 2× / 3× ingyenes. A 10× prémium sebesség 3 €, a Feltöltés / Discord fülön érhető el.</small>
+        <small class="speed-note-v165">1× / 2× / 3× ingyenes. A 10× prémium sebesség ára a Feltöltés fülön látható.</small>
       </div>
 <div class="wave-panel">
  <div><small>WAVE</small><b id="waveNumber">1</b></div>
@@ -318,7 +329,7 @@
           <div class="v10-detail"><span id="enemyRegenText">💚 Regen 0%/mp</span><span id="enemyAttackSpeedText">⏱️ 1.35 mp</span></div>
         </div>
       </div>
-      <div class="combat-log" id="combatLog">A farm elindult...</div>
+      <div class="arrow-combat-hud-v247" id="arrowCombatHud">🏹 Nincs aktív harci nyílvessző</div><div class="combat-log" id="combatLog">A farm elindult...</div>
       <div class="battle-stats">
         <div><small>Sebzés / ütés</small><b id="damageText">0</b></div>
         <div><small>Krit esély</small><b id="critText">0%</b></div>
@@ -517,7 +528,7 @@
 </div>
 
 <section class="card">
-  <div class="title-row"><div><h2>🌳 Skillfa</h2><small>Minden 5. karakterszint után 1 skillpont</small></div><b><span id="skillPoints">0</span> pont</b></div>
+  <div class="title-row"><div><h2>🌳 Skillfa</h2><small>A skillek dungeonökből szerezhető lélekkővel fejleszthetők</small></div><b>🔵 <span id="skillPoints">0</span> lélekkő</b></div>
   <div class="card v198-skill-info">
   <h3>🌿 Elágazó fejlődés</h3>
   <p>Nyisd meg a Kalandor magot, majd válassz Harci, Farm, AFK vagy Pet ágat. Az erősebb képességekhez előbb ki kell húznod az előfeltételeket.</p>
@@ -526,8 +537,8 @@
     <span>👹 Minden 10. wave: Boss</span>
     <span>⛏️ 25 wave-enként: hosszabb farm szakasz</span>
     <span>🎁 50/100 wave: extra nyersanyag mérföldkő</span>
-    <span>👑 Paragon: 500, 510, 520… wave</span>
-    <span>🌳 5 szintenként: 1 új skillpont</span>
+    <span>👑 Paragon: 250, 260, 270… wave</span>
+    <span>🔵 Dungeon teljesítés: lélekkő jutalom</span>
   </div>
 </div>
 <div id="skills" class="skill-grid"></div>
@@ -549,10 +560,28 @@
 </div>
 
 <section class="card">
-  <div class="title-row"><div><h2>🐾 Pet rendszer</h2><small>Legfeljebb 4 pet szerelhető fel. Az első hely ingyenes, a többi gyémántért oldható fel.</small></div><button id="petSummon">🎲 Pet idézés · 5 💎</button></div>
+  <div class="title-row"><div><h2>🐾 Pet rendszer</h2><small>Legfeljebb 4 pet szerelhető fel. Az első hely ingyenes, a többi gyémántért oldható fel.</small></div><div class="pet-title-actions"><small id="petSummonRates" class="pet-summon-rates">Common 55% · Rare 28% · Epic 12% · Mythic 4% · Legendary 1%</small><button id="equipBestPets" class="pet-equip-best">🐾 EQUIP BEST</button><button id="petSummon">🎲 Pet idézés · 10 💎</button></div></div>
   <div id="petSlots" class="pet-slot-grid"></div>
   <div id="pets" class="pet-grid"></div>
 </section>
+</section>
+
+<!-- GOLD EXCHANGE -->
+<section class="page" id="page-exchange">
+  <div class="v212-context-bar" data-context-bar data-context-page="page-exchange">
+    <div class="v212-resource" data-res="gold"><span>💰 Arany</span><b data-val="gold">0</b></div>
+    <div class="v212-resource" data-res="gems"><span>💎 Gyémánt</span><b data-val="gems">0</b></div>
+    <div class="v212-resource" data-res="ore"><span>⛏️ Érc</span><b data-val="ore">0</b></div>
+    <div class="v212-resource" data-res="tickets"><span>🎫 Dungeon token</span><b data-val="tickets">0</b></div>
+  </div>
+  <section class="card exchange-market-v219">
+    <div class="exchange-market-head">
+      <div><div class="eyebrow">ARANYVÁLTÓ</div><h2>⚖️ Váltópiac</h2><p>Váltsd át a kifarmolt aranyadat értékes nyersanyagokra.</p></div>
+      <div class="exchange-wallet"><small>ELKÖLTHETŐ ARANYAD</small><strong id="exchangeGold">0 💰</strong></div>
+    </div>
+    <div id="exchangeOffers" class="exchange-offer-grid"></div>
+    <div class="exchange-note">ℹ️ Az árakat és a kapott mennyiségeket az admin bármikor módosíthatja.</div>
+  </section>
 </section>
 
 <!-- DUNGEON -->
@@ -595,9 +624,14 @@
   <div class="v212-resource" data-res="auratokens"><span>✨ Aura token</span><b data-val="auratokens">0</b></div>
 </div>
 
+<section class="card achievement-exchange-v220">
+ <div class="achievement-exchange-head"><div><div class="eyebrow">JUTALOMVÁLTÓ</div><h2>🏆 Achievement pont beváltás</h2><p>Teljesíts hosszú távú mérföldköveket, majd váltsd be a pontjaidat.</p></div><div class="achievement-point-balance"><small>EGYENLEG</small><strong><span id="achievementPoints">0</span> 🏆</strong></div></div>
+ <div id="achievementExchange" class="achievement-exchange-grid"></div>
+</section>
+
 <div class="layout">
-<section class="card"><h2>📜 Napi küldetések</h2><div id="dailyQuests"></div></section>
-<aside class="card"><h2>🏆 Achievementek</h2><div id="achievements"></div></aside>
+<section class="card"><div class="quest-section-title"><div><h2>📜 Napi küldetések</h2><small>Minden nap újra teljesíthetők</small></div><span>21 KÜLDETÉS</span></div><div id="dailyQuests"></div></section>
+<aside class="card"><div class="quest-section-title"><div><h2>🏆 Achievementek</h2><small>Egyszeri, hosszú távú mérföldkövek</small></div><span>33 ACHIEVEMENT</span></div><div id="achievements"></div></aside>
 </div>
 </section>
 
@@ -630,7 +664,19 @@
  </div>
 </section>
 
-<!-- SHOP / DISCORD -->
+<!-- SHOP -->
+<section class="page" id="page-mounts">
+  <div class="mount-hero-v237">
+    <div><span class="eyebrow">ISTÁLLÓ ÉS GYŰJTEMÉNY</span><h2>🐎 Gyűjthető hátasok</h2><p>A hátas ritka boss-zsákmány. A duplikátumok fejlesztőponttá alakulnak, ezért minden megszerzett példány értékes.</p></div>
+    <div class="mount-progress-v237"><b id="mountCollectionCount">0 / 12</b><small>MEGSZERZETT HÁTAS</small></div>
+  </div>
+  <section class="card mount-draw-v237">
+    <div><h3>🎁 Ősi hátasláda</h3><p>A bossok kis eséllyel ládatöredéket adnak. 10 töredékből nyithatsz, vagy az összes játékon belüli fizetőeszközzel kiválthatod a hiányzó töredékeket.</p><div class="mount-costs-v237"><span>💰 250 000</span><span>💎 10</span><span>⛏️ 25</span><span>🔵 1</span><span>🎫 1</span></div></div>
+    <div class="mount-open-v237"><b id="mountShardCount">0 / 10 töredék</b><button id="openMountChest">ŐSI LÁDA NYITÁSA</button><small>Hátasesély: 2% · egyébként 1 töredék</small></div>
+  </section>
+  <section class="card"><div class="title-row"><div><h2>🏇 Saját istálló</h2><small>Egy hátas lehet aktív. A fejlesztés duplikátumot és minden valutát fogyaszt.</small></div><button id="equipBestMount">⚡ LEGJOBB HÁTAS</button></div><div id="mountGrid" class="mount-grid-v237"></div></section>
+</section>
+
 <section class="page" id="page-shop">
 
 <div class="v212-context-bar" data-context-bar data-context-page="page-shop">
@@ -644,6 +690,12 @@
   <div class="v212-resource" data-res="auratokens"><span>✨ Aura token</span><b data-val="auratokens">0</b></div>
 </div>
 
+  <section class="shop-discord-contact-v240">
+    <div class="shop-discord-icon-v240">💬</div>
+    <div><small>VÁSÁRLÁS ÉS AKTIVÁLÁS</small><h2>Keress Discordon</h2><p>A csomagok, a 10× gyorsítás és az Auto Paragon megvásárlásához írj privát üzenetet.</p></div>
+    <strong>nervos11</strong>
+  </section>
+
   <section class="card premium-speed-v165">
     <div class="premium-bolt">⚡</div>
     <div>
@@ -651,8 +703,11 @@
       <h2>10× Harci / Wave Sebesség</h2>
       <p>A saját karaktered támadási sebességét 10×-re állíthatod, így gyorsabban haladsz a wave-ekkel.</p>
       <div><b class="premium-price-v165">3 €</b> <span id="speed10PurchaseState">🔒 Nincs aktiválva</span></div>
-      <small>Vásárlás/aktiválás privátban: Discord <b>nervos11</b>.</small>
+      <small>Az aktiválás a webes vásárlási igény elküldése után történik.</small>
     </div>
+  </section>
+  <section class="card auto-paragon-v237">
+    <div class="auto-paragon-icon-v237">🌟</div><div><span class="eyebrow">PRÉMIUM AUTOMATIZÁLÁS</span><h2>Auto Paragon szintelő</h2><p>Amikor eléred a következő Paragon wave-követelményét, automatikusan végrehajtja a szintlépést és azonnal folytatja a farmolást.</p><b>10 €</b> <span id="autoParagonPurchaseState">🔒 Nincs aktiválva</span><small>Egyszeri, admin által aktivált jogosultság.</small></div><button data-buy-product="auto_paragon_10_eur">💬 VÁSÁRLÁSI IGÉNY</button>
   </section>
 
  <div class="layout">
@@ -661,17 +716,34 @@
    <div class="shop-warning">⚠️ A weboldal nem kér és nem tárol bankkártyaadatot. Valódi fizetés és a játékbeli jóváírás privát egyeztetéssel történik.</div>
    <div id="storeProducts" class="store-grid"></div>
   </section>
-  <aside class="card discord-card">
-   <div class="discord-logo">💬</div>
-   <h2>Discord elérhetőség</h2>
-   <p>Vásárlás, segítség és privát egyeztetés:</p>
-   <strong>nervos11</strong>
-   <p class="muted">A vásárlási igényt a weboldalon is elküldheted, majd Discordon tudod velem egyeztetni.</p>
-  </aside>
  </div>
 </section>
 
 <!-- STATS -->
+<section class="page" id="page-npcshop">
+  <section class="npc-hero-v246"><div><span>🏪 JÁTÉKON BELÜLI NPC BOLT</span><h1>Mordek, a Vándorkereskedő</h1><p>Forgó felszerelések, harci nyílvesszők és ritkán felbukkanó petek. Minden vásárlás kizárólag játékbeli valutából történik.</p></div><div class="npc-portrait-v246">🧙‍♂️</div></section>
+  <section class="npc-status-v246"><div><small>KÍNÁLAT FRISSÜL</small><b id="npcShopRefresh">—</b></div><div><small>HARCI NYÍLVESSZŐ</small><b id="npcArrowCount">0 🏹</b></div><button id="npcShopManualRefresh">↻ Kínálat ellenőrzése</button></section>
+  <div id="npcShopOffers" class="npc-shop-grid-v246"></div>
+</section>
+
+<section class="page" id="page-casino">
+ <section class="casino-hero-v247"><div><span>🎰 JÁTÉKBELI SZERENCSEJÁTÉK</span><h1>Árnyék Kaszinó</h1><p>Csak játékbeli valutával játszható. Állítsd be a tétet, válassz játékot, és vállald a kockázatot.</p></div><div>🎲</div></section>
+ <section class="casino-controls-v247 casino-wallet-v250">
+  <label class="casino-field-v250"><span>💰 JÁTÉKVALUTA</span><select id="casinoCurrency"><option value="gold">💰 Arany</option><option value="gems">💎 Gyémánt</option><option value="ore">⛏️ Érc</option></select></label>
+  <label class="casino-field-v250 casino-stake-v250"><span>🎯 TÉT ÖSSZEGE</span><input id="casinoBet" type="number" min="1" value="100"><div class="casino-quick-bets-v250"><button type="button" data-casino-bet="min">MIN</button><button type="button" data-casino-bet="0.25">25%</button><button type="button" data-casino-bet="0.5">50%</button><button type="button" data-casino-bet="max">MAX</button></div></label>
+  <div class="casino-balance-v250"><span>JELENLEGI EGYENLEG</span><b id="casinoBalance">0</b><small>A tét csak a pörgetés indításakor kerül levonásra.</small></div>
+ </section>
+ <div id="casinoGames" class="casino-grid-v247"></div><div id="casinoResult" class="casino-result-v247">Válassz játékot!</div>
+</section>
+
+<section class="page" id="page-updates">
+  <section class="updates-hero-v242">
+    <div><span>📢 FEJLESZTÉSI NAPLÓ</span><h1>Frissítések</h1><p>Itt találod a játék admin által közzétett újdonságait és változásait.</p></div>
+    <div class="updates-hero-icon-v242">⚔️</div>
+  </section>
+  <div id="updatesList" class="updates-list-v242"><div class="updates-empty-v242">Nincs jelenleg közzétett frissítés.</div></div>
+</section>
+
 <section class="page" id="page-stats">
 
 <div class="v212-context-bar" data-context-bar data-context-page="page-stats">
@@ -713,7 +785,7 @@
 </div>
 
   <section class="card">
-    <div class="title-row"><div><h2>🏆 Online ranglista</h2><small>A játékosok összereje alapján</small></div><button id="refreshLeaderboard">↻ Frissítés</button></div>
+    <div class="title-row"><div><h2>🏆 Online ranglista</h2><small>Elsődlegesen Paragon szint, azon belül összerő alapján</small></div><button id="refreshLeaderboard">↻ Frissítés</button></div>
     <div id="leaderboard" class="leaderboard"></div>
   </section>
 </section>
@@ -735,34 +807,6 @@
 <input id="importFile" type="file" accept=".json" hidden>
 <script src="game.js"></script>
 
-<div id="v227DiscordWidget" class="v227-discord-widget" aria-label="Discord közösség">
-  <button id="v227DiscordToggle" class="v227-discord-toggle" type="button" title="Discord közösség">
-    <span class="v227-discord-logo">☁</span>
-    <span>DISCORD</span>
-  </button>
-  <div id="v227DiscordPanel" class="v227-discord-panel">
-    <button id="v227DiscordClose" class="v227-discord-close" type="button">×</button>
-    <div class="v227-discord-icon">💬</div>
-    <div>
-      <small>OMI IDLE FARM KÖZÖSSÉG</small>
-      <h3>Csatlakozz a Discordhoz!</h3>
-      <p>Hírek, frissítések, Dungeon/PvP beszélgetés, segítség, hibajelentés és közösségi események.</p>
-    </div>
-    <div class="v227-discord-tags">
-      <span>📢 Hírek</span><span>⚔️ PvP</span><span>🏰 Dungeon</span>
-      <span>🐾 Pet</span><span>🆘 Segítség</span><span>💡 Ötletek</span>
-    </div>
-    <a class="v227-discord-join" href="https://discord.gg/kJscYgMtq" target="_blank" rel="noopener noreferrer">
-      💬 CSATLAKOZÁS A DISCORDHOZ
-    </a>
-    <div class="v228-link-box">
-      <b>🔗 Játékfiók ↔ Discord összekötés</b>
-      <small>A rangjaid így automatikusan követik a játékbeli szintedet.</small>
-      <button id="v228DiscordLinkCode" type="button">🔑 ÖSSZEKÖTŐ KÓD KÉRÉSE</button>
-      <div id="v228DiscordLinkResult"></div>
-    </div>
-    <small class="v227-discord-note">A Discordon a botnak küldd el a megjelenő /link parancsot.</small>
-  </div>
-</div>
-
+<section class="site-vote-v237"><div><b>Mit gondolsz az oldalról?</b><small>Bejelentkezve egy szavazatod lehet.</small></div><button id="siteLikeBtn">👍 <span id="siteLikeCount">0</span></button><button id="siteDislikeBtn">👎 <span id="siteDislikeCount">0</span></button></section>
+<script src="v237.js"></script>
 </body></html>
