@@ -5978,7 +5978,7 @@ window.OMI_BALANCE_V2319={
 
 /* ================= V23.24 FULL HU / EN LANGUAGE SYSTEM ================= */
 (function(){
-  const KEY="omiLangV2328";
+  const KEY="omiLangV2329";
 
   const dict={
     // navigation
@@ -6210,123 +6210,221 @@ window.OMI_BALANCE_V2319={
     return out;
   }
 
-  // Store original Hungarian content only once so switching back is instant and exact.
-  function storeOriginal(el){
-    if(!el || el.nodeType!==Node.ELEMENT_NODE)return;
-    if(el.closest?.("#v2321LangSwitcher"))return;
-    if(!el.dataset.v2324OriginalHtml)el.dataset.v2324OriginalHtml=el.innerHTML;
+  // ================= V23.29 LOGIN-SAFE TRANSLATION =================
+  // The translator never watches or mutates the login controls.
+  // Full game translation starts only after a user is authenticated.
+
+  let v2329GameTranslated=false;
+  let v2329RenderWrapInstalled=false;
+  let v2329ToastWrapInstalled=false;
+
+  function translateTextNodeV2329(node){
+    if(!node || node.nodeType!==Node.TEXT_NODE)return;
+    const parent=node.parentElement;
+    if(!parent)return;
+    if(parent.closest("#v2321LangSwitcher"))return;
+    if(parent.matches("script,style,noscript,input,textarea,select,option"))return;
+    const before=node.nodeValue;
+    const after=translateText(before);
+    if(after!==before)node.nodeValue=after;
   }
 
-  function translateElement(el){
-    if(!el || el.nodeType!==Node.ELEMENT_NODE || el.closest?.("#v2321LangSwitcher"))return;
-    if(el.matches?.("script,style,noscript"))return;
+  function translateTreeV2329(root){
+    if(window.OMI_LANG!=="en" || !root)return;
+    const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+    const nodes=[];
+    while(walker.nextNode())nodes.push(walker.currentNode);
+    nodes.forEach(translateTextNodeV2329);
 
-    // text nodes
-    for(const node of [...el.childNodes]){
-      if(node.nodeType===Node.TEXT_NODE && window.OMI_LANG==="en"){
-        const before=node.nodeValue;
-        const after=translateText(before);
-        if(after!==before)node.nodeValue=after;
-      }
-    }
-
-    ["title","placeholder","aria-label"].forEach(attr=>{
-      if(el.hasAttribute?.(attr)){
-        const originalKey="v2324Attr"+attr.replace(/[^a-z]/gi,"");
+    root.querySelectorAll?.("[title],[placeholder],[aria-label]").forEach(el=>{
+      if(el.closest("#v2321LangSwitcher"))return;
+      ["title","placeholder","aria-label"].forEach(attr=>{
+        if(!el.hasAttribute(attr))return;
+        const originalKey="v2329"+attr.replace(/[^a-z]/gi,"");
         if(!el.dataset[originalKey])el.dataset[originalKey]=el.getAttribute(attr);
-        el.setAttribute(attr,window.OMI_LANG==="en"?translateText(el.dataset[originalKey]):el.dataset[originalKey]);
-      }
+        const v=translateText(el.dataset[originalKey]);
+        if(el.getAttribute(attr)!==v)el.setAttribute(attr,v);
+      });
     });
-
-    [...el.children].forEach(translateElement);
   }
 
-  function restoreElement(el){
-    if(!el || el.nodeType!==Node.ELEMENT_NODE || el.closest?.("#v2321LangSwitcher"))return;
-    if(el.dataset.v2324OriginalHtml){
-      el.innerHTML=el.dataset.v2324OriginalHtml;
-      delete el.dataset.v2324OriginalHtml;
-    }
-  }
-
-  function translateAuthOnceV2328(){
+  function translateLandingV2329(){
     if(window.OMI_LANG!=="en")return;
-    document.querySelectorAll("[data-v2328-auth-ui='1']").forEach(root=>translateElement(root));
+
+    // Direct, safe assignments only. No observer, no innerHTML replacement.
+    const user=document.getElementById("landingUsername");
+    const pass=document.getElementById("landingPassword");
+    const login=document.getElementById("landingLoginBtn");
+    const reg=document.getElementById("landingRegisterBtn");
+
+    if(user)user.placeholder="Username";
+    if(pass)pass.placeholder="Password";
+    if(login)login.textContent="⚔️ LOGIN";
+    if(reg)reg.textContent="✨ REGISTER";
+
+    // Translate remaining static landing text nodes, but never input values/events.
+    const landing=document.getElementById("guestLanding");
+    if(landing)translateTreeV2329(landing);
+
+    // Auth modal is also safe with text-node translation only.
+    const modal=document.getElementById("authModal");
+    if(modal)translateTreeV2329(modal);
   }
-  function translateWholePage(){
+
+  function translateGameV2329(){
     if(window.OMI_LANG!=="en")return;
-    document.documentElement.lang="en";
-    // Translate login/register once without touching ids, values or event listeners.
-    translateAuthOnceV2328();
-    // Translate the actual game interface.
+    if(typeof currentUser==="undefined" || !currentUser)return;
     const shell=document.getElementById("gameShell");
-    if(shell)translateElement(shell);
-    document.querySelectorAll("[data-v2321-lang]").forEach(b=>b.classList.toggle("active",b.dataset.v2321Lang==="en"));
+    if(!shell)return;
+    translateTreeV2329(shell);
+    v2329GameTranslated=true;
   }
 
-  function switchLanguage(lang){
+  function installRenderTranslationV2329(){
+    if(v2329RenderWrapInstalled || window.OMI_LANG!=="en")return;
+    if(typeof renderAll!=="function")return;
+
+    const originalRenderAll=renderAll;
+    renderAll=function(...args){
+      const result=originalRenderAll.apply(this,args);
+      setTimeout(translateGameV2329,0);
+      return result;
+    };
+    v2329RenderWrapInstalled=true;
+  }
+
+  function installToastTranslationV2329(){
+    if(v2329ToastWrapInstalled || window.OMI_LANG!=="en")return;
+    if(typeof toast!=="function")return;
+
+    const originalToast=toast;
+    toast=function(message,...rest){
+      return originalToast.call(this,translateText(message),...rest);
+    };
+    v2329ToastWrapInstalled=true;
+  }
+
+  function updateLanguageButtonsV2329(){
+    document.documentElement.lang=window.OMI_LANG==="en"?"en":"hu";
+    document.querySelectorAll("[data-v2321-lang]").forEach(btn=>{
+      const active=btn.dataset.v2321Lang===window.OMI_LANG;
+      btn.classList.toggle("active",active);
+      btn.setAttribute("aria-pressed",active?"true":"false");
+    });
+  }
+
+  function switchLanguageV2329(lang){
     lang=lang==="en"?"en":"hu";
-    const current=window.OMI_LANG==="en"?"en":"hu";
-    if(lang===current)return;
+    if(lang===window.OMI_LANG)return;
+
     localStorage.setItem(KEY,lang);
+
     const sw=document.getElementById("v2321LangSwitcher");
     if(sw){
       sw.classList.add("switching");
       sw.querySelectorAll("button").forEach(b=>b.disabled=true);
       const label=sw.querySelector(".v2326-lang-label");
-      if(label)label.textContent=lang==="en"?"🇬🇧 Loading English...":"🇭🇺 Magyar betöltése...";
+      if(label)label.textContent=lang==="en"
+        ?"🇬🇧 Loading English..."
+        :"🇭🇺 Magyar betöltése...";
     }
-    setTimeout(()=>window.location.replace(window.location.href),180);
+
+    // Clean reload. Login/session state stays server-side; only language preference changes.
+    setTimeout(()=>window.location.reload(),180);
   }
 
-  window.OMI_LANG=localStorage.getItem(KEY)==="en"?"en":"hu";
+  window.OMI_LANG=(localStorage.getItem(KEY)==="en")?"en":"hu";
   window.omiTranslate=translateText;
 
   document.addEventListener("click",e=>{
-    const b=e.target.closest?.("[data-v2321-lang]");
-    if(!b)return;
-    switchLanguage(b.dataset.v2321Lang);
+    const btn=e.target.closest?.("[data-v2321-lang]");
+    if(!btn)return;
+    e.preventDefault();
+    e.stopPropagation();
+    switchLanguageV2329(btn.dataset.v2321Lang);
   },true);
 
-  let v2328Translating=false;
-  const observer=new MutationObserver(mutations=>{
-    if(window.OMI_LANG!=="en" || v2328Translating)return;
-    v2328Translating=true;
-    try{
-      for(const m of mutations){
-        m.addedNodes.forEach(n=>{
-          if(n.nodeType===Node.ELEMENT_NODE)translateElement(n);
-          else if(n.nodeType===Node.TEXT_NODE){
-            const before=n.nodeValue,after=translateText(before);
-            if(after!==before)n.nodeValue=after;
-          }
-        });
-      }
-    }finally{
-      v2328Translating=false;
-    }
-  });
+  function bootLanguageV2329(){
+    updateLanguageButtonsV2329();
 
-  function applySavedLanguageV2328(){
-    document.documentElement.lang=window.OMI_LANG==="en"?"en":"hu";
-    document.querySelectorAll("[data-v2321-lang]").forEach(b=>{
-      const active=b.dataset.v2321Lang===window.OMI_LANG;
-      b.classList.toggle("active",active);
-      b.setAttribute("aria-pressed",active?"true":"false");
-    });
-    if(window.OMI_LANG==="en")translateWholePage();
-    const shell=document.getElementById("gameShell");
-    if(shell)observer.observe(shell,{subtree:true,childList:true});
+    // Login works first. Translation of the landing screen is passive text only.
+    if(window.OMI_LANG==="en")translateLandingV2329();
+
+    installRenderTranslationV2329();
+    installToastTranslationV2329();
+
+    // Once login/loadMe establishes currentUser, translate the game exactly then.
+    let checks=0;
+    const timer=setInterval(()=>{
+      checks++;
+      installRenderTranslationV2329();
+      installToastTranslationV2329();
+
+      if(typeof currentUser!=="undefined" && currentUser){
+        translateGameV2329();
+        clearInterval(timer);
+      }else if(checks>=60){
+        // Stop after 30 seconds. No permanent polling on the login page.
+        clearInterval(timer);
+      }
+    },500);
   }
 
   if(document.readyState==="loading"){
-    document.addEventListener("DOMContentLoaded",applySavedLanguageV2328,{once:true});
+    document.addEventListener("DOMContentLoaded",bootLanguageV2329,{once:true});
   }else{
-    applySavedLanguageV2328();
+    bootLanguageV2329();
   }
+
 })();
 
 
 
-/* V23.28 login-safe language system */
-window.OMI_I18N_SAFE_V2328=true;
+/* V23.29 login-safe language runtime */
+window.OMI_I18N_SAFE_V2329=true;
+
+
+/* V23.29 LOGIN HARD FALLBACK
+   Independent from the translator. Never changes form ids or input values. */
+(function(){
+  function bind(){
+    const btn=document.getElementById("landingLoginBtn");
+    const user=document.getElementById("landingUsername");
+    const pass=document.getElementById("landingPassword");
+    if(!btn||btn.dataset.v2329LoginBound==="1")return;
+    btn.dataset.v2329LoginBound="1";
+
+    // Existing game.js handler remains primary. This only recovers if it was not installed.
+    btn.addEventListener("click",async e=>{
+      if(typeof landingLogin==="function")return;
+      e.preventDefault();
+      const username=String(user?.value||"").trim();
+      const password=String(pass?.value||"");
+      if(!username||!password){
+        const msg=document.getElementById("landingMsg");
+        if(msg){msg.textContent="Add meg a felhasználónevet és a jelszót.";msg.className="landing-error"}
+        return;
+      }
+      try{
+        btn.disabled=true;
+        const r=await fetch("/api/login",{
+          method:"POST",
+          credentials:"same-origin",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({username,password})
+        });
+        const d=await r.json().catch(()=>({}));
+        if(!r.ok)throw new Error(d.error||"Szerverhiba");
+        window.location.reload();
+      }catch(err){
+        const msg=document.getElementById("landingMsg");
+        if(msg){msg.textContent="❌ "+err.message;msg.className="landing-error"}
+      }finally{
+        btn.disabled=false;
+      }
+    },false);
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind,{once:true});
+  else bind();
+})();
+

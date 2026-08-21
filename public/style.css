@@ -5051,3 +5051,9 @@ nav.tabs{display:flex!important;flex-wrap:wrap!important;justify-content:center;
   .v2321-lang-switcher button strong{display:none!important}
   .v2326-flag{font-size:25px}
 }
+
+/* V23.29 login hard-fix */
+#guestLanding input,#guestLanding button{pointer-events:auto!important}
+#guestLanding{pointer-events:auto!important}
+.v2321-lang-switcher{pointer-events:auto!important}
+.v2321-lang-switcher.switching{pointer-events:none!important}
