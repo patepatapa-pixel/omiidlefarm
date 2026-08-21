@@ -4823,3 +4823,12 @@ nav.tabs{display:flex!important;flex-wrap:wrap!important;justify-content:center;
 .v315-reroll-all{padding:10px 16px;border-radius:9px;border:1px solid #e1aa32;background:linear-gradient(180deg,#ffd465,#e7aa31);color:#171006;font-weight:1000;cursor:pointer;box-shadow:0 0 14px rgba(232,174,49,.18)}
 .v315-reroll-all:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.05)}
 .v315-reroll-all:disabled{opacity:.45;cursor:not-allowed}
+
+/* V23.17 voluntary support notice */
+.v2317-support-notice{display:flex;gap:16px;align-items:flex-start;margin:0 0 16px;padding:18px;border:1px solid #8c6a2c;border-radius:14px;background:linear-gradient(120deg,#171109,#0c1219);box-shadow:0 0 18px rgba(222,168,52,.10)}
+.v2317-support-heart{display:grid;place-items:center;flex:0 0 48px;width:48px;height:48px;border-radius:13px;background:#21130f;border:1px solid #70402f;font-size:25px}
+.v2317-support-notice small{color:#e0aa43;font-weight:1000;letter-spacing:.11em}
+.v2317-support-notice h2{margin:3px 0 8px;color:#fff0b0}
+.v2317-support-notice p{margin:6px 0;color:#bdc5cf;line-height:1.5}
+.v2317-support-notice strong{display:block;margin-top:10px;color:#9ee0ad;font-size:12px}
+@media(max-width:650px){.v2317-support-notice{display:block}.v2317-support-heart{margin-bottom:10px}}
