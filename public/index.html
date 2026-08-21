@@ -114,9 +114,25 @@
         <div><h2>⚔️ Saját karakter</h2><small>Felszereld a tárgyakat, aurákat és peteket, hogy egyre erősebb legyél!</small></div>
       </div>
 
-      <div class="v15-character-stage">
-        <div class="v168-character-system">
-          <div class="v168-avatar">
+      <div class="v15-character-stage v23199-character-stage">
+        <div class="v168-character-system v23199-character-system">
+          <div class="v23199-stage-bg" aria-hidden="true">
+            <span class="v23199-orb orb-a"></span>
+            <span class="v23199-orb orb-b"></span>
+            <span class="v23199-orb orb-c"></span>
+            <span class="v23199-rune rune-a">✦</span>
+            <span class="v23199-rune rune-b">✧</span>
+            <span class="v23199-rune rune-c">◆</span>
+          </div>
+
+          <div class="v23199-power-crown">
+            <small>⚔️ ÖSSZERŐ</small>
+            <strong id="v23199HeroPower">0</strong>
+            <span id="v23199HeroRank">Kezdő</span>
+          </div>
+
+          <div class="v168-avatar v23199-avatar">
+            <div class="v23199-portal"></div>
             <div class="v168-aura" id="dynAura"></div>
             <div class="v168-body">
               <div class="v168-head"></div>
@@ -125,11 +141,18 @@
               <div class="v168-leg left"></div><div class="v168-leg right"></div>
               <div class="v168-hand-item" id="dynWeapon"></div>
             </div>
+            <div class="v23199-ground-ring"></div>
           </div>
-          <div class="v168-slots" id="dynamicEquipSlots"></div>
-          <div class="hero-equipped-label" id="heroEquippedLabel">Nincs felszerelt tárgy</div>
+
+          <div class="v168-slots v23199-slots" id="dynamicEquipSlots"></div>
+
+          <div class="v23199-loadout-summary">
+            <span>✨ Felszerelési aura</span>
+            <b id="v23199RarityAura">Nincs</b>
+            <small id="heroEquippedLabel">Nincs felszerelt tárgy</small>
+          </div>
         </div>
-        </div>
+      </div>
 <div class="v15-bottom-stats">
           <div><span>✨ Aura</span><b id="v15Aura">Nincs aura</b></div>
           <div><span>🐾 Pet</span><b id="v15Pet">Nincs</b></div>

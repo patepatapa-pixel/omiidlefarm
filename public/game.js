@@ -477,7 +477,7 @@ function renderCharacterVisual(){
  const aura=$("#characterAura"),best=highestEquippedRarity();
  if(aura){
    aura.className="character-aura";
-   if(best && ["epic","mythic","legendary"].includes(best))aura.classList.add("active",best);
+   if(best && ["epic","mythic","legendary","imperial","celestial","eternal"].includes(best))aura.classList.add("active",best);
  }
  if($("#activeAuraName"))$("#activeAuraName").textContent=
    best==="legendary"?"Legendás arany aura":
@@ -1305,7 +1305,7 @@ function normalizedRarity(r){
  r=String(r||"normal").toLowerCase();
  if(r==="common")return "normal";
  if(r==="mistic"||r==="mystic")return "mythic";
- return ["normal","rare","epic","mythic","legendary"].includes(r)?r:"normal";
+ return ["normal","rare","epic","mythic","legendary","imperial","celestial","eternal"].includes(r)?r:"normal";
 }
 function dynamicItemIcon(slot,it){
  const icons={helmet:"🪖",armor:"🛡️",boots:"🥾",weapon:"⚔️",gloves:"🧤",ring:"💍"};
@@ -1315,19 +1315,51 @@ function dynamicItemIcon(slot,it){
 function renderDynamicEquipment(){
  const root=$("#dynamicEquipSlots"); if(!root)return;
  const order=["helmet","armor","boots","weapon","gloves","ring"];
+ const rarityLabel={
+   normal:"Common",rare:"Rare",epic:"Epic",mythic:"Mythic",legendary:"Legendary",
+   imperial:"Imperial",celestial:"Celestial",eternal:"Eternal",empty:"Üres"
+ };
+ const rarityRank={normal:0,rare:1,epic:2,mythic:3,legendary:4,imperial:5,celestial:6,eternal:7};
+
+ function safeItemPower(it){
+   if(!it)return 0;
+   try{
+     const st=typeof itemStats==="function"?itemStats(it):{};
+     const opts=Array.isArray(it.options)?it.options:[];
+     const optPower=opts.reduce((sum,o)=>{
+       const w={atkPct:22,defPct:15,crit:30,bossDmg:14,hpPct:7,hpRegen:5,drop:4,gold:3,pvpDmg:2}[o?.key]||2;
+       return sum+Math.max(0,Number(o?.value||0))*w;
+     },0);
+     return Math.max(1,Math.floor(
+       Number(st.atk||0)*3.2 +
+       Number(st.def||0)*2 +
+       Number(st.crit||0)*2600 +
+       Number(it.plus||0)*55 +
+       optPower
+     ));
+   }catch(e){return Math.max(1,Number(it.plus||0)*50+10)}
+ }
+
  root.innerHTML=order.map(slot=>{
    const it=equipObj(slot);
    const rarity=it?normalizedRarity(it.rarity):"empty";
    const plus=it?Math.max(0,Math.min(15,Number(it.plus||0))):0;
-   const rarityLabel={normal:"Common",rare:"Rare",epic:"Epic",mythic:"Mythic",legendary:"Legendary",empty:"Üres"}[rarity];
-   return `<div class="v168-slot v168-${slot} rarity-${rarity}">
-      <div class="v168-icon">${dynamicItemIcon(slot,it)}</div>
-      <div class="v168-slottext">
+   const powerValue=it?safeItemPower(it):0;
+   const options=it&&Array.isArray(it.options)?it.options.slice(0,3):[];
+   const optHtml=options.length
+     ? `<div class="v23199-card-options">${options.map(o=>`<span>${typeof itemOptionText==="function"?itemOptionText(o):`${o.key} +${o.value}`}</span>`).join("")}</div>`
+     : "";
+   return `<article class="v168-slot v23199-gear-card v168-${slot} rarity-${rarity}" data-rarity="${rarity}" data-slot="${slot}">
+      <div class="v23199-card-glow"></div>
+      <div class="v168-icon v23199-gear-icon">${dynamicItemIcon(slot,it)}</div>
+      <div class="v168-slottext v23199-gear-text">
         <small>${SLOT_NAMES[slot]||slot}</small>
         <b>${it?it.name:"Üres"}</b>
-        <strong>${it?rarityLabel+" · +"+plus:"Nincs felszerelve"}</strong>
+        <strong>${it?rarityLabel[rarity]+" · +"+plus:"Nincs felszerelve"}</strong>
+        ${it?`<em>⚔️ +${typeof fmt==="function"?fmt(powerValue):powerValue} erő</em>`:""}
       </div>
-    </div>`;
+      ${optHtml}
+    </article>`;
  }).join("");
 
  const weapon=equipObj("weapon");
@@ -1344,11 +1376,43 @@ function renderDynamicEquipment(){
      hand.removeAttribute("title");
    }
  }
+
  const equipped=order.map(equipObj).filter(Boolean);
  const label=$("#heroEquippedLabel");
- if(label) label.textContent=equipped.length
+ if(label)label.textContent=equipped.length
    ? equipped.map(it=>`${it.name} +${Math.max(0,Math.min(15,Number(it.plus||0)))}`).join(" · ")
    : "Nincs felszerelt tárgy";
+
+ const totalPower=(()=>{try{return Math.max(0,Number(power()||0))}catch(e){return 0}})();
+ const heroPower=$("#v23199HeroPower");
+ if(heroPower)heroPower.textContent=typeof fmt==="function"?fmt(totalPower):String(totalPower);
+ const heroRank=$("#v23199HeroRank");
+ if(heroRank)heroRank.textContent=typeof rankName==="function"?rankName():"Harcos";
+
+ const best=equipped.reduce((best,it)=>{
+   const r=normalizedRarity(it?.rarity);
+   return rarityRank[r]>(rarityRank[best]??-1)?r:best;
+ },"normal");
+ const auraLabel=$("#v23199RarityAura");
+ if(auraLabel)auraLabel.textContent={
+   normal:"Alap aura",rare:"Rare aura",epic:"Epic aura",mythic:"Mythic aura",
+   legendary:"Legendary arany aura",imperial:"Imperial bíbor aura",
+   celestial:"Celestial égi aura",eternal:"Eternal isteni aura"
+ }[best]||"Alap aura";
+
+ const system=root.closest(".v23199-character-system");
+ if(system){
+   ["normal","rare","epic","mythic","legendary","imperial","celestial","eternal"].forEach(r=>system.classList.remove("hero-rarity-"+r));
+   system.classList.add("hero-rarity-"+best);
+ }
+
+ root.querySelectorAll(".v23199-gear-card").forEach(card=>{
+   card.addEventListener("mousemove",e=>{
+     const r=card.getBoundingClientRect();
+     card.style.setProperty("--mx",`${((e.clientX-r.left)/r.width*100).toFixed(1)}%`);
+     card.style.setProperty("--my",`${((e.clientY-r.top)/r.height*100).toFixed(1)}%`);
+   });
+ });
 }
 
 
@@ -6209,3 +6273,7 @@ window.OMI_LONGTERM_PRESTIGE_V23197={
    and the player has actually reached that area.
 */
 window.OMI_PARAGON_DISPLAY_FIX_V23198=true;
+
+/* V23.19.9 CHARACTER VISUAL REDESIGN
+   Visual-only character/equipment redesign. No gameplay or balance formulas changed. */
+window.OMI_CHARACTER_REDESIGN_V23199=true;
