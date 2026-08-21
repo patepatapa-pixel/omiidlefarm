@@ -61,7 +61,7 @@ const pool=new pg.Pool({
 const q=(text,params=[])=>pool.query(text,params);
 
 const DEFAULT_SAVE={
- gold:0,gems:10,ore:0,soul:0,tickets:3,level:1,xp:0,skillPoints:0,kills:0,zone:0,
+ gold:0,gems:10,ore:0,soul:0,tickets:3,prestigeTokens:0,level:1,xp:0,skillPoints:0,kills:0,zone:0,
  base:{weaponTraining:1,armorTraining:1,mining:1,luck:1},
  skills:{power:0,gold:0,crit:0,drop:0,offline:0,pet:0},
  inventory:[],equipped:{weapon:null,helmet:null,armor:null,gloves:null,boots:null,ring:null},
@@ -266,6 +266,10 @@ async function init(){
     updateContent.updates.unshift({id:"v22_56",version:"V22.56",title:"Elkülönített kaszinó és farmarany",date:"2026-08-21",summary:"A kaszinózás alatt termelt automata farmarany külön gyűlik, és csak kilépéskor kerül az egyenlegre.",changes:["A kaszinóba belépéskor rögzül az aktuális aranyegyenleg.","Az automata farm a Kaszinó fülön is tovább dolgozik, de jutalma külön számlálón gyűlik.","A farmarany nem zavarja meg a kaszinó nyereményének és veszteségének kijelzését.","A Kaszinó fül elhagyásakor a teljes összeg automatikusan hozzáadódik.","Kilépéskor látványos értesítés mutatja a hozzáadott farmaranyat.","Megszakadt munkamenet esetén a függő jutalom mentve marad és biztonságosan jóváíródik."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_57")){
+    updateContent.updates.unshift({id:"v22_57",version:"V22.57",title:"Prestige 100 fejlődési rendszer",date:"2026-08-21",summary:"A Paragon, Prestige, ranglista és Prestige Shop teljes hosszú távú fejlődési rendszerré alakult.",changes:["A valódi Prestige-rendszer maximuma 100.","Prestige 1-hez 10 Paragon kell, majd 4 Prestige-szintenként +1, legfeljebb 35.","A Paragon wave-követelménye fokozatosan 250-ről maximum 1500-ig nő.","Minden Prestige +0,5% sebzést és +0,25% automatafarm-sebességet ad.","Látható jutalomút készült a fontos Prestige-mérföldkövekhez.","Prestige 100 feloldja az ötödik pethelyet.","A Prestige Shop külön Prestige tokennel működik, új Prestige 15–100 aurákkal.","A Prestige-játékosok citromsárga ranglistasort és jelvényt kapnak.","A ranglista Prestige, Paragon, PvP rating, erő, szint és kill alapján rendez.","Az Automata Paragon kapcsoló az Autofarm oldalon is elérhető az admin által engedélyezett játékosoknak.","A 10× gyorsító, Automata Paragon, képességfa és gyűjthető rendszerek Prestige után megmaradnak."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
   const capMigration="v2246_wallet_caps";
   const capDone=(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[capMigration])).rows[0];
   if(!capDone){
@@ -315,7 +319,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.56.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.57.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{
@@ -555,10 +559,11 @@ app.get("/api/leaderboard",async(req,res)=>{
     const rows=(await q(`
       SELECT u.id,COALESCE(u.player_name,u.username) player_name,u.pvp_rating,
              g.power,g.level,g.kills,g.gold,g.updated_at,
-             COALESCE(NULLIF(g.save_data->>'paragonLevel','')::INTEGER,0) paragon_level
+             COALESCE(NULLIF(g.save_data->>'paragonLevel','')::INTEGER,0) paragon_level,
+             LEAST(100,COALESCE(NULLIF(g.save_data->>'prestigeLevel','')::INTEGER,0)) prestige_level
       FROM game_saves g JOIN users u ON u.id=g.user_id
       WHERE u.role='player' AND u.banned=FALSE AND u.leaderboard_hidden=FALSE
-      ORDER BY paragon_level DESC,u.pvp_rating DESC,g.power DESC,g.level DESC,g.kills DESC
+      ORDER BY prestige_level DESC,paragon_level DESC,u.pvp_rating DESC,g.power DESC,g.level DESC,g.kills DESC
       LIMIT 100
     `)).rows;
     res.json({rows:rows.map((r,i)=>({...r,rank:i+1}))});
@@ -710,6 +715,7 @@ function pvpStats(save){
   let hp=Math.floor(100+level*5+def*1.5+Number(save.paragonLevel||0)*8);
   const skillLv=k=>Math.max(0,Math.min(5,Math.floor(Number(save.skills?.[k]||0))));
   atk*=1+Math.min(1,Number(save.skills?.root||0))*.05+skillLv("power")*.06;
+  atk*=1+Math.min(.5,Number(save.prestigeLevel||0)*.005);
   const crit=Math.min(.70,.05+skillLv("crit")*.015+Number(ps.crit||0)*.005);
   const petPvP=1+Math.min(.60,(fusionMult-1)*.55);
   atk*=petPvP;
@@ -885,6 +891,7 @@ app.post("/api/admin/player/:id/state",auth,admin,async(req,res)=>{
     s.prestige=s.prestigeLevel||0;
     setNum(s,"paragonStatPoints",b.paragonStatPoints);
     setNum(s,"auraTokens",b.auraTokens);
+    setNum(s,"prestigeTokens",b.prestigeTokens);
     setNum(s,"skillPoints",b.skillPoints);
     setNum(s,"hpRegenLevel",b.hpRegenLevel);
     setNum(s,"kills",b.kills);

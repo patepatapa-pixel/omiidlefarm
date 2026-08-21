@@ -10,7 +10,7 @@
 <header class="topbar">
   <div class="brand"><span>⚔️ OMI</span> IDLE FARM <em>COMPLETE</em></div>
   <div class="top-actions">
-    <span class="build-version" id="buildVersionBadge">V22.56</span><span id="onlineUser">👤 Vendég</span>
+    <span class="build-version" id="buildVersionBadge">V22.57</span><span id="onlineUser">👤 Vendég</span>
     <button class="ghost" id="leaderboardBtn">🏆 Ranglista</button>
     <button class="ghost admin-only-btn" id="adminPanelBtn" style="display:none">⚙️ Adminpanel</button><button class="ghost" id="authBtn">Belépés</button>
     <span id="saveState">💾 Mentve</span>
@@ -214,6 +214,8 @@
         <div class="prestige-progress"><div id="prestigeProgress"></div></div>
         <small id="prestigeText">200-as szinten prestigelhetsz.</small>
         <button id="prestigeBtn" class="prestige-btn">👑 PRESTIGE</button>
+        <section class="true-prestige-v257"><div class="true-prestige-head-v257"><div><small>👑 HOSSZÚ TÁVÚ FEJLŐDÉS</small><b>Prestige <span id="truePrestigeLevelV257">0</span> / 100</b></div><strong>🟡 <span id="v15PrestigeTokens">0</span> TOKEN</strong></div><div class="true-prestige-bar-v257"><i id="truePrestigeProgress"></i></div><p id="truePrestigeProgressText">0 / 10 Paragon</p><button type="button" id="truePrestigeBtn">👑 PRESTIGE FELOLDÁSA</button><small>4 Prestige-szintenként +1 Paragon szükséges, maximum 35. Minden Prestige +0,5% sebzést és +0,25% farmsebességet ad.</small></section>
+        <section class="prestige-milestones-shell-v257"><div><small>🎁 PRESTIGE JUTALOMÚT</small><h3>Mérföldkövek és feloldások</h3><p>Minden jutalom előre látható. A megszerzett prémium 10× gyorsítás és Automata Paragon minden Prestige után megmarad.</p></div><div id="prestigeMilestonesV257"></div></section>
         <div class="auto-paragon-control-v238" id="autoParagonControl">
           <div><b>🌟 Automata Paragon szintelő</b><small id="autoParagonHint">Prémium jogosultság szükséges.</small></div>
           <label class="auto-paragon-switch-v238"><input type="checkbox" id="autoParagonToggle"><span>BEKAPCSOLÁS</span></label>
@@ -224,7 +226,7 @@
       <div class="paragon-guide-head"><div><small>MIÉRT ÉRI MEG?</small><h3>🌟 Minél magasabb a Paragon, annál könnyebb a következő kör</h3></div><span>ÁLLANDÓ FEJLŐDÉS</span></div>
       <p>A kiosztott Paragon statjaid minden új Paragon szinten erősebbé válnak. A már kiosztott pontok és bónuszaik az újrakezdés után is megmaradnak.</p>
       <div class="paragon-scale-examples"><div><b>Paragon 1</b><strong>1 Sebzés pont = +2%</strong></div><div><b>Paragon 2</b><strong>1 Sebzés pont = +4%</strong></div><div><b>Paragon 3</b><strong>1 Sebzés pont = +6%</strong></div><div><b>Paragon 5</b><strong>1 Sebzés pont = +10%</strong></div></div>
-      <div class="paragon-reset-grid"><div class="paragon-lost"><h4>🔄 A karakter újrakezdésekor resetelődik</h4><span>⭐ Karakterszint és XP</span><span>🌊 Wave számod és wave-haladásod</span><span>📊 Normál karakterstatok és alap fejlesztések</span><span>🌳 Teljes skillfa és el nem költött pontok</span><span>⚔️ Inventory és minden felszerelés</span><span>💰 Arany · 💎 Gyémánt · ⛏️ Érc</span></div><div class="paragon-kept"><h4>✅ Megmarad</h4><span>☠️ Teljes kill számod</span><span>🔵 Lélekkő · 🎫 Dungeon token</span><span>🐾 Petek és megnyitott pethelyek</span><span>🏆 Achievementek · aurák · gyorsítás</span><span>🌟 Kiosztott Paragon statok</span></div></div>
+      <div class="paragon-reset-grid"><div class="paragon-lost"><h4>🔄 Paragonkor resetelődik</h4><span>⭐ Karakterszint és XP</span><span>🌊 Wave és wave-haladás</span><span>📊 Normál statok és alap fejlesztések</span><span>⚔️ Inventory és felszerelés</span><span>💰 Arany · 💎 Gyémánt · ⛏️ Érc</span></div><div class="paragon-kept"><h4>✅ Megmarad</h4><span>🌳 Teljes képességfa</span><span>☠️ Teljes kill szám</span><span>🔵 Lélekkő · 🎫 Dungeon token</span><span>🐾 Petek · hátasok · aurák</span><span>🌟 Kiosztott Paragon statok</span></div></div>
       <div class="paragon-guide-note">Minden Paragon szintlépés után 5 új Paragon statpontot és 1 Aura tokent kapsz.</div>
     </section>
     <section class="card v15-sidebox">
@@ -256,7 +258,7 @@
       </div>
       <div class="aura-page-counters">
         <div><small>👑 Prestige</small><b id="auraPagePrestige">0</b></div>
-        <div><small>✨ Aura token</small><b id="auraPageTokens">0</b></div>
+        <div><small>🟡 Prestige token</small><b id="prestigeTokens">0</b></div>
         <div><small>🌟 Paragon</small><b id="auraPageParagon">0</b></div>
       </div>
     </section>
@@ -300,6 +302,7 @@
         </div>
         <small class="speed-note-v165">1× / 2× / 3× ingyenes. A 10× prémium sebesség ára a Feltöltés fülön látható.</small>
       </div>
+      <div class="autofarm-paragon-v257"><div><small>🌟 PRÉMIUM AUTOMATIZÁLÁS</small><b>Automata Paragon szintelő</b><span id="autoParagonFarmHint">Adminaktiválás szükséges.</span></div><label><input type="checkbox" id="autoParagonFarmToggle"><strong>BEKAPCSOLÁS</strong></label><button type="button" id="autoParagonFarmShop">💳 FELTÖLTÉS</button></div>
 <div class="wave-panel">
  <div><small>WAVE</small><b id="waveNumber">1</b></div>
  <div><small>KILL</small><b><span id="waveKills">0</span>/<span id="waveGoal">10</span></b></div>
@@ -560,7 +563,7 @@
 </div>
 
 <section class="card">
-  <div class="title-row"><div><h2>🐾 Pet rendszer</h2><small>Legfeljebb 4 pet szerelhető fel. Az első hely ingyenes, a többi gyémántért oldható fel.</small></div><div class="pet-title-actions"><small id="petSummonRates" class="pet-summon-rates">Common 55% · Rare 28% · Epic 12% · Mythic 4% · Legendary 1%</small><button id="equipBestPets" class="pet-equip-best">🐾 EQUIP BEST</button><button id="petSummon">🎲 Pet idézés · 10 💎</button></div></div>
+  <div class="title-row"><div><h2>🐾 Pet rendszer</h2><small>Alapból legfeljebb 4 pet szerelhető fel. Az ötödik pethely kizárólag Prestige 100 jutalma.</small></div><div class="pet-title-actions"><small id="petSummonRates" class="pet-summon-rates">Common 55% · Rare 28% · Epic 12% · Mythic 4% · Legendary 1%</small><button id="equipBestPets" class="pet-equip-best">🐾 EQUIP BEST</button><button id="petSummon">🎲 Pet idézés · 10 💎</button></div></div>
   <div id="petSlots" class="pet-slot-grid"></div>
   <div id="pets" class="pet-grid"></div>
 </section>

@@ -143,7 +143,7 @@ ACH.forEach(a=>{if(V2241_ACH_GOALS[a.id])a.target=V2241_ACH_GOALS[a.id]});
 DUNGEONS.forEach((d,i)=>{const needs=[80,450,1800,6000],gold=[350,1200,3500,9000];d.need=needs[i];d.rewardGold=gold[i];d.hp=Math.max(100,d.need*5)});
 
 let save=JSON.parse(localStorage.getItem("omiIdleComplete")||"null")||{
- gold:0,gems:10,ore:0,soul:0,tickets:3,level:1,xp:0,skillPoints:0,kills:0,zone:0,
+ gold:0,gems:10,ore:0,soul:0,tickets:3,prestigeTokens:0,level:1,xp:0,skillPoints:0,kills:0,zone:0,
  base:{weaponTraining:1,armorTraining:1,mining:1,luck:1},skills:{power:0,gold:0,crit:0,drop:0,offline:0,pet:0},
  inventory:[],equipped:{weapon:null,helmet:null,armor:null,gloves:null,boots:null,ring:null},
  pets:[],activePet:null,activePets:[],petSlotsUnlocked:1,skillTreeVersion:3,stats:{goldEarned:0,itemsFound:0,legendary:0,bosses:0,dungeons:0,critHits:0,playSeconds:0},
@@ -169,14 +169,15 @@ function normalizeV6Save(s){
  s.inventory.forEach(it=>{if(!it||typeof it!=="object")return;it.gold=0;if(Array.isArray(it.options))it.options=it.options.filter(o=>o?.key!=="gold")});
  s.equipped={weapon:null,helmet:null,armor:null,gloves:null,boots:null,ring:null,...(s.equipped||{})};
  s.pets=Array.isArray(s.pets)?s.pets:[];
- s.activePets=Array.isArray(s.activePets)?s.activePets.filter(i=>Number.isInteger(i)&&i>=0&&i<s.pets.length).slice(0,4):[];
+ const prestigePetCap=Number(s.prestigeLevel||0)>=100?5:4;
+ s.activePets=Array.isArray(s.activePets)?s.activePets.filter(i=>Number.isInteger(i)&&i>=0&&i<s.pets.length).slice(0,prestigePetCap):[];
  if(!s.activePets.length&&Number.isInteger(s.activePet)&&s.activePet>=0&&s.activePet<s.pets.length)s.activePets=[s.activePet];
- s.petSlotsUnlocked=Math.max(1,Math.min(4,Math.floor(Number(s.petSlotsUnlocked||1))));
+ s.petSlotsUnlocked=Math.max(1,Math.min(prestigePetCap,Math.floor(Number(s.petSlotsUnlocked||1))));if(Number(s.prestigeLevel||0)>=100)s.petSlotsUnlocked=5;
  s.activePets=s.activePets.slice(0,s.petSlotsUnlocked);s.activePet=s.activePets[0]??null;
  s.stats={goldEarned:0,itemsFound:0,legendary:0,bosses:0,dungeons:0,critHits:0,playSeconds:0,...(s.stats||{})};
  s.dailyClaimed=s.dailyClaimed||{};s.achClaimed=s.achClaimed||{};s.achievementPoints=Math.max(0,Number(s.achievementPoints||0));s.dailyBaseline=s.dailyBaseline&&typeof s.dailyBaseline==="object"?s.dailyBaseline:null;s.last=Number(s.last||Date.now());s.lastDaily=s.lastDaily||new Date().toDateString();s.uid=Math.max(1,Number(s.uid||1));
  s.wave=Math.max(1,Number(s.wave||1));s.waveKills=Math.max(0,Number(s.waveKills||0));s.waveGoal=Math.max(1,Number(s.waveGoal||10));s.waveBoss=Boolean(s.waveBoss);s.bossHp=Math.max(0,Number(s.bossHp||0));
- s.paragonLevel=Math.max(0,Number(s.paragonLevel||0));s.prestigeLevel=Math.max(0,Number(s.prestigeLevel||0));s.paragonPoints=Math.max(0,Number(s.paragonPoints||0));s.auraTokens=Math.max(0,Number(s.auraTokens||0));
+ s.paragonLevel=Math.max(0,Number(s.paragonLevel||0));s.prestigeLevel=Math.max(0,Math.min(100,Number(s.prestigeLevel||0)));s.paragonPoints=Math.max(0,Number(s.paragonPoints||0));s.auraTokens=Math.max(0,Number(s.auraTokens||0));s.prestigeTokens=Math.max(0,Number(s.prestigeTokens||0));
  s.paragonStats={damage:0,gold:0,drop:0,crit:0,...(s.paragonStats||{})};
  s.ownedAuras=Array.isArray(s.ownedAuras)?s.ownedAuras:["none"];if(!s.ownedAuras.includes("none"))s.ownedAuras.unshift("none");
  s.activeAura=s.activeAura||"none";
@@ -197,6 +198,7 @@ save.waveBoss=Boolean(save.waveBoss||false);
 save.bossHp=Number(save.bossHp||0);
 save.paragonLevel=Number(save.paragonLevel||0);
 save.prestigeLevel=Number(save.prestigeLevel||0);
+save.prestigeTokens=Number(save.prestigeTokens||0);
 save.paragonPoints=Number(save.paragonPoints||0);
 save.auraTokens=Number(save.auraTokens||0);
 save.paragonStats=save.paragonStats||{damage:0,gold:0,drop:0,crit:0};
@@ -231,7 +233,7 @@ function bonuses(){
 }
 function damage(){
  let b=bonuses(),io=itemOptionBonuses(),base=5+save.level*.65+save.base.weaponTraining*2.2+b.atk;
- let total=base*(1+skillBonus("power")+Math.min(4,save.paragonStats.damage*.02*save.paragonLevel))*(1+io.atkPct/100);
+ let total=base*(1+skillBonus("power")+Math.min(4,save.paragonStats.damage*.02*save.paragonLevel))*(1+io.atkPct/100)*(1+Math.min(.5,Number(save.prestigeLevel||0)*.005));
  if(save.waveBoss)total*=1+io.bossDmg/100;
  if(save.waveBoss)total*=1+skillBonus("boss");
  return Math.max(1,Math.floor(total))
@@ -736,7 +738,7 @@ function petEquipScore(p){
  return petBonusEntries(p).reduce((sum,x)=>sum+Math.max(0,Number(x.value||0))*(weights[x.bonus]||1),0)+(rarity[p.rarity]||0);
 }
 function equipBestPets(){
- const slots=Math.max(1,Math.min(4,Number(save.petSlotsUnlocked||1)));
+ const slots=Math.max(1,Math.min(save.prestigeLevel>=100?5:4,Number(save.petSlotsUnlocked||1)));
  const ranked=save.pets.map((pet,index)=>({pet,index,score:petEquipScore(pet)})).filter(x=>x.pet).sort((a,b)=>b.score-a.score||b.index-a.index);
  if(!ranked.length)return toast("🐾 Még nincs felszerelhető peted.");
  const selected=ranked.slice(0,slots).map(x=>x.index),same=selected.length===save.activePets.length&&selected.every((x,i)=>x===save.activePets[i]);
@@ -746,8 +748,9 @@ function equipBestPets(){
 function renderPets(){
  const eco=economyCfg(),costs=[0,...eco.petSlotCosts],active=save.activePets||[];
  const petBonus=p=>petBonusText(p);
- if($("#petSlots"))$("#petSlots").innerHTML=[0,1,2,3].map(i=>{
+ if($("#petSlots"))$("#petSlots").innerHTML=[0,1,2,3,4].map(i=>{
    const petIndex=active[i],pet=petIndex!==undefined?save.pets[petIndex]:null;
+   if(i===4&&save.prestigeLevel<100)return `<article class="pet-slot-card pet-slot-locked prestige-pet-slot-v257"><div class="pet-slot-top"><span class="pet-slot-number">5. PETHELY</span><span class="pet-slot-lock">👑 PRESTIGE 100</span></div><div class="pet-slot-price"><small>VÉGSŐ PRESTIGE JUTALOM</small><strong>🐾 ÖTÖDIK PET</strong><span>Prestige 100-nál automatikusan feloldódik</span></div><button disabled>🔒 PRESTIGE 100 SZÜKSÉGES</button></article>`;
    if(i>=save.petSlotsUnlocked)return `<article class="pet-slot-card pet-slot-locked"><div class="pet-slot-top"><span class="pet-slot-number">${i+1}. PETHELY</span><span class="pet-slot-lock">🔒 ZÁROLVA</span></div><div class="pet-slot-price"><small>FELOLDÁSI ÁR</small><strong>💎 ${costs[i]}</strong><span>GYÉMÁNT</span></div><button class="pet-slot-buy" data-buy-pet-slot="${i}">🔓 HELY FELOLDÁSA</button></article>`;
    if(pet)return `<article class="pet-slot-card pet-slot-filled rarity-${pet.rarity||"normal"} fusion-${window.v231PetTier?.(pet)||"common"}"><div class="pet-slot-top"><span class="pet-slot-number">${i+1}. PETHELY</span><span class="pet-slot-status">✓ FELSZERELVE</span></div><div class="pet-slot-hero"><div class="pet-slot-icon">${pet.icon||"🐾"}</div><div class="pet-slot-info"><strong>${pet.name||"Pet"}</strong><span>${petBonus(pet)}</span><small>${window.v231PetTierName?.(pet)||"Common"} kraft · ${pet.rarity||"normal"}</small></div></div><div class="pet-slot-glow"></div></article>`;
    return `<article class="pet-slot-card pet-slot-empty"><div class="pet-slot-top"><span class="pet-slot-number">${i+1}. PETHELY</span><span class="pet-slot-free">NYITVA</span></div><div class="pet-slot-empty-body"><div>＋</div><strong>ÜRES PETHELY</strong><small>Válassz egy petet az alsó listából</small></div></article>`;
@@ -806,8 +809,25 @@ const AURAS=[
  {id:"purple",name:"Lila misztikus aura",className:"aura-purple",cost:2,need:2},
  {id:"crimson",name:"Bíbor démon aura",className:"aura-crimson",cost:3,need:3},
  {id:"gold",name:"Legendás arany aura",className:"aura-gold",cost:5,need:5},
- {id:"void",name:"Void isteni aura",className:"aura-void",cost:8,need:8}
+ {id:"void",name:"Void isteni aura",className:"aura-void",cost:8,need:8},
+ {id:"solar",name:"Napkorona aura",className:"aura-gold",cost:12,need:15},
+ {id:"astral",name:"Asztrális aura",className:"aura-purple",cost:18,need:25},
+ {id:"emperor",name:"Császári fény",className:"aura-gold",cost:28,need:40},
+ {id:"eternal",name:"Eternal citromfény",className:"aura-gold",cost:45,need:60},
+ {id:"centurion",name:"Prestige 100 korona",className:"aura-gold",cost:75,need:100}
 ];
+function prestigeParagonRequirement(){const p=Math.max(0,Number(save.prestigeLevel||0));return p>=96?35:Math.min(35,10+Math.floor(p/4))}
+function prestigeCap(){return 100}
+const PRESTIGE_MILESTONES_V257=[
+ {level:1,title:"Az első újjászületés",reward:"1 Prestige token",icon:"👑"},
+ {level:5,title:"Aura-avatás",reward:"+1 Aura token",icon:"✨"},
+ {level:10,title:"Évtizedes hős",reward:"+2 extra Prestige token",icon:"🟡"},
+ {level:25,title:"Hátasmester",reward:"+10 hátastöredék",icon:"🐎"},
+ {level:50,title:"Kazamaták ura",reward:"+5 Dungeon token",icon:"🏰"},
+ {level:75,title:"Fényhozó",reward:"+5 Aura token",icon:"🌟"},
+ {level:100,title:"Eternal legenda",reward:"ÖTÖDIK PETHELY + Prestige 100 aura",icon:"🐾"}
+];
+function renderPrestigeMilestonesV257(){const root=$("#prestigeMilestonesV257");if(!root)return;const next=PRESTIGE_MILESTONES_V257.find(x=>x.level>save.prestigeLevel)?.level;root.innerHTML=PRESTIGE_MILESTONES_V257.map(m=>`<article class="prestige-milestone-v257 ${save.prestigeLevel>=m.level?"claimed":next===m.level?"next":"locked"}"><i>${m.icon}</i><div><small>PRESTIGE ${m.level}</small><b>${m.title}</b><span>${m.reward}</span></div><em>${save.prestigeLevel>=m.level?"✓ MEGSZEREZVE":next===m.level?"KÖVETKEZŐ":"ZÁROLVA"}</em></article>`).join("")}
 function itemScore(it){
  if(!it)return -1;
  const st=itemStats(it),rar={normal:1,rare:1.4,epic:2,mythic:3,legendary:4}[it.rarity]||1;
@@ -880,12 +900,21 @@ function renderParagon(){
  setText("auraTokens",save.auraTokens);
 
  setText("v15Prestige",save.prestigeLevel);
+ setText("truePrestigeLevelV257",save.prestigeLevel);
  setText("v15ParagonTop",save.paragonLevel);
  setText("v15StatPoints",save.paragonPoints);
  setText("v15AuraTokens",save.auraTokens);
+ setText("prestigeTokens",save.prestigeTokens);
+ setText("v15PrestigeTokens",save.prestigeTokens);
 
  const prog=$("#prestigeProgress");
  if(prog)prog.style.width=Math.min(100,(save.wave/req)*100)+"%";
+
+ const prestigeReq=prestigeParagonRequirement(),prestigeMax=save.prestigeLevel>=prestigeCap(),prestigeEligible=!prestigeMax&&save.paragonLevel>=prestigeReq;
+ setText("truePrestigeProgressText",prestigeMax?"MAXIMUM PRESTIGE ELÉRVE":`${save.paragonLevel} / ${prestigeReq} Paragon`);
+ const prestigeBar=$("#truePrestigeProgress");if(prestigeBar)prestigeBar.style.width=(prestigeMax?100:Math.min(100,save.paragonLevel/prestigeReq*100))+"%";
+ const prestigeBtn=$("#truePrestigeBtn");if(prestigeBtn){prestigeBtn.disabled=!prestigeEligible;prestigeBtn.textContent=prestigeMax?"👑 PRESTIGE 100 · MAX":prestigeEligible?`👑 PRESTIGE ${save.prestigeLevel+1}`:`👑 KELL MÉG ${Math.max(0,prestigeReq-save.paragonLevel)} PARAGON`}
+ renderPrestigeMilestonesV257();
 
  const text=$("#prestigeText"),paragonScale=Math.max(1,save.paragonLevel);
  if(text)text.textContent=(eligible
@@ -914,7 +943,7 @@ function renderParagon(){
  if(shop){
    shop.innerHTML=AURAS.map(a=>{
      const owned=save.ownedAuras.includes(a.id),active=save.activeAura===a.id,locked=save.prestigeLevel<a.need;
-     return `<div class="aura-card ${active?"active":""}"><b>✨ ${a.name}</b><small>${a.id==="none"?"Alap":`Prestige ${a.need} · ${a.cost} Aura token`}</small><button data-aura="${a.id}" ${locked?"disabled":""}>${active?"Aktív":owned?"Aktiválás":"Megvásárlás"}</button></div>`
+     return `<div class="aura-card ${active?"active":""}"><b>✨ ${a.name}</b><small>${a.id==="none"?"Alap":`Prestige ${a.need} · ${a.cost} Prestige token`}</small><button data-aura="${a.id}" ${locked?"disabled":""}>${active?"Aktív":owned?"Aktiválás":"Megvásárlás"}</button></div>`
    }).join("");
    $$("[data-aura]").forEach(b=>b.onclick=()=>buyOrEquipAura(b.dataset.aura));
  }
@@ -942,17 +971,39 @@ function doPrestige(automatic=false){
  renderAll();
   toast(`🌟 Paragon ${save.paragonLevel}! 1 Sebzés statpont most +${save.paragonLevel*2}%-ot ad.`);
 }
+function doTruePrestige(){
+ const cap=prestigeCap(),req=prestigeParagonRequirement();
+ if(save.prestigeLevel>=cap)return toast("👑 Elérted a Prestige 100 maximumot!");
+ if(save.paragonLevel<req)return toast(`🔒 Prestige ${save.prestigeLevel+1} követelménye: ${req} Paragon.`);
+ const next=save.prestigeLevel+1,tokenReward=1+(next%10===0?2:0);
+ if(!confirm(`PRESTIGE ${next}?\n\nKövetelmény teljesítve: ${save.paragonLevel} / ${req} Paragon.\nJutalom: ${tokenReward} Prestige token és állandó Prestige erősítés.\n\nRESETELŐDIK: a felhasznált Paragon-szint, wave, karakter szint/XP, normál fejlesztések, inventory, felszerelés, arany, gyémánt és érc.\nMEGMARAD: kiosztott Paragon statok és pontok, teljes képességfa, Prestige tokenek, lélekkő, dungeon- és aura token, petek, hátasok, aurák, achievementek, kill, PvP rating, 10× gyorsítás és Automata Paragon.`))return;
+ save.prestigeLevel=next;save.prestigeTokens=Number(save.prestigeTokens||0)+tokenReward;
+ if(next===5)save.auraTokens=Number(save.auraTokens||0)+1;
+ if(next===10)save.prestigeTokens+=2;
+ if(next===25)save.mountShards=Number(save.mountShards||0)+10;
+ if(next===50)save.tickets=Number(save.tickets||0)+5;
+ if(next===75)save.auraTokens=Number(save.auraTokens||0)+5;
+ if(next===100)save.petSlotsUnlocked=5;
+ save.paragonLevel=0; // A kiosztott Paragon statok és a megmaradt pontok tartósak.
+ save.level=1;save.xp=0;save.wave=1;save.waveKills=0;save.waveGoal=8;save.waveBoss=false;save.bossHp=0;save.zone=0;
+ save.base={weaponTraining:1,armorTraining:1,mining:1,luck:1};save.gold=0;save.gems=0;save.ore=0;
+ save.inventory=[];save.equipped={weapon:null,helmet:null,armor:null,gloves:null,boots:null,ring:null};
+ save.playerHp=0;save.deaths=0;save.respawnUntil=0;enemyHp=normalEnemyMaxHp();v10EnsurePlayerHp();
+ persist();if(currentUser&&cloudReady){cloudSave();setTimeout(()=>cloudSave(),900)}renderAll();
+ const milestone=PRESTIGE_MILESTONES_V257.find(x=>x.level===next);toast(`👑 PRESTIGE ${next}! +${tokenReward} Prestige token${milestone?` · ${milestone.reward}`:""}`);
+}
 function buyOrEquipAura(id){
  const a=AURAS.find(x=>x.id===id);if(!a)return;
  if(!save.ownedAuras.includes(id)){
    if(save.prestigeLevel<a.need)return toast("🔒 Magasabb Prestige szint szükséges.");
-   if(save.auraTokens<a.cost)return toast("Nincs elég Aura token.");
-   save.auraTokens-=a.cost;save.ownedAuras.push(id);
+   if(save.prestigeTokens<a.cost)return toast("Nincs elég Prestige token.");
+   save.prestigeTokens-=a.cost;save.ownedAuras.push(id);
  }
  save.activeAura=id;persist();renderAll();toast("✨ Aura aktiválva: "+a.name);
 }
 $("#equipBestBtn")?.addEventListener("click",equipBest);
 $("#prestigeBtn")?.addEventListener("click",doPrestige);
+$("#truePrestigeBtn")?.addEventListener("click",doTruePrestige);
 
 
 
@@ -1260,7 +1311,7 @@ async function loadLeaderboard(){
  try{
   const d=await api("/api/leaderboard");
   $("#leaderboard").innerHTML=`<div class="leader-row head"><span>HELY</span><span>JÁTÉKOS</span><span>PVP RATING</span><span>ERŐ</span><span>SZINT</span><span>KILL</span></div>`+
-   d.rows.map(r=>{const pg=Math.max(0,Number(r.paragon_level||0));return `<div class="leader-row ${pg>0?"leader-paragon":""}"><span class="leader-rank">${r.rank<=3?["🥇","🥈","🥉"][r.rank-1]:"#"+r.rank}</span><span class="leader-name">${r.player_name||r.username}${pg>0?`<b class="paragon-rank-badge">✦ PARAGON ${pg}</b>`:""}</span><span class="leader-pvp-rating-v244">⚔️ ${fmt(r.pvp_rating||0)}</span><span>${fmt(r.power)}</span><span>Lv.${r.level}</span><span>${fmt(r.kills)}</span></div>`}).join("");
+   d.rows.map(r=>{const pg=Math.max(0,Number(r.paragon_level||0)),pr=Math.max(0,Math.min(100,Number(r.prestige_level||0)));return `<div class="leader-row ${pr>0?"leader-prestige-v257":pg>0?"leader-paragon":""}"><span class="leader-rank">${r.rank<=3?["🥇","🥈","🥉"][r.rank-1]:"#"+r.rank}</span><span class="leader-name">${r.player_name||r.username}${pr>0?`<b class="prestige-rank-badge-v257">👑 PRESTIGE ${pr}</b>`:""}${pg>0?`<b class="paragon-rank-badge">✦ PARAGON ${pg}</b>`:""}</span><span class="leader-pvp-rating-v244">⚔️ ${fmt(r.pvp_rating||0)}</span><span>${fmt(r.power)}</span><span>Lv.${r.level}</span><span>${fmt(r.kills)}</span></div>`}).join("");
  }catch(e){$("#leaderboard").innerHTML=`<p class="muted">${e.message}</p>`}
 }
 $("#adminPanelBtn").onclick=()=>location.href="/admin";
@@ -1415,8 +1466,11 @@ function applyWaveGoal(){
 
 // ================= V15.5 WAVE / BOSS / PARAGON RULES =================
 function paragonWaveRequirement(){
-  // Kompakt idle kör: Paragon 1 = wave 250, majd körönként +10 wave.
-  return 250 + Math.max(0,Number(save.paragonLevel||0))*10;
+  const next=Math.max(1,Math.floor(Number(save.paragonLevel||0))+1);
+  if(next<=5)return 250+(next-1)*25;
+  if(next<=10)return 350+(next-5)*35;
+  if(next<=20)return Math.round(525+(next-10)*47.5);
+  return Math.min(1500,1000+(next-20)*50);
 }
 function isBossCheckpointWave(wave){
   return Number(wave||1)%10===0;
@@ -1488,7 +1542,8 @@ function v10EnsurePlayerHp(){
 
 function effectiveCombatSpeed(){
  const n=[1,2,3,10].includes(Number(save.combatSpeed))?Number(save.combatSpeed):1;
- return n===10&&!save.speed10Unlocked?3:n;
+ const allowed=n===10&&!save.speed10Unlocked?3:n;
+ return allowed*(1+Math.min(.25,Number(save.prestigeLevel||0)*.0025));
 }
 function setCombatSpeed(n){
  n=Number(n);

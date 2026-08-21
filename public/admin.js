@@ -46,9 +46,9 @@ async function sa(url,opt={}){let r=await fetch(url,{headers:{"Content-Type":"ap
 const num=id=>Number(qs(id)?.value||0);
 async function loadStudioV8(){try{let p=await sa("/api/admin/players-full");studioPlayers=p.players||[];qs("#studioPlayer").innerHTML=studioPlayers.map(x=>`<option value="${x.id}">${x.username}</option>`).join("");fillSP();let c=await sa("/api/content-config");studioConfig={bosses:[],items:[],pets:[],auras:[],zones:[],updates:[],...(c.config||{})};renderBuildersV8()}catch(e){console.error(e)}}
 function curSP(){return studioPlayers.find(x=>String(x.id)===qs("#studioPlayer").value)}
-function fillSP(){let p=curSP();if(!p)return;let s=p.save_data||{},v={admLevel:s.level||1,admParagon:s.paragonLevel||0,admPrestige:s.prestigeLevel||0,admGold:s.gold||0,admGems:s.gems||0,admOre:s.ore||0,admSoul:s.soul||0,admTickets:s.tickets||0,admSkillPoints:s.skillPoints||0,admParagonPoints:s.paragonPoints||0,admAuraTokens:s.auraTokens||0,admWave:s.wave||1,admKills:s.kills||0,admLuck:s.base?.luck||1};Object.entries(v).forEach(([k,x])=>qs("#"+k).value=x);qs("#playerSaveJson").value=JSON.stringify(s,null,2)}
+function fillSP(){let p=curSP();if(!p)return;let s=p.save_data||{},v={admLevel:s.level||1,admParagon:s.paragonLevel||0,admPrestige:s.prestigeLevel||0,admGold:s.gold||0,admGems:s.gems||0,admOre:s.ore||0,admSoul:s.soul||0,admTickets:s.tickets||0,admSkillPoints:s.skillPoints||0,admParagonPoints:s.paragonPoints||0,admAuraTokens:s.auraTokens||0,admPrestigeTokens:s.prestigeTokens||0,admWave:s.wave||1,admKills:s.kills||0,admLuck:s.base?.luck||1};Object.entries(v).forEach(([k,x])=>qs("#"+k).value=x);qs("#playerSaveJson").value=JSON.stringify(s,null,2)}
 qs("#studioPlayer")?.addEventListener("change",fillSP);
-qs("#savePlayerStats")?.addEventListener("click",async()=>{let p=curSP(),s=structuredClone(p.save_data||{});Object.assign(s,{level:num("#admLevel"),paragonLevel:num("#admParagon"),prestigeLevel:num("#admPrestige"),gold:num("#admGold"),gems:num("#admGems"),ore:num("#admOre"),soul:num("#admSoul"),tickets:num("#admTickets"),skillPoints:num("#admSkillPoints"),paragonPoints:num("#admParagonPoints"),auraTokens:num("#admAuraTokens"),wave:num("#admWave"),kills:num("#admKills")});s.base={...(s.base||{}),luck:num("#admLuck")};s.speed10Unlocked=Boolean(qs("#admSpeed10Unlocked")?.checked);if(!s.speed10Unlocked&&Number(s.combatSpeed)===10)s.combatSpeed=3;await sa("/api/admin/player-save",{method:"POST",body:JSON.stringify({id:p.id,save:s})});p.save_data=s;fillSP();alert("✅ Mentve")});
+qs("#savePlayerStats")?.addEventListener("click",async()=>{let p=curSP(),s=structuredClone(p.save_data||{});Object.assign(s,{level:num("#admLevel"),paragonLevel:num("#admParagon"),prestigeLevel:Math.min(100,num("#admPrestige")),gold:num("#admGold"),gems:num("#admGems"),ore:num("#admOre"),soul:num("#admSoul"),tickets:num("#admTickets"),skillPoints:num("#admSkillPoints"),paragonPoints:num("#admParagonPoints"),auraTokens:num("#admAuraTokens"),prestigeTokens:num("#admPrestigeTokens"),wave:num("#admWave"),kills:num("#admKills")});s.base={...(s.base||{}),luck:num("#admLuck")};s.speed10Unlocked=Boolean(qs("#admSpeed10Unlocked")?.checked);if(!s.speed10Unlocked&&Number(s.combatSpeed)===10)s.combatSpeed=3;await sa("/api/admin/player-save",{method:"POST",body:JSON.stringify({id:p.id,save:s})});p.save_data=s;fillSP();alert("✅ Mentve")});
 qs("#savePlayerJson")?.addEventListener("click",async()=>{try{let p=curSP(),s=JSON.parse(qs("#playerSaveJson").value);await sa("/api/admin/player-save",{method:"POST",body:JSON.stringify({id:p.id,save:s})});p.save_data=s;fillSP();alert("✅ Teljes mentés frissítve")}catch(e){alert("❌ "+e.message)}});
 qsa("[data-studio]").forEach(b=>b.onclick=()=>{qsa(".studio-page").forEach(x=>x.classList.remove("active"));qs("#studio-"+b.dataset.studio).classList.add("active")});
 const schemas={
@@ -402,6 +402,7 @@ function v222FillEditor(){
   v222Set("v222Prestige",s.prestigeLevel??s.prestige??0);
   v222Set("v222ParagonPoints",s.paragonStatPoints??s.statPoints??0);
   v222Set("v222AuraTokens",s.auraTokens||0);
+  v222Set("v222PrestigeTokens",s.prestigeTokens||0);
   v222Set("v222SkillPoints",s.skillPoints||0);
   v222Set("v222HpRegen",s.hpRegenLevel||0);
   v222Set("v222Kills",s.kills||selected.game?.kills||0);
@@ -436,7 +437,7 @@ function v222Payload(){
     soul:v222Num("v222Soul"),tickets:v222Num("v222Tickets"),level:v222Num("v222Level"),
     xp:v222Num("v222Xp"),wave:v222Num("v222Wave"),paragonLevel:v222Num("v222Paragon"),
     prestigeLevel:v222Num("v222Prestige"),paragonStatPoints:v222Num("v222ParagonPoints"),
-    auraTokens:v222Num("v222AuraTokens"),skillPoints:v222Num("v222SkillPoints"),
+    auraTokens:v222Num("v222AuraTokens"),prestigeTokens:v222Num("v222PrestigeTokens"),skillPoints:v222Num("v222SkillPoints"),
     hpRegenLevel:v222Num("v222HpRegen"),kills:v222Num("v222Kills"),deaths:v222Num("v222Deaths"),
     base:{
       weaponTraining:v222Num("v222WeaponTraining"),
