@@ -11,6 +11,23 @@ app.set("trust proxy",1);
 app.use(express.json({limit:"2mb"}));
 app.use(cookieParser());
 
+app.get("/api/site-votes",async(req,res)=>{
+  try{
+    const rows=(await q("SELECT vote,COUNT(*)::int count FROM site_votes GROUP BY vote")).rows;
+    let likes=0,dislikes=0,mine=0;
+    rows.forEach(r=>{if(Number(r.vote)===1)likes=Number(r.count);else dislikes=Number(r.count)});
+    try{const p=jwt.verify(req.cookies.omi_token,JWT_SECRET);const row=(await q("SELECT vote FROM site_votes WHERE user_id=$1",[p.id])).rows[0];mine=Number(row?.vote||0)}catch{}
+    res.json({likes,dislikes,mine});
+  }catch(e){res.status(500).json({error:"A szavazatok nem tölthetők be."})}
+});
+
+app.post("/api/site-votes",auth,async(req,res)=>{
+  const vote=Number(req.body?.vote);
+  if(![-1,1].includes(vote))return res.status(400).json({error:"Hibás szavazat."});
+  await q("INSERT INTO site_votes(user_id,vote) VALUES($1,$2) ON CONFLICT(user_id) DO UPDATE SET vote=EXCLUDED.vote,updated_at=NOW()",[req.user.id,vote]);
+  res.json({ok:true});
+});
+
 const DATABASE_URL=process.env.DATABASE_URL;
 const JWT_SECRET=process.env.JWT_SECRET || "CHANGE_ME_IN_RENDER";
 if(!DATABASE_URL) console.warn("DATABASE_URL is not set.");
@@ -117,6 +134,11 @@ async function init(){
       status TEXT NOT NULL DEFAULT 'new',
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+    CREATE TABLE IF NOT EXISTS site_votes(
+      user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      vote SMALLINT NOT NULL CHECK(vote IN (-1,1)),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
   `);
 
   await q(`
@@ -160,7 +182,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.36.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.37.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{
@@ -648,7 +670,7 @@ app.get("/api/pvp/history",auth,async(req,res)=>{
 app.post("/api/shop/request",auth,async(req,res)=>{
   const cfg=await mainConfig(),products=cfg.store?.products||[];
   const id=String(req.body.product_id||"");
-  const product=products.find(x=>String(x.id)===id);
+  const product=products.find(x=>String(x.id)===id) || (id==="auto_paragon_10_eur"?{id,name:"Auto Paragon szintelő",priceText:"10 €"}:null);
   if(!product)return res.status(404).json({error:"A termék nem található."});
   const note=String(req.body.note||"").slice(0,500);
   await q("INSERT INTO purchase_requests(user_id,product_id,product_name,price_text,note) VALUES($1,$2,$3,$4,$5)",[req.user.id,id,product.name||id,product.priceText||"",note]);
@@ -741,6 +763,7 @@ app.post("/api/admin/player/:id/state",auth,admin,async(req,res)=>{
     }
 
     s.speed10Unlocked=Boolean(b.speed10Unlocked);
+    s.autoParagonUnlocked=Boolean(b.autoParagonUnlocked);
     const spd=Number(b.combatSpeed||1);
     s.combatSpeed=[1,2,3,10].includes(spd) ? (spd===10 && !s.speed10Unlocked ? 3 : spd) : 1;
 

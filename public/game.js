@@ -754,11 +754,11 @@ function renderParagon(){
    $$("[data-aura]").forEach(b=>b.onclick=()=>buyOrEquipAura(b.dataset.aura));
  }
 }
-function doPrestige(){
+function doPrestige(automatic=false){
  const req=paragonWaveRequirement();
  if(save.wave<req)return toast(`🔒 Következő Paragon követelmény: Wave ${req}.`);
 
- if(!confirm(`Paragon újrakezdés?\n\nJelenlegi Paragon: ${save.paragonLevel}\nÚj Paragon: ${save.paragonLevel+1}\nAz új szinten 1 Sebzés Paragon statpont +${(save.paragonLevel+1)*2}% sebzést ad.\nJutalom: 5 új Paragon statpont és +1 Aura token\n\nRESETELŐDIK: karakterszint, XP, wave, normál statok, alap fejlesztések, teljes skillfa, inventory, felszerelés, arany, gyémánt és érc.\nMEGMARAD: kill szám, kiosztott Paragon statok, lélekkő, dungeon token, petek, aurák, achievementek és gyorsítás.`))return;
+ if(!automatic&&!confirm(`Paragon újrakezdés?\n\nJelenlegi Paragon: ${save.paragonLevel}\nÚj Paragon: ${save.paragonLevel+1}\nAz új szinten 1 Sebzés Paragon statpont +${(save.paragonLevel+1)*2}% sebzést ad.\nJutalom: 5 új Paragon statpont és +1 Aura token\n\nRESETELŐDIK: karakterszint, XP, wave, normál statok, alap fejlesztések, teljes skillfa, inventory, felszerelés, arany, gyémánt és érc.\nMEGMARAD: kill szám, kiosztott Paragon statok, lélekkő, dungeon token, petek, hátasok, aurák, achievementek és gyorsítás.`))return;
 
  save.paragonLevel++;
  save.paragonPoints=5;
@@ -775,7 +775,7 @@ function doPrestige(){
  persist();
  if(currentUser&&cloudReady){cloudSave();setTimeout(()=>cloudSave(),750)}
  renderAll();
- toast(`🌟 Paragon ${save.paragonLevel}! 1 Sebzés statpont most +${save.paragonLevel*2}%-ot ad.`);
+  toast(`🌟 Paragon ${save.paragonLevel}! 1 Sebzés statpont most +${save.paragonLevel*2}%-ot ad.`);
 }
 function buyOrEquipAura(id){
  const a=AURAS.find(x=>x.id===id);if(!a)return;

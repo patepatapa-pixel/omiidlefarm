@@ -362,6 +362,8 @@ function v222FillEditor(){
 
   const t=document.getElementById("v222Speed10");
   if(t)t.checked=Boolean(s.speed10Unlocked);
+  const ap=document.getElementById("v237AutoParagon");
+  if(ap)ap.checked=Boolean(s.autoParagonUnlocked);
   v222Set("v222CombatSpeed",s.combatSpeed||1);
 }
 async function v222ReloadSelected(){
@@ -389,6 +391,7 @@ function v222Payload(){
       offline:v222Num("v222SkillOffline"),pet:v222Num("v222SkillPet")
     },
     speed10Unlocked:Boolean(document.getElementById("v222Speed10")?.checked),
+    autoParagonUnlocked:Boolean(document.getElementById("v237AutoParagon")?.checked),
     combatSpeed:Number(document.getElementById("v222CombatSpeed")?.value||1)
   };
 }

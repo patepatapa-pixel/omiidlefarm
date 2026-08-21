@@ -10,7 +10,7 @@
 <header class="topbar">
   <div class="brand"><span>⚔️ OMI</span> IDLE FARM <em>COMPLETE</em></div>
   <div class="top-actions">
-    <span class="build-version" id="buildVersionBadge">V22.36</span><span id="onlineUser">👤 Vendég</span>
+    <span class="build-version" id="buildVersionBadge">V22.37</span><span id="onlineUser">👤 Vendég</span>
     <button class="ghost" id="leaderboardBtn">🏆 Ranglista</button>
     <button class="ghost admin-only-btn" id="adminPanelBtn" style="display:none">⚙️ Adminpanel</button><button class="ghost" id="authBtn">Belépés</button>
     <span id="saveState">💾 Mentve</span>
@@ -31,6 +31,7 @@
   <button class="tab" data-tab="dungeon">🏰 Dungeon</button>
   <button class="tab" data-tab="quests">📜 Küldetések</button>
   <button class="tab" data-tab="pvp">⚔️ PvP</button><button class="tab" data-tab="shop">💳 Feltöltés / Discord</button><button class="tab" data-tab="stats">📊 Statisztika</button>
+  <button class="tab" data-tab="mounts">🐎 Hátasok</button>
 </nav>
 
 
@@ -656,6 +657,18 @@
 </section>
 
 <!-- SHOP / DISCORD -->
+<section class="page" id="page-mounts">
+  <div class="mount-hero-v237">
+    <div><span class="eyebrow">ISTÁLLÓ ÉS GYŰJTEMÉNY</span><h2>🐎 Gyűjthető hátasok</h2><p>A hátas ritka boss-zsákmány. A duplikátumok fejlesztőponttá alakulnak, ezért minden megszerzett példány értékes.</p></div>
+    <div class="mount-progress-v237"><b id="mountCollectionCount">0 / 12</b><small>MEGSZERZETT HÁTAS</small></div>
+  </div>
+  <section class="card mount-draw-v237">
+    <div><h3>🎁 Ősi hátasláda</h3><p>A bossok kis eséllyel ládatöredéket adnak. 10 töredékből nyithatsz, vagy az összes játékon belüli fizetőeszközzel kiválthatod a hiányzó töredékeket.</p><div class="mount-costs-v237"><span>💰 250 000</span><span>💎 10</span><span>⛏️ 25</span><span>🔵 1</span><span>🎫 1</span></div></div>
+    <div class="mount-open-v237"><b id="mountShardCount">0 / 10 töredék</b><button id="openMountChest">ŐSI LÁDA NYITÁSA</button><small>Hátasesély: 2% · egyébként 1 töredék</small></div>
+  </section>
+  <section class="card"><div class="title-row"><div><h2>🏇 Saját istálló</h2><small>Egy hátas lehet aktív. A fejlesztés duplikátumot és minden valutát fogyaszt.</small></div><button id="equipBestMount">⚡ LEGJOBB HÁTAS</button></div><div id="mountGrid" class="mount-grid-v237"></div></section>
+</section>
+
 <section class="page" id="page-shop">
 
 <div class="v212-context-bar" data-context-bar data-context-page="page-shop">
@@ -678,6 +691,9 @@
       <div><b class="premium-price-v165">3 €</b> <span id="speed10PurchaseState">🔒 Nincs aktiválva</span></div>
       <small>Vásárlás/aktiválás privátban: Discord <b>nervos11</b>.</small>
     </div>
+  </section>
+  <section class="card auto-paragon-v237">
+    <div class="auto-paragon-icon-v237">🌟</div><div><span class="eyebrow">PRÉMIUM AUTOMATIZÁLÁS</span><h2>Auto Paragon szintelő</h2><p>Amikor eléred a következő Paragon wave-követelményét, automatikusan végrehajtja a szintlépést és azonnal folytatja a farmolást.</p><b>10 €</b> <span id="autoParagonPurchaseState">🔒 Nincs aktiválva</span><small>Egyszeri aktiválás · Discord: <b>nervos11</b></small></div><button data-buy-product="auto_paragon_10_eur">💬 VÁSÁRLÁSI IGÉNY</button>
   </section>
 
  <div class="layout">
@@ -790,4 +806,6 @@
   </div>
 </div>
 
+<section class="site-vote-v237"><div><b>Mit gondolsz az oldalról?</b><small>Bejelentkezve egy szavazatod lehet.</small></div><button id="siteLikeBtn">👍 <span id="siteLikeCount">0</span></button><button id="siteDislikeBtn">👎 <span id="siteDislikeCount">0</span></button></section>
+<script src="v237.js"></script>
 </body></html>

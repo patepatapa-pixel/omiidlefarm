@@ -1,4 +1,13 @@
-OMI IDLE FARM ONLINE V3
+OMI IDLE FARM ONLINE V22.37
+
+V22.37 ÚJ:
+- 12 gyűjthető hátas ritkasági súlyozással
+- bossból 8% esélyű hátasláda-töredék, 10 szükséges a nyitáshoz
+- ládanyitás és hátasfejlesztés aranyat, gyémántot, ércet, lélekkövet és dungeon tokent fogyaszt
+- duplikált hátasokkal szintlépés, aktív és Equip Best hátas
+- 10 eurós Auto Paragon a Feltöltés oldalon, adminból aktiválható
+- fiókonként egy 👍 / 👎 oldalszavazat, élő összesített számlálóval
+- új, tömör és átlátható Felszerelt tárgyak és Inventory megjelenés
 
 ÚJ:
 - online regisztráció / belépés
