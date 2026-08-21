@@ -638,8 +638,8 @@ $("#npcShopManualRefresh")?.addEventListener("click",renderNpcShopV246);
 const CASINO_DEFAULTS_V247={minBet:{gold:100,gems:1,ore:5},maxBet:{gold:25000,gems:100,ore:500},games:{coin:{name:"Coin Flip",icon:"🪙",chance:47,mult:1.9,desc:"Fej vagy írás – válaszd a szerencsédet."},skull:{name:"Koponya",icon:"💀",chance:28,mult:3.2,freeSpinChance:5,freeSpinAmount:1,desc:"Kockázatosabb játék, nagyobb jutalom."},dragon:{name:"Sárkány Slot",icon:"🐉",chance:8,mult:10,freeSpinChance:3,freeSpinAmount:2,desc:"A legnagyobb szorzójú jackpot játék."}}};
 function casinoCfgV247(){const r=window.OMI_CONTENT?.casino||{};return {minBet:{...CASINO_DEFAULTS_V247.minBet,...(r.minBet||{})},maxBet:{...CASINO_DEFAULTS_V247.maxBet,...(r.maxBet||{})},games:{coin:{...CASINO_DEFAULTS_V247.games.coin,...(r.games?.coin||{})},skull:{...CASINO_DEFAULTS_V247.games.skull,...(r.games?.skull||{})},dragon:{...CASINO_DEFAULTS_V247.games.dragon,...(r.games?.dragon||{})}}}}
 function casinoMachineV248(id,g){return id==="coin"?`<div class="casino-machine-v248 coin-machine" data-machine="${id}"><div class="casino-coin-v248">🪙</div><small>FEJ · ÍRÁS</small></div>`:`<div class="casino-machine-v248 slot-machine" data-machine="${id}"><div class="casino-reels-v248"><span>${g.icon}</span><span>⭐</span><span>💎</span></div><small>${id==="dragon"?"SÁRKÁNY JACKPOT":"KOPONYA TRIPLA"}</small></div>`}
-function renderCasinoV247(){const root=$("#casinoGames");if(!root)return;const cfg=casinoCfgV247(),cur=$("#casinoCurrency")?.value||"gold",icons={gold:"💰",gems:"💎",ore:"⛏️"};$("#casinoBalance").textContent=`${fmt(save[cur]||0)} ${icons[cur]}`;const inp=$("#casinoBet");inp.min=cfg.minBet[cur];inp.max=cfg.maxBet[cur];root.innerHTML=Object.entries(cfg.games).map(([id,g])=>{const free=Math.max(0,Number(save.casinoFreeSpins?.[id]?.count||0));return `<article class="casino-game-v247 game-${id}">${casinoMachineV248(id,g)}<h2>${g.name}</h2><p>${g.desc}</p><span>Kifizetés: <b>${Number(g.mult)}×</b></span>${id!=="coin"?`<span class="free-spin-info-v249">🎁 Ingyen pörgetések: <b>${free}</b></span>`:""}<button data-casino-play="${id}">${free>0?"🎁 INGYEN PÖRGETÉS":"🎰 PÖRGETÉS"}</button></article>`}).join("");root.querySelectorAll("[data-casino-play]").forEach(b=>b.onclick=()=>playCasinoV247(b.dataset.casinoPlay))}
-let casinoBusyV248=false,casinoAudioV248=null;
+function renderCasinoV247(){const root=$("#casinoGames");if(!root)return;const cfg=casinoCfgV247(),cur=$("#casinoCurrency")?.value||"gold",icons={gold:"💰",gems:"💎",ore:"⛏️"};$("#casinoBalance").textContent=`${fmt(save[cur]||0)} ${icons[cur]}`;const inp=$("#casinoBet");inp.min=cfg.minBet[cur];inp.max=cfg.maxBet[cur];root.innerHTML=Object.entries(cfg.games).map(([id,g])=>{const free=Math.max(0,Number(save.casinoFreeSpins?.[id]?.count||0));return `<article class="casino-game-v247 game-${id}">${casinoMachineV248(id,g)}<h2>${g.name}</h2><p>${g.desc}</p><span>Kifizetés: <b>${Number(g.mult)}×</b></span>${id!=="coin"?`<span class="free-spin-info-v249">🎁 Ingyen pörgetések: <b>${free}</b></span>`:""}<button data-casino-play="${id}">${free>0?"🎁 INGYEN PÖRGETÉS":"🎰 PÖRGETÉS"}</button></article>`}).join("");root.querySelectorAll("[data-casino-play]").forEach(b=>b.onclick=()=>playCasinoV250(b.dataset.casinoPlay))}
+let casinoBusyV248=false,casinoAudioV248=null,casinoSettlementLockUntil=0;
 function casinoSoundV248(win){try{casinoAudioV248=casinoAudioV248||new (window.AudioContext||window.webkitAudioContext)();casinoAudioV248.resume();const now=casinoAudioV248.currentTime,notes=win?[523,659,784,1047]:[220,174];notes.forEach((f,i)=>{const o=casinoAudioV248.createOscillator(),g=casinoAudioV248.createGain();o.type=win?"sine":"sawtooth";o.frequency.value=f;g.gain.setValueAtTime(0.001,now+i*.13);g.gain.exponentialRampToValueAtTime(win ? .16 : .08,now+i*.13+.02);g.gain.exponentialRampToValueAtTime(.001,now+i*.13+.28);o.connect(g).connect(casinoAudioV248.destination);o.start(now+i*.13);o.stop(now+i*.13+.3)})}catch(e){}}
 function casinoConfettiV248(){const host=$("#page-casino");if(!host)return;for(let i=0;i<28;i++){const c=document.createElement("i");c.className="casino-confetti-v248";c.style.left=`${10+Math.random()*80}%`;c.style.setProperty("--x",`${(Math.random()-.5)*240}px`);c.style.animationDelay=`${Math.random()*.18}s`;c.style.background=["#ffd24d","#ff5c8a","#5ce1ff","#9eff78"][i%4];host.appendChild(c);setTimeout(()=>c.remove(),1600)}}
 async function playCasinoV247(id){const cfg=casinoCfgV247(),g=cfg.games[id],cur=$("#casinoCurrency").value,bet=Math.floor(Number($("#casinoBet").value||0)),min=Number(cfg.minBet[cur]),max=Number(cfg.maxBet[cur]);if(casinoBusyV248)return toast("A gép még pörög.");if(!g||bet<min||bet>max)return toast(`A tét ${fmt(min)} és ${fmt(max)} között lehet.`);if(Number(save[cur]||0)<bet)return toast("Nincs elég valutád.");casinoBusyV248=true;save.lastCasinoPlay=Date.now();save[cur]-=bet;persist();$("#casinoBalance").textContent=fmt(save[cur]);$("#casinoCurrency").disabled=true;$("#casinoBet").disabled=true;$$("[data-casino-play]").forEach(b=>b.disabled=true);const machine=$(`[data-machine="${id}"]`),reels=machine?.querySelectorAll(".casino-reels-v248 span")||[],symbols=id==="dragon"?["🐉","🔥","💎","👑","⭐"]:["💀","🦴","🕯️","🩸","⭐"];machine?.classList.add("spinning");$("#casinoResult").innerHTML=`${g.icon} <b>Pörgetés...</b>`;const ticker=reels.length?setInterval(()=>reels.forEach(x=>x.textContent=symbols[Math.floor(Math.random()*symbols.length)]),75):null;await new Promise(r=>setTimeout(r,id==="coin"?1250:1650));if(ticker)clearInterval(ticker);const won=Math.random()*100<Number(g.chance),payout=won?Math.floor(bet*Number(g.mult)):0;if(reels.length){if(won)reels.forEach(x=>x.textContent=g.icon);else reels.forEach((x,i)=>x.textContent=symbols[i%symbols.length])}if(id==="coin")machine.querySelector(".casino-coin-v248").textContent=won?"👑":"🪙";machine?.classList.remove("spinning");machine?.classList.add(won?"machine-win":"machine-lose");if(won)save[cur]+=payout;const caps={gold:5000000,gems:50000,ore:100000,...(window.OMI_CONTENT?.economyCaps||{})};save[cur]=Math.min(Number(caps[cur]||Infinity),save[cur]);save.casinoStats=save.casinoStats||{plays:0,wins:0,wagered:0};save.casinoStats.plays++;save.casinoStats.wagered+=bet;if(won)save.casinoStats.wins++;persist();renderAll();$("#casinoBalance").textContent=fmt(save[cur]);$("#casinoResult").className=`casino-result-v247 ${won?"win":"lose"}`;$("#casinoResult").innerHTML=won?`${g.icon} <b>NYERTÉL!</b> +${fmt(payout-bet)} nettó nyeremény`:`${g.icon} <b>VESZTETTÉL!</b> -${fmt(bet)}`;casinoSoundV248(won);if(won)casinoConfettiV248();$("#casinoCurrency").disabled=false;$("#casinoBet").disabled=false;$$("[data-casino-play]").forEach(b=>b.disabled=false);casinoBusyV248=false;setTimeout(()=>machine?.classList.remove("machine-win","machine-lose"),1000)}
@@ -659,6 +659,9 @@ async function playCasinoV250(id){
   if(!usingFree&&balanceBefore<bet)return toast("Nincs elég valutád.");
 
   casinoBusyV248=true;
+  // A háttérben futó automata harc ne termeljen aranyat a kaszinókör
+  // elszámolása és az eredmény rövid megjelenítése közben.
+  casinoSettlementLockUntil=Date.now()+(id==="coin"?4000:4500);
   save.casinoFreeSpins=save.casinoFreeSpins||{};
   const balanceAfterStake=usingFree?balanceBefore:balanceBefore-bet;
   if(usingFree)stored.count=Math.max(0,Math.floor(Number(stored.count))-1);
@@ -680,7 +683,10 @@ async function playCasinoV250(id){
   const freeWon=id!=="coin"&&Math.random()*100<Number(g.freeSpinChance||0);
   const freeAmount=freeWon?Math.max(0,Math.floor(Number(g.freeSpinAmount||0))):0;
   const caps={gold:5000000,gems:50000,ore:100000,...(window.OMI_CONTENT?.economyCaps||{})};
-  const finalBalance=Math.min(Number(caps[cur]||Infinity),balanceAfterStake+payout);
+  // Fix elszámolás: vesztes kör = teljes tét levonása; nyertes kör =
+  // a nyeremény hozzáadása a pörgetés előtti egyenleghez.
+  const uncappedFinal=won?balanceBefore+payout:(usingFree?balanceBefore:balanceBefore-bet);
+  const finalBalance=Math.min(Number(caps[cur]||Infinity),Math.max(0,uncappedFinal));
   save[cur]=finalBalance;
 
   if(freeAmount>0){
@@ -696,6 +702,7 @@ async function playCasinoV250(id){
   save.casinoHistory.push({at:Date.now(),game:id,currency:cur,bet,free:usingFree,won,payout,before:balanceBefore,after:finalBalance,delta});
   save.casinoHistory=save.casinoHistory.slice(-20);
   persist();renderAll();
+  if(currentUser&&cloudReady){cloudSave();setTimeout(()=>cloudSave(),900)}
 
   if(reels.length){if(won)reels.forEach(x=>x.textContent=g.icon);else reels.forEach((x,i)=>x.textContent=symbols[i%symbols.length])}
   if(id==="coin")machine?.querySelector('.casino-coin-v248')&&(machine.querySelector('.casino-coin-v248').textContent=won?"👑":"🪙");
@@ -704,11 +711,12 @@ async function playCasinoV250(id){
   const resultText=won
     ?`${g.icon} <b>NYERTÉL!</b> ${delta>=0?"+":""}${fmt(delta)} ${curIcon}`
     :usingFree?`${g.icon} <b>NEM NYERTÉL</b> · az egyenleg nem változott`
-    :`${g.icon} <b>VESZTETTÉL!</b> -${fmt(bet)} ${curIcon}`;
+    :`${g.icon} <b>VESZTETTÉL!</b> -${fmt(bet)} ${curIcon} · ${fmt(balanceBefore)} → ${fmt(finalBalance)}`;
   $("#casinoResult").className=`casino-result-v247 ${won||freeWon?"win":"lose"}`;
   $("#casinoResult").innerHTML=`${resultText}${freeAmount?` · 🎁 +${freeAmount} INGYEN PÖRGETÉS`:""}`;
   casinoSoundV248(won||freeWon);if(won||freeWon)casinoConfettiV248();
   $("#casinoCurrency").disabled=false;$("#casinoBet").disabled=false;
+  casinoSettlementLockUntil=Date.now()+2500;
   casinoBusyV248=false;setTimeout(renderCasinoV247,1100);
 }
 playCasinoV247=playCasinoV250;
@@ -1603,6 +1611,7 @@ function farmHitEffectV247(hit,crit,arrow,killed,boss){
  const slash=document.createElement("i");slash.className=`farm-slash-v247 ${arrow?"arrow":""}`;arena.appendChild(slash);while(arena.querySelectorAll(".farm-damage-fx-v247,.farm-slash-v247").length>10)arena.querySelector(".farm-damage-fx-v247,.farm-slash-v247")?.remove();setTimeout(()=>{fx.remove();slash.remove();arena.classList.remove("farm-hit-v247","farm-crit-v247","farm-kill-v247","farm-boss-hit-v247")},620);
 }
 function v10PlayerAttack(){
+ if(Date.now()<casinoSettlementLockUntil)return;
  if(!v10IsAlive())return;
  if(!save.waveBoss)ensurePowerAppropriateZone();
  v10EnsurePlayerHp();
