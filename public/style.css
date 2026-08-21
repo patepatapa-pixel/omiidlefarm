@@ -4358,3 +4358,19 @@ body:not(.v202-is-admin) #page-character .admin-studio-panel-v230{display:none!i
 body.v202-is-admin #page-character .admin-studio-panel-v230{display:block!important}
 #page-character .admin-studio-only-v202{position:static!important;inset:auto!important;transform:none!important}
 @media(max-width:650px){.pet-title-actions{width:100%;justify-content:stretch}.pet-title-actions button{flex:1}}
+
+/* V22.31 Pet craft rarity ladder. */
+.v231-tier-road{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin:12px 0}
+.v231-tier-road span,.pet-craft-tier{display:inline-flex;align-items:center;justify-content:center;padding:6px;border:1px solid #394552;border-radius:7px;background:#090d12;font-size:9px;font-weight:900;text-transform:uppercase}
+.pet-craft-tier{margin:7px 0;width:100%}
+.tier-common,.fusion-common .pet-craft-tier{color:#c4cad1;border-color:#59616a!important}
+.tier-rare,.fusion-rare .pet-craft-tier{color:#68b8ff;border-color:#247fca!important;box-shadow:0 0 10px rgba(36,127,202,.18)}
+.tier-mythic,.fusion-mythic .pet-craft-tier{color:#ff6f99;border-color:#d53f70!important;box-shadow:0 0 11px rgba(213,63,112,.2)}
+.tier-legendary,.fusion-legendary .pet-craft-tier{color:#ffd35b;border-color:#d8a72e!important;box-shadow:0 0 12px rgba(216,167,46,.22)}
+.tier-celestial,.fusion-celestial .pet-craft-tier{color:#b7a7ff;border-color:#7d62ef!important;box-shadow:0 0 14px rgba(125,98,239,.25)}
+.tier-imperial,.fusion-imperial .pet-craft-tier{color:#56e5ff;border-color:#16bad8!important;box-shadow:0 0 16px rgba(22,186,216,.28)}
+.tier-eternal,.fusion-eternal .pet-craft-tier{color:#ffb357;border-color:#ff7d24!important;box-shadow:0 0 18px rgba(255,125,36,.34)}
+.fusion-celestial{border-color:#7d62ef!important}.fusion-imperial{border-color:#16bad8!important}.fusion-eternal{border-color:#ff7d24!important}
+.v231-pet-craft .v224-fuse-row strong{color:#f4c94d}
+@media(max-width:850px){.v231-tier-road{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:520px){.v231-tier-road{grid-template-columns:repeat(2,minmax(0,1fr))}}
