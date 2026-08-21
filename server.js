@@ -160,7 +160,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.34.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.36.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{
@@ -399,7 +399,7 @@ app.get("/api/leaderboard",async(req,res)=>{
              COALESCE(NULLIF(g.save_data->>'paragonLevel','')::INTEGER,0) paragon_level
       FROM game_saves g JOIN users u ON u.id=g.user_id
       WHERE u.role='player' AND u.banned=FALSE AND u.leaderboard_hidden=FALSE
-      ORDER BY g.power DESC,g.level DESC,g.kills DESC
+      ORDER BY paragon_level DESC,g.power DESC,g.level DESC,g.kills DESC
       LIMIT 100
     `)).rows;
     res.json({rows:rows.map((r,i)=>({...r,rank:i+1}))});

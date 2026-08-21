@@ -109,10 +109,11 @@ const V10_GAMEPLAY_DEFAULTS={
  mobDamageHpPct:2.1,
  bossGemAmount:1,
  bossGemDropChance:100,
+ defaultBossFixedGold:1000,
  goldBonusCapPct:100,
  mobTargetHits:2,
  zoneHpMultipliers:[100,100,100,100,100,100,100,100],
- zoneGoldMultipliers:[100,100,100,100,100,100,100,100]
+ zoneFixedGold:[10,35,95,280,900,2700,8500,25000]
 };
 
 function v10GameplayCfg(){
@@ -127,7 +128,7 @@ function fillV10Gameplay(){
   cfgBossRegenPct:"bossRegenPct",cfgMobRegenPct:"mobRegenPct",cfgPlayerRegenPct:"playerRegenPct",
   cfgPlayerAttackSec:"playerAttackSec",cfgEnemyAttackSec:"enemyAttackSec",
   cfgRespawnSec:"respawnSec",cfgRespawnHpPct:"respawnHpPct",cfgWaveKills:"waveKills",
-  cfgBossHpGrowthPct:"bossHpGrowthPct",cfgBossRewardMult:"bossRewardMult",cfgMobDamageHpPct:"mobDamageHpPct",cfgGoldBonusCapPct:"goldBonusCapPct"
+  cfgBossHpGrowthPct:"bossHpGrowthPct",cfgMobDamageHpPct:"mobDamageHpPct",cfgGoldBonusCapPct:"goldBonusCapPct"
  };
  Object.entries(map).forEach(([id,key])=>{const e=qs("#"+id);if(e)e.value=g[key]});
 }
@@ -136,26 +137,28 @@ function fillDefaultBossGems(){
  const g=v10GameplayCfg();
  if(qs("#cfgDefaultBossGems"))qs("#cfgDefaultBossGems").value=g.bossGemAmount;
  if(qs("#cfgDefaultBossGemChance"))qs("#cfgDefaultBossGemChance").value=g.bossGemDropChance;
+ if(qs("#cfgDefaultBossFixedGold"))qs("#cfgDefaultBossFixedGold").value=g.defaultBossFixedGold;
 }
 const V226_ZONE_NAMES=["Zöld mező","Sötét erdő","Elhagyott bánya","Démon torony","Sárkány-völgy","Mennydörgés fennsík","Üresség","Isteni kapu"];
 function v226ZoneNames(){return [...V226_ZONE_NAMES,...(studioConfig.zones||[]).map(z=>z.name||"Egyedi terület")]}
 function fillZoneHpBalance(){
- const g=v10GameplayCfg(),multipliers=Array.isArray(g.zoneHpMultipliers)?g.zoneHpMultipliers:[],goldMultipliers=Array.isArray(g.zoneGoldMultipliers)?g.zoneGoldMultipliers:[];
+ const g=v10GameplayCfg(),multipliers=Array.isArray(g.zoneHpMultipliers)?g.zoneHpMultipliers:[],fixedGold=Array.isArray(g.zoneFixedGold)?g.zoneFixedGold:V10_GAMEPLAY_DEFAULTS.zoneFixedGold;
  if(qs("#cfgMobTargetHits"))qs("#cfgMobTargetHits").value=Number(g.mobTargetHits||2);
- const root=qs("#zoneHpBalanceEditor");if(root)root.innerHTML=v226ZoneNames().map((name,i)=>`<article class="zone-balance-card"><h4>🗺️ ${name}</h4><label>❤️ Mob HP szorzó %<input data-zone-hp-mult="${i}" type="number" min="10" max="1000" step="1" value="${Number(multipliers[i]??100)}"></label><label>💰 Aranyszorzó %<input data-zone-gold-mult="${i}" type="number" min="0" max="100000" step="1" value="${Number(goldMultipliers[i]??100)}"></label><small>100% = alap arany · 200% = dupla arany · 50% = fele arany</small></article>`).join("");
+ const root=qs("#zoneHpBalanceEditor");if(root)root.innerHTML=v226ZoneNames().map((name,i)=>`<article class="zone-balance-card"><h4>🗺️ ${name}</h4><label>❤️ Mob HP szorzó %<input data-zone-hp-mult="${i}" type="number" min="10" max="1000" step="1" value="${Number(multipliers[i]??100)}"></label><label>💰 Fix arany / mob<input data-zone-fixed-gold="${i}" type="number" min="0" step="1" value="${Number(fixedGold[i]??studioConfig.zones?.[i-8]?.gold??0)}"></label><small>A normál mob mindig pontosan ezt adja; az aranydropp-bónusz csak a bossokra hat.</small></article>`).join("");
 }
 qs("#saveZoneHpBalance")?.addEventListener("click",async()=>{
  const g=v10GameplayCfg();g.mobTargetHits=Math.max(1,Number(qs("#cfgMobTargetHits")?.value||2));
  g.zoneHpMultipliers=v226ZoneNames().map((_,i)=>Math.max(10,Math.min(1000,Number(qs(`[data-zone-hp-mult="${i}"]`)?.value||100))));
- g.zoneGoldMultipliers=v226ZoneNames().map((_,i)=>Math.max(0,Math.min(100000,Number(qs(`[data-zone-gold-mult="${i}"]`)?.value??100))));
+ g.zoneFixedGold=v226ZoneNames().map((_,i)=>Math.max(0,Math.floor(Number(qs(`[data-zone-fixed-gold="${i}"]`)?.value??0))));
  studioConfig.gameplay=g;await saveConfigV8();fillZoneHpBalance();alert("✅ A területi HP- és aranyszorzók elmentve.");
 });
 qs("#saveDefaultBossGems")?.addEventListener("click",async()=>{
  const g=v10GameplayCfg();
  g.bossGemAmount=Math.max(0,Math.floor(num("#cfgDefaultBossGems")));
  g.bossGemDropChance=Math.max(0,Math.min(100,Number(qs("#cfgDefaultBossGemChance")?.value||0)));
+ g.defaultBossFixedGold=Math.max(0,Math.floor(Number(qs("#cfgDefaultBossFixedGold")?.value||0)));
  studioConfig.gameplay=g;
- await saveConfigV8();fillDefaultBossGems();alert("✅ Az alap boss gyémántdrop elmentve.");
+ await saveConfigV8();fillDefaultBossGems();alert("✅ A boss alap aranya és gyémántjutalma elmentve.");
 });
 qs("#saveGameplayConfig")?.addEventListener("click",async()=>{
  try{
@@ -166,7 +169,7 @@ qs("#saveGameplayConfig")?.addEventListener("click",async()=>{
    cfgBossRegenPct:"bossRegenPct",cfgMobRegenPct:"mobRegenPct",cfgPlayerRegenPct:"playerRegenPct",
    cfgPlayerAttackSec:"playerAttackSec",cfgEnemyAttackSec:"enemyAttackSec",
    cfgRespawnSec:"respawnSec",cfgRespawnHpPct:"respawnHpPct",cfgWaveKills:"waveKills",
-   cfgBossHpGrowthPct:"bossHpGrowthPct",cfgBossRewardMult:"bossRewardMult",cfgMobDamageHpPct:"mobDamageHpPct",cfgGoldBonusCapPct:"goldBonusCapPct"
+   cfgBossHpGrowthPct:"bossHpGrowthPct",cfgMobDamageHpPct:"mobDamageHpPct",cfgGoldBonusCapPct:"goldBonusCapPct"
   };
   Object.entries(map).forEach(([id,key])=>g[key]=Number(qs("#"+id)?.value||0));
   studioConfig.gameplay=g;

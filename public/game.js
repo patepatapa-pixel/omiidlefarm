@@ -214,6 +214,14 @@ function normalGoldBonusCap(){const raw=window.OMI_CONTENT?.gameplay?.goldBonusC
 function normalGoldBonus(){return Math.max(0,(save.base.armorTraining-1)*.05+skillBonus("gold")+bonuses().gold)}
 function paragonGoldBonus(){return Math.max(0,Number(save.paragonStats.gold||0)*.03*Math.max(0,Number(save.paragonLevel||0)))}
 function goldBonus(){return 1+Math.min(normalGoldBonusCap(),normalGoldBonus())+paragonGoldBonus()}
+function fixedZoneGold(zoneIndex=save.zone){
+ const fixed=window.OMI_CONTENT?.gameplay?.zoneFixedGold;
+ const fallback=ZONES[zoneIndex]?.gold??0;
+ const value=Array.isArray(fixed)?Number(fixed[zoneIndex]??fallback):Number(fallback);
+ return Math.max(0,Math.floor(Number.isFinite(value)?value:0));
+}
+function zoneMobGold(zoneIndex=save.zone){return fixedZoneGold(zoneIndex)}
+function bossGoldReward(baseGold){return Math.max(0,Math.floor(Math.max(0,Number(baseGold||0))*goldBonus()))}
 function dropBonus(){let io=itemOptionBonuses();return skillBonus("drop")+bonuses().drop+(save.base.luck-1)*.01+save.paragonStats.drop*.01*save.paragonLevel+io.drop/100}
 function power(){let b=bonuses();return Math.floor(damage()*11+b.def*7+save.level*20+save.base.mining*8+save.base.luck*8)}
 function rankName(){let p=power();return p<500?"Kezdő":p<2500?"Harcos":p<10000?"Elit":p<40000?"Mester":p<120000?"Hős":"Isteni"}
@@ -316,7 +324,7 @@ function addItem(it){
  toast(`🎁 ${rarityName(it.rarity)} drop: ${it.name}`)
 }
 function kill(){
- let z=ZONES[save.zone],g=Math.floor(z.gold*zoneGoldMultiplier(save.zone)*goldBonus());
+ let z=ZONES[save.zone],g=zoneMobGold(save.zone);
  save.gold+=g;save.stats.goldEarned+=g;save.xp+=z.xp;save.kills++;
  if(Math.random()<.07+save.base.mining*.005)save.ore++;
  if(Math.random()<.007+dropBonus()*.05)save.soul++;
@@ -409,13 +417,13 @@ function renderCharacterVisual(){
 
 function renderCore(){
  let z=ZONES[save.zone];
- $("#gold").textContent=fmt(save.gold);$("#gems").textContent=fmt(save.gems);$("#ore").textContent=fmt(save.ore);$("#soul").textContent=fmt(save.soul);$("#tickets").textContent=fmt(save.tickets);$("#level").textContent=save.level;$("#xpText").textContent=`${fmt(save.xp)} / ${fmt(needXp())} XP`;$("#power").textContent=fmt(power());$("#rankName").textContent=rankName();$("#gps").textContent=`~${fmt(z.gold*zoneGoldMultiplier(save.zone)*goldBonus()*damage()/z.hp)} / mp`;
+ $("#gold").textContent=fmt(save.gold);$("#gems").textContent=fmt(save.gems);$("#ore").textContent=fmt(save.ore);$("#soul").textContent=fmt(save.soul);$("#tickets").textContent=fmt(save.tickets);$("#level").textContent=save.level;$("#xpText").textContent=`${fmt(save.xp)} / ${fmt(needXp())} XP`;$("#power").textContent=fmt(power());$("#rankName").textContent=rankName();$("#gps").textContent=`~${fmt(zoneMobGold(save.zone)*damage()/Math.max(1,z.hp))} / mp`;
  $("#zoneName").textContent=z.name;$("#enemyIcon").textContent=z.icon;$("#enemyName").textContent=z.enemy;$("#enemyHp").textContent=fmt(Math.max(0,enemyHp));$("#enemyMaxHp").textContent=fmt(z.hp);$("#hpbar").style.width=Math.max(0,enemyHp/z.hp*100)+"%";$("#damageText").textContent=fmt(damage());$("#critText").textContent=(critChance()*100).toFixed(1)+"%";$("#dropText").textContent=(dropBonus()*100).toFixed(1)+"%";
  renderEquipped();renderBonuses();renderCharacterVisual()
 }
 function renderZones(){
  const best=strongestUnlockedZone();
- $("#zones").innerHTML=ZONES.map((z,i)=>{const weak=i<best,goldPct=Math.round(zoneGoldMultiplier(i)*100);return `<div class="zone ${i===save.zone?"active":""} ${power()<z.need?"locked":""} ${weak?"zone-too-weak":""}" data-zone="${i}"><b>${z.icon} ${z.name}</b><small>${z.enemy} · Ajánlott erő: ${fmt(z.need)}</small><small>Drop: ${(z.drop*100).toFixed(0)}% · 💰 Arany: ${goldPct}% · 🌊 Wave haladás</small>${weak?'<strong class="zone-cap-badge">⬆️ TÚL GYENGE TERÜLET NEKED</strong>':""}</div>`}).join("");
+ $("#zones").innerHTML=ZONES.map((z,i)=>{const weak=i<best;return `<div class="zone ${i===save.zone?"active":""} ${power()<z.need?"locked":""} ${weak?"zone-too-weak":""}" data-zone="${i}"><b>${z.icon} ${z.name}</b><small>${z.enemy} · Ajánlott erő: ${fmt(z.need)}</small><small>Drop: ${(z.drop*100).toFixed(0)}% · 💰 Fix ${fmt(zoneMobGold(i))} arany / mob · 🌊 Wave haladás</small>${weak?'<strong class="zone-cap-badge">⬆️ TÚL GYENGE TERÜLET NEKED</strong>':""}</div>`}).join("");
  $$("[data-zone]").forEach(e=>e.onclick=()=>{let i=+e.dataset.zone;if(power()<ZONES[i].need)return toast("🔒 Még nem vagy elég erős.");if(i<strongestUnlockedZone())return toast("⬆️ Túl erős vagy ehhez a területhez. Válaszd a legerősebb megnyitott területet!");save.zone=i;save.waveKills=0;save.waveBoss=false;save.bossHp=0;enemyHp=normalEnemyMaxHp();persist();renderAll();toast("🗺️ "+ZONES[i].name)})
 }
 function strongestUnlockedZone(){let best=0,p=power();ZONES.forEach((z,i)=>{if(p>=Number(z.need||0))best=i});return best}
@@ -428,7 +436,7 @@ function renderEquipped(){
  $("#equipped").innerHTML=Object.keys(SLOT_NAMES).map(s=>{let it=equipObj(s);return `<div class="equip-slot ${it?"rarity-"+it.rarity:""}"><small>${SLOT_ICONS[s]} ${SLOT_NAMES[s]}</small>${it?`<b>${it.name} +${it.plus}</b><small>${itemSummary(it)}</small>`:`<b>Üres</b>`}</div>`}).join("")
 }
 function itemSummary(it){let st=itemStats(it),a=[];if(st.atk)a.push("ATK "+fmt(st.atk));if(st.def)a.push("DEF "+fmt(st.def));if(st.crit)a.push("Krit +"+(st.crit*100).toFixed(1)+"%");if(st.drop)a.push("Drop +"+(st.drop*100).toFixed(1)+"%");return a.join(" · ")}
-function renderBonuses(){let b=bonuses(),p=petObj();$("#activeBonuses").innerHTML=`<div><span>⚔️ Felszerelés ATK</span><b>${fmt(b.atk)}</b></div><div><span>💰 Arany bónusz</span><b>+${((goldBonus()-1)*100).toFixed(1)}%</b></div><div><span>🎯 Krit</span><b>${(critChance()*100).toFixed(1)}%</b></div><div><span>🎁 Drop</span><b>+${(dropBonus()*100).toFixed(1)}%</b></div><div><span>🐾 Aktív pet</span><b>${p?p.icon+" "+p.name:"Nincs"}</b></div>`}
+function renderBonuses(){let b=bonuses(),p=petObj();$("#activeBonuses").innerHTML=`<div><span>⚔️ Felszerelés ATK</span><b>${fmt(b.atk)}</b></div><div><span>💰 Boss arany bónusz</span><b>+${((goldBonus()-1)*100).toFixed(1)}%</b></div><div><span>🎯 Krit</span><b>${(critChance()*100).toFixed(1)}%</b></div><div><span>🎁 Drop</span><b>+${(dropBonus()*100).toFixed(1)}%</b></div><div><span>🐾 Aktív pet</span><b>${p?p.icon+" "+p.name:"Nincs"}</b></div>`}
 
 function itemPowerScore(it){
  if(!it)return -1;
@@ -1140,7 +1148,7 @@ document.addEventListener("click",e=>{
 let away=Math.min((12+skillRank("afkCap")*3)*3600,Math.max(0,(Date.now()-save.last)/1000));
 if(away>15){
  let z=ZONES[save.zone],eff=Math.min(3.5,.55+skillBonus("offline")),kills=Math.floor(away*damage()/z.hp*eff);
- if(kills>0){let g=Math.floor(kills*z.gold*zoneGoldMultiplier(save.zone)*goldBonus());save.gold+=g;save.stats.goldEarned+=g;save.kills+=kills;save.xp+=kills*z.xp;toast(`🌙 Offline farm: ${fmt(kills)} kill · ${fmt(g)} arany`)}
+ if(kills>0){let g=kills*zoneMobGold(save.zone);save.gold+=g;save.stats.goldEarned+=g;save.kills+=kills;save.xp+=kills*z.xp;toast(`🌙 Offline farm: ${fmt(kills)} kill · ${fmt(g)} arany`)}
 }
 while(save.xp>=needXp()){save.xp-=needXp();save.level++}
 
@@ -1224,11 +1232,6 @@ function waveRewardMultiplier(wave){
   wave=Math.max(1,Number(wave||1));
   return 1 + (wave-1)*0.018 + Math.floor((wave-1)/100)*0.35;
 }
-function zoneGoldMultiplier(zoneIndex=save.zone){
-  const raw=window.OMI_CONTENT?.gameplay?.zoneGoldMultipliers;
-  const pct=Array.isArray(raw)?Number(raw[zoneIndex]??100):100;
-  return Math.max(0,Number.isFinite(pct)?pct:100)/100;
-}
 function normalEnemyMaxHp(){
   const z=ZONES[save.zone]||ZONES[0];
   const g=window.OMI_CONTENT?.gameplay||{},hits=Math.max(1,Number(g.mobTargetHits||2));
@@ -1266,7 +1269,7 @@ const V10_DEFAULTS={
  monsterDamageMult:1,bossDamageMult:1.65,bossRegenPct:.40,mobRegenPct:0,
  playerRegenPct:1.2,playerAttackSec:1,enemyAttackSec:1.35,
  respawnSec:6,respawnHpPct:100,waveKills:10,bossHpGrowthPct:18,
- bossRewardMult:1,mobDamageHpPct:2.1,bossGemAmount:1,bossGemDropChance:100
+ bossRewardMult:1,mobDamageHpPct:2.1,bossGemAmount:1,bossGemDropChance:100,defaultBossFixedGold:1000
 };
 let V10CFG={...V10_DEFAULTS};
 let v10PlayerTimer=null,v10EnemyTimer=null,v10RegenTimer=null;
@@ -1374,13 +1377,13 @@ function v161LiveHud(){
  set("#waveKills",save.waveKills);
  set("#waveGoal",save.waveGoal);
  set("#waveState",save.waveBoss?"👹 BOSS":"Normál farm");
- set("#gps",`~${fmt(z.gold*zoneGoldMultiplier(save.zone)*goldBonus()*damage()/Math.max(1,z.hp))} / mp`);
+ set("#gps",`~${fmt(zoneMobGold(save.zone)*damage()/Math.max(1,z.hp))} / mp`);
  if($("#charWave"))$("#charWave").textContent=save.wave;
 }
 
 function v10AwardNormalKill(){
  ensurePowerAppropriateZone();
- const z=ZONES[save.zone],g=Math.floor(z.gold*zoneGoldMultiplier(save.zone)*goldBonus()*waveRewardMultiplier(save.wave));
+ const z=ZONES[save.zone],g=zoneMobGold(save.zone);
  save.gold+=g;save.stats.goldEarned+=g;save.xp+=z.xp;save.kills++;
  if(Math.random()<.07+save.base.mining*.005)save.ore++;
  if(Math.random()<.007+dropBonus()*.05)save.soul++;
@@ -1414,7 +1417,7 @@ function v10AwardNormalKill(){
 }
 function v10AwardBossKill(){
  const z=ZONES[save.zone];
- const reward=Math.floor(z.gold*zoneGoldMultiplier(save.zone)*(18+save.wave*.55)*goldBonus()*waveRewardMultiplier(save.wave)*V10CFG.bossRewardMult);
+ const reward=bossGoldReward(V10CFG.defaultBossFixedGold??1000);
  const bossGemAmount=Math.max(0,Math.floor(Number(V10CFG.bossGemAmount??1))),bossGemChance=Math.max(0,Math.min(100,Number(V10CFG.bossGemDropChance??100)));
  const bossGemsWon=bossGemAmount>0&&Math.random()*100<bossGemChance?bossGemAmount:0;
  save.gold+=reward;save.stats.goldEarned+=reward;save.gems+=bossGemsWon;save.soul++;save.stats.bosses++;
@@ -1626,7 +1629,7 @@ const v11BaseAwardBoss=v10AwardBossKill;
 v10AwardBossKill=function(){
  const b=v11Boss();
  if(!b)return v11BaseAwardBoss();
- const reward=Math.floor(Number(b.gold||0)*goldBonus()*V10CFG.bossRewardMult);
+ const reward=bossGoldReward(b.gold||0);
  save.gold+=reward;save.stats.goldEarned+=reward;
  save.xp+=Number(b.xp||0);
  const bossGems=Math.max(0,Math.floor(Number(b.gems||0))),gemChance=Math.max(0,Math.min(100,Number(b.gemDropChance??100)));
