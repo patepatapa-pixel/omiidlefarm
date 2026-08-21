@@ -4873,3 +4873,8 @@ nav.tabs{display:flex!important;flex-wrap:wrap!important;justify-content:center;
  background:rgba(23,112,62,.22);color:#82f1aa;
  box-shadow:0 0 16px rgba(71,215,126,.14)
 }
+
+/* V23.19.6 restored high item rarities */
+.rarity-imperial{border-color:#e85dff!important;box-shadow:0 0 14px rgba(232,93,255,.20)}
+.rarity-celestial{border-color:#63d8ff!important;box-shadow:0 0 16px rgba(99,216,255,.22)}
+.rarity-eternal{border-color:#ffdf68!important;box-shadow:0 0 18px rgba(255,223,104,.26)}
