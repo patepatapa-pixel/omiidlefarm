@@ -6222,8 +6222,10 @@ window.OMI_BALANCE_V2319={
 
     // text nodes
     for(const node of [...el.childNodes]){
-      if(node.nodeType===Node.TEXT_NODE){
-        if(window.OMI_LANG==="en")node.nodeValue=translateText(node.nodeValue);
+      if(node.nodeType===Node.TEXT_NODE && window.OMI_LANG==="en"){
+        const before=node.nodeValue;
+        const after=translateText(before);
+        if(after!==before)node.nodeValue=after;
       }
     }
 
@@ -6256,6 +6258,7 @@ window.OMI_BALANCE_V2319={
   function switchLanguage(lang){
     lang=lang==="en"?"en":"hu";
     const current=window.OMI_LANG==="en"?"en":"hu";
+    if(lang===current)return;
     localStorage.setItem(KEY,lang);
     window.OMI_LANG=lang;
 
@@ -6282,14 +6285,23 @@ window.OMI_BALANCE_V2319={
     switchLanguage(b.dataset.v2321Lang);
   },true);
 
+  let v2327Translating=false;
   const observer=new MutationObserver(mutations=>{
-    if(window.OMI_LANG!=="en")return;
-    for(const m of mutations){
-      m.addedNodes.forEach(n=>{
-        if(n.nodeType===Node.ELEMENT_NODE)translateElement(n);
-        else if(n.nodeType===Node.TEXT_NODE)n.nodeValue=translateText(n.nodeValue);
-      });
-      if(m.type==="characterData")m.target.nodeValue=translateText(m.target.nodeValue);
+    if(window.OMI_LANG!=="en" || v2327Translating)return;
+    v2327Translating=true;
+    try{
+      for(const m of mutations){
+        m.addedNodes.forEach(n=>{
+          if(n.nodeType===Node.ELEMENT_NODE)translateElement(n);
+          else if(n.nodeType===Node.TEXT_NODE){
+            const before=n.nodeValue;
+            const after=translateText(before);
+            if(after!==before)n.nodeValue=after;
+          }
+        });
+      }
+    }finally{
+      v2327Translating=false;
     }
   });
 
@@ -6311,8 +6323,18 @@ window.OMI_BALANCE_V2319={
 
   window.addEventListener("load",()=>{
     applySavedLanguageV2326();
-    observer.observe(document.body,{subtree:true,childList:true,characterData:true});
+    observer.observe(document.body,{subtree:true,childList:true});
   });
 })();
 
 
+
+/* V23.27 i18n freeze protection */
+window.OMI_I18N_SAFE_V2327=true;
+window.addEventListener("error",e=>{
+  try{
+    if(String(e?.message||"").toLowerCase().includes("mutation")){
+      localStorage.setItem("omiLangV2324","hu");
+    }
+  }catch(_){}
+});
