@@ -262,6 +262,10 @@ async function init(){
     updateContent.updates.unshift({id:"v22_55",version:"V22.55",title:"Látványos kaszinóeredmények",date:"2026-08-21",summary:"Minden kaszinójáték animációval és részletes naplóval jelzi a jutalmat vagy veszteséget.",changes:["Nyeréskor aranyszínű felvillanás és felúszó jutalom jelenik meg.","Vesztéskor vörös effekt mutatja a levont tétet.","Minden játékkártya megőrzi a saját utolsó eredményét.","Látható a valuta típusa, a tét, a kifizetés és az egyenlegváltozás.","Az ingyen pörgetés jutalma külön animált jelzést kap.","Új kaszinónapló mutatja az utolsó 8 részletes eredményt."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_56")){
+    updateContent.updates.unshift({id:"v22_56",version:"V22.56",title:"Elkülönített kaszinó és farmarany",date:"2026-08-21",summary:"A kaszinózás alatt termelt automata farmarany külön gyűlik, és csak kilépéskor kerül az egyenlegre.",changes:["A kaszinóba belépéskor rögzül az aktuális aranyegyenleg.","Az automata farm a Kaszinó fülön is tovább dolgozik, de jutalma külön számlálón gyűlik.","A farmarany nem zavarja meg a kaszinó nyereményének és veszteségének kijelzését.","A Kaszinó fül elhagyásakor a teljes összeg automatikusan hozzáadódik.","Kilépéskor látványos értesítés mutatja a hozzáadott farmaranyat.","Megszakadt munkamenet esetén a függő jutalom mentve marad és biztonságosan jóváíródik."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
   const capMigration="v2246_wallet_caps";
   const capDone=(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[capMigration])).rows[0];
   if(!capDone){
@@ -311,7 +315,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.55.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.56.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{
