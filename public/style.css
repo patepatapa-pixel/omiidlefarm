@@ -4372,5 +4372,6 @@ body.v202-is-admin #page-character .admin-studio-panel-v230{display:block!import
 .tier-eternal,.fusion-eternal .pet-craft-tier{color:#ffb357;border-color:#ff7d24!important;box-shadow:0 0 18px rgba(255,125,36,.34)}
 .fusion-celestial{border-color:#7d62ef!important}.fusion-imperial{border-color:#16bad8!important}.fusion-eternal{border-color:#ff7d24!important}
 .v231-pet-craft .v224-fuse-row strong{color:#f4c94d}
+.v231-pet-craft .v224-rule{white-space:normal!important;max-width:520px!important;line-height:1.45!important}
 @media(max-width:850px){.v231-tier-road{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:520px){.v231-tier-road{grid-template-columns:repeat(2,minmax(0,1fr))}}

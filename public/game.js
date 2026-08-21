@@ -537,13 +537,13 @@ function renderSkills(){
 }
 const ECONOMY_DEFAULTS={
  exchange:{gems:{gold:10000000,amount:25},ore:{gold:1000000,amount:10},tickets:{gold:5000000,amount:1}},
- petSummonCost:10,petSlotCosts:[50,150,300]
+ petSummonCost:10,petSlotCosts:[50,150,300],petSummonRates:{normal:55,rare:28,epic:12,mythic:4,legendary:1}
 };
 function economyCfg(){
  const raw=window.OMI_CONTENT?.economy||{};
  const offer=key=>({gold:Math.max(1,Math.floor(Number(raw.exchange?.[key]?.gold??ECONOMY_DEFAULTS.exchange[key].gold))),amount:Math.max(1,Math.floor(Number(raw.exchange?.[key]?.amount??ECONOMY_DEFAULTS.exchange[key].amount)))});
  const slots=Array.isArray(raw.petSlotCosts)?raw.petSlotCosts:ECONOMY_DEFAULTS.petSlotCosts;
- return {exchange:{gems:offer("gems"),ore:offer("ore"),tickets:offer("tickets")},petSummonCost:Math.max(1,Math.floor(Number(raw.petSummonCost??10))),petSlotCosts:[0,1,2].map(i=>Math.max(1,Math.floor(Number(slots[i]??ECONOMY_DEFAULTS.petSlotCosts[i]))))};
+ return {exchange:{gems:offer("gems"),ore:offer("ore"),tickets:offer("tickets")},petSummonCost:Math.max(1,Math.floor(Number(raw.petSummonCost??10))),petSlotCosts:[0,1,2].map(i=>Math.max(1,Math.floor(Number(slots[i]??ECONOMY_DEFAULTS.petSlotCosts[i])))),petSummonRates:{...ECONOMY_DEFAULTS.petSummonRates,...(raw.petSummonRates||{})}};
 }
 function renderExchange(){
  const root=$("#exchangeOffers");if(!root)return;
@@ -579,9 +579,10 @@ function renderPets(){
  $$("[data-pet]").forEach(b=>b.onclick=()=>{const i=+b.dataset.pet,pos=save.activePets.indexOf(i);if(pos>=0)save.activePets.splice(pos,1);else if(save.activePets.length>=save.petSlotsUnlocked)return toast("🔒 Nincs több szabad pet hely.");else save.activePets.push(i);save.activePet=save.activePets[0]??null;persist();renderAll();toast(pos>=0?"🐾 Pet levéve":"🐾 Pet felszerelve")});
  $$("[data-buy-pet-slot]").forEach(b=>b.onclick=()=>{const slot=+b.dataset.buyPetSlot,cost=costs[slot];if(slot!==save.petSlotsUnlocked)return;if(save.gems<cost)return toast("Nincs elég gyémánt.");save.gems-=cost;save.petSlotsUnlocked++;persist();renderAll();toast(`🔓 ${slot+1}. pet hely feloldva!`)});
  const summonBtn=$("#petSummon");if(summonBtn)summonBtn.textContent=`🎲 Pet idézés · ${fmt(eco.petSummonCost)} 💎`;
+ const rates=$("#petSummonRates"),r=eco.petSummonRates;if(rates)rates.textContent=`Common ${Number(r.normal||0)}% · Rare ${Number(r.rare||0)}% · Epic ${Number(r.epic||0)}% · Mythic ${Number(r.mythic||0)}% · Legendary ${Number(r.legendary||0)}%`;
  const bestBtn=$("#equipBestPets");if(bestBtn)bestBtn.onclick=e=>{e.preventDefault();equipBestPets()};
 }
-function summonPet(){const cost=economyCfg().petSummonCost;if(save.gems<cost)return toast(`Nincs elég gyémánt. A pet idézés ára ${fmt(cost)} 💎.`);save.gems-=cost;const r=Math.random()*100,rarity=r<2?"legendary":r<9?"mythic":r<25?"epic":r<55?"rare":"normal",pool=PET_POOL.filter(p=>p.rarity===rarity),p=pool[Math.floor(Math.random()*pool.length)]||PET_POOL[0];save.pets.push({...p});persist();renderAll();toast(`🐾 ${p.name} érkezett! (${rarityName(p.rarity)})`)}
+function summonPet(){const eco=economyCfg(),cost=eco.petSummonCost;if(save.gems<cost)return toast(`Nincs elég gyémánt. A pet idézés ára ${fmt(cost)} 💎.`);save.gems-=cost;const rates=eco.petSummonRates,order=["normal","rare","epic","mythic","legendary"],weights=order.map(k=>Math.max(0,Number(rates[k]||0))),total=weights.reduce((a,b)=>a+b,0)||1;let roll=Math.random()*total,rarity="normal";for(let i=0;i<order.length;i++){roll-=weights[i];if(roll<=0){rarity=order[i];break}}const pool=PET_POOL.filter(p=>p.rarity===rarity),p=pool[Math.floor(Math.random()*pool.length)]||PET_POOL[0];save.pets.push({...p,fusionRarity:"common",fusionLevel:0,fusionMultiplier:1});persist();renderAll();toast(`🐾 ${p.name} érkezett! (${rarityName(p.rarity)} · Common kraftszint)`)}
 function renderDungeons(){
  $("#dungeons").innerHTML=DUNGEONS.map(d=>`<div class="dungeon-card ${power()<d.need?"locked":""}"><div style="font-size:30px">${d.icon}</div><h3>${d.name}</h3><small>Erő: ${fmt(d.need)} · Jegy: ${d.tickets}</small><p>${fmt(d.rewardGold)} 💰 + ${d.rewardGems} 💎 + ${d.rewardSoul} 🔵</p><button data-dungeon="${d.id}" ${power()<d.need||save.tickets<d.tickets?"disabled":""}>Belépés</button></div>`).join("");
  $$("[data-dungeon]").forEach(b=>b.onclick=()=>runDungeon(b.dataset.dungeon))
@@ -4212,17 +4213,19 @@ document.addEventListener("click",e=>{
 /* V22.2 admin 10x compatibility: existing combat speed uses save.speed10Unlocked */
 window.v222AdminSpeedSupported=true;
 
-/* ================= V22.31 PET CRAFT: COMMON → ETERNAL ================= */
+/* ================= V22.32 PET CRAFT: COMMON → ETERNAL · 10 GEM / CRAFT ================= */
 (function(){
   const TIERS=["common","rare","mythic","legendary","celestial","imperial","eternal"];
   const TIER_NAMES={common:"Common",rare:"Rare",mythic:"Mythic",legendary:"Legendary",celestial:"Celestial",imperial:"Imperial",eternal:"Eternal"};
-  const DEFAULT_COSTS={rare:5,mythic:15,legendary:40,celestial:100,imperial:250,eternal:750};
+  const DEFAULT_COSTS={rare:10,mythic:10,legendary:10,celestial:10,imperial:10,eternal:10};
+  const DEFAULT_REQUIREMENTS={rare:5,mythic:3,legendary:3,celestial:3,imperial:3,eternal:3};
   function S(){return typeof save!=="undefined"&&save?save:{}}
   function pets(){return Array.isArray(S().pets)?S().pets:[]}
   function pname(p){return String(p?.name||p?.title||"Pet")}
   function tier(p){const t=String(p?.fusionRarity||"common").toLowerCase();return TIERS.includes(t)?t:"common"}
   function tierName(p){return TIER_NAMES[tier(p)]}
-  function required(p){return tier(p)==="common"?5:3}
+  function requirements(){return {...DEFAULT_REQUIREMENTS,...(window.OMI_CONTENT?.economy?.petFusionRequirements||{})}}
+  function required(p){const n=nextTier(p);return n?Math.max(2,Math.floor(Number(requirements()[n]??3))):0}
   function nextTier(p){const i=TIERS.indexOf(tier(p));return i>=0&&i<TIERS.length-1?TIERS[i+1]:null}
   function costs(){return {...DEFAULT_COSTS,...(window.OMI_CONTENT?.economy?.petFusionCosts||{})}}
   function craftCost(p){const n=nextTier(p);return n?Math.max(0,Math.floor(Number(costs()[n]??0))):0}
@@ -4255,8 +4258,8 @@ window.v222AdminSpeedSupported=true;
     const page=document.getElementById("page-pets");if(!page)return;
     let panel=page.querySelector("#v224PetFusion");
     if(!panel){panel=document.createElement("section");panel.id="v224PetFusion";panel.className="card v224-pet-fusion v231-pet-craft";const anchor=page.querySelector(".pet-grid")||page.firstElementChild;anchor?.parentNode?.insertBefore(panel,anchor)}
-    const groups=fusionGroups();
-    panel.innerHTML=`<div class="v224-head"><div><h3>🧬 Pet kraftolás · Common → Eternal</h3><small>Csak teljesen egyforma nevű, adottságú és kraftszintű petek olvaszthatók össze. Az új pet bónusza az összes felhasznált pet értékének pontos összege.</small></div><div class="v224-rule">Common: 5 db · további szintek: 3 db</div></div><div class="v231-tier-road">${TIERS.map((t,i)=>`<span class="tier-${t}">${TIER_NAMES[t]}${i<TIERS.length-1?" →":""}</span>`).join("")}</div><div class="v224-groups">${groups.length?groups.map((g,i)=>{const p=g[0].p,n=nextTier(p),need=required(p),cost=craftCost(p),total=g.slice(0,need).reduce((s,x)=>s+value(x.p),0);return `<div class="v224-fuse-row tier-${tier(p)}"><div><b>${pname(p)} · ${tierName(p)} ×${g.length}</b><small>${need} pet: ${g.slice(0,need).map(x=>(value(x.p)*100).toFixed(0)+"%").join(" + ")} = <strong>${(total*100).toFixed(0)}%</strong> · Következő: ${TIER_NAMES[n]}</small></div><button data-v224-fuse="${i}" ${Number(S().gems||0)<cost?"disabled":""}>🧬 ${need} PET + 💎 ${cost}</button></div>`}).join(""):`<div class="v224-empty">Még nincs elegendő teljesen egyforma peted. Common szinten 5, utána szintenként 3 szükséges.</div>`}</div>`;
+    const groups=fusionGroups(),req=requirements(),rule=`Rare ${req.rare}× · Mythic ${req.mythic}× · Legendary ${req.legendary}× · Celestial ${req.celestial}× · Imperial ${req.imperial}× · Eternal ${req.eternal}×`;
+    panel.innerHTML=`<div class="v224-head"><div><h3>🧬 Pet kraftolás · Common → Eternal</h3><small>Csak teljesen egyforma nevű, adottságú és kraftszintű petek olvaszthatók össze. Az új pet bónusza az összes felhasznált pet értékének pontos összege.</small></div><div class="v224-rule">${rule}</div></div><div class="v231-tier-road">${TIERS.map((t,i)=>`<span class="tier-${t}">${TIER_NAMES[t]}${i<TIERS.length-1?" →":""}</span>`).join("")}</div><div class="v224-groups">${groups.length?groups.map((g,i)=>{const p=g[0].p,n=nextTier(p),need=required(p),cost=craftCost(p),total=g.slice(0,need).reduce((s,x)=>s+value(x.p),0);return `<div class="v224-fuse-row tier-${tier(p)}"><div><b>${pname(p)} · ${tierName(p)} ×${g.length}</b><small>${need} pet: ${g.slice(0,need).map(x=>(value(x.p)*100).toFixed(0)+"%").join(" + ")} = <strong>${(total*100).toFixed(0)}%</strong> · Következő: ${TIER_NAMES[n]}</small></div><button data-v224-fuse="${i}" ${Number(S().gems||0)<cost?"disabled":""}>🧬 ${need} PET + 💎 ${cost}</button></div>`}).join(""):`<div class="v224-empty">Még nincs elegendő teljesen egyforma peted. A szükséges darabszámokat az admin által beállított kraftszabályok határozzák meg.</div>`}</div>`;
     panel.querySelectorAll("[data-v224-fuse]").forEach(btn=>btn.onclick=()=>{const group=fusionGroups()[Number(btn.dataset.v224Fuse)];if(!group)return;const cost=craftCost(group[0].p);if(Number(S().gems||0)<cost)return toast(`Nincs elég gyémánt. Szükséges: ${cost} 💎`);const result=fuse(group);if(!result)return;persist();renderAll();toast(`🧬 ${pname(result.pet)} → ${tierName(result.pet)} · ${(value(result.pet)*100).toFixed(0)}% · -${result.cost} 💎`);renderFusionPanel()});
   }
   window.v224PetFusionMultiplier=()=>1;
