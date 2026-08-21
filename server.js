@@ -62,7 +62,7 @@ const pool=new pg.Pool({
 const q=(text,params=[])=>pool.query(text,params);
 
 const DEFAULT_SAVE={
- gold:0,gems:10,ore:0,soul:0,tickets:3,eCoins:0,prestigeTokens:0,level:1,xp:0,skillPoints:0,kills:0,zone:0,fullAutoUnlocked:false,fullAutoEnabled:false,
+ gold:0,gems:10,ore:0,soul:0,tickets:3,prestigeTokens:0,level:1,xp:0,skillPoints:0,kills:0,zone:0,fullAutoUnlocked:false,fullAutoEnabled:false,
  base:{weaponTraining:1,armorTraining:1,mining:1,luck:1},
  skills:{power:0,gold:0,crit:0,drop:0,offline:0,pet:0},
  inventory:[],equipped:{weapon:null,helmet:null,armor:null,gloves:null,boots:null,ring:null},
@@ -233,7 +233,7 @@ async function init(){
     const contentRow=(await q("SELECT value FROM game_content WHERE key='main'")).rows[0];
     const content=contentRow?.value||{};
     content.balanceVersion=2241;
-    content.gameplay={...(content.gameplay||{}),basePlayerHp:100,hpPerLevel:5,defenseEffectPct:.8,bossDamageMult:1.45,bossRegenPct:.2,respawnSec:5,zoneFixedGold:[5,9,16,28,48,80,130,210],zoneFixedXp:[6,15,35,85,220,600,1650,4500],zoneSoulDropChancePct:[1,1.5,2,2.5,3,3.5,4,5],zoneSoulDropMin:[1,1,1,1,1,1,1,1],zoneSoulDropMax:[1,1,1,2,2,2,3,3],defaultBossFixedGold:120,bossGemDropChance:20,mobTargetHits:2,waveKills:8,bossHpGrowthPct:8};
+    content.gameplay={...(content.gameplay||{}),basePlayerHp:100,hpPerLevel:5,defenseEffectPct:.8,bossDamageMult:1.45,bossRegenPct:.2,respawnSec:5,zoneFixedGold:[5,9,16,28,48,80,130,210],defaultBossFixedGold:120,bossGemDropChance:20,mobTargetHits:2,waveKills:8,bossHpGrowthPct:8};
     content.mounts={...(content.mounts||{}),shardChancePct:2,shardAmount:1,shardsRequired:10,chestCost:{gold:1500,gems:10,ore:25,soul:1,tickets:1},upgradeCostMultiplier:1};
     content.economy={...(content.economy||{}),exchange:{gems:{gold:2500,amount:5},ore:{gold:1200,amount:10},tickets:{gold:3500,amount:1}}};
     if(Array.isArray(content.bosses))content.bosses=content.bosses.map(b=>({...b,gold:Math.max(40,Math.floor(Number(b.gold||120)/20))}));
@@ -250,11 +250,11 @@ async function init(){
   updateContent.store={discord:"nervos11",products:[],...(updateContent.store||{})};
   updateContent.store.products=Array.isArray(updateContent.store.products)?updateContent.store.products:[];
   const fullAutoProduct=updateContent.store.products.find(p=>p?.id==="full_auto_20_eur");
-  if(fullAutoProduct){Object.assign(fullAutoProduct,{name:"Teljes Automata Rendszer",icon:"🤖",priceText:"20 E-érme",description:"Teljes Prestige-felkészítő automatizálás: Equip Best, item fejlesztés/forgatás, alap fejlesztések, Paragon statok, selejtezés és automatikus Paragon/Prestige."});}
-  else updateContent.store.products.push({id:"full_auto_20_eur",name:"Teljes Automata Rendszer",icon:"🤖",priceText:"20 E-érme",description:"Teljes Prestige-felkészítő automatizálás: Equip Best, item fejlesztés/forgatás, alap fejlesztések, Paragon statok, selejtezés és automatikus Paragon/Prestige.",visible:true});
+  if(fullAutoProduct){Object.assign(fullAutoProduct,{name:"Teljes Automata Rendszer",icon:"🤖",priceText:"20 €",description:"Teljes Prestige-felkészítő automatizálás: Equip Best, item fejlesztés/forgatás, alap fejlesztések, Paragon statok, selejtezés és automatikus Paragon/Prestige."});}
+  else updateContent.store.products.push({id:"full_auto_20_eur",name:"Teljes Automata Rendszer",icon:"🤖",priceText:"20 €",description:"Teljes Prestige-felkészítő automatizálás: Equip Best, item fejlesztés/forgatás, alap fejlesztések, Paragon statok, selejtezés és automatikus Paragon/Prestige.",visible:true});
   const dungeonBatchProduct=updateContent.store.products.find(p=>p?.id==="dungeon_batch_10_eur");
   if(dungeonBatchProduct){Object.assign(dungeonBatchProduct,{name:"Dungeon 10× prémium futam",icon:"🏰",description:"Az 1× / 2× / 3× / 5× futam ingyenes. Ez a csomag kizárólag a 10× futamot oldja fel."});}
-  else updateContent.store.products.push({id:"dungeon_batch_10_eur",name:"Dungeon 10× prémium futam",icon:"🏰",priceText:"10 E-érme",description:"Az 1× / 2× / 3× / 5× futam ingyenes. Ez a csomag kizárólag a 10× futamot oldja fel.",visible:true});
+  else updateContent.store.products.push({id:"dungeon_batch_10_eur",name:"Dungeon 10× prémium futam",icon:"🏰",priceText:"10 €",description:"Az 1× / 2× / 3× / 5× futam ingyenes. Ez a csomag kizárólag a 10× futamot oldja fel.",visible:true});
   if(!updateContent.updates.some(x=>x&&x.id==="v22_91")){
     updateContent.updates.unshift({id:"v22_91",version:"V22.91 FINAL",title:"Végső PvP és endgame balance",date:"2026-08-21",summary:"A PvP teljesen külön fejlődési rendszert kapott, és elkészült a végső dungeon/gear balance.",changes:["PvP-ben a PvE erő, szint, Paragon és pet nem számít.","PvP ATK, HP, DEF, Block, Szerencse/Krit és Dupla találat kizárólag Lélekkőből fejleszthető.","Block maximum 40%.","Felszerelésből csak a PvP sebzés opció számít PvP-ben.","1× / 2× / 3× / 5× dungeon futam ingyenes; csak a 10× prémium.","Legendary alap rarity 3%.","Endgame rarity: Legendary → Imperial → Celestial → Eternal.","Fegyver attack végső plafon: 1500."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
@@ -411,7 +411,7 @@ async function init(){
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
   if(!updateContent.updates.some(x=>x&&x.id==="v22_79")){
-    updateContent.updates.unshift({id:"v22_79",version:"V22.79",title:"Prémium többszörös dungeonfutam",date:"2026-08-21",summary:"Az 1× dungeon ingyenes marad, a 2×, 3× és 5× futam pedig közös, egyszeri 10 E-érmés prémium jogosultságot kapott.",changes:["Az ingyenes játékos korlátozás nélkül indíthat 1× dungeonfutamot.","A prémium csomag feloldja a 2×, 3× és 5× futamot.","A korábbi 10× futam kikerült.","A Feltöltés oldalon megjelenik a Dungeon 2× / 3× / 5× futam 10 E-érmés terméke.","A dungeon kártya zárolt állapotban mutatja a prémium lehetőséget és az árat.","Az admin játékosonként külön be- vagy kikapcsolhatja a jogosultságot.","Minden futam külön kulcsot fogyaszt, és külön siker-, jutalom- és droppróbát kap.","A termék neve, ára, leírása és láthatósága a Feltöltés adminoldalon szerkeszthető."],visible:false,createdAt:new Date().toISOString()});
+    updateContent.updates.unshift({id:"v22_79",version:"V22.79",title:"Prémium többszörös dungeonfutam",date:"2026-08-21",summary:"Az 1× dungeon ingyenes marad, a 2×, 3× és 5× futam pedig közös, egyszeri 10 €-s prémium jogosultságot kapott.",changes:["Az ingyenes játékos korlátozás nélkül indíthat 1× dungeonfutamot.","A prémium csomag feloldja a 2×, 3× és 5× futamot.","A korábbi 10× futam kikerült.","A Feltöltés oldalon megjelenik a Dungeon 2× / 3× / 5× futam 10 €-s terméke.","A dungeon kártya zárolt állapotban mutatja a prémium lehetőséget és az árat.","Az admin játékosonként külön be- vagy kikapcsolhatja a jogosultságot.","Minden futam külön kulcsot fogyaszt, és külön siker-, jutalom- és droppróbát kap.","A termék neve, ára, leírása és láthatósága a Feltöltés adminoldalon szerkeszthető."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
   if(!updateContent.updates.some(x=>x&&x.id==="v22_80")){
@@ -744,7 +744,6 @@ app.post("/api/save",auth,async(req,res)=>{
     const overrideApplied=Boolean(pending?.patch && Object.keys(pending.patch).length);
     if(overrideApplied)data=deepMergeSave(data,pending.patch);
     const premiumSource=overrideApplied?data:stored;
-    data.eCoins=Math.max(0,Math.floor(Number(overrideApplied?data.eCoins:stored.eCoins||0)));
     const prestigeAdvancedV298=Math.max(0,Number(data.prestigeLevel||0))>Math.max(0,Number(stored.prestigeLevel||0));
     if(prestigeAdvancedV298){
       data.pvpBuild={atk:0,hp:0,def:0,block:0,luck:0,double:0};
@@ -1193,39 +1192,10 @@ app.get("/api/pvp/history",auth,async(req,res)=>{
   res.json({rows});
 });
 
-
-const E_COIN_PRODUCTS={
-  premium_speed_10x:{cost:3,name:"10× Harci / Wave Sebesség",unlock:"speed10Unlocked"},
-  auto_paragon_10_eur:{cost:10,name:"Auto Paragon szintelő",unlock:"autoParagonUnlocked"},
-  dungeon_batch_10_eur:{cost:10,name:"Dungeon 10× prémium futam",unlock:"dungeonBatchUnlocked"},
-  full_auto_20_eur:{cost:20,name:"Teljes Automata Rendszer",unlock:"fullAutoUnlocked"}
-};
-app.post("/api/shop/redeem",auth,async(req,res)=>{
-  try{
-    const id=String(req.body?.product_id||"");
-    const product=E_COIN_PRODUCTS[id];
-    if(!product)return res.status(400).json({error:"Ismeretlen E-érme csomag."});
-    const row=(await q("SELECT save_data FROM game_saves WHERE user_id=$1",[req.user.id])).rows[0];
-    if(!row)return res.status(404).json({error:"Játékmentés nem található."});
-    const s=row.save_data||{};
-    if(Boolean(s[product.unlock]))return res.json({ok:true,already:true,eCoins:Math.max(0,Math.floor(Number(s.eCoins||0))),message:"Ez a jogosultság már fel van oldva."});
-    const balance=Math.max(0,Math.floor(Number(s.eCoins||0)));
-    if(balance<product.cost)return res.status(400).json({error:`Nincs elég E-érméd. Szükséges: ${product.cost} E-érme · Jelenleg: ${balance}.`});
-    s.eCoins=balance-product.cost;
-    s[product.unlock]=true;
-    if(id==="premium_speed_10x")s.combatSpeed=10;
-    await q("UPDATE game_saves SET save_data=$1,updated_at=NOW() WHERE user_id=$2",[s,req.user.id]);
-    res.json({ok:true,eCoins:s.eCoins,productId:id,message:`✅ ${product.name} feloldva · -${product.cost} E-érme`});
-  }catch(e){
-    console.error("E-COIN REDEEM ERROR:",e);
-    res.status(500).json({error:"Az E-érme beváltás nem sikerült."});
-  }
-});
-
 app.post("/api/shop/request",auth,async(req,res)=>{
   const cfg=await mainConfig(),products=cfg.store?.products||[];
   const id=String(req.body.product_id||"");
-  const product=products.find(x=>String(x.id)===id) || (id==="auto_paragon_10_eur"?{id,name:"Auto Paragon szintelő",priceText:"10 E-érme"}:id==="dungeon_batch_10_eur"?{id,name:"Dungeon 10× prémium futam",priceText:"10 E-érme"}:id==="full_auto_20_eur"?{id,name:"Teljes Automata Rendszer",priceText:"20 E-érme"}:null);
+  const product=products.find(x=>String(x.id)===id) || (id==="auto_paragon_10_eur"?{id,name:"Auto Paragon szintelő",priceText:"10 €"}:id==="dungeon_batch_10_eur"?{id,name:"Dungeon 10× prémium futam",priceText:"10 €"}:id==="full_auto_20_eur"?{id,name:"Teljes Automata Rendszer",priceText:"20 €"}:null);
   if(!product)return res.status(404).json({error:"A termék nem található."});
   const note=String(req.body.note||"").slice(0,500);
   await q("INSERT INTO purchase_requests(user_id,product_id,product_name,price_text,note) VALUES($1,$2,$3,$4,$5)",[req.user.id,id,product.name||id,product.priceText||"",note]);
@@ -1318,7 +1288,6 @@ app.post("/api/admin/player/:id/state",auth,admin,async(req,res)=>{
       }
     }
 
-    s.eCoins=Math.max(0,Math.floor(Number(b.eCoins ?? s.eCoins ?? 0)));
     s.speed10Unlocked=Boolean(s.speed10Unlocked || b.speed10Unlocked);
     s.autoParagonUnlocked=Boolean(b.autoParagonUnlocked);
     s.dungeonBatchUnlocked=Boolean(s.dungeonBatchUnlocked || b.dungeonBatchUnlocked);
