@@ -1798,7 +1798,7 @@ function v10AwardNormalKill(){
  }
  v161LiveHud();
 }
-function rollBossWaveAdvance(){if(save.waveRiftBossV284)return 5;const r=Math.random()*100;if(r<5)return 3;if(r<15)return 2;return 1}
+function rollBossWaveAdvance(){return save.waveRiftBossV284?5:1}
 function riftBossRewardFxV284(){
  if(!document.querySelector('[data-tab="farm"].active')&&!document.getElementById("page-farm")?.classList.contains("active"))return;
  const old=document.querySelector("#riftBossRewardV284");if(old)old.remove();const fx=document.createElement("div");fx.id="riftBossRewardV284";fx.className="rift-boss-reward-v284";fx.innerHTML=`<div class="rift-burst-v284"></div><section><i>🌀</i><small>3%-OS RITKA BOSS</small><h2>HASADÉK BOSS LEGYŐZVE!</h2><strong>+5 WAVE</strong><p>A tér meghasadt, és előreléptél öt teljes wave-et.</p></section>${Array.from({length:24},(_,i)=>`<b style="--i:${i}">${i%3===0?"✦":i%3===1?"◆":"●"}</b>`).join("")}`;document.body.appendChild(fx);setTimeout(()=>fx.remove(),4200);
@@ -5015,7 +5015,7 @@ document.addEventListener("click",e=>{
     const s=S()||{};
     const unlocked=Boolean(s.fullAutoUnlocked);
     const active=Boolean(unlocked&&s.fullAutoEnabled);
-    p.innerHTML=`<div class="v302-auto-copy"><small>🤖 20 € PRÉMIUM RENDSZER</small><h3>Teljes Automata Rendszer</h3><p>Teljes karakterhaladás: legerősebb farmzóna és Speed · Equip Best · felszerelés fejlesztés/forgatás · képességfa · alap fejlesztések · Paragon statok · pet/hátas · intelligens selejtezés · Auto Paragon és Auto Prestige.</p><em>${unlocked?"✅ Admin által feloldva":"🔒 Előbb az adminnak kell feloldania a fiókodon."}</em>${active?`<strong class="v303-auto-progress">⚙️ Haladás: Wave ${Number(s.wave||1)} · Paragon ${Number(s.paragonLevel||0)} · Prestige ${Number(s.prestigeLevel||0)} · Erő ${typeof power==="function"?fmt(power()):"..."}</strong>`:""}</div><button id="v299FullAutoToggleBtn" class="v302-auto-toggle ${active?"active":""}" ${unlocked?"":"disabled"}>${active?"🟢 AUTOMATA AKTÍV":"🤖 "+(unlocked?"AUTOMATA BEKAPCSOLÁSA":"NINCS FELOLDVA")}</button>`;
+    p.innerHTML=`<div class="v302-auto-copy"><small>🤖 20 € PRÉMIUM RENDSZER</small><h3>Teljes Automata Rendszer</h3><p>Kényelmi automatizálás ugyanazzal a haladási tempóval, mint a kézi játék: legerősebb farmzóna és Speed · Equip Best · felszerelés fejlesztés/forgatás · képességfa · alap fejlesztések · Paragon statok · pet/hátas · intelligens selejtezés · Auto Paragon és Auto Prestige. Nem ad rejtett sebzés-, drop-, wave- vagy Prestige-szorzót.</p><em>${unlocked?"✅ Admin által feloldva":"🔒 Előbb az adminnak kell feloldania a fiókodon."}</em>${active?`<strong class="v303-auto-progress">⚙️ Haladás: Wave ${Number(s.wave||1)} · Paragon ${Number(s.paragonLevel||0)} · Prestige ${Number(s.prestigeLevel||0)} · Erő ${typeof power==="function"?fmt(power()):"..."}</strong>`:""}</div><button id="v299FullAutoToggleBtn" class="v302-auto-toggle ${active?"active":""}" ${unlocked?"":"disabled"}>${active?"🟢 AUTOMATA AKTÍV":"🤖 "+(unlocked?"AUTOMATA BEKAPCSOLÁSA":"NINCS FELOLDVA")}</button>`;
     p.querySelector("#v299FullAutoToggleBtn")?.addEventListener("click",()=>{
       if(!s.fullAutoUnlocked){if(typeof toast==="function")toast("🔒 Az admin még nem oldotta fel a Teljes Automata Rendszert.");return}
       s.fullAutoEnabled=!s.fullAutoEnabled;
@@ -5925,3 +5925,20 @@ setInterval(()=>{
 
 /* V23.16 FULL BALANCE */
 window.OMI_BALANCE_V2316={powerCap:100000,damageCap:70000,paragonWave:220,targetWeeklyPrestige:50,seasonPrestigeTarget:50};
+
+
+/* V23.18 EQUAL PROGRESSION
+   Manual and Full Auto use the exact same combat engine, mob HP/DEF, drops,
+   wave requirements, boss rules and Paragon/Prestige requirements.
+   Full Auto only removes repetitive clicks/management; it grants no hidden
+   damage, XP, gold, drop, wave or Prestige speed multiplier. */
+window.OMI_BALANCE_V2318={
+  manualProgressMultiplier:1,
+  fullAutoProgressMultiplier:1,
+  manualDropMultiplier:1,
+  fullAutoDropMultiplier:1,
+  manualEnemyMultiplier:1,
+  fullAutoEnemyMultiplier:1
+};
+function progressionMultiplierV318(){return 1}
+function automationProgressBonusV318(){return 1}
