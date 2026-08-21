@@ -215,6 +215,9 @@ async function init(){
   const updateContentRow=(await q("SELECT value FROM game_content WHERE key='main'")).rows[0];
   const updateContent=updateContentRow?.value||{};
   updateContent.updates=Array.isArray(updateContent.updates)?updateContent.updates:[];
+  updateContent.store={discord:"nervos11",products:[],...(updateContent.store||{})};
+  updateContent.store.products=Array.isArray(updateContent.store.products)?updateContent.store.products:[];
+  if(!updateContent.store.products.some(p=>p?.id==="dungeon_batch_10_eur"))updateContent.store.products.push({id:"dungeon_batch_10_eur",name:"Dungeon 2× / 3× / 5× futam",icon:"🏰",priceText:"10 €",description:"Egyszerre több dungeon külön jutalom- és droppróbával",visible:true});
   if(!updateContent.updates.some(x=>x&&x.id==="v22_42")){
     updateContent.updates.unshift({id:"v22_42",version:"V22.42",title:"Admin által vezérelt frissítések",date:"2026-08-21",summary:"Új, átlátható fejlesztési napló került a játékba.",changes:["Minden új verzió automatikusan bekerül az admin Frissítések oldalára.","Az admin bejegyzésenként közzéteheti vagy elrejtheti a frissítéseket.","A játékosok kizárólag a közzétett változásokat látják.","A legújabb látható frissítés ÚJ jelvényt kap."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
@@ -362,6 +365,22 @@ async function init(){
     updateContent.updates.unshift({id:"v22_77",version:"V22.77",title:"Egységes, stabil összerő",date:"2026-08-21",summary:"Megszűnt az a hiba, amely miatt ugyanaz a karakter egyszer 17k, máskor 33k erőt mutathatott.",changes:["A hibát a hátas erőbónuszának késleltetett, második számítása okozta.","A hátas bónusza most közvetlenül az egyetlen központi erőképlet része.","A később betöltődő, erőt újraszámoló hátaskód eltávolításra került.","A Karakter, Farm, Statisztika, dungeon és PvP ugyanazt az erőt mutatja.","A szervermentés és az online ranglista is pontosan ezt az egységes értéket kapja.","Fülváltás, oldalbetöltés és automatikus frissítés közben többé nem ugorhat két erőérték között.","A hátas tényleges százalékos erőbónusza változatlanul megmarad."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_78")){
+    updateContent.updates.unshift({id:"v22_78",version:"V22.78",title:"Többszörös dungeonfutam",date:"2026-08-21",summary:"Elegendő dungeon jeggyel egyetlen stabil harcfelületen 1×, 3×, 5× vagy 10× kazamata teljesíthető.",changes:["Minden dungeon kártyán külön futamszám-választó jelent meg.","Választható 1×, 3×, 5× és 10× teljesítés.","A teljes jegyköltség indítás előtt pontosan látható és egyszerre kerül levonásra.","Minden futam külön siker- vagy bukáspróbát kap; a többszörös futam nem kerüli meg a dungeon esélyét.","Minden siker külön arany-, érc-, gyémánt- és lélekkő-jutalmat sorsol.","Minden siker külön ritka dungeonfelszerelés-droppróbát kap.","A végeredmény összesítve mutatja a sikerek, bukások, jutalmak és ritka tárgydropok számát.","A harc ugyanabban a kiválasztott dungeon kártyában marad, nem ugrik el a felület.","A dungeononként kiválasztott futamszám és harci gyorsítás megmarad."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_79")){
+    updateContent.updates.unshift({id:"v22_79",version:"V22.79",title:"Prémium többszörös dungeonfutam",date:"2026-08-21",summary:"Az 1× dungeon ingyenes marad, a 2×, 3× és 5× futam pedig közös, egyszeri 10 €-s prémium jogosultságot kapott.",changes:["Az ingyenes játékos korlátozás nélkül indíthat 1× dungeonfutamot.","A prémium csomag feloldja a 2×, 3× és 5× futamot.","A korábbi 10× futam kikerült.","A Feltöltés oldalon megjelenik a Dungeon 2× / 3× / 5× futam 10 €-s terméke.","A dungeon kártya zárolt állapotban mutatja a prémium lehetőséget és az árat.","Az admin játékosonként külön be- vagy kikapcsolhatja a jogosultságot.","Minden futam külön kulcsot fogyaszt, és külön siker-, jutalom- és droppróbát kap.","A termék neve, ára, leírása és láthatósága a Feltöltés adminoldalon szerkeszthető."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_80")){
+    updateContent.updates.unshift({id:"v22_80",version:"V22.80",title:"Kompakt erő és legyőzhető végjáték",date:"2026-08-21",summary:"Az összerő nem nő hatalmas számokra, miközben valódi végjátékos sebzéssel az utolsó terület és a legerősebb dungeon is együthetővé válhat.",changes:["A kijelzett összerő 30 000-es lágy végjátékos plafont kapott.","Minden további fejlesztés erősít, de az erőszám egyre lassabban nő.","A mob HP többé nem másolja automatikusan a játékos aktuális sebzését.","A pet- és felszerelésfejlődés valódi előnyt ad, nem növeli vissza rögtön az ellenfél HP-ját.","A területi mob HP az ajánlott területi erőből és a wave-ből számolódik.","Azonos fejlődési szinten a mobok és bossok veszélyesek maradnak.","Jól felépített végjátékos karakterrel az utolsó területi mob egy ütéssel legyőzhető.","Elég magas tényleges sebzéssel a legerősebb dungeon boss is együthetővé válik, miközben a kijelzett erő nem lesz milliós.","A DEF nem növelheti aránytalanul az összerőt."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_81")){
+    updateContent.updates.unshift({id:"v22_81",version:"V22.81",title:"Boss közben is stabil összerő",date:"2026-08-21",summary:"Az összerő többé nem ugrál például 28k és 44k között a normál mob és a wave boss váltakozásakor.",changes:["A hiba oka az volt, hogy az összerő a pillanatnyilag aktív Boss sebzés bónuszt is beleszámolta.","A stabil összerő most kizárólag a karakter állandó alapsebzéséből számolódik.","A Boss sebzés opció és a képességfa Boss sebzése továbbra is teljes erővel működik boss harc közben.","A harci Boss sebzés többé nem módosítja a karakterlapon látható összerőt.","A ranglista, területfeloldás, dungeonkövetelmény és PvP ugyanazt a stabil erőt használja.","Normál mob és boss váltásakor az erőérték változatlan marad.","Valódi felszerelés-, pet-, hátas- vagy statváltozás továbbra is azonnal frissíti az összerőt."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
   const capMigration="v2246_wallet_caps";
   const capDone=(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[capMigration])).rows[0];
   if(!capDone){
@@ -411,7 +430,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.77.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.81.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{
@@ -618,9 +637,14 @@ app.post("/api/save",auth,async(req,res)=>{
     let data=req.body.save;
     const power=Math.max(0,Math.floor(Number(req.body.power||0)));
     if(!data || typeof data!=="object")return res.status(400).json({error:"Hibás mentés."});
+    const stored=(await q("SELECT save_data FROM game_saves WHERE user_id=$1",[req.user.id])).rows[0]?.save_data||{};
     const pending=(await q("SELECT patch FROM admin_pending_overrides WHERE user_id=$1",[req.user.id])).rows[0];
     const overrideApplied=Boolean(pending?.patch && Object.keys(pending.patch).length);
     if(overrideApplied)data=deepMergeSave(data,pending.patch);
+    const premiumSource=overrideApplied?data:stored;
+    data.speed10Unlocked=Boolean(premiumSource.speed10Unlocked);
+    data.autoParagonUnlocked=Boolean(premiumSource.autoParagonUnlocked);
+    data.dungeonBatchUnlocked=Boolean(premiumSource.dungeonBatchUnlocked);
     const requestedWallet={gold:Number(data.gold||0),gems:Number(data.gems||0),ore:Number(data.ore||0),soul:Number(data.soul||0)};
     const economyConfig=await mainConfig(),caps={gold:5000000,gems:50000,ore:100000,soul:50000,...(economyConfig.economyCaps||{})};
     ["gold","gems","ore","soul"].forEach(k=>{const cap=Math.max(1,Math.floor(Number(caps[k])||1)),value=Math.floor(Number(data[k])||0);data[k]=Math.max(0,Math.min(cap,value))});
@@ -944,7 +968,7 @@ app.get("/api/pvp/history",auth,async(req,res)=>{
 app.post("/api/shop/request",auth,async(req,res)=>{
   const cfg=await mainConfig(),products=cfg.store?.products||[];
   const id=String(req.body.product_id||"");
-  const product=products.find(x=>String(x.id)===id) || (id==="auto_paragon_10_eur"?{id,name:"Auto Paragon szintelő",priceText:"10 €"}:null);
+  const product=products.find(x=>String(x.id)===id) || (id==="auto_paragon_10_eur"?{id,name:"Auto Paragon szintelő",priceText:"10 €"}:id==="dungeon_batch_10_eur"?{id,name:"Dungeon 2× / 3× / 5× futam",priceText:"10 €"}:null);
   if(!product)return res.status(404).json({error:"A termék nem található."});
   const note=String(req.body.note||"").slice(0,500);
   await q("INSERT INTO purchase_requests(user_id,product_id,product_name,price_text,note) VALUES($1,$2,$3,$4,$5)",[req.user.id,id,product.name||id,product.priceText||"",note]);
@@ -1039,6 +1063,7 @@ app.post("/api/admin/player/:id/state",auth,admin,async(req,res)=>{
 
     s.speed10Unlocked=Boolean(b.speed10Unlocked);
     s.autoParagonUnlocked=Boolean(b.autoParagonUnlocked);
+    s.dungeonBatchUnlocked=Boolean(b.dungeonBatchUnlocked);
     const spd=Number(b.combatSpeed||1);
     s.combatSpeed=[1,2,3,10].includes(spd) ? (spd===10 && !s.speed10Unlocked ? 3 : spd) : 1;
 
@@ -1051,7 +1076,7 @@ app.post("/api/admin/player/:id/state",auth,admin,async(req,res)=>{
       level:s.level,xp:s.xp,wave:s.wave,paragonLevel:s.paragonLevel,prestigeLevel:s.prestigeLevel,
       paragonStatPoints:s.paragonStatPoints,auraTokens:s.auraTokens,skillPoints:s.skillPoints,
       hpRegenLevel:s.hpRegenLevel,kills:s.kills,deaths:s.deaths,base:s.base,skills:s.skills,
-      speed10Unlocked:s.speed10Unlocked,combatSpeed:s.combatSpeed
+      speed10Unlocked:s.speed10Unlocked,autoParagonUnlocked:s.autoParagonUnlocked,dungeonBatchUnlocked:s.dungeonBatchUnlocked,combatSpeed:s.combatSpeed
     };
     await q(`
       INSERT INTO admin_pending_overrides(user_id,patch,updated_at) VALUES($1,$2,NOW())

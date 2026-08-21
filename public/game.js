@@ -192,6 +192,7 @@ function normalizeV6Save(s){
  s.hpRegenLevel=Math.max(0,Number(s.hpRegenLevel||0));
  s.combatSpeed=[1,2,3,10].includes(Number(s.combatSpeed))?Number(s.combatSpeed):(Number(s.combatSpeed)===4?1:1);
  s.speed10Unlocked=Boolean(s.speed10Unlocked||s.speed4Unlocked);
+ s.dungeonBatchUnlocked=Boolean(s.dungeonBatchUnlocked);
  s.deaths=Math.max(0,Number(s.deaths||0));
  s.respawnUntil=Math.max(0,Number(s.respawnUntil||0));
  return s;
@@ -238,13 +239,14 @@ function bonuses(){
  atk*=1+Math.min(1.5,petDamage);
  return {atk,def,gold,crit,drop}
 }
-function damage(){
+function damageCoreV281(bossContext=false){
  let b=bonuses(),io=itemOptionBonuses(),base=5+save.level*.65+save.base.weaponTraining*2.2+b.atk;
  let total=base*(1+skillBonus("power")+Math.min(4,save.paragonStats.damage*.02*save.paragonLevel))*(1+io.atkPct/100)*(1+Math.min(.5,Number(save.prestigeLevel||0)*.005));
- if(save.waveBoss)total*=1+io.bossDmg/100;
- if(save.waveBoss)total*=1+skillBonus("boss");
+ if(bossContext)total*=1+io.bossDmg/100;
+ if(bossContext)total*=1+skillBonus("boss");
  return Math.max(1,Math.floor(total))
 }
+function damage(){return damageCoreV281(Boolean(save.waveBoss))}
 function critChance(){let io=itemOptionBonuses();return Math.min(.85,.05+skillBonus("crit")+bonuses().crit+save.paragonStats.crit*.005*save.paragonLevel+io.crit/100)}
 function normalGoldBonusCap(){const raw=window.OMI_CONTENT?.gameplay?.goldBonusCapPct;return Math.max(0,Number(raw??100))/100}
 function normalGoldBonus(){return Math.max(0,(save.base.armorTraining-1)*.05+skillBonus("gold")+bonuses().gold)}
@@ -260,7 +262,8 @@ function zoneMobGold(zoneIndex=save.zone){return fixedZoneGold(zoneIndex)}
 function bossGoldReward(baseGold){return Math.max(0,Math.floor(Math.max(0,Number(baseGold||0))*goldBonus()))}
 function dropBonus(){let io=itemOptionBonuses();return skillBonus("drop")+bonuses().drop+(save.base.luck-1)*.01+save.paragonStats.drop*.01*save.paragonLevel+io.drop/100}
 function mountPowerMultiplierV277(){const m=save.mounts?.[save.activeMount],level=Math.max(0,Math.floor(Number(m?.level||0)));return 1+level*.02}
-function power(){const base=damage()*1.2+v10Defense()*.8+save.level*.8+save.base.mining*.5+save.base.luck*.5;return Math.floor(base*mountPowerMultiplierV277())}
+function rawPowerV280(){return (damageCoreV281(false)*1.2+v10Defense()*.8+save.level*.8+save.base.mining*.5+save.base.luck*.5)*mountPowerMultiplierV277()}
+function power(){const raw=Math.max(0,rawPowerV280()),cap=30000;return Math.floor(cap*raw/(raw+cap))}
 function rankName(){let p=power();return p<25?"Kezdő":p<180?"Harcos":p<1000?"Elit":p<5000?"Mester":p<15000?"Hős":"Isteni"}
 function baseCost(d){return Math.floor(d.base*Math.pow(1.32,save.base[d.key]-1))}
 function rarityRoll(){
@@ -1491,7 +1494,8 @@ function normalEnemyMaxHp(){
   const z=ZONES[save.zone]||ZONES[0];
   const g=window.OMI_CONTENT?.gameplay||{},hits=Math.max(1,Number(g.mobTargetHits||2));
   const multipliers=Array.isArray(g.zoneHpMultipliers)?g.zoneHpMultipliers:[],zoneMult=Math.max(.1,Number(multipliers[save.zone]??100)/100);
-  return Math.max(1,Math.floor(Math.max(1,damage())*hits*zoneMult));
+  const stage=Math.max(8,Number(z.need||1)),waveScale=1+Math.min(4,Math.max(0,Number(save.wave||1)-1)/375);
+  return Math.max(1,Math.floor(stage*1.5*hits/2*waveScale*zoneMult));
 }
 function waveKillRequirement(wave){
   wave=Math.max(1,Number(wave||1));
@@ -2086,13 +2090,14 @@ function renderStore(){
    <p>${p.description||""}</p><strong>${p.priceText||"Privát ár"}</strong>
    <button data-buy-product="${p.id||i}">💬 Vásárlási igény</button>
   </div>`).join(""):'<p class="muted">Jelenleg nincs beállított vásárlási csomag.</p>';
- const speed=products.find(p=>p.id==="premium_speed_10x"),auto=products.find(p=>p.id==="auto_paragon_10_eur");
+ const speed=products.find(p=>p.id==="premium_speed_10x"),auto=products.find(p=>p.id==="auto_paragon_10_eur"),dungeonBatch=products.find(p=>p.id==="dungeon_batch_10_eur");
  const speedPrice=document.querySelector(".premium-price-v165");if(speedPrice&&speed)speedPrice.textContent=speed.priceText||"3 €";
  const autoPrice=document.querySelector(".auto-paragon-v237>div>b");if(autoPrice&&auto)autoPrice.textContent=auto.priceText||"10 €";
  const speedCard=document.querySelector(".premium-speed-v165"),autoCard=document.querySelector(".auto-paragon-v237");
  if(speedCard&&speed){speedCard.querySelector("h2").textContent=speed.name||"10× Harci / Wave Sebesség";speedCard.querySelector("p").textContent=speed.description||"Prémium 10× farmsebesség";speedCard.style.display=speed.visible===false?"none":""}
  if(autoCard&&auto){autoCard.querySelector("h2").textContent=auto.name||"Auto Paragon szintelő";autoCard.querySelector("p").textContent=auto.description||"Automatikus Paragon szintlépés";autoCard.style.display=auto.visible===false?"none":""}
  window.V238_AUTO_PARAGON_PRODUCT=auto||{id:"auto_paragon_10_eur",name:"Auto Paragon szintelő",priceText:"10 €",visible:true};
+ window.V279_DUNGEON_BATCH_PRODUCT=dungeonBatch||{id:"dungeon_batch_10_eur",name:"Dungeon 2× / 3× / 5× futam",priceText:"10 €",visible:true};
  window.dispatchEvent(new CustomEvent("store-config-updated"));
  $$("[data-buy-product]").forEach(b=>b.onclick=async()=>{
    if(!currentUser)return openAuth("login");
@@ -4091,6 +4096,7 @@ document.addEventListener("click",e=>{
 
   function successChance(d){
     if(d.safe) return 1;
+    if(typeof damageCoreV281==="function"&&Number(damageCoreV281(true)||0)>=Math.max(250,Number(d.reqPower||100)*4.8))return 1;
 
     const p=Math.max(1,p218());
     const r=Math.max(1,Number(d.reqPower||1));
@@ -4119,6 +4125,7 @@ document.addEventListener("click",e=>{
     if(!s.dungeonStats) s.dungeonStats={runs:0,wins:0,losses:0,streak:0};
     if(!s.dungeonClears) s.dungeonClears={};
     if(!s.dungeonSpeeds) s.dungeonSpeeds={};
+    if(!s.dungeonBatchV278) s.dungeonBatchV278={};
   }
 
   function applyRewards(d){
@@ -4235,6 +4242,7 @@ document.addEventListener("click",e=>{
         ${DUNGEONS_V218.map(d=>{
           const chance=Math.round(successChance(d)*100);
           const clears=Number(s.dungeonClears?.[d.id]||0);
+          const batchOptions=[1,2,3,5],unlocked=Boolean(s.dungeonBatchUnlocked),savedBatch=batchOptions.includes(Number(s.dungeonBatchV278?.[d.id]))?Number(s.dungeonBatchV278[d.id]):1,batch=unlocked?savedBatch:1,totalTickets=d.ticketCost*batch;
           return `
           <article class="v218-dungeon-card ${d.safe?"safe":""} theme-${d.visualTheme||"cave"}">
             <div class="v220-card-scene">
@@ -4251,7 +4259,7 @@ document.addEventListener("click",e=>{
             <div class="v218-dungeon-stats">
               <span><small>Ajánlott erő</small><b>${fmt218(d.reqPower)}</b></span>
               <span><small>Ajánlott DEF</small><b>${fmt218(typeof dungeonRecommendedDefenseV271==="function"?dungeonRecommendedDefenseV271(d):0)}</b></span>
-              <span><small>Jegy</small><b>${d.ticketCost}</b></span>
+              <span><small>Jegy / futam</small><b>${d.ticketCost}</b></span>
               <span><small>Siker esélyed</small><b>${d.safe?"100%":chance+"%"}</b></span>
               <span><small>Teljesítve</small><b>${clears}×</b></span>
               <span><small>⚡ Mentett gyorsítás</small><b>${Number(s.dungeonSpeeds?.[d.id]||1)}×</b></span>
@@ -4271,8 +4279,13 @@ document.addEventListener("click",e=>{
               </div>
             </div>
 
-            <button type="button" data-v218-dungeon="${d.id}">
-              ${d.safe?"🌾 Farmolás":"⚔️ Belépés"} · ${d.ticketCost} jegy
+            <div class="v278-dungeon-batch">
+              <label><small>🔁 Egyszerre teljesítendő</small><select data-v278-dungeon-batch="${d.id}">${batchOptions.map(n=>`<option value="${n}" ${n===batch?"selected":""} ${n>1&&!unlocked?"disabled":""}>${n>1&&!unlocked?"🔒 ":""}${n}× futam</option>`).join("")}</select></label>
+              <div><small>Teljes költség</small><b>${totalTickets} 🎫</b><span>${batch} külön siker- és droppróba</span></div>
+              ${unlocked?'<strong class="v279-batch-active">✅ PRÉMIUM TÖBBSZÖRÖS FUTAM AKTÍV</strong>':'<button type="button" class="v279-batch-shop" data-v278-premium-shop>🔒 2× / 3× / 5× FELOLDÁS · 10 €</button>'}
+            </div>
+            <button type="button" data-v218-dungeon="${d.id}" ${Number(s.tickets||0)<totalTickets?"disabled":""}>
+              ${d.safe?"🌾 Farmolás":"⚔️ Belépés"} · ${batch}× · ${totalTickets} jegy
             </button>
           </article>`;
         }).join("")}
@@ -4287,6 +4300,8 @@ document.addEventListener("click",e=>{
         if(d) runDungeon(d);
       };
     });
+    root.querySelectorAll("[data-v278-dungeon-batch]").forEach(sel=>sel.onchange=()=>{s.dungeonBatchV278[sel.dataset.v278DungeonBatch]=Number(sel.value)||1;if(typeof persist==="function")persist();renderDungeonV218()});
+    root.querySelectorAll("[data-v278-premium-shop]").forEach(btn=>btn.onclick=()=>document.querySelector('[data-tab="shop"]')?.click());
   }
 
   window.DUNGEONS_V218=DUNGEONS_V218;
@@ -4367,7 +4382,7 @@ document.addEventListener("click",e=>{
       <div class="v219-battle-title">
         <div>
           <small>⚔️ KAZAMATA HARC</small>
-          <h3>${b.dungeon.name}</h3>
+          <h3>${b.dungeon.name} ${b.batchCount>1?`· ${b.batchCount}× SOROZAT`:""}</h3>
         </div>
         <div class="v219-battle-round">Kör ${b.round}</div>
       </div>
@@ -4430,8 +4445,11 @@ document.addEventListener("click",e=>{
     clearInterval(battleTimer);
     battleTimer=null;
 
-    if(win){
-      const rw=(function(){
+    const batch=Math.max(1,Number(b.batchCount||1)),wins=Math.max(0,Math.min(batch,Number(b.batchWins??(win?1:0)))),losses=batch-wins;
+    if(wins>0){
+      const rw={gold:0,ore:0,gems:0,soul:0};
+      for(let rewardRun=0;rewardRun<wins;rewardRun++){
+       const one=(function(){
         const r=d.rewards||{};
         function rr(x){const a=Number(x?.[0]||0),c=Number(x?.[1]??a);return Math.floor(a+Math.random()*(c-a+1))}
         const out={gold:rr(r.gold),ore:rr(r.ore),gems:rr(r.gems),soul:rr(r.soul)};
@@ -4442,30 +4460,29 @@ document.addEventListener("click",e=>{
         s.stats=s.stats||{};s.stats.goldEarned=Number(s.stats.goldEarned||0)+out.gold;
         return out;
       })();
+       Object.keys(rw).forEach(k=>rw[k]+=Number(one[k]||0));
+      }
 
-      s.dungeonStats.wins++;
-      s.stats=s.stats||{};s.stats.dungeons=Number(s.stats.dungeons||0)+1;addFarmActivityV264("dungeons",1);
-      s.dungeonStats.streak++;
-      s.dungeonClears[d.id]=Number(s.dungeonClears[d.id]||0)+1;
+      s.dungeonStats.wins+=wins;s.dungeonStats.losses+=losses;
+      s.stats=s.stats||{};s.stats.dungeons=Number(s.stats.dungeons||0)+wins;addFarmActivityV264("dungeons",wins);
+      s.dungeonStats.streak=losses?0:Number(s.dungeonStats.streak||0)+wins;
+      s.dungeonClears[d.id]=Number(s.dungeonClears[d.id]||0)+wins;
 
       b.bossHp=0;
-      b.log=`🏆 ${d.bossName} legyőzve! +${F(rw.gold)} arany${rw.ore?` · +${rw.ore} érc`:""}${rw.gems?` · +${rw.gems} gyémánt`:""}${rw.soul?` · +${rw.soul} lélekkő`:""}`;
+      b.log=`🏆 ${batch} futam: ${wins} siker · ${losses} bukás! +${F(rw.gold)} arany${rw.ore?` · +${rw.ore} érc`:""}${rw.gems?` · +${rw.gems} gyémánt`:""}${rw.soul?` · +${rw.soul} lélekkő`:""}`;
       drawBattle();
-      const endgameDrop=window.v225TryDungeonGearDrop?.(d);
-      if(endgameDrop){
-        const rn=window.v225EndgameRarities?.[endgameDrop.rarity];
-        if(typeof toast==="function")toast(`${rn?.icon||"✨"} ${rn?.name||endgameDrop.rarity} DROP! ${endgameDrop.name}`);
-      }else if(typeof toast==="function")toast(`🏆 ${d.name} teljesítve!`);
+      const endgameDrops=[];for(let dropRun=0;dropRun<wins;dropRun++){const item=window.v225TryDungeonGearDrop?.(d);if(item)endgameDrops.push(item)}
+      if(typeof toast==="function")toast(`🏆 ${d.name}: ${wins}/${batch} siker · ${endgameDrops.length} ritka tárgydrop`);
     }else{
-      s.dungeonStats.losses++;
+      s.dungeonStats.losses+=batch;
       s.dungeonStats.streak=0;
       b.playerHp=0;
-      b.log=`💀 ${d.bossName} legyőzött. A jegy elfogyott, de teljes HP-val éledsz újra.`;
+      b.log=`💀 ${batch} futamból egyik sem sikerült. ${batch*Number(d.ticketCost||1)} jegy elfogyott, de teljes HP-val éledsz újra.`;
       drawBattle();
 
       const mh=maxPlayerHp();
       s.playerHp=mh;
-      if(typeof toast==="function")toast(`💀 ${d.name} sikertelen.`);
+      if(typeof toast==="function")toast(`💀 ${d.name}: 0/${batch} siker.`);
     }
 
     if(typeof persist==="function")persist();
@@ -4477,25 +4494,27 @@ document.addEventListener("click",e=>{
     },1800);
   }
 
-  function startBattle(d){
+  function startBattle(d,batchCount=1){
     const s=S();
     if(!s.dungeonStats)s.dungeonStats={runs:0,wins:0,losses:0,streak:0};
     if(!s.dungeonClears)s.dungeonClears={};
 
+    batchCount=[1,2,3,5].includes(Number(batchCount))?Number(batchCount):1;if(batchCount>1&&!s.dungeonBatchUnlocked){if(typeof toast==="function")toast("🔒 A 2× / 3× / 5× dungeonfutam prémium feloldást igényel (10 €).");return}const totalCost=Number(d.ticketCost||1)*batchCount;
     const tickets=Number(s.tickets||0);
-    if(tickets<Number(d.ticketCost||1)){
-      if(typeof toast==="function")toast(`🎫 Nincs elég Dungeon jegyed. Kell: ${d.ticketCost}`);
+    if(tickets<totalCost){
+      if(typeof toast==="function")toast(`🎫 Nincs elég Dungeon jegyed. ${batchCount} futamhoz kell: ${totalCost}`);
       return;
     }
 
     if(activeBattle)return;
     const stableScrollY=window.scrollY;
 
-    s.tickets=tickets-Number(d.ticketCost||1);
-    s.dungeonStats.runs++;
+    s.tickets=tickets-totalCost;
+    s.dungeonStats.runs+=batchCount;
 
     const chance=(function(){
       if(d.safe)return 1;
+      if(typeof damageCoreV281==="function"&&Number(damageCoreV281(true)||0)>=bossMaxHp(d))return 1;
       const p=Math.max(1,P()), r=Math.max(1,Number(d.reqPower||1)), ratio=p/r;
       let c;
       if(ratio<.50)c=.08+ratio*.20;
@@ -4507,12 +4526,15 @@ document.addEventListener("click",e=>{
       return Math.max(.05,Math.min(.95,c));
     })();
 
-    const predeterminedWin=d.safe || Math.random()<chance;
+    let batchWins=0;for(let run=0;run<batchCount;run++)if(d.safe||Math.random()<chance)batchWins++;
+    const predeterminedWin=batchWins>0;
     const ph=maxPlayerHp();
     const bh=bossMaxHp(d);
 
     activeBattle={
       dungeon:d,
+      batchCount,
+      batchWins,
       playerHp:ph,
       playerMaxHp:ph,
       bossHp:bh,
@@ -4520,7 +4542,7 @@ document.addEventListener("click",e=>{
       round:1,
       speed:Number(s.dungeonSpeeds?.[d.id]||1),
       win:predeterminedWin,
-      log:`${d.bossIcon||"👹"} ${d.bossName||"Boss"} megjelent!`
+      log:`${d.bossIcon||"👹"} ${d.bossName||"Boss"} megjelent! · ${batchCount} külön futam eredménye készül.`
     };
 
     drawBattle();
@@ -4537,7 +4559,7 @@ document.addEventListener("click",e=>{
       const roundsTarget=7+Math.floor(Math.random()*4);
 
       if(b.win){
-        const bossDmg=Math.max(1,Math.floor(b.bossMaxHp/roundsTarget*(.82+Math.random()*.35)));
+        const simulated=Math.max(1,Math.floor(b.bossMaxHp/roundsTarget*(.82+Math.random()*.35))),actual=typeof damageCoreV281==="function"?Math.max(1,Math.floor(damageCoreV281(true))):simulated,bossDmg=Math.max(simulated,actual);
         const incomingBase=d.safe
           ? Math.max(1,Math.floor(b.playerMaxHp*.035))
           : Math.max(1,Math.floor(b.playerMaxHp*(.045+Math.random()*.045)));
@@ -4597,7 +4619,7 @@ document.addEventListener("click",e=>{
         if(title)title.after(boss);
       }
 
-      btn.onclick=()=>startBattle(d);
+      btn.onclick=()=>{const selected=Number(S().dungeonBatchV278?.[d.id]||1);startBattle(d,selected)};
     });
 
     if(activeBattle)drawBattle();else document.getElementById("v219DungeonBattle")?.classList.add("hidden");
@@ -4697,31 +4719,8 @@ window.v222AdminSpeedSupported=true;
 
 /* V22.4 PvE balancing around pet fusion */
 (function(){
-  function petPressure(){
-    const m=window.v224PetFusionMultiplier?.()||1;
-    // only part of pet power feeds enemy scaling so fusion still feels rewarding
-    return 1 + Math.max(0,m-1)*0.42;
-  }
-
-  const oldNormal=window.normalEnemyMaxHp;
-  if(typeof oldNormal==="function"){
-    window.normalEnemyMaxHp=function(){
-      const base=oldNormal();
-      const wave=Math.max(1,Number(save?.wave||1));
-      const progression=1 + Math.pow(Math.max(0,wave-1),1.08)*0.0045;
-      return Math.floor(base*petPressure()*progression);
-    };
-  }
-
-  const oldBoss=window.v10BossMaxHp;
-  if(typeof oldBoss==="function"){
-    window.v10BossMaxHp=function(){
-      const base=oldBoss();
-      const wave=Math.max(1,Number(save?.wave||1));
-      const bossScale=1 + Math.pow(wave,1.10)*0.0035;
-      return Math.floor(base*petPressure()*bossScale);
-    };
-  }
+  // V22.80: a megszerzett pet- és sebzésfejlődés többé nem növeli vissza
+  // automatikusan az ellenfél HP-ját. Így a végjátékban elérhető az együtéses farm.
 })();
 
 /* V22.4 pet labels */

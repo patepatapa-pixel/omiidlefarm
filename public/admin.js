@@ -256,7 +256,8 @@ function renderShopAdmin(){
  studioConfig.store={discord:"nervos11",products:[],...(studioConfig.store||{})};
  const defaults=[
   {id:"premium_speed_10x",name:"10× Harci / Wave Sebesség",icon:"⚡",priceText:"3 €",description:"Prémium 10× farmsebesség",visible:true},
-  {id:"auto_paragon_10_eur",name:"Auto Paragon szintelő",icon:"🌟",priceText:"10 €",description:"Automatikus Paragon szintlépés",visible:true}
+  {id:"auto_paragon_10_eur",name:"Auto Paragon szintelő",icon:"🌟",priceText:"10 €",description:"Automatikus Paragon szintlépés",visible:true},
+  {id:"dungeon_batch_10_eur",name:"Dungeon 2× / 3× / 5× futam",icon:"🏰",priceText:"10 €",description:"Egyszerre több dungeon külön jutalom- és droppróbával",visible:true}
  ];
  defaults.forEach(d=>{if(!studioConfig.store.products.some(p=>p.id===d.id))studioConfig.store.products.unshift(d)});
  qs("#shopProductList").innerHTML=(studioConfig.store.products||[]).map((p,i)=>`<div class="builder-entry"><b>${p.icon||"💰"} ${p.name}</b><small>${p.priceText||""} · ${p.visible===false?"REJTVE":"LÁTHATÓ"} · ${p.description||""}</small><button data-shop-edit="${i}">Szerkesztés</button><button data-shop-del="${i}">Törlés</button></div>`).join("");
@@ -434,6 +435,8 @@ function v222FillEditor(){
   if(t)t.checked=Boolean(s.speed10Unlocked);
   const ap=document.getElementById("v237AutoParagon");
   if(ap)ap.checked=Boolean(s.autoParagonUnlocked);
+  const db=document.getElementById("v279DungeonBatch");
+  if(db)db.checked=Boolean(s.dungeonBatchUnlocked);
   v222Set("v222CombatSpeed",s.combatSpeed||1);
 }
 async function v222ReloadSelected(){
@@ -462,6 +465,7 @@ function v222Payload(){
     },
     speed10Unlocked:Boolean(document.getElementById("v222Speed10")?.checked),
     autoParagonUnlocked:Boolean(document.getElementById("v237AutoParagon")?.checked),
+    dungeonBatchUnlocked:Boolean(document.getElementById("v279DungeonBatch")?.checked),
     combatSpeed:Number(document.getElementById("v222CombatSpeed")?.value||1)
   };
 }
