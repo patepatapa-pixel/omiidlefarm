@@ -525,10 +525,11 @@ function zoneMinPowerV319(zone){
  return gates[zone];
 }
 function progressionMinimumZoneV260(){
- const w=Math.max(1,Number(save.wave||1)),waveSteps=zoneWaveThresholdsV285();
- let byWave=0;
+ const w=Math.max(1,Number(save.wave||1)),p=Math.max(0,Number(power()||0)),waveSteps=zoneWaveThresholdsV285();
+ let byWave=0,byPower=0;
  waveSteps.forEach((n,i)=>{if(w>=n)byWave=i});
- return Math.min(ZONES.length-1,byWave);
+ for(let i=0;i<ZONES.length;i++){if(p>=zoneMinPowerV319(i))byPower=i}
+ return Math.min(ZONES.length-1,byWave,byPower);
 }
 function equipBestSilentV260(){Object.keys(SLOT_NAMES).forEach(slot=>{const choices=save.inventory.filter(x=>x&&x.slot===slot&&Number.isFinite(Number(x.id))).sort((a,b)=>itemScore(b)-itemScore(a));if(choices.length)save.equipped[slot]=choices[0].id})}
 function grantStarterGearV260(){equipBestSilentV260();return false}
@@ -1286,36 +1287,24 @@ function renderAuraPageV174(){
 }
 
 function renderAll(){
- const steps=[
-  ["core",()=>renderCore()],
-  ["character15",()=>renderV15ExactCharacter()],
-  ["characterVisual",()=>renderCharacterVisual()],
-  ["characterV5",()=>renderV5Character()],
-  ["wave",()=>renderWave()],
-  ["paragon",()=>renderParagon()],
-  ["zones",()=>renderZones()],
-  ["baseUpgrades",()=>renderBaseUpgrades()],
-  ["inventory",()=>renderInventory()],
-  ["upgrade",()=>renderUpgrade()],
-  ["skills",()=>renderSkills()],
-  ["pets",()=>renderPets()],
-  ["exchange",()=>renderExchange()],
-  ["dungeons",()=>renderDungeons()],
-  ["quests",()=>renderQuests()],
-  ["stats",()=>renderStats()],
-  ["characterAttributes",()=>renderCharacterAttributes()],
-  ["hpRegen",()=>renderHpRegenAndOptions()],
-  ["combatSpeed",()=>renderCombatSpeed()],
-  ["dynamicEquipment",()=>renderDynamicEquipment()],
-  ["quickStats",()=>renderV17QuickStats()],
-  ["aura171",()=>renderAuraPageV171()],
-  ["aura174",()=>renderAuraPageV174()],
-  ["contextBars",()=>window.v212RenderContextBars?.()]
- ];
- for(const [name,fn] of steps){
-   try{fn()}catch(e){console.error("[RENDER STEP FAILED]",name,e)}
- }
-}
+ renderCore();
+ renderV15ExactCharacter();
+ renderCharacterVisual();
+ renderV5Character();
+ renderWave();
+ renderParagon();
+ renderZones();
+ renderBaseUpgrades();
+ renderInventory();
+ renderUpgrade();
+ renderSkills();
+ renderPets();
+ renderExchange();
+ renderDungeons();
+ renderQuests();
+ renderStats();
+ renderCharacterAttributes();
+;renderHpRegenAndOptions();renderCombatSpeed();renderDynamicEquipment();renderV17QuickStats();renderAuraPageV171();renderAuraPageV174();window.v212RenderContextBars?.()}
 $("#bossBtn").onclick=()=>toast("👹 A boss automatikusan jön minden wave végén.");
 $("#petSummon").onclick=summonPet;
 $("#petSummonAmount")?.addEventListener("change",renderPets);
@@ -4291,8 +4280,7 @@ function render(){
 
   function successChance(d){
     if(d.safe) return 1;
-    const p=Math.max(1,Number(typeof p218==="function"?p218():1));
-    const r=Math.max(1,Number(d.reqPower||1)),ratio=p/r;
+    const p=Math.max(1,p218()),r=Math.max(1,Number(d.reqPower||1)),ratio=p/r;
     let c;
     if(ratio<.35)c=.01;
     else if(ratio<.50)c=.04;
@@ -4850,6 +4838,297 @@ function render(){
   },true);
 })();
 
+
+/* ================= V22.99 FULL AUTO SYSTEM · 20 EUR ================= */
+(function(){
+  let busy=false,lastPersist=0;
+  const RARITY_RANK={normal:0,rare:1,epic:2,mythic:3,legendary:4,imperial:5,celestial:6,eternal:7};
+
+  function S(){return (typeof save!=="undefined"&&save)?save:null}
+  function enabled(){const s=S();return Boolean(s&&s.fullAutoUnlocked&&s.fullAutoEnabled)}
+  function quietPersist(){
+    if(Date.now()-lastPersist<3500)return;
+    lastPersist=Date.now();
+    try{if(typeof persist==="function")persist()}catch(e){}
+  }
+  function scoreOpt(o){
+    const w={atkPct:10,bossDmg:9,crit:8,drop:7,hpPct:6,defPct:6,hpRegen:4,pvpDmg:2};
+    return (w[o?.key]||1)*Math.max(.1,Number(o?.value||0));
+  }
+  function rarityRankV314(it){
+    return Number(RARITY_RANK[String(it?.rarity||"normal").toLowerCase()] ?? -1);
+  }
+  function itemValueV314(it){
+    if(!it)return -Infinity;
+    let score=0;
+    try{
+      if(typeof itemPowerScore==="function")score+=Number(itemPowerScore(it)||0);
+      else if(typeof itemScore==="function")score+=Number(itemScore(it)||0);
+    }catch(e){}
+    try{
+      const st=typeof itemStats==="function"?itemStats(it):{};
+      score+=Number(st.atk||it.atk||0)*12;
+      score+=Number(st.def||it.def||0)*8;
+      score+=Number(st.crit||it.crit||0)*1800;
+      score+=Number(st.drop||it.drop||0)*1400;
+    }catch(e){}
+    score+=Number(it.plus||0)*120;
+    (Array.isArray(it.options)?it.options:[]).forEach(o=>{
+      const w={atkPct:80,bossDmg:72,crit:68,drop:55,hpPct:45,defPct:45,hpRegen:30,pvpDmg:12}[o?.key]||8;
+      score+=Math.max(0,Number(o?.value||0))*w;
+    });
+    return score;
+  }
+  function compareGearV314(a,b){
+    // Absolute priority: higher rarity always wins.
+    const rr=rarityRankV314(b)-rarityRankV314(a);
+    if(rr!==0)return rr;
+    // Same rarity: choose the item with the highest real combat/value score.
+    const value=itemValueV314(b)-itemValueV314(a);
+    if(value!==0)return value;
+    // Final tie-breakers.
+    const plus=Number(b?.plus||0)-Number(a?.plus||0);
+    if(plus!==0)return plus;
+    return Number(b?.id||0)-Number(a?.id||0);
+  }
+  function gearScore(it){
+    // Kept for cleanup/reroll compatibility; rarity dominates by a huge margin.
+    return rarityRankV314(it)*1e12 + itemValueV314(it);
+  }
+
+  function equipBestSilent(){
+    const s=S();if(!s||!Array.isArray(s.inventory))return 0;
+    s.equipped=s.equipped||{};
+    let changed=0;
+    Object.keys(typeof SLOT_NAMES!=="undefined"?SLOT_NAMES:{weapon:1,helmet:1,armor:1,gloves:1,boots:1,ring:1}).forEach(slot=>{
+      const list=s.inventory
+        .filter(x=>x&&x.slot===slot&&Number.isFinite(Number(x.id)))
+        .sort(compareGearV314);
+      const best=list[0];
+      if(best&&String(s.equipped[slot])!==String(best.id)){
+        s.equipped[slot]=best.id;
+        changed++;
+      }
+    });
+    return changed;
+  }
+
+  function autoBaseUpgrades(){
+    const s=S();if(!s||typeof BASE_UPS==="undefined"||typeof baseCost!=="function")return 0;
+    let n=0,guard=0;
+    while(guard++<12){
+      const candidates=BASE_UPS.map(d=>({d,c:baseCost(d)})).filter(x=>Number(s.gold||0)>=x.c);
+      if(!candidates.length)break;
+      // balanced progression: favor the lowest level, then cheapest
+      candidates.sort((a,b)=>(Number(s.base[a.d.key]||1)-Number(s.base[b.d.key]||1))||(a.c-b.c));
+      const x=candidates[0];s.gold-=x.c;s.base[x.d.key]=Number(s.base[x.d.key]||1)+1;n++;
+    }
+    return n;
+  }
+
+  function autoParagonStats(){
+    const s=S();if(!s)return 0;
+    s.paragonStats={damage:0,gold:0,drop:0,crit:0,...(s.paragonStats||{})};
+    let pts=Math.max(0,Math.floor(Number(s.paragonPoints||0))),spent=0;
+    // 45% damage, 25% gold, 20% drop, 10% crit, one point at a time to keep distribution balanced.
+    const order=["damage","gold","damage","drop","damage","gold","crit","damage","drop","gold"];
+    while(pts>0&&spent<1000){const k=order[spent%order.length];s.paragonStats[k]=Number(s.paragonStats[k]||0)+1;pts--;spent++}
+    s.paragonPoints=pts;
+    return spent;
+  }
+
+  function autoUpgradeGear(){
+    const s=S();if(!s||!Array.isArray(s.inventory)||typeof upgradeCost!=="function"||typeof oreCost!=="function")return 0;
+    const equipped=new Set(Object.values(s.equipped||{}).map(String));
+    const items=s.inventory.filter(it=>equipped.has(String(it.id))&&Number(it.plus||0)<15).sort((a,b)=>Number(a.plus||0)-Number(b.plus||0));
+    let attempts=0;
+    for(const it of items){
+      if(attempts>=4)break;
+      const gc=upgradeCost(it),oc=oreCost(it);
+      if(Number(s.gold||0)<gc||Number(s.ore||0)<oc)continue;
+      s.gold-=gc;s.ore-=oc;
+      if(Math.random()*100<(typeof upgradeChance==="function"?upgradeChance(it.plus):100))it.plus=Number(it.plus||0)+1;
+      attempts++;
+    }
+    return attempts;
+  }
+
+  function autoRerollEquipped(){
+    const s=S();if(!s||!Array.isArray(s.inventory)||typeof itemRerollCost!=="function"||typeof rollItemOptions!=="function")return 0;
+    const equipped=new Set(Object.values(s.equipped||{}).map(String));
+    let rolls=0;
+    for(const it of s.inventory.filter(x=>equipped.has(String(x.id)))){
+      if(rolls>=3)break;
+      if((RARITY_RANK[String(it.rarity||"normal").toLowerCase()]||0)<2)continue; // Epic+
+      const opts=Array.isArray(it.options)?it.options:[];
+      const current=opts.reduce((n,o)=>n+scoreOpt(o),0);
+      const target=(RARITY_RANK[String(it.rarity||"normal").toLowerCase()]||1)*35;
+      const cost=itemRerollCost(it);
+      if(current>=target||Number(s.gold||0)<cost*2)continue;
+      let best=JSON.parse(JSON.stringify(opts)),bestScore=current;
+      for(let r=0;r<2;r++){
+        if(Number(s.gold||0)<cost)break;
+        s.gold-=cost;rollItemOptions(it);rolls++;
+        const sc=(it.options||[]).reduce((n,o)=>n+scoreOpt(o),0);
+        if(sc>bestScore){bestScore=sc;best=JSON.parse(JSON.stringify(it.options||[]))}
+      }
+      it.options=best;
+    }
+    return rolls;
+  }
+
+  function autoCleanInventory(){
+    const s=S();if(!s||!Array.isArray(s.inventory))return 0;
+    const equipped=new Set(Object.values(s.equipped||{}).map(String));
+    const bestBySlot={};
+    for(const it of s.inventory){const sc=gearScore(it);if(!bestBySlot[it.slot]||sc>bestBySlot[it.slot])bestBySlot[it.slot]=sc}
+    let removed=0;
+    for(let i=s.inventory.length-1;i>=0;i--){
+      const it=s.inventory[i];if(!it||equipped.has(String(it.id))||it.locked||it.favorite||it.starterV260||it.unsellable)continue;
+      const rar=RARITY_RANK[String(it.rarity||"normal").toLowerCase()]||0;
+      const best=Number(bestBySlot[it.slot]||0),sc=gearScore(it);
+      // Never auto-delete Legendary+; keep competitive backups within 72% of best.
+      if(rar>=4||sc>=best*.72)continue;
+      s.inventory.splice(i,1);removed++;
+    }
+    return removed;
+  }
+
+  function autoSkills(){
+    const s=S();if(!s||typeof SKILL_TREE==="undefined"||typeof soulCost!=="function"||typeof skillRank!=="function"||typeof unlocked!=="function")return 0;
+    // Priority: raw power -> drop/gold -> sustain/offline. Spend conservatively so PvP/dungeon soulstones are not fully drained.
+    const priority=["power","crit","drop","gold","pet","offline"];
+    let bought=0,guard=0;
+    while(guard++<20){
+      const nodes=SKILL_TREE.filter(n=>unlocked(n)&&skillRank(n.key)<Number(n.max||0)&&Number(s.soul||0)>=soulCost(n));
+      if(!nodes.length)break;
+      nodes.sort((a,b)=>{
+        const ai=priority.includes(a.branch)?priority.indexOf(a.branch):priority.includes(a.key)?priority.indexOf(a.key):99;
+        const bi=priority.includes(b.branch)?priority.indexOf(b.branch):priority.includes(b.key)?priority.indexOf(b.key):99;
+        return ai-bi || soulCost(a)-soulCost(b);
+      });
+      const n=nodes[0],cost=soulCost(n);
+      // Keep a small soul reserve for PvP / other systems.
+      if(Number(s.soul||0)-cost<Math.min(25,Math.max(5,Number(s.prestigeLevel||0)*2)))break;
+      s.soul-=cost;s.skills[n.key]=skillRank(n.key)+1;bought++;
+    }
+    return bought;
+  }
+
+  function autoBestZone(){
+    const s=S();if(!s)return 0;
+    try{
+      const best=typeof strongestUnlockedZone==="function"?strongestUnlockedZone():Number(s.zone||0);
+      if(Number(s.zone||0)!==Number(best)){
+        s.zone=best;s.waveKills=0;s.waveBoss=false;s.waveRiftBossV284=false;s.bossHp=0;
+        try{enemyHp=typeof normalEnemyMaxHp==="function"?normalEnemyMaxHp():enemyHp}catch(e){}
+        return 1;
+      }
+    }catch(e){}
+    return 0;
+  }
+
+  function autoFarmSwitch(){
+    const s=S();if(!s)return 0;
+    let changed=0;
+    // Keep the fastest owned combat speed active.
+    const desired=s.speed10Unlocked?10:3;
+    if(Number(s.combatSpeed||1)!==desired){s.combatSpeed=desired;changed++}
+    // Re-enable systems that Paragon reset may disable.
+    if(s.autoDeleteSettings && s.fullAutoUnlocked && s.autoDeleteSettings.enabled!==true){
+      s.autoDeleteSettings.enabled=true;changed++;
+    }
+    return changed;
+  }
+
+  function autoPetsAndMount(){
+    try{if(typeof equipBestPets==="function")equipBestPets()}catch(e){}
+    try{
+      const s=S();
+      if(Array.isArray(s?.mounts)){
+        // compatibility for array-based mount collections
+        let best=-1,bestScore=-Infinity;
+        s.mounts.forEach((m,i)=>{const sc=Number(m?.power||m?.value||m?.bonusPct||0);if(sc>bestScore){bestScore=sc;best=i}});
+        if(best>=0){s.activeMount=best}
+      }
+    }catch(e){}
+    try{document.getElementById("equipBestMount")?.click()}catch(e){}
+  }
+
+  function maybeAdvance(){
+    const s=S();if(!s)return;
+    try{
+      if(typeof paragonWaveRequirement==="function"&&Number(s.wave||0)>=paragonWaveRequirement()&&typeof doPrestige==="function"){
+        doPrestige(true);return "paragon";
+      }
+      if(typeof prestigeParagonRequirement==="function"&&Number(s.paragonLevel||0)>=prestigeParagonRequirement()&&Number(s.prestigeLevel||0)<(typeof prestigeCap==="function"?prestigeCap():100)&&typeof doTruePrestige==="function"){
+        doTruePrestige(true);return "prestige";
+      }
+    }catch(e){}
+    return "";
+  }
+
+  function ensurePanel(){
+    // V23.02: always place the premium controller on the Character page,
+    // where it is easy to find after the admin unlocks it.
+    const host=document.getElementById("page-character")||document.getElementById("page-paragon")||document.getElementById("page-farm");
+    if(!host)return;
+    let p=document.getElementById("v299FullAutoPanel");
+    if(!p){
+      p=document.createElement("section");
+      p.id="v299FullAutoPanel";
+      p.className="card v299-full-auto v302-character-auto";
+      host.prepend(p);
+    }else if(p.parentElement!==host){
+      host.prepend(p);
+    }
+    const s=S()||{};
+    const unlocked=Boolean(s.fullAutoUnlocked);
+    const active=Boolean(unlocked&&s.fullAutoEnabled);
+    p.innerHTML=`<div class="v302-auto-copy"><small>🤖 20 E-ÉRME · AUTOMATA RENDSZER</small><h3>Teljes Automata Rendszer</h3><p>Kényelmi automatizálás ugyanazzal a haladási tempóval, mint a kézi játék: legerősebb farmzóna és Speed · Equip Best · felszerelés fejlesztés/forgatás · képességfa · alap fejlesztések · Paragon statok · pet/hátas · intelligens selejtezés · Auto Paragon és Auto Prestige. Nem ad rejtett sebzés-, drop-, wave- vagy Prestige-szorzót.</p><em>${unlocked?"✅ Admin által feloldva":"🔒 Előbb az adminnak kell feloldania a fiókodon."}</em>${active?`<strong class="v303-auto-progress">⚙️ Haladás: Wave ${Number(s.wave||1)} · Paragon ${Number(s.paragonLevel||0)} · Prestige ${Number(s.prestigeLevel||0)} · Erő ${typeof power==="function"?fmt(power()):"..."}</strong>`:""}</div><button id="v299FullAutoToggleBtn" class="v302-auto-toggle ${active?"active":""}" ${unlocked?"":"disabled"}>${active?"🟢 AUTOMATA AKTÍV":"🤖 "+(unlocked?"AUTOMATA BEKAPCSOLÁSA":"NINCS FELOLDVA")}</button>`;
+    p.querySelector("#v299FullAutoToggleBtn")?.addEventListener("click",()=>{
+      if(!s.fullAutoUnlocked){if(typeof toast==="function")toast("🔒 Az admin még nem oldotta fel a Teljes Automata Rendszert.");return}
+      s.fullAutoEnabled=!s.fullAutoEnabled;
+      quietPersist();
+      ensurePanel();
+      if(typeof toast==="function")toast(s.fullAutoEnabled?"🤖 Teljes Automata Rendszer bekapcsolva.":"🤖 Teljes Automata Rendszer kikapcsolva.");
+    });
+  }
+
+  async function tick(){
+    if(busy||!enabled())return;
+    busy=true;
+    try{
+      const s=S();if(!s)return;
+      // Full Auto includes the existing Auto Paragon entitlement while active.
+      s.autoParagonUnlocked=true;s.autoParagonEnabled=true;
+      let changed=0;
+      changed+=autoFarmSwitch();
+      changed+=autoBestZone();
+      changed+=equipBestSilent();
+      changed+=autoBaseUpgrades();
+      changed+=autoSkills();
+      changed+=autoParagonStats();
+      changed+=autoUpgradeGear();
+      // After upgrading, re-evaluate equipment before rerolling.
+      changed+=equipBestSilent();
+      changed+=autoRerollEquipped();
+      changed+=autoCleanInventory();
+      autoPetsAndMount();
+      // Re-evaluate one more time after cleanup/pet/mount changes.
+      changed+=equipBestSilent();
+      const advanced=maybeAdvance();
+      if(changed||advanced)quietPersist();
+      ensurePanel();
+      try{if(typeof renderDynamicEquipment==="function")renderDynamicEquipment()}catch(e){}
+    }finally{busy=false}
+  }
+
+  setInterval(tick,1800);
+  window.addEventListener("load",()=>setTimeout(ensurePanel,350));
+  document.addEventListener("click",e=>{if(e.target.closest?.('[data-tab="character"],[data-tab="paragon"],[data-tab="farm"]'))setTimeout(ensurePanel,80)},true);
+  window.v299FullAutoTick=tick;
+})();
 
 
 /* V23.05 - GLOBAL instant zone progression fix
@@ -5740,23 +6019,3 @@ window.OMI_BALANCE_V2319={
  dungeonRecommendedPower:[1200,3000,6500,11000,18000,28000,40000,55000,72000,90000],
  powerCap:100000
 };
-
-/* V23.20.12 COMPLETE SAFE BALANCE
-   World target: 100k power cap.
-   Zone recommendations: 0,1500,4000,9000,18000,32000,52000,75000.
-   Dungeon recommendations: 1200..90000.
-   IMPORTANT: zone renderer/unlock never depends on power() anymore.
-*/
-window.OMI_BALANCE_V232012={
- zoneMinPower:[0,1500,4000,9000,18000,32000,52000,75000],
- dungeonPower:[1200,3000,6500,11000,18000,28000,40000,55000,72000,90000],
- powerCap:100000,
- zoneUnlockMode:"wave_only_safe",
- fullAutoMode:"removed"
-};
-
-/* V23.20.13 - FULL AUTO REMOVED
-   All V23.20.12 balance/content systems retained.
-   No Full Auto timer, panel, auto equip, auto upgrades, auto reroll,
-   auto cleanup, auto Paragon or auto Prestige module remains. */
-window.OMI_FULL_AUTO_REMOVED_V232013=true;

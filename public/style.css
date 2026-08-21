@@ -4880,6 +4880,3 @@ nav.tabs{display:flex!important;flex-wrap:wrap!important;justify-content:center;
 #xpPctV23203{font-weight:1000;color:#76c8ff;min-width:34px;text-align:right}
 @keyframes v23203XpShine{0%,55%{transform:translateX(-120%)}85%,100%{transform:translateX(120%)}}
 @media(prefers-reduced-motion:reduce){.v23203-xp-bar{transition:none}.v23203-xp-shine{animation:none}}
-
-/* V23.20.12 complete balance readability */
-.zone small{line-height:1.5}
