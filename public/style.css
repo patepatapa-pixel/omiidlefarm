@@ -4832,3 +4832,6 @@ nav.tabs{display:flex!important;flex-wrap:wrap!important;justify-content:center;
 .v2317-support-notice p{margin:6px 0;color:#bdc5cf;line-height:1.5}
 .v2317-support-notice strong{display:block;margin-top:10px;color:#9ee0ad;font-size:12px}
 @media(max-width:650px){.v2317-support-notice{display:block}.v2317-support-heart{margin-bottom:10px}}
+
+/* V23.19 */
+.zone small{line-height:1.45}.zone.locked{opacity:.68}

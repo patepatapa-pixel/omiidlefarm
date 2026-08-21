@@ -482,15 +482,26 @@ function renderZones(){
  const best=strongestUnlockedZone();
  if(save.zone!==best){save.zone=best;save.waveBoss=false;save.waveRiftBossV284=false;save.bossHp=0;save.waveKills=0;enemyHp=normalEnemyMaxHp();persist()}
  const thresholds=zoneWaveThresholdsV285();
- $("#zones").innerHTML=ZONES.map((z,i)=>{const weak=i<best,locked=i>best;return `<div class="zone ${i===save.zone?"active":""} ${locked?"locked":""} ${weak?"zone-too-weak":""}" data-zone="${i}"><b>${z.icon} ${z.name}</b><small>🌊 Feloldás: Wave ${fmt(thresholds[i])} · 🛡️ Ajánlott DEF: ${fmt(recommendedDefenseV271(i,save.wave))}</small><small>Drop: ${(z.drop*100).toFixed(0)}% · 💰 Fix ${fmt(zoneMobGold(i))} arany / mob · Paragon cél: Wave ${fmt(paragonWaveRequirement())}</small>${weak?'<strong class="zone-cap-badge">⬆️ TELJESÍTETT TERÜLET</strong>':locked?`<strong class="zone-cap-badge">🔒 WAVE ${fmt(thresholds[i])} SZÜKSÉGES</strong>`:""}</div>`}).join("");
+ $("#zones").innerHTML=ZONES.map((z,i)=>{const weak=i<best,locked=i>best;return `<div class="zone ${i===save.zone?"active":""} ${locked?"locked":""} ${weak?"zone-too-weak":""}" data-zone="${i}"><b>${z.icon} ${z.name}</b><small>🌊 Feloldás: Wave ${fmt(thresholds[i])} · ⚔️ Minimum erő: ${fmt(zoneMinPowerV319(i))} · 🛡️ Ajánlott DEF: ${fmt(recommendedDefenseV271(i,save.wave))}</small><small>Drop: ${(z.drop*100).toFixed(0)}% · 💰 Fix ${fmt(zoneMobGold(i))} arany / mob · Paragon cél: Wave ${fmt(paragonWaveRequirement())}</small>${weak?'<strong class="zone-cap-badge">⬆️ TELJESÍTETT TERÜLET</strong>':locked?`<strong class="zone-cap-badge">🔒 WAVE ${fmt(thresholds[i])} SZÜKSÉGES</strong>`:""}</div>`}).join("");
  $$("[data-zone]").forEach(e=>e.onclick=()=>{let i=+e.dataset.zone,current=strongestUnlockedZone();if(i>current)return toast("🔒 Ezt a területet még nem oldottad fel.");if(i<current)return toast("⛔ A teljesített terület végleg lezárult ebben a Paragon-ciklusban.");grantStarterGearV260(i);save.zone=i;save.waveKills=0;save.waveBoss=false;save.bossHp=0;enemyHp=normalEnemyMaxHp();persist();renderAll();toast("🗺️ "+ZONES[i].name)})
 }
 function zoneWaveThresholdsV285(){
  const count=Math.max(1,ZONES.length),req=Math.max(1,paragonWaveRequirement());
  if(count===1)return [1];
- return Array.from({length:count},(_,i)=>i===0?1:i===count-1?req:Math.max(2,Math.round(req*Math.pow(i/(count-1),1.12))));
+ return Array.from({length:count},(_,i)=>i===0?1:i===count-1?Math.max(2,req-18):Math.max(2,Math.round(req*Math.pow(i/(count-1),1.08))));
 }
-function progressionMinimumZoneV260(){const w=Math.max(1,Number(save.wave||1)),waveSteps=zoneWaveThresholdsV285();let byWave=0;waveSteps.forEach((n,i)=>{if(w>=n)byWave=i});return Math.min(ZONES.length-1,byWave)}
+function zoneMinPowerV319(zone){
+ const gates=[0,1500,4000,9000,18000,32000,52000,75000];
+ zone=Math.max(0,Math.min(gates.length-1,Math.floor(Number(zone||0))));
+ return gates[zone];
+}
+function progressionMinimumZoneV260(){
+ const w=Math.max(1,Number(save.wave||1)),p=Math.max(0,Number(power()||0)),waveSteps=zoneWaveThresholdsV285();
+ let byWave=0,byPower=0;
+ waveSteps.forEach((n,i)=>{if(w>=n)byWave=i});
+ for(let i=0;i<ZONES.length;i++){if(p>=zoneMinPowerV319(i))byPower=i}
+ return Math.min(ZONES.length-1,byWave,byPower);
+}
 function equipBestSilentV260(){Object.keys(SLOT_NAMES).forEach(slot=>{const choices=save.inventory.filter(x=>x&&x.slot===slot&&Number.isFinite(Number(x.id))).sort((a,b)=>itemScore(b)-itemScore(a));if(choices.length)save.equipped[slot]=choices[0].id})}
 function grantStarterGearV260(){equipBestSilentV260();return false}
 function strongestUnlockedZone(){const best=progressionMinimumZoneV260();save.highestZoneEver=best;return best}
@@ -1541,12 +1552,16 @@ function waveRewardMultiplier(wave){
   return 1 + (wave-1)*0.018 + Math.floor((wave-1)/100)*0.35;
 }
 function normalEnemyMaxHp(){
-  const wave=Math.max(1,Number(save.wave||1)),zone=Math.max(0,Number(save.zone||0)),prestige=Math.max(0,Number(save.prestigeLevel||0));
-  const dmg=Math.max(10,Number(damageCoreV281(false)||10));
-  const targetHits=Math.min(3.4,1.7+zone*.16+(wave/220)*.75+prestige*.004);
-  const zonePressure=1+zone*.10;
-  const prestigePressure=1+Math.min(.25,prestige*.005);
-  return Math.max(10,Math.floor(dmg*targetHits*zonePressure*prestigePressure*combatSpeedHpMultiplierV282()));
+  const zone=Math.max(0,Math.min(ZONES.length-1,Number(save.zone||0)));
+  const wave=Math.max(1,Number(save.wave||1));
+  const zoneBase=[180,650,1800,4800,11500,24000,43000,72000][zone]||72000;
+  const thresholds=zoneWaveThresholdsV285();
+  const start=Math.max(1,Number(thresholds[zone]||1));
+  const end=Math.max(start+1,Number(thresholds[Math.min(zone+1,thresholds.length-1)]||paragonWaveRequirement()));
+  const local=Math.max(0,Math.min(1,(wave-start)/(end-start)));
+  const waveScale=.82+local*.62;
+  const prestigeScale=1+Math.min(.28,Math.max(0,Number(save.prestigeLevel||0))*.004);
+  return Math.max(10,Math.floor(zoneBase*waveScale*prestigeScale*combatSpeedHpMultiplierV282()));
 }
 function waveKillRequirement(wave){
   wave=Math.max(1,Number(wave||1));
@@ -1628,11 +1643,13 @@ function v10Defense(){
 function defenseReductionV265(){const d=v10Defense(),g=window.OMI_CONTENT?.gameplay||{},cap=Math.max(.1,Math.min(.85,Number(g.defenseReductionCapPct??75)/100)),target=recommendedDefenseV271();return Math.min(cap,cap*d/(d+target*.65))}
 function defenseGuardChanceV265(){const d=v10Defense(),g=window.OMI_CONTENT?.gameplay||{},cap=Math.max(0,Math.min(.4,Number(g.defenseGuardCapPct??25)/100)),target=recommendedDefenseV271();return Math.min(cap,cap*1.2*d/(d+target))}
 function recommendedDefenseV271(zone=save.zone,wave=save.wave){
- const z=Math.max(0,Number(zone||0)),w=Math.max(1,Number(wave||1)),p=Math.max(0,Number(save.prestigeLevel||0));
- return Math.max(10,Math.floor(24*(1+z*.72)*Math.pow(1+w/150,.52)*(1+Math.min(.30,p*.004))));
+ const z=Math.max(0,Math.min(ZONES.length-1,Number(zone||0))),w=Math.max(1,Number(wave||1)),p=Math.max(0,Number(save.prestigeLevel||0));
+ const base=[18,45,90,175,310,500,760,1050][z]||1050;
+ const scale=1+Math.min(.45,w/500)+Math.min(.25,p*.004);
+ return Math.max(10,Math.floor(base*scale));
 }
 function defensePressureV271(){const ratio=v10Defense()/Math.max(1,recommendedDefenseV271());return Math.max(.78,Math.min(1.45,1+(1-ratio)*.45))}
-function dungeonRecommendedDefenseV271(d){return Math.max(15,Math.floor(20+Math.sqrt(Math.max(1,Number(d?.reqPower||d?.need||100)))*4.2))}
+function dungeonRecommendedDefenseV271(d){const r=Math.max(100,Number(d?.reqPower||d?.need||100));return Math.max(20,Math.floor(18+Math.pow(r,.58)*2.15))}
 function dungeonDefenseModifierV266(d){const ratio=v10Defense()/Math.max(1,dungeonRecommendedDefenseV271(d));return Math.max(-.18,Math.min(.25,(ratio-1)*.16+defenseGuardChanceV265()*.18))}
 function dungeonIncomingMultiplierV266(d){const ratio=v10Defense()/Math.max(1,dungeonRecommendedDefenseV271(d)),pressure=Math.max(.72,Math.min(1.35,1+(1-ratio)*.35));return Math.max(.25,(1-defenseReductionV265()*.65)*pressure)}
 function dungeonBlockRollV272(amount){const blocked=Math.random()<defenseGuardChanceV265(),g=window.OMI_CONTENT?.gameplay||{},reduction=Math.max(.2,Math.min(.8,Number(g.defenseGuardReductionPct??50)/100));return {blocked,damage:Math.max(1,Math.floor(Number(amount||0)*(blocked?1-reduction:1)))}}
@@ -1644,9 +1661,9 @@ function v10MaxHp(){
  ));
 }
 function v10BossMaxHp(){
- const base=normalEnemyMaxHp();
- // Minden wave végén boss jön: komoly fal, de nem irreális.
- return Math.max(base,Math.floor(base*(5+Math.min(3.5,save.wave*.012))));
+ const base=normalEnemyMaxHp(),zone=Math.max(0,Number(save.zone||0)),wave=Math.max(1,Number(save.wave||1));
+ const mult=5.5+zone*.42+Math.min(1.8,wave/220*1.8);
+ return Math.max(base,Math.floor(base*mult));
 }
 function v10EnemyMaxHp(){return save.waveBoss?v10BossMaxHp():normalEnemyMaxHp()}
 function v10RawEnemyDamage(){
@@ -4192,8 +4209,8 @@ document.addEventListener("click",e=>{
 
   // V22.41 compact, readable progression scale.
   const V2241_DUNGEON_BALANCE=[
-    [40,[80,120]],[110,[140,220]],[260,[240,360]],[550,[420,650]],[1100,[700,1050]],
-    [2200,[1100,1600]],[4000,[1700,2500]],[7000,[2600,3800]],[12000,[4000,5800]],[20000,[6500,9000]]
+    [1200,[1200,1800]],[3000,[2500,3800]],[6500,[5000,7500]],[11000,[9000,13500]],[18000,[15000,22000]],
+    [28000,[24000,35000]],[40000,[36000,52000]],[55000,[52000,76000]],[72000,[76000,110000]],[90000,[115000,165000]]
   ];
   DUNGEONS_V218.forEach((d,i)=>{const b=V2241_DUNGEON_BALANCE[i];if(!b)return;d.reqPower=b[0];d.rewards.gold=b[1]});
 
@@ -4203,23 +4220,18 @@ document.addEventListener("click",e=>{
 
   function successChance(d){
     if(d.safe) return 1;
-    if(typeof damageCoreV281==="function"&&Number(damageCoreV281(true)||0)>=Math.max(250,Number(d.reqPower||100)*4.8))return 1;
-
-    const p=Math.max(1,p218());
-    const r=Math.max(1,Number(d.reqPower||1));
-    const ratio=p/r;
-
-    // Recommended power = ~70% chance, not guaranteed.
-    // Underpowered players still have a small chance; overpowered players approach 95%, never 100%.
+    const p=Math.max(1,p218()),r=Math.max(1,Number(d.reqPower||1)),ratio=p/r;
     let c;
-    if(ratio < .50) c = .08 + ratio*.20;       // ~8–18%
-    else if(ratio < .80) c = .20 + (ratio-.50)*.70; // ~20–41%
-    else if(ratio < 1.00) c = .45 + (ratio-.80)*1.25; // ~45–70%
-    else if(ratio < 1.50) c = .70 + (ratio-1.00)*.40; // 70–90%
-    else c = .90 + Math.min(.05,(ratio-1.50)*.03);    // max 95%
-
+    if(ratio<.35)c=.01;
+    else if(ratio<.50)c=.04;
+    else if(ratio<.70)c=.10+(ratio-.50)*.50;
+    else if(ratio<.90)c=.20+(ratio-.70)*1.25;
+    else if(ratio<1.00)c=.45+(ratio-.90)*2.0;
+    else if(ratio<1.15)c=.65+(ratio-1.00)*1.2;
+    else if(ratio<1.50)c=.83+(ratio-1.15)*.28;
+    else c=.93+Math.min(.05,(ratio-1.50)*.04);
     c+=typeof dungeonDefenseModifierV266==="function"?dungeonDefenseModifierV266(d):0;
-    return Math.max(.05,Math.min(.95,c));
+    return Math.max(.01,Math.min(.98,c));
   }
 
   function rollRange([a,b]){
@@ -4466,10 +4478,8 @@ document.addEventListener("click",e=>{
   }
 
   function bossMaxHp(d){
-    return Math.max(
-      250,
-      Math.floor(Number(d.reqPower||100) * (d.safe ? 2.2 : 4.8))
-    );
+    const req=Math.max(100,Number(d.reqPower||100));
+    return Math.max(500,Math.floor(req*(d.safe?2.8:6.2)));
   }
 
   function ensureBattlePanel(root){
@@ -5942,3 +5952,10 @@ window.OMI_BALANCE_V2318={
 };
 function progressionMultiplierV318(){return 1}
 function automationProgressBonusV318(){return 1}
+
+/* V23.19 WORLD BALANCE */
+window.OMI_BALANCE_V2319={
+ zoneMinPower:[0,1500,4000,9000,18000,32000,52000,75000],
+ dungeonRecommendedPower:[1200,3000,6500,11000,18000,28000,40000,55000,72000,90000],
+ powerCap:100000
+};
