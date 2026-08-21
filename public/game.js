@@ -4179,6 +4179,8 @@ document.addEventListener("click",e=>{
       p.appendChild(root);
     }
 
+    const stableBattlePanel=root.querySelector("#v219DungeonBattle"),battleWasVisible=Boolean(stableBattlePanel&&!stableBattlePanel.classList.contains("hidden")),stableScrollY=window.scrollY;
+    if(stableBattlePanel)stableBattlePanel.remove();
     const s=s218();
     const stats=s.dungeonStats||{runs:0,wins:0,losses:0,streak:0};
 
@@ -4245,6 +4247,8 @@ document.addEventListener("click",e=>{
         }).join("")}
       </div>
     `;
+    if(stableBattlePanel)root.prepend(stableBattlePanel);
+    if(battleWasVisible)requestAnimationFrame(()=>window.scrollTo({top:stableScrollY,left:window.scrollX,behavior:"auto"}));
 
     root.querySelectorAll("[data-v218-dungeon]").forEach(btn=>{
       btn.onclick=()=>{
@@ -4296,11 +4300,8 @@ document.addEventListener("click",e=>{
       panel.id="v219DungeonBattle";
       panel.className="v219-dungeon-battle hidden";
     }
-    const activeId=activeBattle?.dungeon?.id;
-    const activeButton=activeId?root.querySelector(`[data-v218-dungeon="${activeId}"]`):null;
-    const activeCard=activeButton?.closest(".v218-dungeon-card");
-    const target=activeCard||root;
-    if(panel.parentNode!==target)target.prepend(panel);
+    if(panel.parentNode!==root||root.firstElementChild!==panel)root.prepend(panel);
+    panel.classList.toggle("hidden",!activeBattle);
     return panel;
   }
 
@@ -4456,6 +4457,7 @@ document.addEventListener("click",e=>{
     }
 
     if(activeBattle)return;
+    const stableScrollY=window.scrollY;
 
     s.tickets=tickets-Number(d.ticketCost||1);
     s.dungeonStats.runs++;
@@ -4490,6 +4492,7 @@ document.addEventListener("click",e=>{
     };
 
     drawBattle();
+    requestAnimationFrame(()=>window.scrollTo({top:stableScrollY,left:window.scrollX,behavior:"auto"}));
 
     battleTimer=setInterval(()=>{
       const steps=Math.max(1,Math.min(5,Number(activeBattle?.speed||1)));
@@ -4565,7 +4568,7 @@ document.addEventListener("click",e=>{
       btn.onclick=()=>startBattle(d);
     });
 
-    if(activeBattle)drawBattle();
+    if(activeBattle)drawBattle();else document.getElementById("v219DungeonBattle")?.classList.add("hidden");
   }
 
   window.v218RenderDungeon=enhancedRender;

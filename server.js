@@ -314,6 +314,10 @@ async function init(){
     updateContent.updates.unshift({id:"v22_68",version:"V22.68",title:"Fejlesztés nélküli Farm aktivitás",date:"2026-08-21",summary:"A wave- és Paragon-haladáshoz többé tárgyfejlesztés sem szükséges.",changes:["A tárgyfejlesztés kikerült a Farm aktivitáspontok forrásai közül.","A Farm aktivitás követelménye 15-ről 11 pontra csökkent.","Öt tárgydrop összesen 5 pontot ad.","Két boss legyőzése összesen 6 pontot ad.","A MINDENT FEJLESZT gomb megmarad, de nem befolyásolja a wave- vagy Paragon-haladást.","Sem dungeon, sem tárgyfejlesztés nem kötelező az ellenőrzőpontokhoz."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_69")){
+    updateContent.updates.unshift({id:"v22_69",version:"V22.69",title:"Stabil dungeon harcfelület",date:"2026-08-21",summary:"A dungeon újraindításakor a harci panel és az oldal görgetési helyzete többé nem ugrál el.",changes:["A dungeon harcpanel állandó helyet kapott a kazamatafelület tetején.","A panel többé nem költözik bele a kiválasztott dungeon kártyájába.","Jutalom- és statfrissítéskor a harcpanel megmarad, nem épül újra más pozícióban.","Új dungeon indításakor az oldal megtartja az aktuális görgetési pozíciót.","A harc befejezése után a panel ugyanott záródik be.","Az ismételt dungeonindítás ugyanazon a stabil felületen jelenik meg."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
   const capMigration="v2246_wallet_caps";
   const capDone=(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[capMigration])).rows[0];
   if(!capDone){
@@ -363,7 +367,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.68.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.69.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{
