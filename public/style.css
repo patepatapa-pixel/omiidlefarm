@@ -268,7 +268,7 @@ a{text-decoration:none}
 .v10-player-hp{height:13px;background:#291015;border:1px solid #51262e;border-radius:20px;overflow:hidden;margin:8px 0}
 #playerHpBar{display:block;height:100%;width:100%;background:linear-gradient(90deg,#8f2633,#e64b5c);transition:width .18s}
 .gameplay-explain{margin-top:12px;padding:12px;border:1px solid #4b3d19;border-radius:10px;background:#100d06;color:#c9bea0;line-height:1.55}
-.admin-only-btn{display:inline-block!important}
+.admin-only-btn{display:none}
 @media(max-width:650px){.v10-combat-status{grid-template-columns:1fr}}
 
 /* V11 PvP + shop */
@@ -4404,3 +4404,6 @@ body.v202-is-admin #page-character .admin-studio-panel-v230{display:block!import
 
 /* V22.39 persistent dungeon speed and mount shard visibility */
 .resource-grid{grid-template-columns:repeat(7,minmax(0,1fr))}.mount-shard-resource-v239{border-color:#6e4ea4!important;background:linear-gradient(145deg,#171020,#0a0c11)!important}.mount-shard-resource-v239 strong{color:#c39cff}.v218-dungeon-stats span:last-child{border-color:#37627c;background:#0a1821}.v218-dungeon-stats span:last-child b{color:#6fdcff}#page-shop>.layout:has(.discord-card[aria-hidden="true"]){grid-template-columns:1fr}@media(max-width:1050px){.resource-grid{grid-template-columns:repeat(4,1fr)}}@media(max-width:650px){.resource-grid{grid-template-columns:repeat(2,1fr)}}
+
+/* V22.40 contact is shown only on the Top-up page */
+.shop-discord-contact-v240{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;margin-bottom:12px;padding:18px 20px;border:1px solid #5865f2;border-radius:15px;background:radial-gradient(circle at 8% 50%,rgba(88,101,242,.3),transparent 28%),linear-gradient(135deg,#11152a,#090c13);box-shadow:0 12px 32px #0006}.shop-discord-icon-v240{display:grid;place-items:center;width:52px;height:52px;border-radius:14px;background:#5865f2;font-size:27px;box-shadow:0 0 22px rgba(88,101,242,.45)}.shop-discord-contact-v240 small{color:#91a0ff;font-weight:900;letter-spacing:.13em}.shop-discord-contact-v240 h2{margin:3px 0}.shop-discord-contact-v240 p{margin:0;color:#9aa7b5}.shop-discord-contact-v240>strong{padding:12px 18px;border:1px solid #8390ff;border-radius:10px;background:#5865f2;color:#fff;font-size:20px;letter-spacing:.04em;user-select:all}@media(max-width:650px){.shop-discord-contact-v240{grid-template-columns:1fr;text-align:center}.shop-discord-icon-v240{margin:auto}.shop-discord-contact-v240>strong{width:100%}}

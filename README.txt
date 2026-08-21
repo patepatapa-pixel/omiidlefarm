@@ -1,4 +1,9 @@
-OMI IDLE FARM ONLINE V22.39
+OMI IDLE FARM ONLINE V22.40
+
+V22.40 ÚJ:
+- a Feltöltés oldalon kiemelten látszik: Discord nervos11
+- normál játékos felső sávjában nem jelenik meg az Adminpanel gomb
+- az Adminpanel gomb kizárólag admin szerepkörnél látható
 
 V22.39 ÚJ:
 - a dungeon gyorsítás kazamatánként tartósan mentődik

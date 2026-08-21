@@ -1018,7 +1018,7 @@ function setAuthenticatedUI(user){
    ?`<span class="online-badge">●</span> ${user.player_name||user.username}`
    :"👤 Vendég";
  if(auth)auth.textContent=logged?"Kilépés":"Belépés";
- if(adminBtn)adminBtn.style.display=logged&&user.role==="admin"?"inline-flex":"none";
+ if(adminBtn)adminBtn.style.setProperty("display",logged&&user.role==="admin"?"inline-flex":"none","important");
 
  const saveState=$("#saveState");
  if(saveState)saveState.textContent=logged?"☁️ Felhő mentés":"🔒 Jelentkezz be";
