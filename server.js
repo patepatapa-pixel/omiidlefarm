@@ -114,12 +114,12 @@ function serverPowerV283(s={}){
  for(const it of items){const mult=1+Math.max(0,n(it.plus))*.1;atk+=Math.floor(Math.max(0,n(it.atk))*mult);def+=Math.floor(Math.max(0,n(it.def))*mult);for(const o of (Array.isArray(it.options)?it.options:[]).slice(0,5)){if(o?.key==="atkPct")atkPct+=n(o.value);if(o?.key==="defPct")defPct+=n(o.value)}}
  const pets=Array.isArray(s.pets)?s.pets:[],active=(Array.isArray(s.activePets)?s.activePets:[]).slice(0,Math.max(1,n(s.petSlotsUnlocked)||1));let petDamage=0;
  for(const i of active){const p=pets[i];if(!p)continue;const entries=[{bonus:p.bonus||"damage",value:Math.max(0,n(p.value))},...(Array.isArray(p.extraOptions)?p.extraOptions:[])];for(const o of entries){const v=Math.max(0,n(o?.value))*(1+petSkill);if(o?.bonus==="damage")petDamage+=v;else if(o?.bonus==="all")petDamage+=v}}
- atk*=1+Math.min(1.5,petDamage);
+ const petCap=.65;petDamage=petCap*petDamage/(petDamage+petCap);atk*=1+petDamage;
  const level=Math.max(1,n(s.level)||1),paragon=Math.max(0,n(s.paragonLevel)),prestige=Math.max(0,Math.min(100,n(s.prestigeLevel))),base=s.base||{},ps=s.paragonStats||{};
  const damage=Math.max(1,Math.floor((5+level*.65+Math.max(1,n(base.weaponTraining)||1)*2.2+atk)*(1+skillPower+Math.min(4,n(ps.damage)*.02*paragon))*(1+atkPct/100)*(1+Math.min(.5,prestige*.005))));
  const zone=Math.max(0,n(s.zone)),wave=Math.max(1,n(s.wave)||1),target=Math.max(10,Math.floor(30*(1+zone*1.2)*Math.pow(1+wave/100,.5)));
  const rawDef=Math.max(0,(def+Math.max(1,n(base.armorTraining)||1)*2+level*.3+prestige*1.5)*(1+defPct/100)),effectiveDef=Math.max(0,Math.floor(target*(3*rawDef/(rawDef+target*2))));
- const mount=s.mounts?.[s.activeMount],mountMult=1+Math.max(0,Math.floor(n(mount?.level)))*.02;
+ const mount=s.mounts?.[s.activeMount],mountRaw=Math.max(0,Math.floor(n(mount?.level)))*.02,mountCap=.25,mountMult=1+mountCap*mountRaw/(mountRaw+mountCap);
  const raw=(damage*1.2+effectiveDef*.8+level*.8+Math.max(1,n(base.mining)||1)*.5+Math.max(1,n(base.luck)||1)*.5)*mountMult,cap=30000;
  return Math.max(0,Math.floor(cap*raw/(raw+cap)));
 }
@@ -420,6 +420,18 @@ async function init(){
     updateContent.updates.unshift({id:"v22_86",version:"V22.86",title:"Fix Wave 400 Paragon-út és végjátékfarm",date:"2026-08-21",summary:"Minden Paragon-ciklus Wave 400-ig tart, a területek egyirányúan nyílnak, a végén pedig teljes jutalmú fejlesztőfarm marad.",changes:["A Paragon wave-követelménye minden szinten fixen 400.","A nyolc alap terület feloldási pontja: 1, 45, 98, 155, 214, 274, 337 és 400.","Új terület megnyitásakor a játékos automatikusan továbblép, a korábbi területek pedig lezáródnak az adott ciklusban.","Wave 400 után a wave nem nő tovább Paragon nélkül.","Az utolsó területen továbbra is 100%-os arany-, nyersanyag- és tárgyjutalom jár.","A játékos így a Paragon előtt tovább erősítheti felszerelését a nehezebb dungeonokhoz.","Paragon után újra Wave 1 és az első terület következik."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_87")){
+    updateContent.updates.unshift({id:"v22_87",version:"V22.87",title:"Tömeges petidézés és intelligens petkraft",date:"2026-08-21",summary:"Egyszerre több pet idézhető, az összes megfelelő azonos pet pedig egyetlen gombbal végigkraftolható.",changes:["Petidézésnél 1×, 10×, 25× és 50× mennyiség választható.","A gomb előre mutatja a kiválasztott idézések teljes gyémántárát.","A tömeges idézés egy összesítőben mutatja a kapott ritkaságokat.","Új ÖSSZES AZONOS PET KRAFTOLÁSA gomb készült.","A tömeges kraft kizárólag azonos fajtájú, fő adottságú és kraftszintű peteket használ.","Az elkészült azonos magasabb szintű peteket automatikusan tovább kraftolja, amíg van elegendő darab és gyémánt.","Minden egyes kraft külön levonja az adminban beállított gyémántárat.","A ritka +5 wave teljes képernyős kijelzése és csilingelése kizárólag a Farm fülön jelenik meg."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_88")){
+    updateContent.updates.unshift({id:"v22_88",version:"V22.88",title:"Pet- és hátasbónuszok újrabalanszolása",date:"2026-08-21",summary:"A petek és hátasok továbbra is értékes gyűjthető fejlesztések, de többé nem emelik aránytalanul magasra a karakter erejét.",changes:["Az újonnan idézett petek alapbónuszai a kompakt Wave 400-as játékmenethez igazodnak.","A meglévő petértékek és extra opciók egyszeri arányos átskálázást kapnak; egyetlen pet sem törlődik.","A pet sebzés, arany, krit és drop külön csökkenő hatásfokú lágy plafont használ.","Az összekraftolt érték továbbra is maradéktalanul összeadódik és látható marad.","A tényleges petsebzés maximuma fokozatosan 65%, a petaranyé 45%, a petkrité 18%, a petdropé 30% felé közelít.","A hátas szintenkénti ereje csökkenő hatásfokkal, legfeljebb 25% felé közelít.","A hátasok felülete az új tényleges százalékot mutatja.","Az Equip Best, a Karakter, Farm, dungeon, PvP, szervermentés és ranglista az új képleteket használja."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_89")){
+    updateContent.updates.unshift({id:"v22_89",version:"V22.89",title:"Még kompaktabb meglévő petbónuszok",date:"2026-08-21",summary:"A jelenlegi és új petek számai tovább csökkentek, hogy a felszerelés, DEF, Paragon és dungeonfejlődés jelentősége megmaradjon.",changes:["Minden meglévő pet fő értéke az eredeti balanszolt alap 20%-ára kerül.","A meglévő extra petopciók ugyanezt az arányos korrekciót kapják.","Azok a fiókok is pontos értéket kapnak, amelyek már futtatták a V22.88 migrációját.","Az újonnan idézett alap- és adminpetek már közvetlenül az új kisebb értékkel érkeznek.","A pet neve, ritkasága, fúziós szintje, opciótípusa és gyűjteményi értéke megmarad.","A ranglista ereje minden meglévő játékosnál szerveroldalon újraszámítódik."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
   const powerCapMigration="v2282_rank_power_cap_30000";
   if(!(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[powerCapMigration])).rows[0]){await q("UPDATE game_saves SET power=LEAST(power,30000)");await q("INSERT INTO system_migrations(migration_key) VALUES($1)",[powerCapMigration])}
   const realPowerMigration="v2283_recalculate_real_power";
@@ -427,6 +439,18 @@ async function init(){
     const rows=(await q("SELECT user_id,save_data FROM game_saves")).rows;
     for(const row of rows){const s=row.save_data||{};if(!s.defBalanceV275){for(const it of (Array.isArray(s.inventory)?s.inventory:[])){if(Number(it?.def)>0)it.def=Math.max(1,Math.round(Number(it.def)*.28))}s.defBalanceV275=true}await q("UPDATE game_saves SET save_data=$1,power=$2,updated_at=NOW() WHERE user_id=$3",[s,serverPowerV283(s),row.user_id])}
     await q("INSERT INTO system_migrations(migration_key) VALUES($1)",[realPowerMigration]);
+  }
+  const petMountMigration="v2288_pet_mount_balance";
+  if(!(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[petMountMigration])).rows[0]){
+    const rows=(await q("SELECT user_id,save_data FROM game_saves")).rows;
+    for(const row of rows){const s=row.save_data||{};if(!s.petMountBalanceV288){for(const p of (Array.isArray(s.pets)?s.pets:[])){if(!p||typeof p!=="object")continue;p.value=Math.max(0,Number(p.value||0)*.35);if(Array.isArray(p.extraOptions))for(const o of p.extraOptions)o.value=Math.max(0,Number(o?.value||0)*.35)}s.petMountBalanceV288=true}await q("UPDATE game_saves SET save_data=$1,power=$2,updated_at=NOW() WHERE user_id=$3",[s,serverPowerV283(s),row.user_id])}
+    await q("INSERT INTO system_migrations(migration_key) VALUES($1)",[petMountMigration]);
+  }
+  const petBalanceMigration="v2289_pet_values_20pct";
+  if(!(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[petBalanceMigration])).rows[0]){
+    const rows=(await q("SELECT user_id,save_data FROM game_saves")).rows;
+    for(const row of rows){const s=row.save_data||{};if(!s.petBalanceV289){for(const p of (Array.isArray(s.pets)?s.pets:[])){if(!p||typeof p!=="object")continue;p.value=Math.max(0,Number(p.value||0)*(4/7));if(Array.isArray(p.extraOptions))for(const o of p.extraOptions)o.value=Math.max(0,Number(o?.value||0)*(4/7))}s.petBalanceV289=true}await q("UPDATE game_saves SET save_data=$1,power=$2,updated_at=NOW() WHERE user_id=$3",[s,serverPowerV283(s),row.user_id])}
+    await q("INSERT INTO system_migrations(migration_key) VALUES($1)",[petBalanceMigration]);
   }
   const capMigration="v2246_wallet_caps";
   const capDone=(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[capMigration])).rows[0];
@@ -477,7 +501,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.86.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.89.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{

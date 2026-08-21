@@ -92,6 +92,8 @@ const PET_POOL=[
  {name:"Ősi Teknős",icon:"🐢",bonus:"drop",value:.25,rarity:"legendary"},
  {name:"Időbagoly",icon:"🦉",bonus:"crit",value:.22,rarity:"legendary"}
 ];
+// V22.88: kisebb alappet-bónuszok a kompakt Wave 400-as balanszhoz.
+PET_POOL.forEach(p=>p.value=Math.max(.002,Number(p.value||0)*.20));
 const DUNGEONS=[
  {id:"cave",name:"Kristálybarlang",icon:"💎",need:800,hp:6000,rewardGold:12000,rewardGems:1,rewardSoul:3,tickets:1},
  {id:"demon",name:"Démon erőd",icon:"🔥",need:4500,hp:35000,rewardGold:90000,rewardGems:2,rewardSoul:8,tickets:2},
@@ -174,6 +176,8 @@ function normalizeV6Save(s){
  s.equipped={weapon:null,helmet:null,armor:null,gloves:null,boots:null,ring:null,...(s.equipped||{})};
  const removedStarterIds=new Set(s.inventory.filter(it=>it&&(it.starterV260||(it.unsellable&&String(it.name||"").startsWith("Kalandor ")))).map(it=>it.id));s.inventory=s.inventory.filter(it=>!removedStarterIds.has(it?.id));Object.keys(s.equipped).forEach(slot=>{if(removedStarterIds.has(s.equipped[slot]))s.equipped[slot]=null});
  s.pets=Array.isArray(s.pets)?s.pets:[];
+ if(!s.petMountBalanceV288){s.pets.forEach(p=>{if(!p||typeof p!=="object")return;p.value=Math.max(0,Number(p.value||0)*.35);if(Array.isArray(p.extraOptions))p.extraOptions.forEach(o=>o.value=Math.max(0,Number(o?.value||0)*.35))});s.petMountBalanceV288=true}
+ if(!s.petBalanceV289){s.pets.forEach(p=>{if(!p||typeof p!=="object")return;p.value=Math.max(0,Number(p.value||0)*(4/7));if(Array.isArray(p.extraOptions))p.extraOptions.forEach(o=>o.value=Math.max(0,Number(o?.value||0)*(4/7)))});s.petBalanceV289=true}
  const prestigePetCap=Number(s.prestigeLevel||0)>=100?5:4;
  s.activePets=Array.isArray(s.activePets)?s.activePets.filter(i=>Number.isInteger(i)&&i>=0&&i<s.pets.length).slice(0,prestigePetCap):[];
  if(!s.activePets.length&&Number.isInteger(s.activePet)&&s.activePet>=0&&s.activePet<s.pets.length)s.activePets=[s.activePet];
@@ -231,12 +235,14 @@ function petScale(){return 1+skillBonus("pet")}
 const PET_BONUS_NAMES={damage:"⚔️ Sebzés",gold:"💰 Arany",drop:"🎁 Drop",crit:"🎯 Krit",all:"✨ Minden"};
 function petBonusEntries(p){return [{bonus:p?.bonus||"damage",value:Math.max(0,Number(p?.value||0))},...(Array.isArray(p?.extraOptions)?p.extraOptions:[])].filter(x=>x&&PET_BONUS_NAMES[x.bonus]&&Number(x.value)>0)}
 function petBonusText(p){return petBonusEntries(p).map(x=>`${PET_BONUS_NAMES[x.bonus]} +${(Number(x.value)*100).toFixed(0)}%`).join(" · ")}
+function petEffectiveBonusV288(type,raw){const caps={damage:.65,gold:.45,crit:.18,drop:.30},cap=caps[type]||.35,v=Math.max(0,Number(raw||0));return cap*v/(v+cap)}
 function bonuses(){
  let atk=0,def=0,gold=0,crit=0,drop=0;
  Object.keys(save.equipped).forEach(s=>{let it=equipObj(s);if(!it)return;let st=itemStats(it);atk+=st.atk;def+=st.def;crit+=st.crit;drop+=st.drop});
  let pets=petObjs(),ps=petScale(),petDamage=0;
  pets.forEach(pet=>petBonusEntries(pet).forEach(opt=>{const v=Number(opt.value||0)*ps;if(opt.bonus==="damage")petDamage+=v;if(opt.bonus==="gold")gold+=v;if(opt.bonus==="crit")crit+=v;if(opt.bonus==="drop")drop+=v;if(opt.bonus==="all"){petDamage+=v;gold+=v;crit+=v*.5;drop+=v*.5}}));
- atk*=1+Math.min(1.5,petDamage);
+ petDamage=petEffectiveBonusV288("damage",petDamage);gold=petEffectiveBonusV288("gold",gold);crit=petEffectiveBonusV288("crit",crit);drop=petEffectiveBonusV288("drop",drop);
+ atk*=1+petDamage;
  return {atk,def,gold,crit,drop}
 }
 function damageCoreV281(bossContext=false){
@@ -261,7 +267,8 @@ function fixedZoneGold(zoneIndex=save.zone){
 function zoneMobGold(zoneIndex=save.zone){return fixedZoneGold(zoneIndex)}
 function bossGoldReward(baseGold){return Math.max(0,Math.floor(Math.max(0,Number(baseGold||0))*goldBonus()))}
 function dropBonus(){let io=itemOptionBonuses();return skillBonus("drop")+bonuses().drop+(save.base.luck-1)*.01+save.paragonStats.drop*.01*save.paragonLevel+io.drop/100}
-function mountPowerMultiplierV277(){const m=save.mounts?.[save.activeMount],level=Math.max(0,Math.floor(Number(m?.level||0)));return 1+level*.02}
+function mountBonusPctV288(level){const raw=Math.max(0,Math.floor(Number(level||0)))*.02,cap=.25;return cap*raw/(raw+cap)}
+function mountPowerMultiplierV277(){const m=save.mounts?.[save.activeMount];return 1+mountBonusPctV288(m?.level)}
 function rawPowerV280(){return (damageCoreV281(false)*1.2+v10Defense()*.8+save.level*.8+save.base.mining*.5+save.base.luck*.5)*mountPowerMultiplierV277()}
 function power(){const raw=Math.max(0,rawPowerV280()),cap=30000;return Math.floor(cap*raw/(raw+cap))}
 function rankName(){let p=power();return p<25?"Kezdő":p<180?"Harcos":p<1000?"Elit":p<5000?"Mester":p<15000?"Hős":"Isteni"}
@@ -757,7 +764,7 @@ function petEquipScore(p){
  if(!p)return -1;
  const weights={all:3.4,damage:1.4,gold:1.2,crit:1.3,drop:1.1};
  const rarity={normal:0,rare:.0001,epic:.0002,mythic:.0003,legendary:.0004};
- return petBonusEntries(p).reduce((sum,x)=>sum+Math.max(0,Number(x.value||0))*(weights[x.bonus]||1),0)+(rarity[p.rarity]||0);
+ return petBonusEntries(p).reduce((sum,x)=>sum+petEffectiveBonusV288(x.bonus==="all"?"damage":x.bonus,Math.max(0,Number(x.value||0)))*(weights[x.bonus]||1),0)+(rarity[p.rarity]||0);
 }
 function equipBestPets(){
  const slots=Math.max(1,Math.min(save.prestigeLevel>=100?5:4,Number(save.petSlotsUnlocked||1)));
@@ -780,11 +787,11 @@ function renderPets(){
  $("#pets").innerHTML=save.pets.length?save.pets.map((p,i)=>`<div class="pet-card rarity-${p.rarity} fusion-${window.v231PetTier?.(p)||"common"} ${active.includes(i)?"active":""}"><div style="font-size:30px">${p.icon}</div><h3>${p.name}</h3><small class="pet-option-list">${petBonusText(p)}</small><span class="pet-craft-tier tier-${window.v231PetTier?.(p)||"common"}">${window.v231PetTierName?.(p)||"Common"}${petBonusEntries(p).length>1?` · ${petBonusEntries(p).length} OPT`:""}</span><button data-pet="${i}">${active.includes(i)?"Levétel":"Felszerelés"}</button></div>`).join(""):'<p class="muted">Még nincs peted.</p>';
  $$("[data-pet]").forEach(b=>b.onclick=()=>{const i=+b.dataset.pet,pos=save.activePets.indexOf(i);if(pos>=0)save.activePets.splice(pos,1);else if(save.activePets.length>=save.petSlotsUnlocked)return toast("🔒 Nincs több szabad pet hely.");else save.activePets.push(i);save.activePet=save.activePets[0]??null;persist();renderAll();toast(pos>=0?"🐾 Pet levéve":"🐾 Pet felszerelve")});
  $$("[data-buy-pet-slot]").forEach(b=>b.onclick=()=>{const slot=+b.dataset.buyPetSlot,cost=costs[slot];if(slot!==save.petSlotsUnlocked)return;if(save.gems<cost)return toast("Nincs elég gyémánt.");save.gems-=cost;save.petSlotsUnlocked++;persist();renderAll();toast(`🔓 ${slot+1}. pet hely feloldva!`)});
- const summonBtn=$("#petSummon");if(summonBtn)summonBtn.textContent=`🎲 Pet idézés · ${fmt(eco.petSummonCost)} 💎`;
+ const summonAmount=Math.max(1,Math.floor(Number($("#petSummonAmount")?.value||1))),summonBtn=$("#petSummon");if(summonBtn){summonBtn.textContent=`🎲 ${summonAmount} PET · ${fmt(eco.petSummonCost*summonAmount)} 💎`;summonBtn.disabled=save.gems<eco.petSummonCost*summonAmount}
  const rates=$("#petSummonRates"),r=eco.petSummonRates;if(rates)rates.textContent=`Common ${Number(r.normal||0)}% · Rare ${Number(r.rare||0)}% · Epic ${Number(r.epic||0)}% · Mythic ${Number(r.mythic||0)}% · Legendary ${Number(r.legendary||0)}%`;
  const bestBtn=$("#equipBestPets");if(bestBtn)bestBtn.onclick=e=>{e.preventDefault();equipBestPets()};
 }
-function summonPet(){const eco=economyCfg(),cost=eco.petSummonCost;if(save.gems<cost)return toast(`Nincs elég gyémánt. A pet idézés ára ${fmt(cost)} 💎.`);save.gems-=cost;const rates=eco.petSummonRates,order=["normal","rare","epic","mythic","legendary"],weights=order.map(k=>Math.max(0,Number(rates[k]||0))),total=weights.reduce((a,b)=>a+b,0)||1;let roll=Math.random()*total,rarity="normal";for(let i=0;i<order.length;i++){roll-=weights[i];if(roll<=0){rarity=order[i];break}}const pool=PET_POOL.filter(p=>p.rarity===rarity),p=pool[Math.floor(Math.random()*pool.length)]||PET_POOL[0];save.pets.push({...p,fusionRarity:"common",fusionLevel:0,fusionMultiplier:1});persist();renderAll();toast(`🐾 ${p.name} érkezett! (${rarityName(p.rarity)} · Common kraftszint)`)}
+function summonPet(){const eco=economyCfg(),amount=Math.max(1,Math.min(50,Math.floor(Number($("#petSummonAmount")?.value||1)))),cost=eco.petSummonCost*amount;if(save.gems<cost)return toast(`Nincs elég gyémánt. ${amount} pet idézési ára ${fmt(cost)} 💎.`);save.gems-=cost;const rates=eco.petSummonRates,order=["normal","rare","epic","mythic","legendary"],weights=order.map(k=>Math.max(0,Number(rates[k]||0))),total=weights.reduce((a,b)=>a+b,0)||1,won={normal:0,rare:0,epic:0,mythic:0,legendary:0};for(let summon=0;summon<amount;summon++){let roll=Math.random()*total,rarity="normal";for(let i=0;i<order.length;i++){roll-=weights[i];if(roll<=0){rarity=order[i];break}}const pool=PET_POOL.filter(p=>p.rarity===rarity),p=pool[Math.floor(Math.random()*pool.length)]||PET_POOL[0];save.pets.push({...p,fusionRarity:"common",fusionLevel:0,fusionMultiplier:1});won[rarity]++}persist();renderAll();const summary=order.filter(k=>won[k]).map(k=>`${rarityName(k)} ${won[k]}×`).join(" · ");toast(`🐾 ${amount} pet megidézve · ${summary} · -${fmt(cost)} 💎`)}
 function renderDungeons(){
  $("#dungeons").innerHTML=DUNGEONS.map(d=>`<div class="dungeon-card ${power()<d.need?"locked":""}"><div style="font-size:30px">${d.icon}</div><h3>${d.name}</h3><small>Erő: ${fmt(d.need)} · Jegy: ${d.tickets}</small><p>${fmt(d.rewardGold)} 💰 + ${d.rewardGems} 💎 + ${d.rewardSoul} 🔵</p><button data-dungeon="${d.id}" ${power()<d.need||save.tickets<d.tickets?"disabled":""}>Belépés</button></div>`).join("");
  $$("[data-dungeon]").forEach(b=>b.onclick=()=>runDungeon(b.dataset.dungeon))
@@ -1225,6 +1232,7 @@ function renderAll(){
 ;renderHpRegenAndOptions();renderCombatSpeed();renderDynamicEquipment();renderV17QuickStats();renderAuraPageV171();renderAuraPageV174();window.v212RenderContextBars?.()}
 $("#bossBtn").onclick=()=>toast("👹 A boss automatikusan jön minden wave végén.");
 $("#petSummon").onclick=summonPet;
+$("#petSummonAmount")?.addEventListener("change",renderPets);
 $("#sellNormal").onclick=()=>{let equipped=new Set(Object.values(save.equipped));let sold=0;save.inventory=save.inventory.filter(it=>{if(it.rarity==="normal"&&!it.unsellable&&!it.starterV260&&!equipped.has(it.id)){save.gold+=sellValue(it);sold++;return false}return true});persist();renderAll();toast(`${sold} normál tárgy eladva`)};
 $("#sortInventory").onclick=()=>{let r={legendary:5,mythic:4,epic:3,rare:2,normal:1};save.inventory.sort((a,b)=>r[b.rarity]-r[a.rarity]||b.plus-a.plus);persist();renderInventory()};
 $$(".tab").forEach(t=>t.onclick=()=>{$$(".tab").forEach(x=>x.classList.remove("active"));$$(".page").forEach(x=>x.classList.remove("active"));t.classList.add("active");$("#page-"+t.dataset.tab).classList.add("active");renderAll()});
@@ -1741,6 +1749,7 @@ function v10AwardNormalKill(){
 }
 function rollBossWaveAdvance(){if(save.waveRiftBossV284)return 5;const r=Math.random()*100;if(r<5)return 3;if(r<15)return 2;return 1}
 function riftBossRewardFxV284(){
+ if(!document.querySelector('[data-tab="farm"].active')&&!document.getElementById("page-farm")?.classList.contains("active"))return;
  const old=document.querySelector("#riftBossRewardV284");if(old)old.remove();const fx=document.createElement("div");fx.id="riftBossRewardV284";fx.className="rift-boss-reward-v284";fx.innerHTML=`<div class="rift-burst-v284"></div><section><i>🌀</i><small>3%-OS RITKA BOSS</small><h2>HASADÉK BOSS LEGYŐZVE!</h2><strong>+5 WAVE</strong><p>A tér meghasadt, és előreléptél öt teljes wave-et.</p></section>${Array.from({length:24},(_,i)=>`<b style="--i:${i}">${i%3===0?"✦":i%3===1?"◆":"●"}</b>`).join("")}`;document.body.appendChild(fx);setTimeout(()=>fx.remove(),4200);
  try{const AC=window.AudioContext||window.webkitAudioContext,ctx=new AC(),now=ctx.currentTime;[659.25,783.99,987.77].forEach((freq,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type="sine";o.frequency.value=freq;g.gain.setValueAtTime(0,now+i*.13);g.gain.linearRampToValueAtTime(.18,now+i*.13+.025);g.gain.exponentialRampToValueAtTime(.001,now+i*.13+.5);o.connect(g).connect(ctx.destination);o.start(now+i*.13);o.stop(now+i*.13+.52)});setTimeout(()=>ctx.close(),1300)}catch(e){}
 }
@@ -1922,7 +1931,7 @@ function v11ApplyContent(){
  // Custom pets
  (c.pets||[]).forEach((p,i)=>{
    if(PET_POOL.some(x=>x._customId===p.id||x.name===p.name))return;
-   PET_POOL.push({_customId:p.id||`pet-${i}`,name:p.name||"Pet",icon:p.icon||"🐾",bonus:p.bonus||"damage",value:Number(p.value??p.damageBonus??5)/100,rarity:p.rarity||"rare"});
+   PET_POOL.push({_customId:p.id||`pet-${i}`,name:p.name||"Pet",icon:p.icon||"🐾",bonus:p.bonus||"damage",value:Number(p.value??p.damageBonus??5)/100*.20,rarity:p.rarity||"rare"});
  });
  // Custom auras
  if(typeof AURAS!=="undefined"){
@@ -4716,6 +4725,9 @@ window.v222AdminSpeedSupported=true;
     if(!panel){panel=document.createElement("section");panel.id="v224PetFusion";panel.className="card v224-pet-fusion v231-pet-craft";const anchor=page.querySelector(".pet-grid")||page.firstElementChild;anchor?.parentNode?.insertBefore(panel,anchor)}
     const groups=fusionGroups(),req=requirements(),mc=multiOptCfg(),rule=`Rare ${req.rare}× · Mythic ${req.mythic}× · Legendary ${req.legendary}× · Celestial ${req.celestial}× · Imperial ${req.imperial}× · Eternal ${req.eternal}×`;
     panel.innerHTML=`<div class="v224-head"><div><h3>🧬 Pet kraftolás · Common → Eternal</h3><small>Az értékek összeadódnak. Több külön adottság csak Imperial (${Number(mc.imperialChancePct)||0}%) és Eternal (${Number(mc.eternalChancePct)||0}%) kraftnál nyílhat.</small></div><div class="v224-rule">${rule}</div></div><div class="v231-tier-road">${TIERS.map((t,i)=>`<span class="tier-${t}">${TIER_NAMES[t]}${i<TIERS.length-1?" →":""}</span>`).join("")}</div><div class="v224-groups">${groups.length?groups.map((g,i)=>{const p=g[0].p,n=nextTier(p),need=required(p),cost=craftCost(p),total=g.slice(0,need).reduce((s,x)=>s+value(x.p),0);return `<div class="v224-fuse-row tier-${tier(p)}"><div><b>${pname(p)} · ${tierName(p)} ×${g.length}</b><small>${need} pet: ${g.slice(0,need).map(x=>(value(x.p)*100).toFixed(0)+"%").join(" + ")} = <strong>${(total*100).toFixed(0)}%</strong> · Következő: ${TIER_NAMES[n]}${n==="imperial"||n==="eternal"?` · ✨ többopció esély ${Number(mc[n+"ChancePct"]||0)}%`:""}</small></div><button data-v224-fuse="${i}" ${Number(S().gems||0)<cost?"disabled":""}>🧬 ${need} PET + 💎 ${cost}</button></div>`}).join(""):`<div class="v224-empty">Még nincs elegendő teljesen egyforma peted. A szükséges darabszámokat az admin által beállított kraftszabályok határozzák meg.</div>`}</div>`;
+    const possible=groups.reduce((sum,g)=>sum+Math.floor(g.length/required(g[0].p)),0),minimumCost=groups.length?Math.min(...groups.map(g=>craftCost(g[0].p))):0,bulk=document.createElement("button");bulk.id="fuseAllIdenticalPetsV287";bulk.className="fuse-all-identical-pets-v287";bulk.disabled=!possible||Number(S().gems||0)<minimumCost;bulk.textContent=`⚡ ÖSSZES AZONOS PET KRAFTOLÁSA · ${possible}+`;
+    panel.querySelector(".v224-head")?.appendChild(bulk);
+    bulk.onclick=()=>{let crafted=0,spent=0,guard=0;while(guard++<5000){const available=fusionGroups().filter(g=>Number(S().gems||0)>=craftCost(g[0].p));if(!available.length)break;const result=fuse(available[0]);if(!result)break;crafted++;spent+=result.cost}if(!crafted)return toast("Nincs elegendő azonos pet vagy gyémánt a tömeges kraftoláshoz.");persist();renderAll();toast(`⚡ ${crafted} azonos petkraft elkészült · -${fmt(spent)} 💎`);renderFusionPanel()};
     panel.querySelectorAll("[data-v224-fuse]").forEach(btn=>btn.onclick=()=>{const group=fusionGroups()[Number(btn.dataset.v224Fuse)];if(!group)return;const cost=craftCost(group[0].p);if(Number(S().gems||0)<cost)return toast(`Nincs elég gyémánt. Szükséges: ${cost} 💎`);const result=fuse(group);if(!result)return;persist();renderAll();toast(`🧬 ${pname(result.pet)} → ${tierName(result.pet)} · ${(value(result.pet)*100).toFixed(0)}%${result.newOption?` · ÚJ: ${PET_BONUS_NAMES[result.newOption.bonus]} +${(result.newOption.value*100).toFixed(1)}%`:""} · -${result.cost} 💎`);renderFusionPanel()});
   }
   window.v224PetFusionMultiplier=()=>1;
