@@ -274,6 +274,10 @@ async function init(){
     updateContent.updates.unshift({id:"v22_58",version:"V22.58",title:"Rendezett navigáció és összecsukható frissítések",date:"2026-08-21",summary:"A felső menü többé nem lóg ki a képernyőről, a frissítési napló pedig tömören kezelhető.",changes:["A navigáció több sorba rendeződik vízszintes görgetés nélkül.","A menügombok automatikusan tömörödnek a rendelkezésre álló szélességhez.","Mobilon kétoszlopos, jól érinthető navigáció jelenik meg.","A frissítések alapból összecsukható kártyák.","A legújabb frissítés nyitva, a korábbiak zárva jelennek meg.","A like és dislike szám összecsukott állapotban is látható.","Új Összes megnyitása és Összes bezárása vezérlők készültek."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_59")){
+    updateContent.updates.unshift({id:"v22_59",version:"V22.59",title:"Frissítési részletek megjelenítési javítása",date:"2026-08-21",summary:"Az összecsukható frissítések részletes változáslistája most már teljesen látható.",changes:["A hibás teljes magasságú összecsukott fejléc eltávolítva.","A lenyíló rész saját látható tartalomblokkot kapott.","Megnyitáskor a kártya automatikusan a teljes változáslistához igazodik.","A gombfelirat jelzi, hogy a részletek megnyithatók vagy bezárhatók.","Az Összes megnyitása és Összes bezárása vezérlők továbbra is működnek."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
   const capMigration="v2246_wallet_caps";
   const capDone=(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[capMigration])).rows[0];
   if(!capDone){
@@ -323,7 +327,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.58.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.59.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{
