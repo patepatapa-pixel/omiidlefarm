@@ -5978,7 +5978,7 @@ window.OMI_BALANCE_V2319={
 
 /* ================= V23.24 FULL HU / EN LANGUAGE SYSTEM ================= */
 (function(){
-  const KEY="omiLangV2324";
+  const KEY="omiLangV2328";
 
   const dict={
     // navigation
@@ -6219,6 +6219,7 @@ window.OMI_BALANCE_V2319={
 
   function translateElement(el){
     if(!el || el.nodeType!==Node.ELEMENT_NODE || el.closest?.("#v2321LangSwitcher"))return;
+    if(el.matches?.("script,style,noscript"))return;
 
     // text nodes
     for(const node of [...el.childNodes]){
@@ -6248,10 +6249,18 @@ window.OMI_BALANCE_V2319={
     }
   }
 
+  function translateAuthOnceV2328(){
+    if(window.OMI_LANG!=="en")return;
+    document.querySelectorAll("[data-v2328-auth-ui='1']").forEach(root=>translateElement(root));
+  }
   function translateWholePage(){
     if(window.OMI_LANG!=="en")return;
     document.documentElement.lang="en";
-    translateElement(document.body);
+    // Translate login/register once without touching ids, values or event listeners.
+    translateAuthOnceV2328();
+    // Translate the actual game interface.
+    const shell=document.getElementById("gameShell");
+    if(shell)translateElement(shell);
     document.querySelectorAll("[data-v2321-lang]").forEach(b=>b.classList.toggle("active",b.dataset.v2321Lang==="en"));
   }
 
@@ -6260,12 +6269,6 @@ window.OMI_BALANCE_V2319={
     const current=window.OMI_LANG==="en"?"en":"hu";
     if(lang===current)return;
     localStorage.setItem(KEY,lang);
-    window.OMI_LANG=lang;
-
-    // V23.26: every language change performs a clean reload.
-    // After reload the saved language is read before the UI is translated,
-    // so the player immediately receives the selected full-language page.
-    document.documentElement.classList.add("v2326-language-changing");
     const sw=document.getElementById("v2321LangSwitcher");
     if(sw){
       sw.classList.add("switching");
@@ -6273,7 +6276,7 @@ window.OMI_BALANCE_V2319={
       const label=sw.querySelector(".v2326-lang-label");
       if(label)label.textContent=lang==="en"?"🇬🇧 Loading English...":"🇭🇺 Magyar betöltése...";
     }
-    setTimeout(()=>location.reload(),280);
+    setTimeout(()=>window.location.replace(window.location.href),180);
   }
 
   window.OMI_LANG=localStorage.getItem(KEY)==="en"?"en":"hu";
@@ -6285,27 +6288,26 @@ window.OMI_BALANCE_V2319={
     switchLanguage(b.dataset.v2321Lang);
   },true);
 
-  let v2327Translating=false;
+  let v2328Translating=false;
   const observer=new MutationObserver(mutations=>{
-    if(window.OMI_LANG!=="en" || v2327Translating)return;
-    v2327Translating=true;
+    if(window.OMI_LANG!=="en" || v2328Translating)return;
+    v2328Translating=true;
     try{
       for(const m of mutations){
         m.addedNodes.forEach(n=>{
           if(n.nodeType===Node.ELEMENT_NODE)translateElement(n);
           else if(n.nodeType===Node.TEXT_NODE){
-            const before=n.nodeValue;
-            const after=translateText(before);
+            const before=n.nodeValue,after=translateText(before);
             if(after!==before)n.nodeValue=after;
           }
         });
       }
     }finally{
-      v2327Translating=false;
+      v2328Translating=false;
     }
   });
 
-  function applySavedLanguageV2326(){
+  function applySavedLanguageV2328(){
     document.documentElement.lang=window.OMI_LANG==="en"?"en":"hu";
     document.querySelectorAll("[data-v2321-lang]").forEach(b=>{
       const active=b.dataset.v2321Lang===window.OMI_LANG;
@@ -6313,28 +6315,18 @@ window.OMI_BALANCE_V2319={
       b.setAttribute("aria-pressed",active?"true":"false");
     });
     if(window.OMI_LANG==="en")translateWholePage();
+    const shell=document.getElementById("gameShell");
+    if(shell)observer.observe(shell,{subtree:true,childList:true});
   }
 
   if(document.readyState==="loading"){
-    document.addEventListener("DOMContentLoaded",applySavedLanguageV2326,{once:true});
+    document.addEventListener("DOMContentLoaded",applySavedLanguageV2328,{once:true});
   }else{
-    applySavedLanguageV2326();
+    applySavedLanguageV2328();
   }
-
-  window.addEventListener("load",()=>{
-    applySavedLanguageV2326();
-    observer.observe(document.body,{subtree:true,childList:true});
-  });
 })();
 
 
 
-/* V23.27 i18n freeze protection */
-window.OMI_I18N_SAFE_V2327=true;
-window.addEventListener("error",e=>{
-  try{
-    if(String(e?.message||"").toLowerCase().includes("mutation")){
-      localStorage.setItem("omiLangV2324","hu");
-    }
-  }catch(_){}
-});
+/* V23.28 login-safe language system */
+window.OMI_I18N_SAFE_V2328=true;
