@@ -1158,12 +1158,29 @@ app.post("/api/pvp/fight",auth,async(req,res)=>{
       log:log.slice(0,80)
     };
     await q("INSERT INTO pvp_fights(challenger_id,defender_id,winner_id,battle_data) VALUES($1,$2,$3,$4)",[a.id,b.id,winnerId,battle]);
-    res.json({ok:true,battle,cooldownSec:Number(pc.cooldownSec||60)});
+    res.json({ok:true,battle,cooldownSec:Number(pc.cooldownSec||60),serverNow:Date.now()});
   }catch(e){
     console.error("PVP FIGHT ERROR:",e);
     res.status(500).json({error:"A párbaj nem sikerült."});
   }
 });
+
+app.get("/api/pvp/cooldown",auth,async(req,res)=>{
+  try{
+    const cfg=await mainConfig(),pc={minLevel:20,rewardGold:500,cooldownSec:60,ratingWin:18,ratingLoss:20,...(cfg.pvp||{})};
+    const last=(await q("SELECT created_at FROM pvp_fights WHERE challenger_id=$1 ORDER BY id DESC LIMIT 1",[req.user.id])).rows[0];
+    let remaining=0;
+    if(last){
+      const elapsed=Date.now()-new Date(last.created_at).getTime();
+      remaining=Math.max(0,Math.ceil((Number(pc.cooldownSec||60)*1000-elapsed)/1000));
+    }
+    res.json({ok:true,cooldownSec:Number(pc.cooldownSec||60),remaining,ready:remaining<=0});
+  }catch(e){
+    console.error("PVP COOLDOWN ERROR:",e);
+    res.status(500).json({error:"A PvP visszaszámlálás nem kérhető le."});
+  }
+});
+
 app.get("/api/pvp/history",auth,async(req,res)=>{
   const rows=(await q(`
     SELECT f.id,f.winner_id,f.created_at,

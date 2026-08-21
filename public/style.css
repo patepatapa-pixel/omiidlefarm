@@ -4553,3 +4553,18 @@ nav.tabs{display:flex!important;flex-wrap:wrap!important;justify-content:center;
 .v307-ready-icon{position:relative;z-index:2;width:52px;height:52px;display:grid;place-items:center;border-radius:14px;background:#111a27;border:1px solid #38516d;font-size:25px;box-shadow:0 0 15px #3c83c422}
 @keyframes v307Sweep{from{transform:translateX(-65%)}to{transform:translateX(65%)}}
 @keyframes v307Spark{0%,100%{opacity:.2;transform:scale(.7)}50%{opacity:1;transform:scale(1.25)}}
+
+/* V23.09 definitive visible PvP countdown */
+#v306PvpCooldown{display:block!important;visibility:visible!important;opacity:1!important;min-height:94px!important}
+.v309-countdown-shell{position:relative;display:grid;grid-template-columns:78px 1fr 58px;align-items:center;gap:16px;width:100%;padding:16px 18px;border:1px solid #c38d2b;border-radius:14px;background:linear-gradient(120deg,#151008,#0b0f16 55%,#141009);box-shadow:0 0 20px #bd822622,inset 0 0 26px #ffbf2410;overflow:hidden}
+.v309-countdown-shell:before{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent,#ffc24b0c,transparent);animation:v309Sweep 2.8s linear infinite}
+.v309-countdown-orb{position:relative;z-index:2;width:72px;height:72px;border-radius:50%;background:conic-gradient(#f2b83a var(--p),#2a2f38 0);display:grid;place-items:center;box-shadow:0 0 22px #efb23555}
+.v309-countdown-orb:after{content:"";position:absolute;width:58px;height:58px;border-radius:50%;background:#0c1118;border:1px solid #5e4821}
+.v309-countdown-orb>div{position:relative;z-index:2;text-align:center}.v309-countdown-orb strong{display:block;font-size:29px;line-height:1;color:#ffe289}.v309-countdown-orb small{display:block;color:#ad8a45;font-size:10px;margin-top:3px}
+.v309-countdown-main{position:relative;z-index:2}.v309-countdown-main>small{display:block;color:#d6a53d;font-weight:1000;letter-spacing:.12em;font-size:10px}.v309-countdown-main>b{display:block;color:#ffe78c;font-size:27px;line-height:1.1;margin:3px 0}.v309-countdown-main>span{display:block;color:#9fa9b7;font-size:12px}
+.v309-countdown-bar{height:8px;margin-top:9px;border-radius:999px;background:#242a33;overflow:hidden;border:1px solid #3b414b}.v309-countdown-bar i{display:block;height:100%;background:linear-gradient(90deg,#f0ad29,#ffe06a);box-shadow:0 0 12px #f4b832;transition:width .3s linear}
+.v309-countdown-icon{position:relative;z-index:2;width:52px;height:52px;display:grid;place-items:center;border:1px solid #8a6730;border-radius:13px;background:#18130b;font-size:27px;box-shadow:0 0 18px #c58a2733}
+.v309-ready-shell{display:flex;align-items:center;gap:14px;width:100%;padding:14px 16px;border:1px solid #31485f;border-radius:13px;background:linear-gradient(110deg,#0c121a,#0b0e14)}
+.v309-ready-icon{width:54px;height:54px;display:grid;place-items:center;border-radius:12px;border:1px solid #3f5f7d;background:#101a26;font-size:27px}.v309-ready-shell small{display:block;color:#d4a43b;font-weight:900;letter-spacing:.1em;font-size:10px}.v309-ready-shell b{display:block;color:#fff;font-size:19px}.v309-ready-shell span{display:block;color:#8f9aaa;font-size:11px}
+@keyframes v309Sweep{from{transform:translateX(-70%)}to{transform:translateX(70%)}}
+@media(max-width:620px){.v309-countdown-shell{grid-template-columns:64px 1fr}.v309-countdown-icon{display:none}.v309-countdown-orb{width:60px;height:60px}.v309-countdown-orb:after{width:48px;height:48px}.v309-countdown-orb strong{font-size:23px}}

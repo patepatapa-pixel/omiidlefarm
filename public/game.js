@@ -5536,70 +5536,123 @@ window.v222AdminSpeedSupported=true;
     },420);
   }
 
-  function cooldownLeftV306(){
-    const s=(typeof save!=="undefined"&&save)?save:{};
-    const until=Math.max(Number(v306CooldownUntil||0),Number(s.pvpCooldownUntil||0));
-    return Math.max(0,Math.ceil((until-Date.now())/1000));
-  }
-  function drawCooldownV306(){
-    const p=page();if(!p)return;
+  let v309CooldownRemaining=0;
+  let v309CooldownTotal=60;
+  let v309Ticker=null;
+  let v309SyncTimer=null;
+
+  function ensureCooldownBoxV309(){
+    const p=page();if(!p)return null;
     let box=p.querySelector("#v306PvpCooldown");
-    if(!box){box=document.createElement("div");box.id="v306PvpCooldown";box.className="v306-pvp-cooldown";const arena=ensureArena();arena?.after(box)}
-    const left=cooldownLeftV306();
-    if(left>0){
-      box.classList.add("active");
-      box.innerHTML=`<div class="v307-cd-orb"><span>⚔️</span><strong>${left}</strong></div><div class="v307-cd-copy"><small>⚔️ PVP VÁRAKOZÁS</small><b>${left} másodperc</b><em>Készülj a következő párbajra!</em></div><div class="v307-cd-ring" style="--p:${Math.max(0,Math.min(100,left/60*100))}%"><i></i></div><div class="v307-cd-sparks"><i>✦</i><i>✧</i><i>✦</i></div>`;
-    }else{
-      box.classList.remove("active");
-      box.innerHTML=`<div class="v307-ready-icon">⚔️</div><div class="v307-cd-copy"><small>PVP ARÉNA</small><b>Új párbaj indítható</b><em>Válassz ellenfelet!</em></div>`;
+    if(!box){
+      box=document.createElement("div");
+      box.id="v306PvpCooldown";
+      box.className="v306-pvp-cooldown";
+      const arena=ensureArena();
+      if(arena?.parentNode)arena.parentNode.insertBefore(box,arena.nextSibling);
+      else p.prepend(box);
     }
+    return box;
+  }
+
+  function setFightButtonsCooldownV309(left){
+    const p=page();if(!p)return;
     p.querySelectorAll("[data-pvp-fight],[data-fight],[data-defender],.pvp-fight-btn,.fight-pvp-btn,button[data-player-id]").forEach(btn=>{
-      if(left>0){btn.disabled=true;btn.dataset.v306Cooldown="1"}
-      else if(btn.dataset.v306Cooldown==="1"){btn.disabled=false;delete btn.dataset.v306Cooldown}
+      if(left>0){
+        btn.disabled=true;
+        btn.dataset.v309Cooldown="1";
+      }else if(btn.dataset.v309Cooldown==="1"){
+        btn.disabled=false;
+        delete btn.dataset.v309Cooldown;
+      }
     });
   }
-  function startCooldownV306(seconds=60){
-    const sec=Math.max(1,Math.floor(Number(seconds||60)));
-    const until=Date.now()+sec*1000;
-    v306CooldownUntil=until;
-    if(typeof save!=="undefined"&&save)save.pvpCooldownUntil=until;
-    try{if(typeof persist==="function")persist()}catch(e){}
-    clearInterval(v306CooldownTimer);
-    drawCooldownV306();
-    v306CooldownTimer=setInterval(()=>{
-      drawCooldownV306();
-      if(cooldownLeftV306()<=0){
-        clearInterval(v306CooldownTimer);v306CooldownTimer=null;
-        v306CooldownUntil=0;
-        if(typeof save!=="undefined"&&save)save.pvpCooldownUntil=0;
-        try{if(typeof persist==="function")persist()}catch(e){}
+
+  function drawCooldownV309(){
+    const box=ensureCooldownBoxV309();if(!box)return;
+    const left=Math.max(0,Math.floor(Number(v309CooldownRemaining||0)));
+    const total=Math.max(1,Math.floor(Number(v309CooldownTotal||60)));
+    const pct=Math.max(0,Math.min(100,left/total*100));
+    setFightButtonsCooldownV309(left);
+
+    if(left>0){
+      box.classList.add("active");
+      const mm=String(Math.floor(left/60)).padStart(2,"0");
+      const ss=String(left%60).padStart(2,"0");
+      box.innerHTML=`
+        <div class="v309-countdown-shell">
+          <div class="v309-countdown-orb" style="--p:${pct}%">
+            <div><strong>${left}</strong><small>mp</small></div>
+          </div>
+          <div class="v309-countdown-main">
+            <small>⏳ KÖVETKEZŐ PÁRBAJ</small>
+            <b>${mm}:${ss}</b>
+            <span>Várj még ${left} másodpercet.</span>
+            <div class="v309-countdown-bar"><i style="width:${pct}%"></i></div>
+          </div>
+          <div class="v309-countdown-icon">⚔️</div>
+        </div>`;
+    }else{
+      box.classList.remove("active");
+      box.innerHTML=`
+        <div class="v309-ready-shell">
+          <div class="v309-ready-icon">⚔️</div>
+          <div><small>PVP ARÉNA</small><b>Új párbaj indítható</b><span>Válassz ellenfelet!</span></div>
+        </div>`;
+    }
+  }
+
+  function startLocalTickerV309(){
+    clearInterval(v309Ticker);
+    drawCooldownV309();
+    v309Ticker=setInterval(()=>{
+      if(v309CooldownRemaining>0){
+        v309CooldownRemaining=Math.max(0,v309CooldownRemaining-1);
+        drawCooldownV309();
+      }
+      if(v309CooldownRemaining<=0){
+        clearInterval(v309Ticker);
+        v309Ticker=null;
+        drawCooldownV309();
       }
     },1000);
   }
 
-  function resumeCooldownV308(){
-    const left=cooldownLeftV306();
-    if(left>0){
-      if(!v306CooldownTimer){
-        v306CooldownTimer=setInterval(()=>{
-          drawCooldownV306();
-          if(cooldownLeftV306()<=0){
-            clearInterval(v306CooldownTimer);v306CooldownTimer=null;
-            v306CooldownUntil=0;
-            if(typeof save!=="undefined"&&save)save.pvpCooldownUntil=0;
-          }
-        },1000);
-      }
-      drawCooldownV306();
-    }else drawCooldownV306();
-  }
-  setInterval(()=>{
+  async function syncCooldownFromServerV309(){
     try{
-      const p=page();
-      if(p && (p.classList.contains("active") || p.offsetParent!==null))resumeCooldownV308();
-    }catch(e){}
-  },500);
+      const d=await api229("/api/pvp/cooldown");
+      v309CooldownTotal=Math.max(1,Number(d.cooldownSec||60));
+      v309CooldownRemaining=Math.max(0,Number(d.remaining||0));
+      startLocalTickerV309();
+      return d;
+    }catch(e){
+      drawCooldownV309();
+      return null;
+    }
+  }
+
+  function startCooldownV306(seconds=60){
+    v309CooldownTotal=Math.max(1,Math.floor(Number(seconds||60)));
+    v309CooldownRemaining=v309CooldownTotal;
+    startLocalTickerV309();
+    // Re-sync shortly after so the visual timer follows the database exactly.
+    setTimeout(syncCooldownFromServerV309,700);
+  }
+
+  function resumeCooldownV308(){
+    syncCooldownFromServerV309();
+  }
+
+  clearInterval(v309SyncTimer);
+  v309SyncTimer=setInterval(()=>{
+    const p=page();
+    if(p && (p.classList.contains("active") || p.offsetParent!==null)){
+      syncCooldownFromServerV309();
+    }
+  },5000);
+
   window.v308ResumePvpCooldown=resumeCooldownV308;
+  window.v309SyncPvpCooldown=syncCooldownFromServerV309;
 
   async function fight(defenderId,button){
     if(!defenderId)return;
@@ -5625,7 +5678,11 @@ window.v222AdminSpeedSupported=true;
       if(typeof renderPvp==="function")setTimeout(renderPvp,800);
       if(typeof renderAll==="function")setTimeout(renderAll,900);
     }catch(e){
-      if(Number(e?.data?.cooldownRemaining)>0)startCooldownV306(Number(e.data.cooldownRemaining));
+      if(Number(e?.data?.cooldownRemaining)>0){
+        v309CooldownTotal=Math.max(1,Number(e?.data?.cooldownSec||60));
+        v309CooldownRemaining=Math.max(1,Number(e.data.cooldownRemaining));
+        startLocalTickerV309();
+      }
       if(typeof toast==="function")toast("❌ "+e.message);
       const arena=ensureArena();
       if(arena)arena.innerHTML=`<div class="v229-error">❌ ${e.message}</div>`;
@@ -5677,7 +5734,7 @@ window.v222AdminSpeedSupported=true;
   function setup(){
     ensureArena();
     drawBattle();
-    resumeCooldownV308();
+    syncCooldownFromServerV309();
     bindFightButtons();
   }
 
@@ -5687,6 +5744,7 @@ window.v222AdminSpeedSupported=true;
   window.addEventListener("load",()=>{setTimeout(setup,250);setTimeout(setup,800)});
   document.addEventListener("click",e=>{
     if(e.target.closest?.('[data-tab="pvp"]')){
+      setTimeout(syncCooldownFromServerV309,60);
       setTimeout(setup,100);
       setTimeout(bindFightButtons,400);
     }
