@@ -177,6 +177,7 @@ function normalizeV6Save(s){
  s.stats={goldEarned:0,itemsFound:0,legendary:0,bosses:0,dungeons:0,critHits:0,playSeconds:0,...(s.stats||{})};
  s.dailyClaimed=s.dailyClaimed||{};s.achClaimed=s.achClaimed||{};s.achievementPoints=Math.max(0,Number(s.achievementPoints||0));s.dailyBaseline=s.dailyBaseline&&typeof s.dailyBaseline==="object"?s.dailyBaseline:null;s.last=Number(s.last||Date.now());s.lastDaily=s.lastDaily||new Date().toDateString();s.uid=Math.max(1,Number(s.uid||1));
  s.wave=Math.max(1,Number(s.wave||1));s.waveKills=Math.max(0,Number(s.waveKills||0));s.waveGoal=Math.max(1,Number(s.waveGoal||10));s.waveBoss=Boolean(s.waveBoss);s.bossHp=Math.max(0,Number(s.bossHp||0));
+ s.gearTrialFailsV262=Math.max(0,Math.floor(Number(s.gearTrialFailsV262||0)));
  s.paragonLevel=Math.max(0,Number(s.paragonLevel||0));s.prestigeLevel=Math.max(0,Math.min(100,Number(s.prestigeLevel||0)));s.paragonPoints=Math.max(0,Number(s.paragonPoints||0));s.auraTokens=Math.max(0,Number(s.auraTokens||0));s.prestigeTokens=Math.max(0,Number(s.prestigeTokens||0));
  s.paragonStats={damage:0,gold:0,drop:0,crit:0,...(s.paragonStats||{})};
  s.ownedAuras=Array.isArray(s.ownedAuras)?s.ownedAuras:["none"];if(!s.ownedAuras.includes("none"))s.ownedAuras.unshift("none");
@@ -894,7 +895,8 @@ function renderWave(){
 }
 function renderParagon(){
  const req=paragonWaveRequirement();
- const eligible=save.wave>=req;
+ const gearReady=farmReadinessV262(req).ready;
+ const eligible=save.wave>=req&&gearReady;
  const setText=(id,val)=>{const e=$("#"+id);if(e)e.textContent=val};
 
  setText("prestigeLevel",save.prestigeLevel);
@@ -921,13 +923,14 @@ function renderParagon(){
 
  const text=$("#prestigeText"),paragonScale=Math.max(1,save.paragonLevel);
  if(text)text.textContent=(eligible
-   ?`Paragon szintlépés elérhető! Wave ${save.wave} / ${req}.`
+   ?`Paragon szintlépés elérhető! Wave ${save.wave} / ${req}, a felszerelési próba teljesítve.`
+   :save.wave>=req&&!gearReady?`A wave-követelmény teljesült, de előbb szereld fel az előírt valódi tárgyakat.`
    :`Még ${Math.max(0,req-save.wave)} wave kell a következő Paragon szinthez. Követelmény: Wave ${req}.`)+` · Paragon statok hatásszorzója: ${paragonScale}×`;
 
  const btn=$("#prestigeBtn");
  if(btn){
    btn.disabled=!eligible;
-   btn.textContent=eligible?`🌟 PARAGON SZINTLÉPÉS`:`🌟 PARAGON · WAVE ${req}`;
+   btn.textContent=eligible?`🌟 PARAGON SZINTLÉPÉS`:save.wave>=req?`🛡️ FELSZERELÉSI PRÓBA KELL`:`🌟 PARAGON · WAVE ${req}`;
  }
 
  const stats=[
@@ -954,6 +957,7 @@ function renderParagon(){
 function doPrestige(automatic=false){
  const req=paragonWaveRequirement();
  if(save.wave<req)return toast(`🔒 Következő Paragon követelmény: Wave ${req}.`);
+ if(!farmReadinessV262(req).ready)return toast("🛡️ A Paragonhoz teljesítened kell az aktuális felszerelési próbát valódi droptárgyakkal.");
 
  if(!automatic&&!confirm(`Paragon újrakezdés?\n\nJelenlegi Paragon: ${save.paragonLevel}\nÚj Paragon: ${save.paragonLevel+1}\nAz új szinten 1 Sebzés Paragon statpont +${(save.paragonLevel+1)*2}% sebzést ad.\nJutalom: 5 új Paragon statpont és +1 Aura token\n\nRESETELŐDIK: karakterszint, XP, wave, normál statok, alap fejlesztések, inventory, felszerelés, arany, gyémánt és érc.\nMEGMARAD: teljes képességfa, képességpontok, kill szám, kiosztott Paragon statok, lélekkő, dungeon token, petek, hátasok, aurák, achievementek és gyorsítás.`))return;
 
@@ -962,7 +966,7 @@ function doPrestige(automatic=false){
  save.auraTokens++;
 
  // A normál karakter újraindul; a vagyon, kill és tartós rendszerek megmaradnak.
- save.level=1;save.xp=0;save.wave=1;save.waveKills=0;save.waveGoal=10;save.waveBoss=false;save.bossHp=0;save.zone=0;
+ save.level=1;save.xp=0;save.wave=1;save.waveKills=0;save.waveGoal=10;save.waveBoss=false;save.bossHp=0;save.zone=0;save.gearTrialFailsV262=0;
  save.base={weaponTraining:1,armorTraining:1,mining:1,luck:1};
  save.gold=0;save.gems=0;save.ore=0;
  if(save.autoDeleteSettings)save.autoDeleteSettings.enabled=false;
@@ -989,7 +993,7 @@ function doTruePrestige(){
  if(next===75)save.auraTokens=Number(save.auraTokens||0)+5;
  if(next===100)save.petSlotsUnlocked=5;
  save.paragonLevel=0; // A kiosztott Paragon statok és a megmaradt pontok tartósak.
- save.level=1;save.xp=0;save.wave=1;save.waveKills=0;save.waveGoal=8;save.waveBoss=false;save.bossHp=0;save.zone=0;
+ save.level=1;save.xp=0;save.wave=1;save.waveKills=0;save.waveGoal=8;save.waveBoss=false;save.bossHp=0;save.zone=0;save.gearTrialFailsV262=0;
  save.base={weaponTraining:1,armorTraining:1,mining:1,luck:1};save.gold=0;save.gems=0;save.ore=0;
  if(save.autoDeleteSettings)save.autoDeleteSettings.enabled=false;
  save.inventory=[];save.equipped={weapon:null,helmet:null,armor:null,gloves:null,boots:null,ring:null};
@@ -1465,6 +1469,30 @@ function waveKillRequirement(wave){
   // Farm szakaszok: később több mob kell, de nem válik unalmassá.
   return Math.min(18,8+Math.floor((wave-1)/50));
 }
+function realFarmGearV262(){return Object.keys(save.equipped||{}).map(slot=>equipObj(slot)).filter(it=>it&&!it.starterV260&&!it.unsellable)}
+function farmGearScoreV262(){return Math.floor(realFarmGearV262().reduce((sum,it)=>{const st=itemStats(it),opts=Array.isArray(it.options)?it.options.reduce((n,o)=>n+Math.max(0,Number(o?.value||0))*.7,0):0;return sum+st.atk+st.def*.7+(st.crit+st.drop)*100+opts},0))}
+function farmReadinessV262(wave=save.wave){
+ wave=Math.max(1,Number(wave||1));
+ const slots=wave<25?0:wave<75?2:wave<150?3:wave<250?4:wave<400?5:6;
+ const zone=ZONES[save.zone]||ZONES[0],scoreNeed=slots?Math.max(8,Math.floor(Number(zone.need||1)*(.45+Math.min(1500,wave)*.00018))):0;
+ const real=realFarmGearV262(),score=farmGearScoreV262(),slotPct=slots?Math.min(1,real.length/slots):1,scorePct=scoreNeed?Math.min(1,score/scoreNeed):1;
+ return {slots,realSlots:real.length,score,scoreNeed,pct:Math.min(slotPct,scorePct),ready:real.length>=slots&&score>=scoreNeed,checkpoint:wave>=25&&wave%25===0};
+}
+function renderFarmReadinessV262(){
+ const r=farmReadinessV262(),box=$("#farmReadinessV262"),title=$("#farmReadinessTitleV262"),text=$("#farmReadinessTextV262"),bar=$("#farmReadinessBarV262"),state=$("#farmReadinessStateV262");if(!box)return;
+ const blocked=r.checkpoint&&!r.ready;box.classList.toggle("blocked",blocked);if(bar)bar.style.width=Math.round(r.pct*100)+"%";
+ if(title)title.textContent=r.slots?`${r.realSlots}/${r.slots} valódi tárgy · ${r.score}/${r.scoreNeed} gear erő`:"Kezdő szakasz";
+ if(text)text.textContent=r.slots?`Minden 25. wave felszerelési próba. Következő próba: Wave ${Math.ceil((save.wave+1)/25)*25}. A Kalandor kezdőszett nem számít.`:"A felszerelési próba Wave 25-nél indul.";
+ if(state)state.textContent=blocked?"⚠️ TÁRGYAT KELL FEJLESZTENI":r.ready?"✅ HALADÁS ENGEDÉLYEZVE":"🎁 GYŰJTS VALÓDI FELSZERELÉST";
+}
+function passFarmCheckpointV262(wave=save.wave,show=true){
+ const r=farmReadinessV262(wave);if(!r.checkpoint||r.ready){save.gearTrialFailsV262=0;return true}
+ save.gearTrialFailsV262=Number(save.gearTrialFailsV262||0)+1;
+ const item=createItem();addItem(item);
+ save.waveKills=0;applyWaveGoal();enemyHp=normalEnemyMaxHp();
+ if(show)toast(`🛡️ Wave ${wave} felszerelési próba: kell ${r.slots} valódi tárgy és ${r.scoreNeed} gear erő. Segítő tárgydrop érkezett!`);
+ renderFarmReadinessV262();return false;
+}
 function applyWaveGoal(){
   save.waveGoal=waveKillRequirement(save.wave);
 }
@@ -1605,6 +1633,7 @@ function v161LiveHud(){
  set("#waveState",save.waveBoss?"👹 BOSS":"Normál farm");
  set("#gps",`~${fmt(zoneMobGold(save.zone)*damage()/Math.max(1,z.hp))} / mp`);
  if($("#charWave"))$("#charWave").textContent=save.wave;
+ renderFarmReadinessV262();
 }
 
 function v10AwardNormalKill(){
@@ -1628,6 +1657,7 @@ function v10AwardNormalKill(){
      $("#combatLog").textContent=`👹 Wave ${save.wave} BOSS érkezett! Ha legyőz, ezt a wave-et újra kell kezdened.`;
    }else{
      const old=save.wave;
+     if(!passFarmCheckpointV262(old)){$("#combatLog").textContent=`🛡️ Wave ${old} felszerelési próba: fejleszd és szereld fel a valódi droptárgyakat!`;v161LiveHud();return}
      save.wave++;
      save.waveKills=0;
      applyWaveGoal();
@@ -1653,6 +1683,7 @@ function v10AwardBossKill(){
  const oldWave=save.wave;
  save.waveBoss=false;
  save.bossHp=0;
+ if(!passFarmCheckpointV262(oldWave)){$("#combatLog").textContent=`🛡️ A boss elesett, de Wave ${oldWave} felszerelési próbája még nincs teljesítve.`;v161LiveHud();return}
  const waveAdvance=rollBossWaveAdvance();save.wave+=waveAdvance;
  save.waveKills=0;
  applyWaveGoal();
@@ -1877,6 +1908,7 @@ v10AwardBossKill=function(){
  const oldWave=save.wave;
  save.waveBoss=false;
  save.bossHp=0;
+ if(!passFarmCheckpointV262(oldWave)){$("#combatLog").textContent=`🛡️ ${b.name||"Boss"} elesett, de a Wave ${oldWave} felszerelési próbája még nincs teljesítve.`;persist();v161LiveHud();return}
  const waveAdvance=rollBossWaveAdvance();save.wave+=waveAdvance;
  save.waveKills=0;
  applyWaveGoal();
