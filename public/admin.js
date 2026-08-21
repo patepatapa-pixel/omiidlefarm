@@ -224,11 +224,11 @@ qs("#toggleLeaderboard")?.addEventListener("click",async()=>{
 });
 
 function fillPvpAdmin(){
- const p={minLevel:20,rewardGold:500,cooldownSec:10,ratingChange:18,...(studioConfig.pvp||{})};
- [["#cfgPvpMinLevel","minLevel"],["#cfgPvpRewardGold","rewardGold"],["#cfgPvpCooldown","cooldownSec"],["#cfgPvpRating","ratingChange"]].forEach(([id,k])=>{if(qs(id))qs(id).value=p[k]});
+ const p={minLevel:20,rewardGold:500,cooldownSec:10,ratingWin:18,ratingLoss:20,...(studioConfig.pvp||{})};
+ [["#cfgPvpMinLevel","minLevel"],["#cfgPvpRewardGold","rewardGold"],["#cfgPvpCooldown","cooldownSec"],["#cfgPvpRatingWin","ratingWin"],["#cfgPvpRatingLoss","ratingLoss"]].forEach(([id,k])=>{if(qs(id))qs(id).value=p[k]});
 }
 qs("#savePvpConfig")?.addEventListener("click",async()=>{
- studioConfig.pvp={minLevel:num("#cfgPvpMinLevel"),rewardGold:num("#cfgPvpRewardGold"),cooldownSec:num("#cfgPvpCooldown"),ratingChange:num("#cfgPvpRating")};
+ studioConfig.pvp={minLevel:num("#cfgPvpMinLevel"),rewardGold:num("#cfgPvpRewardGold"),cooldownSec:num("#cfgPvpCooldown"),ratingWin:num("#cfgPvpRatingWin"),ratingLoss:num("#cfgPvpRatingLoss")};
  await saveConfigV8();fillPvpAdmin();alert("✅ PvP beállítások mentve.");
 });
 

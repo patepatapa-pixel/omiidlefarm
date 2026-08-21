@@ -1,4 +1,19 @@
-OMI IDLE FARM ONLINE V22.43
+OMI IDLE FARM ONLINE V22.45
+
+V22.45 KIBŐVÍTETT KÉPESSÉGFA ÉS UPDATE-SZAVAZÁS:
+- 29 képesség, négy teljes fejlődési ág és több mint 300 fejlesztési szint.
+- Harc, Farm, AFK és Pet mesterskillek.
+- Fokozatosan gyorsuló lélekkő-költség, hosszú távú kimaxolás.
+- A meglévő kiosztott képességpontok megmaradnak.
+- Minden közzétett frissítés külön like/dislike számlálót kap.
+- Egy játékos frissítésenként egy módosítható vagy visszavonható szavazatot adhat.
+
+V22.44 PVP RATING RANGLISTA:
+- PvP győzelem alapból +18 rating, vereség -20 rating.
+- A rating nem mehet 0 alá.
+- A ranglistán külön PvP rating oszlop látható.
+- Sorrend: Paragon szint, PvP rating, majd erő/szint/kill.
+- A győzelmi és vereségi érték külön állítható az adminpanelben.
 
 V22.43 GYORSABB VÁLTÓPIAC:
 - A kiválasztott 1×/5×/10×/25×/50×/100× mennyiség vásárlás után is megmarad.

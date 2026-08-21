@@ -28,6 +28,28 @@ app.post("/api/site-votes",auth,async(req,res)=>{
   res.json({ok:true});
 });
 
+app.get("/api/update-votes",async(req,res)=>{
+  try{
+    const rows=(await q("SELECT update_id,vote,COUNT(*)::int count FROM update_votes GROUP BY update_id,vote")).rows;
+    const votes={};
+    rows.forEach(r=>{const id=String(r.update_id);votes[id]=votes[id]||{likes:0,dislikes:0,mine:0};if(Number(r.vote)===1)votes[id].likes=Number(r.count);else votes[id].dislikes=Number(r.count)});
+    try{const p=jwt.verify(req.cookies.omi_token,JWT_SECRET);const mine=(await q("SELECT update_id,vote FROM update_votes WHERE user_id=$1",[p.id])).rows;mine.forEach(r=>{const id=String(r.update_id);votes[id]=votes[id]||{likes:0,dislikes:0,mine:0};votes[id].mine=Number(r.vote)})}catch{}
+    res.json({votes});
+  }catch(e){res.status(500).json({error:"A frissítésszavazatok nem tölthetők be."})}
+});
+
+app.post("/api/update-votes",auth,async(req,res)=>{
+  try{
+    const updateId=String(req.body?.updateId||"").trim().slice(0,100),vote=Number(req.body?.vote);
+    if(!updateId||![-1,0,1].includes(vote))return res.status(400).json({error:"Hibás szavazat."});
+    const cfg=await mainConfig(),entry=(Array.isArray(cfg.updates)?cfg.updates:[]).find(x=>String(x?.id)===updateId);
+    if(!entry||!entry.visible)return res.status(404).json({error:"Ez a frissítés nem szavazható."});
+    if(vote===0)await q("DELETE FROM update_votes WHERE update_id=$1 AND user_id=$2",[updateId,req.user.id]);
+    else await q("INSERT INTO update_votes(update_id,user_id,vote) VALUES($1,$2,$3) ON CONFLICT(update_id,user_id) DO UPDATE SET vote=EXCLUDED.vote,updated_at=NOW()",[updateId,req.user.id,vote]);
+    res.json({ok:true});
+  }catch(e){res.status(500).json({error:"A szavazat mentése nem sikerült."})}
+});
+
 const DATABASE_URL=process.env.DATABASE_URL;
 const JWT_SECRET=process.env.JWT_SECRET || "CHANGE_ME_IN_RENDER";
 if(!DATABASE_URL) console.warn("DATABASE_URL is not set.");
@@ -139,6 +161,13 @@ async function init(){
       vote SMALLINT NOT NULL CHECK(vote IN (-1,1)),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+    CREATE TABLE IF NOT EXISTS update_votes(
+      update_id TEXT NOT NULL,
+      user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      vote SMALLINT NOT NULL CHECK(vote IN (-1,1)),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY(update_id,user_id)
+    );
     CREATE TABLE IF NOT EXISTS system_migrations(
       migration_key TEXT PRIMARY KEY,
       applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -180,6 +209,14 @@ async function init(){
   }
   if(!updateContent.updates.some(x=>x&&x.id==="v22_43")){
     updateContent.updates.unshift({id:"v22_43",version:"V22.43",title:"Gyorsabb váltópiac",date:"2026-08-21",summary:"A nagyobb nyersanyag- és tokencsomagok kényelmesebben megvásárolhatók.",changes:["Külön megmarad a kiválasztott csomagméret gyémántnál, ércnél és dungeon tokennél.","A választott mennyiségek a játékos szerveres mentésébe kerülnek.","Új 50× és 100× csomagméret került be.","Vásárlás előtt látható a teljes aranyár és a teljes jutalom.","Vásárlás után nem áll vissza a kiválasztás 1×-re."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_44")){
+    updateContent.updates.unshift({id:"v22_44",version:"V22.44",title:"PvP rating ranglista",date:"2026-08-21",summary:"A PvP eredmények mostantól közvetlenül alakítják a ranglistasorrendet.",changes:["Győzelem alapból +18 PvP rating.","Vereség alapból −20 PvP rating.","A rating nem csökkenhet 0 alá.","A ranglistán megjelenik minden játékos PvP ratingje.","A Paragon-szint marad az elsődleges sorrend, azon belül a PvP rating dönt.","A győzelmi és vereségi érték külön állítható az adminpanelben."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_45")){
+    updateContent.updates.unshift({id:"v22_45",version:"V22.45",title:"Kibővített képességfa és update-szavazás",date:"2026-08-21",summary:"Sokkal hosszabb karakterfejlődés és frissítésenkénti játékos-visszajelzés érkezett.",changes:["A képességfa 29 külön képességre és több mint 300 fejlesztési szintre bővült.","Négy hosszú ág: Harc, Farm, AFK és Pet.","Új mesterskillek és több egymásra épülő előfeltétel.","A lélekkőköltség fokozatosan, egyre gyorsabban növekszik.","A régi kiosztott képességpontok megmaradnak.","Minden látható frissítés külön like/dislike szavazást kapott.","Egy játékos frissítésenként egy szavazatot adhat, amely módosítható vagy visszavonható."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
 
@@ -224,7 +261,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.43.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.45.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{
@@ -463,7 +500,7 @@ app.get("/api/leaderboard",async(req,res)=>{
              COALESCE(NULLIF(g.save_data->>'paragonLevel','')::INTEGER,0) paragon_level
       FROM game_saves g JOIN users u ON u.id=g.user_id
       WHERE u.role='player' AND u.banned=FALSE AND u.leaderboard_hidden=FALSE
-      ORDER BY paragon_level DESC,g.power DESC,g.level DESC,g.kills DESC
+      ORDER BY paragon_level DESC,u.pvp_rating DESC,g.power DESC,g.level DESC,g.kills DESC
       LIMIT 100
     `)).rows;
     res.json({rows:rows.map((r,i)=>({...r,rank:i+1}))});
@@ -653,7 +690,7 @@ app.post("/api/pvp/fight",auth,async(req,res)=>{
     const defenderId=Number(req.body.defender_id);
     if(!Number.isInteger(defenderId)||defenderId<=0||defenderId===Number(req.user.id))
       return res.status(400).json({error:"Hibás ellenfél."});
-    const cfg=await mainConfig(),pc={minLevel:20,rewardGold:500,cooldownSec:10,ratingChange:18,...(cfg.pvp||{})};
+    const cfg=await mainConfig(),pc={minLevel:20,rewardGold:500,cooldownSec:10,ratingWin:18,ratingLoss:20,...(cfg.pvp||{})};
     const last=(await q("SELECT created_at FROM pvp_fights WHERE challenger_id=$1 ORDER BY id DESC LIMIT 1",[req.user.id])).rows[0];
     if(last && (Date.now()-new Date(last.created_at).getTime())<pc.cooldownSec*1000)return res.status(429).json({error:`Várj ${pc.cooldownSec} másodpercet két párbaj között.`});
     const rows=(await q(`
@@ -678,9 +715,10 @@ app.post("/api/pvp/fight",auth,async(req,res)=>{
     }
     const winnerId=ah===bh?(Math.random()<.5?a.id:b.id):(ah>bh?a.id:b.id);
     const loserId=winnerId===a.id?b.id:a.id;
-    const change=Math.max(1,Number(pc.ratingChange||18));
-    await q("UPDATE users SET pvp_rating=pvp_rating+$1 WHERE id=$2",[change,winnerId]);
-    await q("UPDATE users SET pvp_rating=GREATEST(0,pvp_rating-$1) WHERE id=$2",[change,loserId]);
+    const winChange=Math.max(1,Math.floor(Number(pc.ratingWin??pc.ratingChange??18)));
+    const lossChange=Math.max(1,Math.floor(Number(pc.ratingLoss??20)));
+    const winnerRating=(await q("UPDATE users SET pvp_rating=pvp_rating+$1 WHERE id=$2 RETURNING pvp_rating",[winChange,winnerId])).rows[0]?.pvp_rating;
+    const loserRating=(await q("UPDATE users SET pvp_rating=GREATEST(0,pvp_rating-$1) WHERE id=$2 RETURNING pvp_rating",[lossChange,loserId])).rows[0]?.pvp_rating;
     const wg=(await q("SELECT save_data FROM game_saves WHERE user_id=$1",[winnerId])).rows[0]?.save_data||{};
     wg.gold=Number(wg.gold||0)+Number(pc.rewardGold||0);
     await q("UPDATE game_saves SET save_data=$1,gold=$2,updated_at=NOW() WHERE user_id=$3",[wg,Math.floor(wg.gold),winnerId]);
@@ -688,6 +726,10 @@ app.post("/api/pvp/fight",auth,async(req,res)=>{
       a:{id:a.id,name:a.player_name||a.username,...A},
       b:{id:b.id,name:b.player_name||b.username,...B},
       winnerId,
+      ratingWin:winChange,
+      ratingLoss:lossChange,
+      winnerRating:Number(winnerRating||0),
+      loserRating:Number(loserRating||0),
       rewardGold:Number(pc.rewardGold||0),
       log:log.slice(0,80)
     };

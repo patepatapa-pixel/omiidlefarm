@@ -26,27 +26,45 @@ const BASE_UPS=[
  {key:"luck",name:"Szerencse",icon:"🍀",base:50,desc:"+ ritka drop"}
 ];
 const SKILL_TREE=[
- {key:"root",branch:"root",name:"Kalandor mag",icon:"✨",max:1,desc:"Megnyitja a három fejlődési ágat",effect:"+5% teljes sebzés"},
- {key:"power",branch:"combat",name:"Harci erő",icon:"🔥",max:5,req:["root",1],desc:"Erősebb normál támadások",effect:"+6% sebzés / pont"},
- {key:"crit",branch:"combat",name:"Kritikus ösztön",icon:"🎯",max:5,req:["power",3],desc:"Gyakoribb kritikus találat",effect:"+1,5% krit esély / pont"},
- {key:"boss",branch:"combat",name:"Bossvadász",icon:"🐲",max:5,req:["crit",3],desc:"Extra sebzés bossok ellen",effect:"+8% boss sebzés / pont"},
- {key:"gold",branch:"farm",name:"Aranyáldás",icon:"💰",max:5,req:["root",1],desc:"Több arany minden harcból",effect:"+8% arany / pont"},
- {key:"drop",branch:"farm",name:"Kincsvadász",icon:"🎁",max:5,req:["gold",3],desc:"Jobb tárgy- és ritka drop",effect:"+2% drop / pont"},
- {key:"afk",branch:"afk",name:"AFK kiképzés",icon:"💤",max:5,req:["root",1],desc:"Távollét alatt gyorsabban fejlődsz",effect:"+10% AFK farm / pont"},
- {key:"offline",branch:"afk",name:"Álomfarm",icon:"🌙",max:5,req:["afk",3],desc:"További offline kill és jutalom",effect:"+15% AFK farm / pont"},
- {key:"afkCap",branch:"afk",name:"Hosszú pihenő",icon:"⏳",max:5,req:["offline",3],desc:"Hosszabb távollétet számol el",effect:"+3 óra AFK idő / pont"},
- {key:"pet",branch:"pet",name:"Pet szinkron",icon:"🐾",max:5,req:["root",1],desc:"Felerősíti a petek bónuszait",effect:"+10% pet bónusz / pont"},
- {key:"pack",branch:"pet",name:"Falkavezér",icon:"👑",max:5,req:["pet",3],desc:"Minden felszerelt pet együtt erősödik",effect:"+10% pet bónusz / pont"}
+ {key:"root",branch:"root",name:"Kalandor mag",icon:"✨",max:10,desc:"A teljes képességfa központja",effect:"+2% teljes sebzés / pont"},
+ {key:"power",branch:"combat",name:"Harci erő",icon:"🔥",max:20,req:["root",2],desc:"Erősebb normál támadások",effect:"+2,5% sebzés / pont"},
+ {key:"crit",branch:"combat",name:"Kritikus ösztön",icon:"🎯",max:12,req:["power",8],desc:"Gyakoribb kritikus találat",effect:"+0,5% krit esély / pont"},
+ {key:"boss",branch:"combat",name:"Bossvadász",icon:"🐲",max:15,req:["crit",5],desc:"Extra sebzés bossok ellen",effect:"+3% boss sebzés / pont"},
+ {key:"berserk",branch:"combat",name:"Berserker düh",icon:"🩸",max:12,req:["boss",6],desc:"Tovább növeli minden támadás erejét",effect:"+2% sebzés / pont"},
+ {key:"precision",branch:"combat",name:"Halálos pontosság",icon:"🏹",max:10,req:["berserk",5],desc:"Finomítja a kritikus támadásokat",effect:"+0,3% krit esély / pont"},
+ {key:"slayer",branch:"combat",name:"Óriásölő",icon:"⚔️",max:10,req:["precision",5],desc:"A legerősebb bossok ellen készít fel",effect:"+2,5% boss sebzés / pont"},
+ {key:"warMaster",branch:"combat",name:"Hadúr mesterség",icon:"👹",max:5,req:["slayer",7],desc:"A harci ág végső képessége",effect:"+3% sebzés és +2% boss sebzés / pont"},
+ {key:"gold",branch:"farm",name:"Aranyáldás",icon:"💰",max:15,req:["root",2],desc:"Növeli a bossok aranyjutalmát",effect:"+3% bossarany / pont"},
+ {key:"drop",branch:"farm",name:"Kincsvadász",icon:"🎁",max:12,req:["gold",6],desc:"Jobb tárgy- és ritka drop",effect:"+0,6% drop / pont"},
+ {key:"prospector",branch:"farm",name:"Aranyérzék",icon:"⛏️",max:15,req:["drop",5],desc:"Hatékonyabb hosszú távú farm",effect:"+2% bossarany / pont"},
+ {key:"treasure",branch:"farm",name:"Rejtett kincsek",icon:"🗝️",max:10,req:["prospector",6],desc:"Felfedi a ritkább zsákmányt",effect:"+0,5% drop / pont"},
+ {key:"merchant",branch:"farm",name:"Kereskedői érzék",icon:"⚖️",max:12,req:["treasure",5],desc:"Többet hoz a bossfarm",effect:"+2% bossarany / pont"},
+ {key:"fortune",branch:"farm",name:"A szerencse kegye",icon:"🍀",max:10,req:["merchant",6],desc:"Tovább emeli a tárgydrop esélyét",effect:"+0,4% drop / pont"},
+ {key:"farmMaster",branch:"farm",name:"Kincskirály",icon:"💎",max:5,req:["fortune",7],desc:"A farm ág végső képessége",effect:"+3% bossarany és +0,5% drop / pont"},
+ {key:"afk",branch:"afk",name:"AFK kiképzés",icon:"💤",max:15,req:["root",2],desc:"Távollét alatt gyorsabban fejlődsz",effect:"+4% AFK farm / pont"},
+ {key:"offline",branch:"afk",name:"Álomfarm",icon:"🌙",max:15,req:["afk",6],desc:"További offline kill és jutalom",effect:"+5% AFK farm / pont"},
+ {key:"afkCap",branch:"afk",name:"Hosszú pihenő",icon:"⏳",max:10,req:["offline",6],desc:"Hosszabb távollétet számol el",effect:"+1 óra AFK idő / pont"},
+ {key:"meditation",branch:"afk",name:"Mély meditáció",icon:"🧘",max:12,req:["afkCap",4],desc:"Hatékonyabbá teszi a távolléti farmot",effect:"+4% AFK farm / pont"},
+ {key:"endurance",branch:"afk",name:"Végtelen kitartás",icon:"⌛",max:10,req:["meditation",5],desc:"További elszámolható távollét",effect:"+1 óra AFK idő / pont"},
+ {key:"timeless",branch:"afk",name:"Időtlen vadászat",icon:"🌀",max:8,req:["endurance",5],desc:"A hosszú AFK időt is értékessé teszi",effect:"+5% AFK farm / pont"},
+ {key:"dreamMaster",branch:"afk",name:"Álomjáró",icon:"🌌",max:5,req:["timeless",6],desc:"Az AFK ág végső képessége",effect:"+6% AFK farm és +1 óra / pont"},
+ {key:"pet",branch:"pet",name:"Pet szinkron",icon:"🐾",max:15,req:["root",2],desc:"Felerősíti a petek bónuszait",effect:"+3% pet bónusz / pont"},
+ {key:"pack",branch:"pet",name:"Falkavezér",icon:"👑",max:15,req:["pet",6],desc:"Minden felszerelt pet együtt erősödik",effect:"+3% pet bónusz / pont"},
+ {key:"bond",branch:"pet",name:"Lélekkötelék",icon:"🔗",max:12,req:["pack",6],desc:"Mélyebb kapcsolat a petekkel",effect:"+2,5% pet bónusz / pont"},
+ {key:"instinct",branch:"pet",name:"Vad ösztön",icon:"🐺",max:10,req:["bond",5],desc:"Felerősíti minden pet adottságát",effect:"+2,5% pet bónusz / pont"},
+ {key:"alpha",branch:"pet",name:"Alfa parancs",icon:"🦁",max:10,req:["instinct",5],desc:"Összehangolja a teljes petcsapatot",effect:"+2% pet bónusz / pont"},
+ {key:"evolution",branch:"pet",name:"Ősi evolúció",icon:"🐉",max:8,req:["alpha",6],desc:"Felszabadítja a petek rejtett erejét",effect:"+3% pet bónusz / pont"},
+ {key:"petMaster",branch:"pet",name:"Bestiamester",icon:"🦅",max:5,req:["evolution",6],desc:"A pet ág végső képessége",effect:"+4% pet bónusz / pont"}
 ];
 function skillRank(key){return Math.max(0,Number(save?.skills?.[key]||0))}
 function skillBonus(key){
- if(key==="power")return skillRank("root")*.05+skillRank("power")*.06;
- if(key==="crit")return skillRank("crit")*.015;
- if(key==="boss")return skillRank("boss")*.08;
- if(key==="gold")return skillRank("gold")*.08;
- if(key==="drop")return skillRank("drop")*.02;
- if(key==="offline")return skillRank("afk")*.10+skillRank("offline")*.15;
- if(key==="pet")return skillRank("pet")*.10+skillRank("pack")*.10;
+ if(key==="power")return skillRank("root")*.02+skillRank("power")*.025+skillRank("berserk")*.02+skillRank("warMaster")*.03;
+ if(key==="crit")return skillRank("crit")*.005+skillRank("precision")*.003;
+ if(key==="boss")return skillRank("boss")*.03+skillRank("slayer")*.025+skillRank("warMaster")*.02;
+ if(key==="gold")return skillRank("gold")*.03+skillRank("prospector")*.02+skillRank("merchant")*.02+skillRank("farmMaster")*.03;
+ if(key==="drop")return skillRank("drop")*.006+skillRank("treasure")*.005+skillRank("fortune")*.004+skillRank("farmMaster")*.005;
+ if(key==="offline")return skillRank("afk")*.04+skillRank("offline")*.05+skillRank("meditation")*.04+skillRank("timeless")*.05+skillRank("dreamMaster")*.06;
+ if(key==="pet")return skillRank("pet")*.03+skillRank("pack")*.03+skillRank("bond")*.025+skillRank("instinct")*.025+skillRank("alpha")*.02+skillRank("evolution")*.03+skillRank("petMaster")*.04;
  return 0;
 }
 const PET_POOL=[
@@ -549,11 +567,12 @@ function renderSkills(){
  $("#skillPoints").textContent=fmt(save.soul);
  const unlocked=n=>!n.req||skillRank(n.req[0])>=n.req[1];
  const depth=n=>{let d=0,x=n;while(x?.req){d++;x=SKILL_TREE.find(y=>y.key===x.req[0])}return d};
- const soulCost=n=>{const rank=skillRank(n.key),d=depth(n);return 5+d*5+rank*(3+d)};
+ const soulCost=n=>{const rank=skillRank(n.key),d=depth(n),base=12+d*10;return Math.max(1,Math.floor(base*Math.pow(1.28,rank)*(1+d*.18)))};
  const nodeHtml=n=>{const rank=skillRank(n.key),cost=soulCost(n),open=unlocked(n),maxed=rank>=n.max,can=open&&!maxed&&save.soul>=cost,req=n.req?SKILL_TREE.find(x=>x.key===n.req[0]):null;return `<article class="skill-tree-node branch-${n.branch} ${open?"unlocked":"locked"} ${maxed?"maxed":""}"><div class="skill-tree-icon">${open?n.icon:"🔒"}</div><div class="skill-tree-copy"><h3>${n.name}</h3><p>${n.desc}</p><strong>${n.effect}</strong>${!open?`<small>Kell: ${req?.name||"Előfeltétel"} ${n.req[1]}/${req?.max||n.req[1]}</small>`:""}</div><div class="skill-tree-rank">${rank}/${n.max}</div><button data-tree-skill="${n.key}" ${can?"":"disabled"}>${maxed?"MAX":open?`🔵 ${cost} LÉLEKKŐ`:"ZÁROLVA"}</button></article>`};
  const root=SKILL_TREE.find(n=>n.branch==="root");
  const branch=(key,title)=>`<section class="skill-tree-branch branch-${key}"><h3>${title}</h3>${SKILL_TREE.filter(n=>n.branch===key).map(nodeHtml).join('<div class="skill-tree-line"></div>')}</section>`;
- $("#skills").innerHTML=`<div class="skill-tree-v217"><div class="skill-tree-root">${nodeHtml(root)}</div><div class="skill-tree-trunk"></div><div class="skill-tree-branches">${branch("combat","⚔️ Harci ág")}${branch("farm","💰 Farm ág")}${branch("afk","💤 AFK ág")}${branch("pet","🐾 Pet ág")}</div></div>`;
+ const spent=SKILL_TREE.reduce((a,n)=>a+skillRank(n.key),0),total=SKILL_TREE.reduce((a,n)=>a+n.max,0),maxed=SKILL_TREE.filter(n=>skillRank(n.key)>=n.max).length;
+ $("#skills").innerHTML=`<div class="skill-progress-v245"><div><small>KÉPESSÉGFEJLŐDÉS</small><b>${spent} / ${total} szint</b></div><div><small>KIMAXOLT KÉPESSÉGEK</small><b>${maxed} / ${SKILL_TREE.length}</b></div><div><small>ELÉRHETŐ LÉLEKKŐ</small><b>🔵 ${fmt(save.soul)}</b></div><div class="skill-progress-bar-v245"><i style="width:${Math.min(100,spent/total*100)}%"></i></div></div><div class="skill-tree-v217"><div class="skill-tree-root">${nodeHtml(root)}</div><div class="skill-tree-trunk"></div><div class="skill-tree-branches">${branch("combat","⚔️ Harci ág")}${branch("farm","💰 Farm ág")}${branch("afk","💤 AFK ág")}${branch("pet","🐾 Pet ág")}</div></div>`;
  $$("[data-tree-skill]").forEach(b=>b.onclick=()=>{const n=SKILL_TREE.find(x=>x.key===b.dataset.treeSkill);if(!n||skillRank(n.key)>=n.max||!unlocked(n))return;const cost=soulCost(n);if(save.soul<cost)return toast(`Nincs elég lélekkő. Kell: ${cost}`);save.soul-=cost;save.skills[n.key]=skillRank(n.key)+1;persist();renderAll();toast(`🌟 ${n.name}: ${save.skills[n.key]}/${n.max} · -${cost} lélekkő`)});
 }
 const ECONOMY_DEFAULTS={
@@ -1108,8 +1127,8 @@ async function logout(){
 async function loadLeaderboard(){
  try{
   const d=await api("/api/leaderboard");
-  $("#leaderboard").innerHTML=`<div class="leader-row head"><span>HELY</span><span>JÁTÉKOS</span><span>ERŐ</span><span>SZINT</span><span>KILL</span></div>`+
-   d.rows.map(r=>{const pg=Math.max(0,Number(r.paragon_level||0));return `<div class="leader-row ${pg>0?"leader-paragon":""}"><span class="leader-rank">${r.rank<=3?["🥇","🥈","🥉"][r.rank-1]:"#"+r.rank}</span><span class="leader-name">${r.player_name||r.username}${pg>0?`<b class="paragon-rank-badge">✦ PARAGON ${pg}</b>`:""}</span><span>${fmt(r.power)}</span><span>Lv.${r.level}</span><span>${fmt(r.kills)}</span></div>`}).join("");
+  $("#leaderboard").innerHTML=`<div class="leader-row head"><span>HELY</span><span>JÁTÉKOS</span><span>PVP RATING</span><span>ERŐ</span><span>SZINT</span><span>KILL</span></div>`+
+   d.rows.map(r=>{const pg=Math.max(0,Number(r.paragon_level||0));return `<div class="leader-row ${pg>0?"leader-paragon":""}"><span class="leader-rank">${r.rank<=3?["🥇","🥈","🥉"][r.rank-1]:"#"+r.rank}</span><span class="leader-name">${r.player_name||r.username}${pg>0?`<b class="paragon-rank-badge">✦ PARAGON ${pg}</b>`:""}</span><span class="leader-pvp-rating-v244">⚔️ ${fmt(r.pvp_rating||0)}</span><span>${fmt(r.power)}</span><span>Lv.${r.level}</span><span>${fmt(r.kills)}</span></div>`}).join("");
  }catch(e){$("#leaderboard").innerHTML=`<p class="muted">${e.message}</p>`}
 }
 $("#adminPanelBtn").onclick=()=>location.href="/admin";
@@ -1160,7 +1179,7 @@ document.addEventListener("click",e=>{
 });
 
 // Offline progress max 12h
-let away=Math.min((12+skillRank("afkCap")*3)*3600,Math.max(0,(Date.now()-save.last)/1000));
+let away=Math.min((12+skillRank("afkCap")+skillRank("endurance")+skillRank("dreamMaster"))*3600,Math.max(0,(Date.now()-save.last)/1000));
 if(away>15){
  let z=ZONES[save.zone],eff=Math.min(3.5,.55+skillBonus("offline")),kills=Math.floor(away*damage()/z.hp*eff);
  if(kills>0){let g=kills*zoneMobGold(save.zone);save.gold+=g;save.stats.goldEarned+=g;save.kills+=kills;save.xp+=kills*z.xp;toast(`🌙 Offline farm: ${fmt(kills)} kill · ${fmt(g)} arany`)}
@@ -1580,7 +1599,7 @@ async function v10LoadGameplay(){
 
 
 // ================= V11 PVP / SHOP / DYNAMIC CONTENT =================
-let V11_CONTENT={bosses:[],items:[],pets:[],auras:[],zones:[],updates:[],store:{discord:"nervos11",products:[]},pvp:{minLevel:20,rewardGold:500,cooldownSec:10,ratingChange:18}};
+let V11_CONTENT={bosses:[],items:[],pets:[],auras:[],zones:[],updates:[],store:{discord:"nervos11",products:[]},pvp:{minLevel:20,rewardGold:500,cooldownSec:10,ratingWin:18,ratingLoss:20}};
 
 function v11ApplyContent(){
  const c=V11_CONTENT;
@@ -1694,17 +1713,20 @@ async function v11LoadContent(){
   const d=await api("/api/content-config");
   V11_CONTENT={...V11_CONTENT,...(d.config||{}),store:{...V11_CONTENT.store,...(d.config?.store||{})},pvp:{...V11_CONTENT.pvp,...(d.config?.pvp||{})}};
   window.OMI_CONTENT={...(window.OMI_CONTENT||{}),...(d.config||{})};
-  v11ApplyContent();renderStore();renderExchange();renderPets();renderUpdatesV242();
+  v11ApplyContent();renderStore();renderExchange();renderPets();await loadUpdateVotesV245();
  }catch(e){console.warn("V11 content",e)}
 }
 
 function updateEscV242(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+let UPDATE_VOTES_V245={};
+async function loadUpdateVotesV245(){try{const d=await api("/api/update-votes");UPDATE_VOTES_V245=d.votes||{}}catch(e){UPDATE_VOTES_V245={}}renderUpdatesV242()}
 function renderUpdatesV242(){
  const box=$("#updatesList");if(!box)return;
  const rows=(Array.isArray(V11_CONTENT.updates)?V11_CONTENT.updates:[]).filter(x=>x&&x.visible).sort((a,b)=>String(b.date||b.createdAt||"").localeCompare(String(a.date||a.createdAt||"")));
- box.innerHTML=rows.length?rows.map((u,i)=>`<article class="update-card-v242 ${i===0?"latest":""}"><div class="update-version-v242"><b>${updateEscV242(u.version||"UPDATE")}</b>${i===0?"<span>ÚJ</span>":""}<time>${updateEscV242(u.date||"")}</time></div><div class="update-body-v242"><h2>${updateEscV242(u.title||"Frissítés")}</h2>${u.summary?`<p>${updateEscV242(u.summary)}</p>`:""}${Array.isArray(u.changes)&&u.changes.length?`<ul>${u.changes.map(x=>`<li>${updateEscV242(x)}</li>`).join("")}</ul>`:""}</div></article>`).join(""):'<div class="updates-empty-v242"><b>📭 Nincs közzétett frissítés</b><span>Az admin később itt jelenítheti meg az újdonságokat.</span></div>';
+ box.innerHTML=rows.length?rows.map((u,i)=>{const id=String(u.id||u.version||i),v=UPDATE_VOTES_V245[id]||{likes:0,dislikes:0,mine:0};return `<article class="update-card-v242 ${i===0?"latest":""}"><div class="update-version-v242"><b>${updateEscV242(u.version||"UPDATE")}</b>${i===0?"<span>ÚJ</span>":""}<time>${updateEscV242(u.date||"")}</time></div><div class="update-body-v242"><h2>${updateEscV242(u.title||"Frissítés")}</h2>${u.summary?`<p>${updateEscV242(u.summary)}</p>`:""}${Array.isArray(u.changes)&&u.changes.length?`<ul>${u.changes.map(x=>`<li>${updateEscV242(x)}</li>`).join("")}</ul>`:""}<div class="update-votes-v245"><small>TETSZETT EZ A FRISSÍTÉS?</small><button data-update-vote-id="${updateEscV242(id)}" data-update-vote="1" class="${Number(v.mine)===1?"selected like":""}">👍 ${fmt(v.likes||0)}</button><button data-update-vote-id="${updateEscV242(id)}" data-update-vote="-1" class="${Number(v.mine)===-1?"selected dislike":""}">👎 ${fmt(v.dislikes||0)}</button></div></div></article>`}).join(""):'<div class="updates-empty-v242"><b>📭 Nincs közzétett frissítés</b><span>Az admin később itt jelenítheti meg az újdonságokat.</span></div>';
+ box.querySelectorAll("[data-update-vote]").forEach(b=>b.onclick=async()=>{if(!currentUser)return toast("🔒 A szavazáshoz jelentkezz be.");const id=b.dataset.updateVoteId,wanted=Number(b.dataset.updateVote),mine=Number(UPDATE_VOTES_V245[id]?.mine||0);try{await api("/api/update-votes",{method:"POST",body:JSON.stringify({updateId:id,vote:mine===wanted?0:wanted})});await loadUpdateVotesV245();toast(mine===wanted?"Szavazat visszavonva.":wanted===1?"👍 Köszönjük a like-ot!":"👎 Köszönjük a visszajelzést!")}catch(e){toast(e.message)}});
 }
-document.addEventListener("click",e=>{if(e.target.closest?.('[data-tab="updates"]'))setTimeout(renderUpdatesV242,40)},true);
+document.addEventListener("click",e=>{if(e.target.closest?.('[data-tab="updates"]'))setTimeout(loadUpdateVotesV245,40)},true);
 
 // PvP
 async function loadPvp(){
@@ -4769,8 +4791,8 @@ window.v222AdminSpeedSupported=true;
         if(v229Battle){
           const win=Number(battle.winnerId)===Number(A.id);
           v229Battle.log=win
-            ? `🏆 Győzelem! +${F(battle.rewardGold||0)} arany`
-            : `💀 Vereség. Fejleszd tovább a karaktered és próbáld újra.`;
+            ? `🏆 Győzelem! +${F(battle.rewardGold||0)} arany · +${F(battle.ratingWin||18)} PvP rating`
+            : `💀 Vereség · −${F(battle.ratingLoss||20)} PvP rating. Próbáld újra!`;
           drawBattle();
         }
         return;
@@ -4803,7 +4825,7 @@ window.v222AdminSpeedSupported=true;
       if(typeof toast==="function"){
         const meId=data.battle?.a?.id;
         const won=Number(data.battle.winnerId)===Number(meId);
-        toast(won?"🏆 PvP győzelem!":"💀 PvP vereség.");
+        toast(won?`🏆 PvP győzelem! +${data.battle.ratingWin||18} rating`:`💀 PvP vereség! −${data.battle.ratingLoss||20} rating`);
       }
       // refresh opponent/history views after server-side rating/reward update
       if(typeof renderPvp==="function")setTimeout(renderPvp,800);
