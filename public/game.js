@@ -4291,7 +4291,8 @@ function render(){
 
   function successChance(d){
     if(d.safe) return 1;
-    const p=Math.max(1,p218()),r=Math.max(1,Number(d.reqPower||1)),ratio=p/r;
+    const p=Math.max(1,Number(typeof p218==="function"?p218():1));
+    const r=Math.max(1,Number(d.reqPower||1)),ratio=p/r;
     let c;
     if(ratio<.35)c=.01;
     else if(ratio<.50)c=.04;
@@ -4849,243 +4850,6 @@ function render(){
   },true);
 })();
 
-
-
-/* ================= V23.20.11 SAFE FULL AUTO =================
-   Isolated from renderAll(), power(), HP and zone-unlock formulas.
-   Any auto error stays inside this module and cannot blank the game UI.
-*/
-(function(){
- let busy=false,lastPersist=0,lastError="";
- const RR={normal:0,common:0,rare:1,epic:2,mythic:3,legendary:4,imperial:5,celestial:6,eternal:7};
-
- function S(){try{return (typeof save!=="undefined"&&save)?save:null}catch(e){return null}}
- function safe(fn,fallback=0){try{return fn()}catch(e){lastError=String(e?.message||e);console.warn("[SAFE FULL AUTO]",e);return fallback}}
- function enabled(){const s=S();return Boolean(s&&s.fullAutoUnlocked&&s.fullAutoEnabled)}
- function persistQuiet(){
-   if(Date.now()-lastPersist<3000)return;
-   lastPersist=Date.now();
-   safe(()=>typeof persist==="function"&&persist());
- }
- function rarity(it){return RR[String(it?.rarity||"normal").toLowerCase()]??0}
-
- function score(it){
-   if(!it)return -Infinity;
-   let v=rarity(it)*1e12+Number(it.plus||0)*1e8;
-   safe(()=>{
-     const st=typeof itemStats==="function"?itemStats(it):{};
-     v+=Number(st.atk||it.atk||0)*1e7;
-     v+=Number(st.def||it.def||0)*6e6;
-     v+=Number(st.crit||0)*1e8;
-   });
-   (Array.isArray(it.options)?it.options:[]).forEach(o=>{
-     const w={atkPct:9e6,defPct:6e6,crit:7e6,bossDmg:3e6,hpPct:5e5,hpRegen:2e5,drop:2e4,pvpDmg:2e4}[o?.key]||1e4;
-     v+=Math.max(0,Number(o?.value||0))*w;
-   });
-   return v;
- }
-
- function equipBest(){
-   const s=S();if(!s||!Array.isArray(s.inventory))return 0;
-   s.equipped=s.equipped||{};
-   const slots=Object.keys(typeof SLOT_NAMES!=="undefined"?SLOT_NAMES:{weapon:1,helmet:1,armor:1,gloves:1,boots:1,ring:1});
-   let n=0;
-   for(const slot of slots){
-     const list=s.inventory.filter(it=>it&&it.slot===slot).sort((a,b)=>score(b)-score(a));
-     if(list[0]&&String(s.equipped[slot])!==String(list[0].id)){s.equipped[slot]=list[0].id;n++}
-   }
-   return n;
- }
-
- function baseUpgrades(){
-   const s=S();if(!s||typeof BASE_UPS==="undefined"||typeof baseCost!=="function")return 0;
-   const pr={weaponTraining:0,armorTraining:1,luck:2,mining:3};
-   let n=0;
-   for(let guard=0;guard<10;guard++){
-     const list=BASE_UPS.map(d=>({d,c:Number(safe(()=>baseCost(d),Infinity))}))
-       .filter(x=>Number(s.gold||0)>=x.c)
-       .sort((a,b)=>(pr[a.d.key]??9)-(pr[b.d.key]??9)||a.c-b.c);
-     if(!list.length)break;
-     const x=list[0];s.gold-=x.c;s.base=s.base||{};s.base[x.d.key]=Number(s.base[x.d.key]||1)+1;n++;
-   }
-   return n;
- }
-
- function skills(){
-   const s=S();if(!s||typeof SKILL_TREE==="undefined"||typeof soulCost!=="function"||typeof skillRank!=="function"||typeof unlocked!=="function")return 0;
-   const combat=["power","crit","boss","berserk","precision","slayer","warMaster"];
-   let n=0;
-   for(let guard=0;guard<10;guard++){
-     const list=SKILL_TREE.filter(node=>safe(()=>unlocked(node),false)&&skillRank(node.key)<Number(node.max||0))
-       .map(node=>({node,c:Number(safe(()=>soulCost(node),Infinity))}))
-       .filter(x=>Number(s.soul||0)>=x.c)
-       .sort((a,b)=>{
-         const ai=combat.includes(a.node.key)||combat.includes(a.node.branch)?0:1;
-         const bi=combat.includes(b.node.key)||combat.includes(b.node.branch)?0:1;
-         return ai-bi||a.c-b.c;
-       });
-     if(!list.length)break;
-     const x=list[0];
-     if(Number(s.soul||0)-x.c<10)break;
-     s.soul-=x.c;s.skills=s.skills||{};s.skills[x.node.key]=Number(skillRank(x.node.key)||0)+1;n++;
-   }
-   return n;
- }
-
- function paragonStats(){
-   const s=S();if(!s)return 0;
-   let pts=Math.max(0,Math.floor(Number(s.paragonPoints??s.paragonStatPoints??0)));
-   if(!pts)return 0;
-   s.paragonStats={damage:0,gold:0,drop:0,crit:0,...(s.paragonStats||{})};
-   const order=["damage","damage","crit","damage","damage","crit","damage","damage","damage","crit"];
-   let n=0;
-   while(pts>0&&n<500){const k=order[n%order.length];s.paragonStats[k]=Number(s.paragonStats[k]||0)+1;pts--;n++}
-   if("paragonPoints" in s)s.paragonPoints=pts;
-   if("paragonStatPoints" in s)s.paragonStatPoints=pts;
-   return n;
- }
-
- function upgradeGear(){
-   const s=S();if(!s||!Array.isArray(s.inventory)||typeof upgradeCost!=="function"||typeof oreCost!=="function")return 0;
-   const eq=new Set(Object.values(s.equipped||{}).map(String));
-   const list=s.inventory.filter(it=>eq.has(String(it.id))&&Number(it.plus||0)<15).sort((a,b)=>score(b)-score(a));
-   let n=0;
-   for(const it of list){
-     if(n>=3)break;
-     const gc=Number(safe(()=>upgradeCost(it),Infinity)),oc=Number(safe(()=>oreCost(it),Infinity));
-     if(Number(s.gold||0)<gc||Number(s.ore||0)<oc)continue;
-     s.gold-=gc;s.ore-=oc;
-     const chance=Number(safe(()=>typeof upgradeChance==="function"?upgradeChance(it.plus):100,100));
-     if(Math.random()*100<chance)it.plus=Number(it.plus||0)+1;
-     n++;
-   }
-   return n;
- }
-
- function reroll(){
-   const s=S();if(!s||!Array.isArray(s.inventory)||typeof itemRerollCost!=="function"||typeof rollItemOptions!=="function")return 0;
-   const eq=new Set(Object.values(s.equipped||{}).map(String));
-   let n=0;
-   for(const it of s.inventory.filter(x=>eq.has(String(x.id)))){
-     if(n>=2||rarity(it)<2)continue;
-     const cost=Number(safe(()=>itemRerollCost(it),Infinity));
-     if(Number(s.gold||0)<cost*2)continue;
-     const old=JSON.parse(JSON.stringify(it.options||[])),before=score(it);
-     s.gold-=cost;safe(()=>rollItemOptions(it));n++;
-     if(score(it)<before)it.options=old;
-   }
-   return n;
- }
-
- function petsMount(){
-   let n=0;
-   safe(()=>{if(typeof equipBestPets==="function"){equipBestPets();n++}});
-   const s=S();
-   if(s&&Array.isArray(s.mounts)&&s.mounts.length){
-     let best=-1,bestScore=-Infinity;
-     s.mounts.forEach((m,i)=>{
-       const sc=Number(m?.level||0)*10000+Number(m?.power||0)*100+Number(m?.value||0)*10+Number(m?.bonusPct||0);
-       if(sc>bestScore){bestScore=sc;best=i}
-     });
-     if(best>=0&&Number(s.activeMount)!==best){s.activeMount=best;n++}
-   }
-   return n;
- }
-
- function cleanup(){
-   const s=S();if(!s||!Array.isArray(s.inventory))return 0;
-   const eq=new Set(Object.values(s.equipped||{}).map(String));
-   const best={};
-   for(const it of s.inventory)if(it)best[it.slot]=Math.max(best[it.slot]??-Infinity,score(it));
-   let n=0;
-   for(let i=s.inventory.length-1;i>=0;i--){
-     const it=s.inventory[i];
-     if(!it||eq.has(String(it.id))||it.locked||it.favorite||it.unsellable||it.starterV260)continue;
-     if(rarity(it)>=4)continue; // Legendary+ never deleted
-     if(score(it)>=Number(best[it.slot]||0)*.70)continue;
-     s.inventory.splice(i,1);n++;
-   }
-   return n;
- }
-
- function bestZone(){
-   const s=S();if(!s)return 0;
-   // Uses only the already-safe wave based zone function. No direct power() dependency.
-   const best=Number(safe(()=>typeof strongestUnlockedZone==="function"?strongestUnlockedZone():s.zone,s.zone));
-   if(!Number.isFinite(best)||best<0||best>=ZONES.length||best===Number(s.zone||0))return 0;
-   s.zone=best;s.waveKills=0;s.waveBoss=false;s.waveRiftBossV284=false;s.bossHp=0;
-   safe(()=>{enemyHp=typeof normalEnemyMaxHp==="function"?normalEnemyMaxHp():(ZONES[best]?.hp||enemyHp)});
-   return 1;
- }
-
- function speed(){
-   const s=S();if(!s)return 0;
-   const wanted=s.speed10Unlocked?10:3;
-   if(Number(s.combatSpeed||1)!==wanted){s.combatSpeed=wanted;return 1}
-   return 0;
- }
-
- function advance(){
-   const s=S();if(!s)return "";
-   if(s.autoParagonUnlocked&&safe(()=>typeof paragonWaveRequirement==="function"&&Number(s.wave||0)>=Number(paragonWaveRequirement()),false)){
-     if(typeof doPrestige==="function"){safe(()=>doPrestige(true));return "paragon"}
-   }
-   if(s.autoParagonUnlocked&&safe(()=>typeof prestigeParagonRequirement==="function"&&Number(s.paragonLevel||0)>=Number(prestigeParagonRequirement()),false)){
-     if(typeof doTruePrestige==="function"){safe(()=>doTruePrestige(true));return "prestige"}
-   }
-   return "";
- }
-
- function panel(){
-   const host=document.getElementById("page-character");if(!host)return;
-   let p=document.getElementById("safeFullAutoPanel");
-   if(!p){p=document.createElement("section");p.id="safeFullAutoPanel";p.className="card safe-full-auto";host.prepend(p)}
-   const s=S()||{},active=Boolean(s.fullAutoUnlocked&&s.fullAutoEnabled);
-   p.innerHTML=`<div class="safe-auto-head"><div><small>🤖 TELJES AUTOMATA RENDSZER · SAFE</small><h3>Full Auto</h3><p>Erőfókusz: legjobb rarity/item · +15 · jó opciók · alap fejlesztések · harci skillek · Paragon damage/crit · legerősebb pet/hátas · selejtezés · legjobb feloldott farmterület · Auto Paragon/Prestige.</p><em>${s.fullAutoUnlocked?"✅ Feloldva":"🔒 Admin feloldás szükséges"}</em>${active?`<strong class="safe-auto-status">Wave ${Number(s.wave||1)} · Paragon ${Number(s.paragonLevel||0)} · Prestige ${Number(s.prestigeLevel||0)}${lastError?` · ⚠️ ${lastError}`:""}</strong>`:""}</div><button id="safeFullAutoToggle" ${s.fullAutoUnlocked?"":"disabled"} class="${active?"active":""}">${active?"🟢 AKTÍV":"🤖 BEKAPCSOLÁS"}</button></div>`;
-   p.querySelector("#safeFullAutoToggle")?.addEventListener("click",()=>{
-     const ss=S();if(!ss||!ss.fullAutoUnlocked)return;
-     ss.fullAutoEnabled=!ss.fullAutoEnabled;lastError="";persistQuiet();panel();
-   });
- }
-
- function tick(){
-   if(busy||!enabled())return;
-   busy=true;
-   try{
-     let changed=0;
-     changed+=speed();
-     changed+=bestZone();
-     changed+=equipBest();
-     changed+=baseUpgrades();
-     changed+=skills();
-     changed+=paragonStats();
-     changed+=upgradeGear();
-     changed+=equipBest();
-     changed+=reroll();
-     changed+=equipBest();
-     changed+=petsMount();
-     changed+=cleanup();
-     const a=advance();
-     if(changed||a)persistQuiet();
-     lastError="";
-   }catch(e){
-     lastError=String(e?.message||e);
-     console.warn("[SAFE FULL AUTO TICK]",e);
-   }finally{
-     busy=false;
-     safe(()=>panel());
-     // only refresh isolated equipment widgets, never renderAll()
-     safe(()=>typeof renderDynamicEquipment==="function"&&renderDynamicEquipment());
-   }
- }
-
- setInterval(tick,1800);
- window.addEventListener("load",()=>setTimeout(panel,400));
- document.addEventListener("click",e=>{
-   if(e.target.closest?.('[data-tab="character"]'))setTimeout(panel,100);
- },true);
- window.safeFullAutoTickV232011=tick;
-})();
 
 
 /* V23.05 - GLOBAL instant zone progression fix
@@ -5976,3 +5740,23 @@ window.OMI_BALANCE_V2319={
  dungeonRecommendedPower:[1200,3000,6500,11000,18000,28000,40000,55000,72000,90000],
  powerCap:100000
 };
+
+/* V23.20.12 COMPLETE SAFE BALANCE
+   World target: 100k power cap.
+   Zone recommendations: 0,1500,4000,9000,18000,32000,52000,75000.
+   Dungeon recommendations: 1200..90000.
+   IMPORTANT: zone renderer/unlock never depends on power() anymore.
+*/
+window.OMI_BALANCE_V232012={
+ zoneMinPower:[0,1500,4000,9000,18000,32000,52000,75000],
+ dungeonPower:[1200,3000,6500,11000,18000,28000,40000,55000,72000,90000],
+ powerCap:100000,
+ zoneUnlockMode:"wave_only_safe",
+ fullAutoMode:"removed"
+};
+
+/* V23.20.13 - FULL AUTO REMOVED
+   All V23.20.12 balance/content systems retained.
+   No Full Auto timer, panel, auto equip, auto upgrades, auto reroll,
+   auto cleanup, auto Paragon or auto Prestige module remains. */
+window.OMI_FULL_AUTO_REMOVED_V232013=true;
