@@ -219,7 +219,7 @@ save.paragonStats=save.paragonStats||{damage:0,gold:0,drop:0,crit:0};
 save.ownedAuras=Array.isArray(save.ownedAuras)?save.ownedAuras:["none"];
 save.activeAura=save.activeAura||"none";
 
-let enemyHp=ZONES[save.zone].hp;
+let enemyHp=Math.max(1,Number(typeof normalEnemyMaxHp==="function"?normalEnemyMaxHp():ZONES[save.zone]?.hp||1));
 
 function persist(){save.last=Date.now();localStorage.setItem("omiIdleComplete",JSON.stringify(save));$("#saveState").textContent="💾 Mentve"}
 function toast(t){let e=$("#toast");e.textContent=t;e.classList.add("show");setTimeout(()=>e.classList.remove("show"),1700)}
@@ -503,7 +503,9 @@ function renderCharacterVisual(){
 function renderCore(){
  let z=ZONES[save.zone];
  $("#gold").textContent=fmt(save.gold);$("#gems").textContent=fmt(save.gems);$("#ore").textContent=fmt(save.ore);$("#soul").textContent=fmt(save.soul);$("#tickets").textContent=fmt(save.tickets);$("#level").textContent=save.level;$("#xpText").textContent=`${fmt(save.xp)} / ${fmt(needXp())} XP`;updateXpBarV23203();$("#power").textContent=fmt(power());$("#rankName").textContent=rankName();$("#gps").textContent=`~${fmt(zoneMobGold(save.zone)*damage()/Math.max(1,z.hp))} / mp`;
- $("#zoneName").textContent=z.name;$("#enemyIcon").textContent=z.icon;$("#enemyName").textContent=z.enemy;$("#enemyHp").textContent=fmt(Math.max(0,enemyHp));$("#enemyMaxHp").textContent=fmt(z.hp);$("#hpbar").style.width=Math.max(0,enemyHp/z.hp*100)+"%";$("#damageText").textContent=fmt(damage());$("#critText").textContent=(critChance()*100).toFixed(1)+"%";$("#dropText").textContent=(dropBonus()*100).toFixed(1)+"%";
+ const enemyMaxV23205=Math.max(1,Number(typeof v10EnemyMaxHp==="function"?v10EnemyMaxHp():typeof normalEnemyMaxHp==="function"?normalEnemyMaxHp():z.hp||1));
+ if(!Number.isFinite(enemyHp)||enemyHp<=0||enemyHp>enemyMaxV23205*1.25)enemyHp=enemyMaxV23205;
+ $("#zoneName").textContent=z.name;$("#enemyIcon").textContent=z.icon;$("#enemyName").textContent=z.enemy;$("#enemyHp").textContent=fmt(Math.max(0,enemyHp));$("#enemyMaxHp").textContent=fmt(enemyMaxV23205);$("#hpbar").style.width=Math.max(0,Math.min(100,enemyHp/enemyMaxV23205*100))+"%";$("#damageText").textContent=fmt(damage());$("#critText").textContent=(critChance()*100).toFixed(1)+"%";$("#dropText").textContent=(dropBonus()*100).toFixed(1)+"%";
  renderEquipped();renderBonuses();renderCharacterVisual()
 }
 function renderZones(){
@@ -1370,24 +1372,35 @@ function openAuth(mode="login"){
 function closeAuth(){$("#authModal").classList.remove("open")}
 
 async function loadMe(){
+ let d;
  try{
-   const d=await api("/api/me");
-   currentUser=d.user;
+   d=await api("/api/me");
+ }catch(e){
+   currentUser=null;cloudReady=false;setAuthenticatedUI(null);showLandingMessage("");
+   return;
+ }
+ currentUser=d.user;
+ try{
    if(d.save && Object.keys(d.save).length){
      save=normalizeV6Save(d.save);
      if(save.lastDaily!==new Date().toDateString()){save.dailyClaimed={};save.dailyBaseline=null;save.lastDaily=new Date().toDateString()}
-     enemyHp=ZONES[save.zone]?.hp||ZONES[0].hp;
    }
-   cloudReady=true;
-   setAuthenticatedUI(currentUser);
+ }catch(e){console.error("Save normalize error:",e)}
+ cloudReady=true;
+ setAuthenticatedUI(currentUser);
+
+ // Auth is already valid here. A UI/render error must never log the player out.
+ try{
+   repairCombatStateV23205();
    renderAll();
-   setTimeout(()=>{if(typeof v10LoadGameplay==="function")v10LoadGameplay()},50);
- }catch(e){
-   currentUser=null;
-   cloudReady=false;
-   setAuthenticatedUI(null);
-   showLandingMessage("");
- }
+ }catch(e){console.error("Initial render error:",e)}
+ setTimeout(()=>{
+   try{
+     if(typeof v10LoadGameplay==="function")v10LoadGameplay();
+     repairCombatStateV23205();
+     if(typeof renderAll==="function")renderAll();
+   }catch(e){console.error("Gameplay init error:",e)}
+ },80);
 }
 async function cloudSave(){
  if(!currentUser||!cloudReady||savingCloud)return;
@@ -1515,7 +1528,7 @@ setAuthenticatedUI(null);loadMe();
 // V10 combat timers are started after gameplay config loads;
 setInterval(()=>{save.stats.playSeconds++;if(save.stats.playSeconds%5===0)persist()},1000);
 
-window.OMI_CONTENT={bosses:[],items:[],pets:[],auras:[],zones:[]};fetch("/api/content-config").then(r=>r.json()).then(d=>window.OMI_CONTENT={...window.OMI_CONTENT,...(d.config||{})}).catch(()=>{});
+window.OMI_CONTENT={bosses:[],items:[],pets:[],auras:[],zones:[]};fetch("/api/content-config").then(r=>r.json()).then(d=>{window.OMI_CONTENT={...window.OMI_CONTENT,...(d.config||{})};try{repairCombatStateV23205();if(typeof renderAll==="function")renderAll()}catch(e){console.error("Config combat repair:",e)}}).catch(()=>{});
 
 /* V22.29: Character blocks must never leak onto another tab. */
 (function(){
@@ -1727,6 +1740,22 @@ function v10EnsurePlayerHp(){
  if(!Number.isFinite(save.playerHp)||save.playerHp<=0)save.playerHp=mx;
  if(save.playerHp>mx)save.playerHp=mx;
  if(save.playerHp<0)save.playerHp=mx;
+}
+function repairCombatStateV23205(){
+ try{
+   v10EnsurePlayerHp();
+   const mx=Math.max(1,Number(v10EnemyMaxHp()||normalEnemyMaxHp()||1));
+   if(!Number.isFinite(enemyHp)||enemyHp<=0||enemyHp>mx*1.25)enemyHp=mx;
+   if(save.waveBoss){
+     if(!Number.isFinite(Number(save.bossHp))||Number(save.bossHp)<=0)save.bossHp=mx;
+     enemyHp=Math.max(1,Math.min(mx,Number(save.bossHp||mx)));
+   }else{
+     save.bossHp=0;
+   }
+   save.playerHp=Math.max(1,Math.min(v10MaxHp(),Number(save.playerHp||v10MaxHp())));
+   save.respawnUntil=Math.max(0,Number(save.respawnUntil||0));
+   return true;
+ }catch(e){console.error("Combat state repair:",e);return false}
 }
 
 
