@@ -257,6 +257,7 @@ function renderShopAdmin(){
  const defaults=[
   {id:"premium_speed_10x",name:"10× Harci / Wave Sebesség",icon:"⚡",priceText:"3 €",description:"Prémium 10× farmsebesség",visible:true},
   {id:"auto_paragon_10_eur",name:"Auto Paragon szintelő",icon:"🌟",priceText:"10 €",description:"Automatikus Paragon szintlépés",visible:true},
+  {id:"full_auto_20_eur",name:"Teljes Automata Rendszer",icon:"🤖",priceText:"20 €",description:"Teljes automatikus fejlődés Prestige-ig",visible:true},
   {id:"dungeon_batch_10_eur",name:"Dungeon 2× / 3× / 5× futam",icon:"🏰",priceText:"10 €",description:"Egyszerre több dungeon külön jutalom- és droppróbával",visible:true}
  ];
  defaults.forEach(d=>{if(!studioConfig.store.products.some(p=>p.id===d.id))studioConfig.store.products.unshift(d)});
@@ -465,6 +466,8 @@ function v222Payload(){
     },
     speed10Unlocked:Boolean(document.getElementById("v222Speed10")?.checked),
     autoParagonUnlocked:Boolean(document.getElementById("v237AutoParagon")?.checked),
+     fullAutoUnlocked:Boolean(document.getElementById("v299FullAuto")?.checked),
+     fullAutoEnabled:Boolean(s.fullAutoEnabled && document.getElementById("v299FullAuto")?.checked),
     dungeonBatchUnlocked:Boolean(document.getElementById("v279DungeonBatch")?.checked),
     combatSpeed:Number(document.getElementById("v222CombatSpeed")?.value||1)
   };

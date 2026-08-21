@@ -211,6 +211,7 @@ save.waveBoss=Boolean(save.waveBoss||false);
 save.bossHp=Number(save.bossHp||0);
 save.paragonLevel=Number(save.paragonLevel||0);
 save.prestigeLevel=Number(save.prestigeLevel||0);
+save.fullAutoUnlocked=Boolean(save.fullAutoUnlocked);save.fullAutoEnabled=Boolean(save.fullAutoUnlocked&&save.fullAutoEnabled);
 save.prestigeTokens=Number(save.prestigeTokens||0);
 save.paragonPoints=Number(save.paragonPoints||0);
 save.auraTokens=Number(save.auraTokens||0);
@@ -1023,12 +1024,12 @@ function doPrestige(automatic=false){
  renderAll();
   toast(`🌟 Paragon ${save.paragonLevel}! 1 Sebzés statpont most +${save.paragonLevel*2}%-ot ad.`);
 }
-function doTruePrestige(){
+function doTruePrestige(automatic=false){
  const cap=prestigeCap(),req=prestigeParagonRequirement();
  if(save.prestigeLevel>=cap)return toast("👑 Elérted a Prestige 100 maximumot!");
  if(save.paragonLevel<req)return toast(`🔒 Prestige ${save.prestigeLevel+1} követelménye: ${req} Paragon.`);
  const next=save.prestigeLevel+1,tokenReward=1+(next%10===0?2:0);
- if(!confirm(`PRESTIGE ${next}?\n\nKövetelmény teljesítve: ${save.paragonLevel} / ${req} Paragon.\nJutalom: ${tokenReward} Prestige token és állandó Prestige erősítés.\n\nRESETELŐDIK: Paragon-szint, kiosztott Paragon statok/pontok, PvP statok, wave, karakter szint/XP, normál fejlesztések, inventory, felszerelés, arany, gyémánt és érc.\nMEGMARAD: teljes képességfa, Prestige tokenek, lélekkő, dungeon- és aura token, petek, hátasok, aurák, achievementek, kill, PvP rating és prémium szorzók.\n\nPvP újraépítési kedvezmény: Paragononként -1%, Prestige szintenként -2%, maximum -70%.`))return;
+ if(!automatic&&!confirm(`PRESTIGE ${next}?\n\nKövetelmény teljesítve: ${save.paragonLevel} / ${req} Paragon.\nJutalom: ${tokenReward} Prestige token és állandó Prestige erősítés.\n\nRESETELŐDIK: Paragon-szint, kiosztott Paragon statok/pontok, PvP statok, wave, karakter szint/XP, normál fejlesztések, inventory, felszerelés, arany, gyémánt és érc.\nMEGMARAD: teljes képességfa, Prestige tokenek, lélekkő, dungeon- és aura token, petek, hátasok, aurák, achievementek, kill, PvP rating és prémium szorzók.\n\nPvP újraépítési kedvezmény: Paragononként -1%, Prestige szintenként -2%, maximum -70%.`))return;
  save.prestigeLevel=next;save.prestigeTokens=Number(save.prestigeTokens||0)+tokenReward;
  // V22.98: Prestige után a PvP és kiosztott Paragon statok újraépítendők.
  save.paragonStats={damage:0,gold:0,drop:0,crit:0};
@@ -4718,6 +4719,168 @@ document.addEventListener("click",e=>{
   document.addEventListener("click",e=>{
     if(e.target.closest?.('[data-tab="dungeon"]'))setTimeout(enhancedRender,100);
   },true);
+})();
+
+
+/* ================= V22.99 FULL AUTO SYSTEM · 20 EUR ================= */
+(function(){
+  let busy=false,lastPersist=0;
+  const RARITY_RANK={normal:0,rare:1,epic:2,mythic:3,legendary:4,imperial:5,celestial:6,eternal:7};
+
+  function S(){return (typeof save!=="undefined"&&save)?save:null}
+  function enabled(){const s=S();return Boolean(s&&s.fullAutoUnlocked&&s.fullAutoEnabled)}
+  function quietPersist(){
+    if(Date.now()-lastPersist<3500)return;
+    lastPersist=Date.now();
+    try{if(typeof persist==="function")persist()}catch(e){}
+  }
+  function scoreOpt(o){
+    const w={atkPct:10,bossDmg:9,crit:8,drop:7,hpPct:6,defPct:6,hpRegen:4,pvpDmg:2};
+    return (w[o?.key]||1)*Math.max(.1,Number(o?.value||0));
+  }
+  function gearScore(it){
+    try{return typeof itemScore==="function"?Number(itemScore(it)||0):0}catch(e){return 0}
+  }
+
+  function equipBestSilent(){
+    const s=S();if(!s||!Array.isArray(s.inventory))return 0;
+    s.equipped=s.equipped||{};
+    let changed=0;
+    Object.keys(typeof SLOT_NAMES!=="undefined"?SLOT_NAMES:{weapon:1,helmet:1,armor:1,gloves:1,boots:1,ring:1}).forEach(slot=>{
+      const list=s.inventory.filter(x=>x&&x.slot===slot&&Number.isFinite(Number(x.id))).sort((a,b)=>gearScore(b)-gearScore(a));
+      if(list[0]&&String(s.equipped[slot])!==String(list[0].id)){s.equipped[slot]=list[0].id;changed++}
+    });
+    return changed;
+  }
+
+  function autoBaseUpgrades(){
+    const s=S();if(!s||typeof BASE_UPS==="undefined"||typeof baseCost!=="function")return 0;
+    let n=0,guard=0;
+    while(guard++<12){
+      const candidates=BASE_UPS.map(d=>({d,c:baseCost(d)})).filter(x=>Number(s.gold||0)>=x.c);
+      if(!candidates.length)break;
+      // balanced progression: favor the lowest level, then cheapest
+      candidates.sort((a,b)=>(Number(s.base[a.d.key]||1)-Number(s.base[b.d.key]||1))||(a.c-b.c));
+      const x=candidates[0];s.gold-=x.c;s.base[x.d.key]=Number(s.base[x.d.key]||1)+1;n++;
+    }
+    return n;
+  }
+
+  function autoParagonStats(){
+    const s=S();if(!s)return 0;
+    s.paragonStats={damage:0,gold:0,drop:0,crit:0,...(s.paragonStats||{})};
+    let pts=Math.max(0,Math.floor(Number(s.paragonPoints||0))),spent=0;
+    // 45% damage, 25% gold, 20% drop, 10% crit, one point at a time to keep distribution balanced.
+    const order=["damage","gold","damage","drop","damage","gold","crit","damage","drop","gold"];
+    while(pts>0&&spent<1000){const k=order[spent%order.length];s.paragonStats[k]=Number(s.paragonStats[k]||0)+1;pts--;spent++}
+    s.paragonPoints=pts;
+    return spent;
+  }
+
+  function autoUpgradeGear(){
+    const s=S();if(!s||!Array.isArray(s.inventory)||typeof upgradeCost!=="function"||typeof oreCost!=="function")return 0;
+    const equipped=new Set(Object.values(s.equipped||{}).map(String));
+    const items=s.inventory.filter(it=>equipped.has(String(it.id))&&Number(it.plus||0)<15).sort((a,b)=>Number(a.plus||0)-Number(b.plus||0));
+    let attempts=0;
+    for(const it of items){
+      if(attempts>=4)break;
+      const gc=upgradeCost(it),oc=oreCost(it);
+      if(Number(s.gold||0)<gc||Number(s.ore||0)<oc)continue;
+      s.gold-=gc;s.ore-=oc;
+      if(Math.random()*100<(typeof upgradeChance==="function"?upgradeChance(it.plus):100))it.plus=Number(it.plus||0)+1;
+      attempts++;
+    }
+    return attempts;
+  }
+
+  function autoRerollEquipped(){
+    const s=S();if(!s||!Array.isArray(s.inventory)||typeof itemRerollCost!=="function"||typeof rollItemOptions!=="function")return 0;
+    const equipped=new Set(Object.values(s.equipped||{}).map(String));
+    let rolls=0;
+    for(const it of s.inventory.filter(x=>equipped.has(String(x.id)))){
+      if(rolls>=3)break;
+      if((RARITY_RANK[String(it.rarity||"normal").toLowerCase()]||0)<2)continue; // Epic+
+      const opts=Array.isArray(it.options)?it.options:[];
+      const current=opts.reduce((n,o)=>n+scoreOpt(o),0);
+      const target=(RARITY_RANK[String(it.rarity||"normal").toLowerCase()]||1)*35;
+      const cost=itemRerollCost(it);
+      if(current>=target||Number(s.gold||0)<cost*2)continue;
+      let best=JSON.parse(JSON.stringify(opts)),bestScore=current;
+      for(let r=0;r<2;r++){
+        if(Number(s.gold||0)<cost)break;
+        s.gold-=cost;rollItemOptions(it);rolls++;
+        const sc=(it.options||[]).reduce((n,o)=>n+scoreOpt(o),0);
+        if(sc>bestScore){bestScore=sc;best=JSON.parse(JSON.stringify(it.options||[]))}
+      }
+      it.options=best;
+    }
+    return rolls;
+  }
+
+  function autoCleanInventory(){
+    const s=S();if(!s||!Array.isArray(s.inventory))return 0;
+    const equipped=new Set(Object.values(s.equipped||{}).map(String));
+    const bestBySlot={};
+    for(const it of s.inventory){const sc=gearScore(it);if(!bestBySlot[it.slot]||sc>bestBySlot[it.slot])bestBySlot[it.slot]=sc}
+    let removed=0;
+    for(let i=s.inventory.length-1;i>=0;i--){
+      const it=s.inventory[i];if(!it||equipped.has(String(it.id))||it.locked||it.favorite||it.starterV260||it.unsellable)continue;
+      const rar=RARITY_RANK[String(it.rarity||"normal").toLowerCase()]||0;
+      const best=Number(bestBySlot[it.slot]||0),sc=gearScore(it);
+      // Never auto-delete Legendary+; keep competitive backups within 72% of best.
+      if(rar>=4||sc>=best*.72)continue;
+      s.inventory.splice(i,1);removed++;
+    }
+    return removed;
+  }
+
+  function autoPetsAndMount(){
+    try{if(typeof equipBestPets==="function")equipBestPets()}catch(e){}
+    try{document.getElementById("equipBestMount")?.click()}catch(e){}
+  }
+
+  function maybeAdvance(){
+    const s=S();if(!s)return;
+    try{
+      if(typeof paragonWaveRequirement==="function"&&Number(s.wave||0)>=paragonWaveRequirement()&&typeof doPrestige==="function"){
+        doPrestige(true);return "paragon";
+      }
+      if(typeof prestigeParagonRequirement==="function"&&Number(s.paragonLevel||0)>=prestigeParagonRequirement()&&Number(s.prestigeLevel||0)<(typeof prestigeCap==="function"?prestigeCap():100)&&typeof doTruePrestige==="function"){
+        doTruePrestige(true);return "prestige";
+      }
+    }catch(e){}
+    return "";
+  }
+
+  function ensurePanel(){
+    const host=document.getElementById("page-paragon")||document.getElementById("page-farm");if(!host)return;
+    let p=document.getElementById("v299FullAutoPanel");
+    if(!p){p=document.createElement("section");p.id="v299FullAutoPanel";p.className="card v299-full-auto";host.prepend(p)}
+    const s=S()||{};
+    p.innerHTML=`<div><small>🤖 20 € PRÉMIUM RENDSZER</small><h3>Teljes Automata Rendszer</h3><p>Equip Best · automata fejlesztés · intelligens opcióforgatás · Paragon statok · alap fejlesztések · selejtezés · automata Paragon/Prestige</p></div><label class="v299-switch"><input id="v299FullAutoToggle" type="checkbox" ${s.fullAutoEnabled?"checked":""} ${s.fullAutoUnlocked?"":"disabled"}><b>${s.fullAutoUnlocked?(s.fullAutoEnabled?"AKTÍV":"BEKAPCSOLÁS"):"🔒 NINCS FELOLDVA"}</b></label>`;
+    p.querySelector("#v299FullAutoToggle")?.addEventListener("change",e=>{s.fullAutoEnabled=Boolean(s.fullAutoUnlocked&&e.target.checked);quietPersist();ensurePanel();if(typeof toast==="function")toast(s.fullAutoEnabled?"🤖 Teljes Automata Rendszer bekapcsolva.":"🤖 Teljes Automata Rendszer kikapcsolva.")});
+  }
+
+  async function tick(){
+    if(busy||!enabled())return;
+    busy=true;
+    try{
+      const s=S();if(!s)return;
+      // Full Auto includes the existing Auto Paragon entitlement while active.
+      s.autoParagonUnlocked=true;s.autoParagonEnabled=true;
+      const changed=equipBestSilent()+autoBaseUpgrades()+autoParagonStats()+autoUpgradeGear()+autoRerollEquipped()+autoCleanInventory();
+      autoPetsAndMount();
+      const advanced=maybeAdvance();
+      if(changed||advanced)quietPersist();
+      ensurePanel();
+      try{if(typeof renderDynamicEquipment==="function")renderDynamicEquipment()}catch(e){}
+    }finally{busy=false}
+  }
+
+  setInterval(tick,1800);
+  window.addEventListener("load",()=>setTimeout(ensurePanel,350));
+  document.addEventListener("click",e=>{if(e.target.closest?.('[data-tab="paragon"],[data-tab="farm"]'))setTimeout(ensurePanel,80)},true);
+  window.v299FullAutoTick=tick;
 })();
 
 /* V22.2 admin 10x compatibility: existing combat speed uses save.speed10Unlocked */
