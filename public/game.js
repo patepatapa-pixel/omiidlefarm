@@ -254,7 +254,7 @@ function damageCoreV281(bossContext=false){
  let total=base*(1+skillBonus("power")+Math.min(4,save.paragonStats.damage*.02*save.paragonLevel))*(1+io.atkPct/100)*(1+Math.min(.5,Number(save.prestigeLevel||0)*.005));
  if(bossContext)total*=1+io.bossDmg/100;
  if(bossContext)total*=1+skillBonus("boss");
- return Math.max(1,Math.min(30000,Math.floor(total)))
+ return Math.max(1,Math.min(70000,Math.floor(total)))
 }
 function damage(){return damageCoreV281(Boolean(save.waveBoss))}
 function critChance(){let io=itemOptionBonuses();return Math.min(.85,.05+skillBonus("crit")+bonuses().crit+save.paragonStats.crit*.005*save.paragonLevel+io.crit/100)}
@@ -274,8 +274,11 @@ function dropBonus(){let io=itemOptionBonuses();return skillBonus("drop")+bonuse
 function mountBonusPctV288(level){const raw=Math.max(0,Math.floor(Number(level||0)))*.02,cap=.25;return cap*raw/(raw+cap)}
 function mountPowerMultiplierV277(){const m=save.mounts?.[save.activeMount];return 1+mountBonusPctV288(m?.level)}
 function rawPowerV280(){return (damageCoreV281(false)*1.2+v10Defense()*.8+save.level*.8+save.base.mining*.5+save.base.luck*.5)*mountPowerMultiplierV277()}
-function power(){const raw=Math.max(0,rawPowerV280()),cap=30000;return Math.floor(cap*raw/(raw+cap))}
-function rankName(){let p=power();return p<25?"Kezdő":p<180?"Harcos":p<1000?"Elit":p<5000?"Mester":p<15000?"Hős":"Isteni"}
+function power(){
+ const raw=Math.max(0,rawPowerV280()),cap=100000;
+ return Math.min(cap,Math.floor(cap*raw/(raw+cap*.42)));
+}
+function rankName(){let p=power();return p<1000?"Kezdő":p<5000?"Harcos":p<15000?"Elit":p<35000?"Mester":p<65000?"Hős":p<90000?"Legenda":"Isteni"}
 function baseCost(d){return Math.floor(d.base*Math.pow(1.32,save.base[d.key]-1))}
 function rarityRoll(){
  let bonus=(save.base.luck-1)*.25+skillBonus("drop")*15;
@@ -851,7 +854,10 @@ const AURAS=[
  {id:"eternal",name:"Eternal citromfény",className:"aura-gold",cost:45,need:60},
  {id:"centurion",name:"Prestige 100 korona",className:"aura-gold",cost:75,need:100}
 ];
-function prestigeParagonRequirement(){const p=Math.max(0,Number(save.prestigeLevel||0));return p>=96?35:Math.min(35,10+Math.floor(p/4))}
+function prestigeParagonRequirement(){
+ const p=Math.max(0,Number(save.prestigeLevel||0));
+ return Math.min(16,8+Math.floor(p/8));
+}
 function prestigeCap(){return 100}
 const PRESTIGE_MILESTONES_V257=[
  {level:1,title:"Az első újjászületés",reward:"1 Prestige token",icon:"👑"},
@@ -1535,16 +1541,17 @@ function waveRewardMultiplier(wave){
   return 1 + (wave-1)*0.018 + Math.floor((wave-1)/100)*0.35;
 }
 function normalEnemyMaxHp(){
-  const z=ZONES[save.zone]||ZONES[0];
-  const g=window.OMI_CONTENT?.gameplay||{},hits=Math.max(1,Number(g.mobTargetHits||2));
-  const multipliers=Array.isArray(g.zoneHpMultipliers)?g.zoneHpMultipliers:[],zoneMult=Math.max(.1,Number(multipliers[save.zone]??100)/100);
-  const stage=Math.max(8,Number(z.need||1)),waveScale=1+Math.min(4,Math.max(0,Number(save.wave||1)-1)/375);
-  return Math.max(1,Math.floor(stage*1.5*hits/2*waveScale*zoneMult*combatSpeedHpMultiplierV282()));
+  const wave=Math.max(1,Number(save.wave||1)),zone=Math.max(0,Number(save.zone||0)),prestige=Math.max(0,Number(save.prestigeLevel||0));
+  const dmg=Math.max(10,Number(damageCoreV281(false)||10));
+  const targetHits=Math.min(3.4,1.7+zone*.16+(wave/220)*.75+prestige*.004);
+  const zonePressure=1+zone*.10;
+  const prestigePressure=1+Math.min(.25,prestige*.005);
+  return Math.max(10,Math.floor(dmg*targetHits*zonePressure*prestigePressure*combatSpeedHpMultiplierV282()));
 }
 function waveKillRequirement(wave){
   wave=Math.max(1,Number(wave||1));
   // Farm szakaszok: később több mob kell, de nem válik unalmassá.
-  return Math.min(18,8+Math.floor((wave-1)/50));
+  return Math.min(11,6+Math.floor((wave-1)/55));
 }
 function realFarmGearV262(){return Object.keys(save.equipped||{}).map(slot=>equipObj(slot)).filter(it=>it&&!it.starterV260&&!it.unsellable)}
 function farmGearScoreV262(){return Math.floor(realFarmGearV262().reduce((sum,it)=>{const st=itemStats(it),opts=Array.isArray(it.options)?it.options.reduce((n,o)=>n+Math.max(0,Number(o?.value||0))*.7,0):0;return sum+st.atk+st.def*.7+(st.crit+st.drop)*100+opts},0))}
@@ -1586,7 +1593,7 @@ function applyWaveGoal(){
 
 // ================= V15.5 WAVE / BOSS / PARAGON RULES =================
 function paragonWaveRequirement(){
-  return 400;
+  return 220;
 }
 function isBossCheckpointWave(wave){
   return Number(wave||1)>=1;
@@ -1620,7 +1627,10 @@ function v10Defense(){
 }
 function defenseReductionV265(){const d=v10Defense(),g=window.OMI_CONTENT?.gameplay||{},cap=Math.max(.1,Math.min(.85,Number(g.defenseReductionCapPct??75)/100)),target=recommendedDefenseV271();return Math.min(cap,cap*d/(d+target*.65))}
 function defenseGuardChanceV265(){const d=v10Defense(),g=window.OMI_CONTENT?.gameplay||{},cap=Math.max(0,Math.min(.4,Number(g.defenseGuardCapPct??25)/100)),target=recommendedDefenseV271();return Math.min(cap,cap*1.2*d/(d+target))}
-function recommendedDefenseV271(zone=save.zone,wave=save.wave){return Math.max(10,Math.floor(30*(1+Math.max(0,Number(zone||0))*1.2)*Math.pow(1+Math.max(0,Number(wave||1))/100,.5)))}
+function recommendedDefenseV271(zone=save.zone,wave=save.wave){
+ const z=Math.max(0,Number(zone||0)),w=Math.max(1,Number(wave||1)),p=Math.max(0,Number(save.prestigeLevel||0));
+ return Math.max(10,Math.floor(24*(1+z*.72)*Math.pow(1+w/150,.52)*(1+Math.min(.30,p*.004))));
+}
 function defensePressureV271(){const ratio=v10Defense()/Math.max(1,recommendedDefenseV271());return Math.max(.78,Math.min(1.45,1+(1-ratio)*.45))}
 function dungeonRecommendedDefenseV271(d){return Math.max(15,Math.floor(20+Math.sqrt(Math.max(1,Number(d?.reqPower||d?.need||100)))*4.2))}
 function dungeonDefenseModifierV266(d){const ratio=v10Defense()/Math.max(1,dungeonRecommendedDefenseV271(d));return Math.max(-.18,Math.min(.25,(ratio-1)*.16+defenseGuardChanceV265()*.18))}
@@ -1636,14 +1646,14 @@ function v10MaxHp(){
 function v10BossMaxHp(){
  const base=normalEnemyMaxHp();
  // Minden wave végén boss jön: komoly fal, de nem irreális.
- return Math.max(base,Math.floor(base*(4+Math.min(6,save.wave*.006))));
+ return Math.max(base,Math.floor(base*(5+Math.min(3.5,save.wave*.012))));
 }
 function v10EnemyMaxHp(){return save.waveBoss?v10BossMaxHp():normalEnemyMaxHp()}
 function v10RawEnemyDamage(){
  const z=ZONES[save.zone],mx=v10MaxHp();
- const mobPct=4.2+save.zone*.12+Math.min(1.8,save.wave/800),bossPct=9.2+save.zone*.22+Math.min(2.8,save.wave/550);
- let raw=mx*((save.waveBoss?bossPct:mobPct)/100);
- raw += save.zone*2+Math.pow(save.wave,1.04)*.08+z.gold*.0005;
+ const mobPct=3.2+save.zone*.10+Math.min(1.5,save.wave/500),bossPct=7.4+save.zone*.18+Math.min(2.4,save.wave/350);
+  let raw=mx*((save.waveBoss?bossPct:mobPct)/100);
+  raw += save.zone*1.5+Math.pow(save.wave,1.02)*.055+z.gold*.00035;
  raw*=V10CFG.monsterDamageMult;
  if(save.waveBoss)raw*=Math.max(.5,Number(V10CFG.bossDamageMult||1.45)/1.45);
  raw*=defensePressureV271();
@@ -1837,7 +1847,7 @@ function v10PlayerAttack(){
  let hit=damage(),crit=Math.random()<critChance(),arrow=Number(save.arrows||0)>0;
  if(arrow){hit*=1+Math.max(0,Number(npcShopCfgV246().arrowDamagePct||15))/100;save.arrows=Math.max(0,Number(save.arrows)-1)}
  if(crit){hit*=2;save.stats.critHits++}
- hit=Math.min(30000,Math.floor(hit));const killed=enemyHp-hit<=0;farmHitEffectV247(hit,crit,arrow,killed,Boolean(save.waveBoss));
+ hit=Math.min(70000,Math.floor(hit));const killed=enemyHp-hit<=0;farmHitEffectV247(hit,crit,arrow,killed,Boolean(save.waveBoss));
  enemyHp-=hit;
  if(save.waveBoss)save.bossHp=Math.max(0,enemyHp);
  if(enemyHp<=0){
@@ -5912,3 +5922,6 @@ setInterval(()=>{
   if(document.getElementById("page-shop")?.classList.contains("active")&&typeof renderStore==="function")renderStore();
  }catch(e){}
 },5000);
+
+/* V23.16 FULL BALANCE */
+window.OMI_BALANCE_V2316={powerCap:100000,damageCap:70000,paragonWave:220,targetWeeklyPrestige:50,seasonPrestigeTarget:50};

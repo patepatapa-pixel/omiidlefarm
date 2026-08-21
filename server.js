@@ -117,12 +117,12 @@ function serverPowerV283(s={}){
  for(const i of active){const p=pets[i];if(!p)continue;const entries=[{bonus:p.bonus||"damage",value:Math.max(0,n(p.value))},...(Array.isArray(p.extraOptions)?p.extraOptions:[])];for(const o of entries){const v=Math.max(0,n(o?.value))*(1+petSkill);if(o?.bonus==="damage")petDamage+=v;else if(o?.bonus==="all")petDamage+=v}}
  const petCap=.65;petDamage=petCap*petDamage/(petDamage+petCap);atk*=1+petDamage;
  const level=Math.max(1,n(s.level)||1),paragon=Math.max(0,n(s.paragonLevel)),prestige=Math.max(0,Math.min(100,n(s.prestigeLevel))),base=s.base||{},ps=s.paragonStats||{};
- const damage=Math.max(1,Math.min(30000,Math.floor((5+level*.65+Math.max(1,n(base.weaponTraining)||1)*2.2+atk)*(1+skillPower+Math.min(4,n(ps.damage)*.02*paragon))*(1+atkPct/100)*(1+Math.min(.5,prestige*.005)))));
+ const damage=Math.max(1,Math.min(70000,Math.floor((5+level*.65+Math.max(1,n(base.weaponTraining)||1)*2.2+atk)*(1+skillPower+Math.min(4,n(ps.damage)*.02*paragon))*(1+atkPct/100)*(1+Math.min(.5,prestige*.005)))));
  const zone=Math.max(0,n(s.zone)),wave=Math.max(1,n(s.wave)||1),target=Math.max(10,Math.floor(30*(1+zone*1.2)*Math.pow(1+wave/100,.5)));
  const rawDef=Math.max(0,(def+Math.max(1,n(base.armorTraining)||1)*2+level*.3+prestige*1.5)*(1+defPct/100)),effectiveDef=Math.max(0,Math.floor(target*(3*rawDef/(rawDef+target*2))));
  const mount=s.mounts?.[s.activeMount],mountRaw=Math.max(0,Math.floor(n(mount?.level)))*.02,mountCap=.25,mountMult=1+mountCap*mountRaw/(mountRaw+mountCap);
- const raw=(damage*1.2+effectiveDef*.8+level*.8+Math.max(1,n(base.mining)||1)*.5+Math.max(1,n(base.luck)||1)*.5)*mountMult,cap=30000;
- return Math.max(0,Math.floor(cap*raw/(raw+cap)));
+ const raw=(damage*1.2+effectiveDef*.8+level*.8+Math.max(1,n(base.mining)||1)*.5+Math.max(1,n(base.luck)||1)*.5)*mountMult,cap=100000;
+ return Math.max(0,Math.min(cap,Math.floor(cap*raw/(raw+cap*.42))));
 }
 
 async function init(){
@@ -458,8 +458,8 @@ async function init(){
     updateContent.updates.unshift({id:"v22_90",version:"V22.90",title:"2000 ATK felszerelés és 30 000 sebzésplafon",date:"2026-08-21",summary:"A felszerelések és a teljes harci sebzés kompakt, ritkaság- és fejlődésalapú végjátékbalanszt kaptak.",changes:["Egyetlen felszerelés tényleges ATK-ja sem lehet több 2000-nél.","A ritkasági +15 ATK-célértékek: Normal 650, Rare 900, Epic 1200, Mythic 1600, Legendary 2000.","A 2000 ATK kizárólag kiváló végjátékos Legendary tárggyal és magas fejlesztéssel érhető el.","A tárgy ATK dobása az aktuális területhez és a Wave 400-as fejlődéshez igazodik.","A nem fegyver típusú tárgyakon az extra ATK csak 8% eséllyel jelenik meg és lényegesen kisebb.","A Vándorkereskedő felszerelései nem adhatnak azonnal maximális ATK-ot.","A meglévő túl magas tárgyak ritkaságuk szerint automatikusan korrekciót kapnak, de nem törlődnek.","A végső találati sebzés kritikus találattal, nyílvesszővel és bossbónusszal együtt sem lépheti túl a 30 000-et.","A szerveres ranglista- és PvP-számítás ugyanezeket a korlátokat használja."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
-  const powerCapMigration="v2282_rank_power_cap_30000";
-  if(!(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[powerCapMigration])).rows[0]){await q("UPDATE game_saves SET power=LEAST(power,30000)");await q("INSERT INTO system_migrations(migration_key) VALUES($1)",[powerCapMigration])}
+  const powerCapMigration="v2316_rank_power_cap_100000";
+  if(!(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[powerCapMigration])).rows[0]){await q("UPDATE game_saves SET power=LEAST(power,100000)");await q("INSERT INTO system_migrations(migration_key) VALUES($1)",[powerCapMigration])}
   const realPowerMigration="v2283_recalculate_real_power";
   if(!(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[realPowerMigration])).rows[0]){
     const rows=(await q("SELECT user_id,save_data FROM game_saves")).rows;
