@@ -4817,3 +4817,9 @@ nav.tabs{display:flex!important;flex-wrap:wrap!important;justify-content:center;
 #v306PvpCooldown .v310-pvp-ready{
   display:none!important;
 }
+
+/* V23.15 one-click pet reroll */
+.v213-reroll-actions{display:flex;justify-content:flex-end;margin:8px 0 10px}
+.v315-reroll-all{padding:10px 16px;border-radius:9px;border:1px solid #e1aa32;background:linear-gradient(180deg,#ffd465,#e7aa31);color:#171006;font-weight:1000;cursor:pointer;box-shadow:0 0 14px rgba(232,174,49,.18)}
+.v315-reroll-all:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.05)}
+.v315-reroll-all:disabled{opacity:.45;cursor:not-allowed}

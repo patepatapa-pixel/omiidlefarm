@@ -3543,6 +3543,11 @@ document.addEventListener("click",e=>{
         <b>♻️ Pet összeolvasztás / reroll</b>
         <small>3 teljesen azonos petből 1 erősebb változat készíthető.</small>
       </div>
+      <div class="v213-reroll-actions">
+        <button type="button" id="v315RerollAllPets" class="v315-reroll-all" ${groups.length?"":"disabled"}>
+          ⚡ ÖSSZES EGYSZERRE
+        </button>
+      </div>
       <div class="v213-reroll-list">${
         groups.length ? groups.map((g,n)=>`
           <button type="button" data-v213-reroll="${n}">
@@ -3550,6 +3555,31 @@ document.addEventListener("click",e=>{
           </button>`).join("") :
           `<span class="v213-muted">Nincs még 3 egyforma peted.</span>`
       }</div>`;
+    const allBtn=panel.querySelector("#v315RerollAllPets");
+    if(allBtn)allBtn.onclick=()=>{
+      let crafted=0,guard=0;
+      while(guard++<5000){
+        const currentGroups=duplicateGroups();
+        if(!currentGroups.length)break;
+        const group=currentGroups[0],arr=petCollection();
+        if(!group||!arr||group.length<3)break;
+        const selected=group.slice(0,3);
+        const base=JSON.parse(JSON.stringify(selected[0].p));
+        base.level=Math.max(...selected.map(x=>petLevel(x.p)))+1;
+        base.lvl=base.level;
+        base.rerollTier=Number(base.rerollTier||0)+1;
+        base.powerMultiplier=Number(base.powerMultiplier||1)*1.15;
+        base.bonusMultiplier=Number(base.bonusMultiplier||1)*1.15;
+        selected.map(x=>x.i).sort((a,b)=>b-a).forEach(i=>arr.splice(i,1));
+        arr.push(base);
+        crafted++;
+      }
+      if(!crafted)return typeof toast==="function"&&toast("Nincs 3 teljesen azonos pet az összeolvasztáshoz.");
+      try{if(typeof persist==="function")persist()}catch(e){}
+      try{if(typeof renderAll==="function")renderAll()}catch(e){}
+      if(typeof toast==="function")toast(`⚡ ${crafted} pet összeolvasztás elkészült egyszerre.`);
+      ensurePetReroll();
+    };
     panel.querySelectorAll("[data-v213-reroll]").forEach(btn=>{
       btn.onclick=()=>{
         const group=duplicateGroups()[Number(btn.dataset.v213Reroll)];
