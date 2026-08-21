@@ -5568,36 +5568,54 @@ window.v222AdminSpeedSupported=true;
     });
   }
 
+  function hideLegacyPvpWaitV310(left){
+    const p=page();if(!p)return;
+    p.querySelectorAll(".shop-warning,.pvp-warning,.v229-error,[class*='warning'],[class*='error']").forEach(el=>{
+      const t=(el.textContent||"").toLowerCase();
+      if((t.includes("várj")&&t.includes("párbaj")) || (t.includes("másodpercet")&&t.includes("párbaj"))){
+        el.style.display=left>0?"none":"";
+        el.dataset.v310Hidden=left>0?"1":"";
+      }else if(left<=0 && el.dataset.v310Hidden==="1"){
+        el.style.display="";
+        delete el.dataset.v310Hidden;
+      }
+    });
+  }
+
   function drawCooldownV309(){
     const box=ensureCooldownBoxV309();if(!box)return;
     const left=Math.max(0,Math.floor(Number(v309CooldownRemaining||0)));
     const total=Math.max(1,Math.floor(Number(v309CooldownTotal||60)));
     const pct=Math.max(0,Math.min(100,left/total*100));
     setFightButtonsCooldownV309(left);
+    hideLegacyPvpWaitV310(left);
 
     if(left>0){
       box.classList.add("active");
       const mm=String(Math.floor(left/60)).padStart(2,"0");
       const ss=String(left%60).padStart(2,"0");
       box.innerHTML=`
-        <div class="v309-countdown-shell">
-          <div class="v309-countdown-orb" style="--p:${pct}%">
-            <div><strong>${left}</strong><small>mp</small></div>
+        <div class="v310-pvp-countdown">
+          <div class="v310-left">
+            <span class="v310-icon">⏳</span>
+            <div>
+              <small>KÖVETKEZŐ PÁRBAJ</small>
+              <strong>${left} mp</strong>
+            </div>
           </div>
-          <div class="v309-countdown-main">
-            <small>⏳ KÖVETKEZŐ PÁRBAJ</small>
+          <div class="v310-middle">
             <b>${mm}:${ss}</b>
-            <span>Várj még ${left} másodpercet.</span>
-            <div class="v309-countdown-bar"><i style="width:${pct}%"></i></div>
+            <span>Várakozás a következő párbajig</span>
+            <div class="v310-bar"><i style="width:${pct}%"></i></div>
           </div>
-          <div class="v309-countdown-icon">⚔️</div>
+          <div class="v310-swords">⚔️</div>
         </div>`;
     }else{
       box.classList.remove("active");
       box.innerHTML=`
-        <div class="v309-ready-shell">
-          <div class="v309-ready-icon">⚔️</div>
-          <div><small>PVP ARÉNA</small><b>Új párbaj indítható</b><span>Válassz ellenfelet!</span></div>
+        <div class="v310-pvp-ready">
+          <span>⚔️</span>
+          <div><small>PVP ARÉNA</small><b>Új párbaj indítható</b></div>
         </div>`;
     }
   }
@@ -5685,7 +5703,8 @@ window.v222AdminSpeedSupported=true;
       }
       if(typeof toast==="function")toast("❌ "+e.message);
       const arena=ensureArena();
-      if(arena)arena.innerHTML=`<div class="v229-error">❌ ${e.message}</div>`;
+      if(arena && !Number(e?.data?.cooldownRemaining||0))arena.innerHTML=`<div class="v229-error">❌ ${e.message}</div>`;
+      if(Number(e?.data?.cooldownRemaining||0)>0)hideLegacyPvpWaitV310(Number(e.data.cooldownRemaining));
     }finally{
       if(button){
         button.disabled=false;

@@ -4568,3 +4568,152 @@ nav.tabs{display:flex!important;flex-wrap:wrap!important;justify-content:center;
 .v309-ready-icon{width:54px;height:54px;display:grid;place-items:center;border-radius:12px;border:1px solid #3f5f7d;background:#101a26;font-size:27px}.v309-ready-shell small{display:block;color:#d4a43b;font-weight:900;letter-spacing:.1em;font-size:10px}.v309-ready-shell b{display:block;color:#fff;font-size:19px}.v309-ready-shell span{display:block;color:#8f9aaa;font-size:11px}
 @keyframes v309Sweep{from{transform:translateX(-70%)}to{transform:translateX(70%)}}
 @media(max-width:620px){.v309-countdown-shell{grid-template-columns:64px 1fr}.v309-countdown-icon{display:none}.v309-countdown-orb{width:60px;height:60px}.v309-countdown-orb:after{width:48px;height:48px}.v309-countdown-orb strong{font-size:23px}}
+
+/* V23.10 clean single PvP countdown */
+#v306PvpCooldown{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  min-height:0!important;
+  margin:12px 0 16px!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+}
+#v306PvpCooldown>*,#v306PvpCooldown *{box-sizing:border-box}
+
+.v310-pvp-countdown{
+  width:100%;
+  display:grid;
+  grid-template-columns:minmax(150px,190px) 1fr 58px;
+  gap:16px;
+  align-items:center;
+  padding:15px 16px;
+  border:1px solid #9b7428;
+  border-radius:14px;
+  background:linear-gradient(115deg,#171109,#0c1016 48%,#11151c);
+  box-shadow:0 0 18px rgba(221,164,51,.12), inset 0 0 22px rgba(255,193,54,.035);
+  color:#eef2f6;
+  position:relative;
+  overflow:hidden;
+}
+.v310-pvp-countdown:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(100deg,transparent 20%,rgba(255,194,66,.05) 50%,transparent 80%);
+  pointer-events:none;
+}
+.v310-left,.v310-middle,.v310-swords{position:relative;z-index:1}
+.v310-left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+}
+.v310-icon{
+  width:44px;height:44px;
+  display:grid;place-items:center;
+  flex:0 0 44px;
+  border-radius:12px;
+  border:1px solid #806127;
+  background:#1b150a;
+  font-size:22px;
+}
+.v310-left small{
+  display:block;
+  color:#c89a3e;
+  font-weight:900;
+  letter-spacing:.08em;
+  font-size:10px;
+  white-space:nowrap;
+}
+.v310-left strong{
+  display:block;
+  color:#ffe07a;
+  font-size:23px;
+  line-height:1.05;
+  margin-top:3px;
+  white-space:nowrap;
+}
+.v310-middle{min-width:0}
+.v310-middle>b{
+  display:block;
+  color:#fff1ae;
+  font-size:24px;
+  line-height:1;
+  font-variant-numeric:tabular-nums;
+}
+.v310-middle>span{
+  display:block;
+  color:#9ba5b4;
+  font-size:11px;
+  margin-top:4px;
+}
+.v310-bar{
+  width:100%;
+  height:7px;
+  margin-top:9px;
+  border-radius:999px;
+  background:#242b34;
+  border:1px solid #343c47;
+  overflow:hidden;
+}
+.v310-bar i{
+  display:block;
+  height:100%;
+  background:linear-gradient(90deg,#d89d2f,#ffe06a);
+  box-shadow:0 0 8px rgba(255,204,73,.45);
+  transition:width .35s linear;
+}
+.v310-swords{
+  width:52px;height:52px;
+  display:grid;place-items:center;
+  border-radius:13px;
+  border:1px solid #3d536a;
+  background:#101823;
+  font-size:27px;
+}
+.v310-pvp-ready{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:13px;
+  padding:14px 16px;
+  border:1px solid #31485f;
+  border-radius:13px;
+  background:linear-gradient(110deg,#0c121a,#0b0f15);
+}
+.v310-pvp-ready>span{
+  width:46px;height:46px;
+  display:grid;place-items:center;
+  border-radius:12px;
+  border:1px solid #3a5874;
+  background:#101a26;
+  font-size:23px;
+}
+.v310-pvp-ready small{
+  display:block;color:#c99a3b;font-size:10px;font-weight:900;letter-spacing:.08em
+}
+.v310-pvp-ready b{display:block;color:#f5f7fa;font-size:18px;margin-top:2px}
+
+/* Disable old duplicated countdown compositions if any survive in DOM */
+#v306PvpCooldown .v309-countdown-shell,
+#v306PvpCooldown .v307-cd-orb,
+#v306PvpCooldown .v307-cd-ring,
+#v306PvpCooldown .v307-cd-copy,
+#v306PvpCooldown .v307-cd-sparks,
+#v306PvpCooldown .v309-ready-shell{
+  display:none!important;
+}
+
+@media(max-width:650px){
+  .v310-pvp-countdown{grid-template-columns:1fr 48px;gap:10px}
+  .v310-left{grid-column:1}
+  .v310-middle{grid-column:1 / -1}
+  .v310-swords{grid-column:2;grid-row:1;width:46px;height:46px}
+  .v310-left strong{font-size:21px}
+  .v310-middle>b{font-size:22px}
+}
