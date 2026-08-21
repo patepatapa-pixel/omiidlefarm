@@ -4745,8 +4745,45 @@ document.addEventListener("click",e=>{
     const w={atkPct:10,bossDmg:9,crit:8,drop:7,hpPct:6,defPct:6,hpRegen:4,pvpDmg:2};
     return (w[o?.key]||1)*Math.max(.1,Number(o?.value||0));
   }
+  function rarityRankV314(it){
+    return Number(RARITY_RANK[String(it?.rarity||"normal").toLowerCase()] ?? -1);
+  }
+  function itemValueV314(it){
+    if(!it)return -Infinity;
+    let score=0;
+    try{
+      if(typeof itemPowerScore==="function")score+=Number(itemPowerScore(it)||0);
+      else if(typeof itemScore==="function")score+=Number(itemScore(it)||0);
+    }catch(e){}
+    try{
+      const st=typeof itemStats==="function"?itemStats(it):{};
+      score+=Number(st.atk||it.atk||0)*12;
+      score+=Number(st.def||it.def||0)*8;
+      score+=Number(st.crit||it.crit||0)*1800;
+      score+=Number(st.drop||it.drop||0)*1400;
+    }catch(e){}
+    score+=Number(it.plus||0)*120;
+    (Array.isArray(it.options)?it.options:[]).forEach(o=>{
+      const w={atkPct:80,bossDmg:72,crit:68,drop:55,hpPct:45,defPct:45,hpRegen:30,pvpDmg:12}[o?.key]||8;
+      score+=Math.max(0,Number(o?.value||0))*w;
+    });
+    return score;
+  }
+  function compareGearV314(a,b){
+    // Absolute priority: higher rarity always wins.
+    const rr=rarityRankV314(b)-rarityRankV314(a);
+    if(rr!==0)return rr;
+    // Same rarity: choose the item with the highest real combat/value score.
+    const value=itemValueV314(b)-itemValueV314(a);
+    if(value!==0)return value;
+    // Final tie-breakers.
+    const plus=Number(b?.plus||0)-Number(a?.plus||0);
+    if(plus!==0)return plus;
+    return Number(b?.id||0)-Number(a?.id||0);
+  }
   function gearScore(it){
-    try{return typeof itemScore==="function"?Number(itemScore(it)||0):0}catch(e){return 0}
+    // Kept for cleanup/reroll compatibility; rarity dominates by a huge margin.
+    return rarityRankV314(it)*1e12 + itemValueV314(it);
   }
 
   function equipBestSilent(){
@@ -4754,8 +4791,14 @@ document.addEventListener("click",e=>{
     s.equipped=s.equipped||{};
     let changed=0;
     Object.keys(typeof SLOT_NAMES!=="undefined"?SLOT_NAMES:{weapon:1,helmet:1,armor:1,gloves:1,boots:1,ring:1}).forEach(slot=>{
-      const list=s.inventory.filter(x=>x&&x.slot===slot&&Number.isFinite(Number(x.id))).sort((a,b)=>gearScore(b)-gearScore(a));
-      if(list[0]&&String(s.equipped[slot])!==String(list[0].id)){s.equipped[slot]=list[0].id;changed++}
+      const list=s.inventory
+        .filter(x=>x&&x.slot===slot&&Number.isFinite(Number(x.id)))
+        .sort(compareGearV314);
+      const best=list[0];
+      if(best&&String(s.equipped[slot])!==String(best.id)){
+        s.equipped[slot]=best.id;
+        changed++;
+      }
     });
     return changed;
   }
