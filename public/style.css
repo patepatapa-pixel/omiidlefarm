@@ -4735,3 +4735,85 @@ nav.tabs{display:flex!important;flex-wrap:wrap!important;justify-content:center;
 #page-pvp [data-pvp-cooldown]{
   display:none!important;
 }
+
+/* V23.12: one PvP time only — remove duplicate 00:SS/subtitle area */
+.v310-pvp-countdown{grid-template-columns:1fr 58px!important;grid-template-rows:auto auto!important}
+.v310-left{grid-column:1!important;grid-row:1!important}
+.v310-swords{grid-column:2!important;grid-row:1!important}
+.v312-single-bar{grid-column:1 / -1!important;grid-row:2!important;width:100%!important;margin-top:0!important;position:relative;z-index:2}
+
+/* V23.13 final clean single PvP timer */
+#v306PvpCooldown{margin:12px 0 16px!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}
+.v313-pvp-countdown{
+  width:100%;
+  padding:16px 18px;
+  border:1px solid #9a7229;
+  border-radius:14px;
+  background:linear-gradient(120deg,#171108,#0b1017 58%,#10151d);
+  box-shadow:0 0 18px rgba(222,164,48,.14),inset 0 0 22px rgba(255,197,62,.035);
+  text-align:center;
+}
+.v313-label{
+  color:#d3a23e;
+  font-size:11px;
+  font-weight:1000;
+  letter-spacing:.12em;
+}
+.v313-number{
+  margin:5px 0 10px;
+  color:#ffe383;
+  font-size:42px;
+  line-height:1;
+  font-weight:1000;
+  font-variant-numeric:tabular-nums;
+  text-shadow:0 0 14px rgba(244,183,56,.30);
+}
+.v313-number small{
+  font-size:16px;
+  color:#bea15d;
+  font-weight:900;
+}
+.v313-bar{
+  width:100%;
+  height:8px;
+  overflow:hidden;
+  border-radius:999px;
+  border:1px solid #3b414b;
+  background:#232a33;
+}
+.v313-bar i{
+  display:block;
+  height:100%;
+  background:linear-gradient(90deg,#d69928,#ffe06b);
+  box-shadow:0 0 10px rgba(255,203,73,.40);
+  transition:width .4s linear;
+}
+.v313-note{
+  margin-top:7px;
+  color:#8995a4;
+  font-size:11px;
+}
+.v313-pvp-ready{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  width:100%;
+  padding:15px;
+  border:1px solid #314b63;
+  border-radius:13px;
+  background:#0c1219;
+}
+.v313-pvp-ready>span{font-size:25px}
+.v313-pvp-ready small{display:block;color:#c99b3b;font-size:10px;font-weight:900;letter-spacing:.08em}
+.v313-pvp-ready b{display:block;color:#f3f6f9;font-size:18px;margin-top:2px}
+
+/* V23.13: all older PvP countdown compositions are hidden */
+#v306PvpCooldown .v310-pvp-countdown,
+#v306PvpCooldown .v309-countdown-shell,
+#v306PvpCooldown .v307-cd-orb,
+#v306PvpCooldown .v307-cd-copy,
+#v306PvpCooldown .v309-ready-shell,
+#v306PvpCooldown .v310-pvp-ready{
+  display:none!important;
+}

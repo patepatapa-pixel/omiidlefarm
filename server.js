@@ -1107,7 +1107,7 @@ app.post("/api/pvp/fight",auth,async(req,res)=>{
     const defenderId=Number(req.body.defender_id);
     if(!Number.isInteger(defenderId)||defenderId<=0||defenderId===Number(req.user.id))
       return res.status(400).json({error:"Hibás ellenfél."});
-    const cfg=await mainConfig(),pc={minLevel:20,rewardGold:500,cooldownSec:60,ratingWin:18,ratingLoss:20,...(cfg.pvp||{})};
+    const cfg=await mainConfig(),pc={minLevel:20,rewardGold:500,cooldownSec:60,ratingWin:18,ratingLoss:20,...(cfg.pvp||{})};pc.cooldownSec=60;
     const last=(await q("SELECT created_at FROM pvp_fights WHERE challenger_id=$1 ORDER BY id DESC LIMIT 1",[req.user.id])).rows[0];
     if(last && (Date.now()-new Date(last.created_at).getTime())<pc.cooldownSec*1000){
       const remaining=Math.max(1,Math.ceil((pc.cooldownSec*1000-(Date.now()-new Date(last.created_at).getTime()))/1000));
@@ -1167,7 +1167,7 @@ app.post("/api/pvp/fight",auth,async(req,res)=>{
 
 app.get("/api/pvp/cooldown",auth,async(req,res)=>{
   try{
-    const cfg=await mainConfig(),pc={minLevel:20,rewardGold:500,cooldownSec:60,ratingWin:18,ratingLoss:20,...(cfg.pvp||{})};
+    const cfg=await mainConfig(),pc={minLevel:20,rewardGold:500,cooldownSec:60,ratingWin:18,ratingLoss:20,...(cfg.pvp||{})};pc.cooldownSec=60;
     const last=(await q("SELECT created_at FROM pvp_fights WHERE challenger_id=$1 ORDER BY id DESC LIMIT 1",[req.user.id])).rows[0];
     let remaining=0;
     if(last){

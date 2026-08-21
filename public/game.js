@@ -5594,35 +5594,24 @@ window.v222AdminSpeedSupported=true;
   function drawCooldownV309(){
     const box=ensureCooldownBoxV309();if(!box)return;
     const left=Math.max(0,Math.floor(Number(v309CooldownRemaining||0)));
-    const total=Math.max(1,Math.floor(Number(v309CooldownTotal||60)));
+    const total=60;
     const pct=Math.max(0,Math.min(100,left/total*100));
     setFightButtonsCooldownV309(left);
-    hideLegacyPvpWaitV310(left);
+    if(typeof hideLegacyPvpWaitV310==="function")hideLegacyPvpWaitV310(left);
 
     if(left>0){
       box.classList.add("active");
-      const mm=String(Math.floor(left/60)).padStart(2,"0");
-      const ss=String(left%60).padStart(2,"0");
       box.innerHTML=`
-        <div class="v310-pvp-countdown">
-          <div class="v310-left">
-            <span class="v310-icon">⏳</span>
-            <div>
-              <small>KÖVETKEZŐ PÁRBAJ</small>
-              <strong>${left} mp</strong>
-            </div>
-          </div>
-          <div class="v310-middle">
-            <b>${mm}:${ss}</b>
-            <span>Várakozás a következő párbajig</span>
-            <div class="v310-bar"><i style="width:${pct}%"></i></div>
-          </div>
-          <div class="v310-swords">⚔️</div>
+        <div class="v313-pvp-countdown">
+          <div class="v313-label">⏳ KÖVETKEZŐ PÁRBAJ</div>
+          <div class="v313-number">${left}<small> mp</small></div>
+          <div class="v313-bar"><i style="width:${pct}%"></i></div>
+          <div class="v313-note">60 másodperces PvP várakozás</div>
         </div>`;
     }else{
       box.classList.remove("active");
       box.innerHTML=`
-        <div class="v310-pvp-ready">
+        <div class="v313-pvp-ready">
           <span>⚔️</span>
           <div><small>PVP ARÉNA</small><b>Új párbaj indítható</b></div>
         </div>`;
@@ -5648,7 +5637,7 @@ window.v222AdminSpeedSupported=true;
   async function syncCooldownFromServerV309(){
     try{
       const d=await api229("/api/pvp/cooldown");
-      v309CooldownTotal=Math.max(1,Number(d.cooldownSec||60));
+      v309CooldownTotal=60;
       v309CooldownRemaining=Math.max(0,Number(d.remaining||0));
       startLocalTickerV309();
       return d;
@@ -5659,11 +5648,11 @@ window.v222AdminSpeedSupported=true;
   }
 
   function startCooldownV306(seconds=60){
-    v309CooldownTotal=Math.max(1,Math.floor(Number(seconds||60)));
-    v309CooldownRemaining=v309CooldownTotal;
+    v309CooldownTotal=60;
+    v309CooldownRemaining=60;
     startLocalTickerV309();
     // Re-sync shortly after so the visual timer follows the database exactly.
-    setTimeout(syncCooldownFromServerV309,700);
+    setTimeout(syncCooldownFromServerV309,2200);
   }
 
   function resumeCooldownV308(){
@@ -5706,7 +5695,7 @@ window.v222AdminSpeedSupported=true;
       if(typeof renderAll==="function")setTimeout(renderAll,900);
     }catch(e){
       if(Number(e?.data?.cooldownRemaining)>0){
-        v309CooldownTotal=Math.max(1,Number(e?.data?.cooldownSec||60));
+        v309CooldownTotal=60;
         v309CooldownRemaining=Math.max(1,Number(e.data.cooldownRemaining));
         startLocalTickerV309();
       }
