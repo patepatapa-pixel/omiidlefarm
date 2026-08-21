@@ -238,6 +238,9 @@ async function init(){
     updateContent.updates.unshift({id:"v22_49",version:"V22.49",title:"Slot ingyen pörgetések",date:"2026-08-21",summary:"A Koponya és Sárkány Slot kis eséllyel ingyen pörgetéseket adhat.",changes:["A Koponya Slot alapból 5% eséllyel 1 free spint ad.","A Sárkány Slot alapból 3% eséllyel 2 free spint ad.","A free spin az eredeti tétet és valutát jegyzi meg, ezért nem használható ki tétváltással.","A megmaradt ingyen pörgetések száma közvetlenül a slotkártyán látható.","Adminból külön állítható mindkét játék free-spin esélye és mennyisége.","Ingyen pörgetésből is nyerhető további ingyen pörgetés."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_50")){
+    updateContent.updates.unshift({id:"v22_50",version:"V22.50",title:"Kaszinó egyenlegjavítás",date:"2026-08-21",summary:"A vesztes kaszinókörök többé semmilyen valutát nem írhatnak jóvá.",changes:["A kaszinó minden körben rögzíti a kezdőegyenleget, tétet, kifizetést és záróegyenleget.","Fizetős vesztes kör eredménye pontosan: kezdőegyenleg mínusz tét.","Ingyen pörgetés elvesztésekor az egyenleg változatlan marad.","A kijelzett nyereség vagy veszteség a tényleges egyenlegváltozást mutatja.","Az utolsó 20 kaszinótranzakció ellenőrzési célból mentésre kerül."],visible:false,createdAt:new Date().toISOString()});
+  }
   const capMigration="v2246_wallet_caps";
   const capDone=(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[capMigration])).rows[0];
   if(!capDone){
@@ -287,7 +290,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.49.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.50.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{

@@ -644,7 +644,76 @@ function casinoSoundV248(win){try{casinoAudioV248=casinoAudioV248||new (window.A
 function casinoConfettiV248(){const host=$("#page-casino");if(!host)return;for(let i=0;i<28;i++){const c=document.createElement("i");c.className="casino-confetti-v248";c.style.left=`${10+Math.random()*80}%`;c.style.setProperty("--x",`${(Math.random()-.5)*240}px`);c.style.animationDelay=`${Math.random()*.18}s`;c.style.background=["#ffd24d","#ff5c8a","#5ce1ff","#9eff78"][i%4];host.appendChild(c);setTimeout(()=>c.remove(),1600)}}
 async function playCasinoV247(id){const cfg=casinoCfgV247(),g=cfg.games[id],cur=$("#casinoCurrency").value,bet=Math.floor(Number($("#casinoBet").value||0)),min=Number(cfg.minBet[cur]),max=Number(cfg.maxBet[cur]);if(casinoBusyV248)return toast("A gép még pörög.");if(!g||bet<min||bet>max)return toast(`A tét ${fmt(min)} és ${fmt(max)} között lehet.`);if(Number(save[cur]||0)<bet)return toast("Nincs elég valutád.");casinoBusyV248=true;save.lastCasinoPlay=Date.now();save[cur]-=bet;persist();$("#casinoBalance").textContent=fmt(save[cur]);$("#casinoCurrency").disabled=true;$("#casinoBet").disabled=true;$$("[data-casino-play]").forEach(b=>b.disabled=true);const machine=$(`[data-machine="${id}"]`),reels=machine?.querySelectorAll(".casino-reels-v248 span")||[],symbols=id==="dragon"?["🐉","🔥","💎","👑","⭐"]:["💀","🦴","🕯️","🩸","⭐"];machine?.classList.add("spinning");$("#casinoResult").innerHTML=`${g.icon} <b>Pörgetés...</b>`;const ticker=reels.length?setInterval(()=>reels.forEach(x=>x.textContent=symbols[Math.floor(Math.random()*symbols.length)]),75):null;await new Promise(r=>setTimeout(r,id==="coin"?1250:1650));if(ticker)clearInterval(ticker);const won=Math.random()*100<Number(g.chance),payout=won?Math.floor(bet*Number(g.mult)):0;if(reels.length){if(won)reels.forEach(x=>x.textContent=g.icon);else reels.forEach((x,i)=>x.textContent=symbols[i%symbols.length])}if(id==="coin")machine.querySelector(".casino-coin-v248").textContent=won?"👑":"🪙";machine?.classList.remove("spinning");machine?.classList.add(won?"machine-win":"machine-lose");if(won)save[cur]+=payout;const caps={gold:5000000,gems:50000,ore:100000,...(window.OMI_CONTENT?.economyCaps||{})};save[cur]=Math.min(Number(caps[cur]||Infinity),save[cur]);save.casinoStats=save.casinoStats||{plays:0,wins:0,wagered:0};save.casinoStats.plays++;save.casinoStats.wagered+=bet;if(won)save.casinoStats.wins++;persist();renderAll();$("#casinoBalance").textContent=fmt(save[cur]);$("#casinoResult").className=`casino-result-v247 ${won?"win":"lose"}`;$("#casinoResult").innerHTML=won?`${g.icon} <b>NYERTÉL!</b> +${fmt(payout-bet)} nettó nyeremény`:`${g.icon} <b>VESZTETTÉL!</b> -${fmt(bet)}`;casinoSoundV248(won);if(won)casinoConfettiV248();$("#casinoCurrency").disabled=false;$("#casinoBet").disabled=false;$$("[data-casino-play]").forEach(b=>b.disabled=false);casinoBusyV248=false;setTimeout(()=>machine?.classList.remove("machine-win","machine-lose"),1000)}
 playCasinoV247=async function(id){const cfg=casinoCfgV247(),g=cfg.games[id],stored=save.casinoFreeSpins?.[id],usingFree=id!=="coin"&&Number(stored?.count||0)>0,cur=usingFree?stored.currency:$("#casinoCurrency").value,bet=usingFree?Number(stored.bet):Math.floor(Number($("#casinoBet").value||0)),min=Number(cfg.minBet[cur]),max=Number(cfg.maxBet[cur]);if(casinoBusyV248)return toast("A gép még pörög.");if(!g||bet<min||bet>max)return toast(`A tét ${fmt(min)} és ${fmt(max)} között lehet.`);if(!usingFree&&Number(save[cur]||0)<bet)return toast("Nincs elég valutád.");casinoBusyV248=true;save.casinoFreeSpins=save.casinoFreeSpins||{};if(usingFree)stored.count=Math.max(0,Number(stored.count)-1);else save[cur]-=bet;persist();$("#casinoCurrency").disabled=true;$("#casinoBet").disabled=true;$$('[data-casino-play]').forEach(b=>b.disabled=true);const machine=$(`[data-machine="${id}"]`),reels=machine?.querySelectorAll('.casino-reels-v248 span')||[],symbols=id==="dragon"?["🐉","🔥","💎","👑","⭐"]:["💀","🦴","🕯️","🩸","⭐"];machine?.classList.add("spinning");$("#casinoResult").innerHTML=`${g.icon} <b>${usingFree?"Ingyen pörgetés":"Pörgetés"}...</b>`;const ticker=reels.length?setInterval(()=>reels.forEach(x=>x.textContent=symbols[Math.floor(Math.random()*symbols.length)]),75):null;await new Promise(r=>setTimeout(r,id==="coin"?1250:1650));if(ticker)clearInterval(ticker);const won=Math.random()*100<Number(g.chance),payout=won?Math.floor(bet*Number(g.mult)):0,freeWon=id!=="coin"&&Math.random()*100<Number(g.freeSpinChance||0),freeAmount=freeWon?Math.max(0,Math.floor(Number(g.freeSpinAmount||0))):0;if(reels.length){if(won)reels.forEach(x=>x.textContent=g.icon);else reels.forEach((x,i)=>x.textContent=symbols[i%symbols.length])}if(id==="coin")machine.querySelector('.casino-coin-v248').textContent=won?"👑":"🪙";machine?.classList.remove("spinning");machine?.classList.add(won||freeWon?"machine-win":"machine-lose");if(won)save[cur]+=payout;if(freeAmount>0){const old=save.casinoFreeSpins[id];save.casinoFreeSpins[id]={count:Number(old?.count||0)+freeAmount,bet:Number(old?.bet||bet),currency:old?.currency||cur}}const caps={gold:5000000,gems:50000,ore:100000,...(window.OMI_CONTENT?.economyCaps||{})};save[cur]=Math.min(Number(caps[cur]||Infinity),save[cur]);save.casinoStats=save.casinoStats||{plays:0,wins:0,wagered:0};save.casinoStats.plays++;if(!usingFree)save.casinoStats.wagered+=bet;if(won)save.casinoStats.wins++;persist();renderAll();$("#casinoResult").className=`casino-result-v247 ${won||freeWon?"win":"lose"}`;$("#casinoResult").innerHTML=`${won?`${g.icon} <b>NYERTÉL!</b> +${fmt(payout-(usingFree?0:bet))}`:`${g.icon} <b>NEM NYERTÉL</b>`}${freeAmount?` · 🎁 +${freeAmount} INGYEN PÖRGETÉS`:""}`;casinoSoundV248(won||freeWon);if(won||freeWon)casinoConfettiV248();$("#casinoCurrency").disabled=false;$("#casinoBet").disabled=false;casinoBusyV248=false;setTimeout(renderCasinoV247,1100)};
+
+// V22.50: tranzakcióalapú kaszinóelszámolás. A kör végi egyenleg mindig a
+// pörgetés előtti pillanatképből készül, ezért vesztes kör nem írhat jóvá valutát.
+async function playCasinoV250(id){
+  const cfg=casinoCfgV247(),g=cfg.games[id],stored=save.casinoFreeSpins?.[id];
+  const usingFree=id!=="coin"&&Number(stored?.count||0)>0;
+  const cur=usingFree?stored.currency:$("#casinoCurrency").value;
+  const bet=Math.floor(usingFree?Number(stored.bet):Number($("#casinoBet").value||0));
+  const min=Number(cfg.minBet[cur]),max=Number(cfg.maxBet[cur]);
+  if(casinoBusyV248)return toast("A gép még pörög.");
+  if(!g||!['gold','gems','ore'].includes(cur)||bet<min||bet>max)return toast(`A tét ${fmt(min)} és ${fmt(max)} között lehet.`);
+  const balanceBefore=Math.max(0,Math.floor(Number(save[cur]||0)));
+  if(!usingFree&&balanceBefore<bet)return toast("Nincs elég valutád.");
+
+  casinoBusyV248=true;
+  save.casinoFreeSpins=save.casinoFreeSpins||{};
+  const balanceAfterStake=usingFree?balanceBefore:balanceBefore-bet;
+  if(usingFree)stored.count=Math.max(0,Math.floor(Number(stored.count))-1);
+  save[cur]=balanceAfterStake;
+  persist();
+  $("#casinoCurrency").disabled=true;$("#casinoBet").disabled=true;
+  $$('[data-casino-play]').forEach(b=>b.disabled=true);
+
+  const machine=$(`[data-machine="${id}"]`),reels=machine?.querySelectorAll('.casino-reels-v248 span')||[];
+  const symbols=id==="dragon"?["🐉","🔥","💎","👑","⭐"]:["💀","🦴","🕯️","🩸","⭐"];
+  machine?.classList.add("spinning");
+  $("#casinoResult").innerHTML=`${g.icon} <b>${usingFree?"Ingyen pörgetés":"Pörgetés"}...</b>`;
+  const ticker=reels.length?setInterval(()=>reels.forEach(x=>x.textContent=symbols[Math.floor(Math.random()*symbols.length)]),75):null;
+  await new Promise(r=>setTimeout(r,id==="coin"?1250:1650));
+  if(ticker)clearInterval(ticker);
+
+  const won=Math.random()*100<Number(g.chance);
+  const payout=won?Math.max(0,Math.floor(bet*Number(g.mult))):0;
+  const freeWon=id!=="coin"&&Math.random()*100<Number(g.freeSpinChance||0);
+  const freeAmount=freeWon?Math.max(0,Math.floor(Number(g.freeSpinAmount||0))):0;
+  const caps={gold:5000000,gems:50000,ore:100000,...(window.OMI_CONTENT?.economyCaps||{})};
+  const finalBalance=Math.min(Number(caps[cur]||Infinity),balanceAfterStake+payout);
+  save[cur]=finalBalance;
+
+  if(freeAmount>0){
+    const old=save.casinoFreeSpins[id];
+    save.casinoFreeSpins[id]={count:Number(old?.count||0)+freeAmount,bet:Number(old?.bet||bet),currency:old?.currency||cur};
+  }
+  save.casinoStats=save.casinoStats||{plays:0,wins:0,wagered:0};
+  save.casinoStats.plays++;
+  if(!usingFree)save.casinoStats.wagered+=bet;
+  if(won)save.casinoStats.wins++;
+  const delta=finalBalance-balanceBefore;
+  save.casinoHistory=Array.isArray(save.casinoHistory)?save.casinoHistory:[];
+  save.casinoHistory.push({at:Date.now(),game:id,currency:cur,bet,free:usingFree,won,payout,before:balanceBefore,after:finalBalance,delta});
+  save.casinoHistory=save.casinoHistory.slice(-20);
+  persist();renderAll();
+
+  if(reels.length){if(won)reels.forEach(x=>x.textContent=g.icon);else reels.forEach((x,i)=>x.textContent=symbols[i%symbols.length])}
+  if(id==="coin")machine?.querySelector('.casino-coin-v248')&&(machine.querySelector('.casino-coin-v248').textContent=won?"👑":"🪙");
+  machine?.classList.remove("spinning");machine?.classList.add(won||freeWon?"machine-win":"machine-lose");
+  const curIcon={gold:"💰",gems:"💎",ore:"⛏️"}[cur]||"";
+  const resultText=won
+    ?`${g.icon} <b>NYERTÉL!</b> ${delta>=0?"+":""}${fmt(delta)} ${curIcon}`
+    :usingFree?`${g.icon} <b>NEM NYERTÉL</b> · az egyenleg nem változott`
+    :`${g.icon} <b>VESZTETTÉL!</b> -${fmt(bet)} ${curIcon}`;
+  $("#casinoResult").className=`casino-result-v247 ${won||freeWon?"win":"lose"}`;
+  $("#casinoResult").innerHTML=`${resultText}${freeAmount?` · 🎁 +${freeAmount} INGYEN PÖRGETÉS`:""}`;
+  casinoSoundV248(won||freeWon);if(won||freeWon)casinoConfettiV248();
+  $("#casinoCurrency").disabled=false;$("#casinoBet").disabled=false;
+  casinoBusyV248=false;setTimeout(renderCasinoV247,1100);
+}
+playCasinoV247=playCasinoV250;
 $("#casinoCurrency")?.addEventListener("change",renderCasinoV247);document.addEventListener("click",e=>{if(e.target.closest?.('[data-tab="casino"]'))setTimeout(renderCasinoV247,50)},true);
+document.addEventListener("click",e=>{const btn=e.target.closest?.("[data-casino-bet]");if(!btn)return;const cfg=casinoCfgV247(),cur=$("#casinoCurrency")?.value||"gold",balance=Math.max(0,Math.floor(Number(save[cur]||0))),min=Math.max(1,Math.floor(Number(cfg.minBet[cur]||1))),max=Math.min(balance,Math.floor(Number(cfg.maxBet[cur]||balance)));const mode=btn.dataset.casinoBet;$("#casinoBet").value=mode==="min"?min:mode==="max"?max:Math.max(min,Math.min(max,Math.floor(balance*Number(mode))));},true);
 function petEquipScore(p){
  if(!p)return -1;
  const weights={all:3.4,damage:1.4,gold:1.2,crit:1.3,drop:1.1};
