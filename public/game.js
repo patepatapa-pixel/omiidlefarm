@@ -482,7 +482,7 @@ function renderZones(){
  const best=strongestUnlockedZone();
  if(save.zone!==best){save.zone=best;save.waveBoss=false;save.waveRiftBossV284=false;save.bossHp=0;save.waveKills=0;enemyHp=normalEnemyMaxHp();persist()}
  const thresholds=zoneWaveThresholdsV285();
- $("#zones").innerHTML=ZONES.map((z,i)=>{const weak=i<best,locked=i>best;return `<div class="zone ${i===save.zone?"active":""} ${locked?"locked":""} ${weak?"zone-too-weak":""}" data-zone="${i}"><b>${z.icon} ${z.name}</b><small>🌊 Feloldás: Wave ${fmt(thresholds[i])} · ⚔️ Minimum erő: ${fmt(zoneMinPowerV319(i))} · 🛡️ Ajánlott DEF: ${fmt(recommendedDefenseV271(i,save.wave))}</small><small>Drop: ${(z.drop*100).toFixed(0)}% · 💰 Fix ${fmt(zoneMobGold(i))} arany / mob · Paragon cél: Wave ${fmt(paragonWaveRequirement())}</small>${weak?'<strong class="zone-cap-badge">⬆️ TELJESÍTETT TERÜLET</strong>':locked?`<strong class="zone-cap-badge">🔒 WAVE ${fmt(thresholds[i])} SZÜKSÉGES</strong>`:""}</div>`}).join("");
+ $("#zones").innerHTML=ZONES.map((z,i)=>{const weak=i<best,locked=i>best;return `<div class="zone ${i===save.zone?"active":""} ${locked?"locked":""} ${weak?"zone-too-weak":""}" data-zone="${i}"><b>${z.icon} ${z.name}</b><small>🌊 Feloldás: Wave ${fmt(thresholds[i])} · ⚔️ Minimum erő: ${fmt(zoneMinPowerV319(i))} · 🛡️ Ajánlott DEF: ${fmt(recommendedDefenseV271(i,save.wave))}</small><small>Drop: ${(z.drop*100).toFixed(0)}% · 💰 Fix ${fmt(zoneMobGold(i))} arany / mob · ❤️ Mob HP: ${fmt(i===save.zone?normalEnemyMaxHp():Math.max(10,Math.floor(([160,520,1450,3800,9000,19000,35000,60000][i]||60000)*.90)))} · 👹 Boss: ~${(5+i*.38).toFixed(1)}× mob · Paragon cél: Wave ${fmt(paragonWaveRequirement())}</small>${weak?'<strong class="zone-cap-badge">⬆️ TELJESÍTETT TERÜLET</strong>':locked?`<strong class="zone-cap-badge">🔒 WAVE ${fmt(thresholds[i])} SZÜKSÉGES</strong>`:""}</div>`}).join("");
  $$("[data-zone]").forEach(e=>e.onclick=()=>{let i=+e.dataset.zone,current=strongestUnlockedZone();if(i>current)return toast("🔒 Ezt a területet még nem oldottad fel.");if(i<current)return toast("⛔ A teljesített terület végleg lezárult ebben a Paragon-ciklusban.");grantStarterGearV260(i);save.zone=i;save.waveKills=0;save.waveBoss=false;save.bossHp=0;enemyHp=normalEnemyMaxHp();persist();renderAll();toast("🗺️ "+ZONES[i].name)})
 }
 function zoneWaveThresholdsV285(){
@@ -1553,14 +1553,27 @@ function waveRewardMultiplier(wave){
 function normalEnemyMaxHp(){
   const zone=Math.max(0,Math.min(ZONES.length-1,Number(save.zone||0)));
   const wave=Math.max(1,Number(save.wave||1));
-  const zoneBase=[180,650,1800,4800,11500,24000,43000,72000][zone]||72000;
+  const prestige=Math.max(0,Number(save.prestigeLevel||0));
+
+  // V23.19.2: smooth PvE curve. Early mobs stay quick; later zones take a few real hits.
+  const zoneBase=[160,520,1450,3800,9000,19000,35000,60000][zone]||60000;
+
   const thresholds=zoneWaveThresholdsV285();
   const start=Math.max(1,Number(thresholds[zone]||1));
-  const end=Math.max(start+1,Number(thresholds[Math.min(zone+1,thresholds.length-1)]||paragonWaveRequirement()));
+  const nextIndex=Math.min(zone+1,thresholds.length-1);
+  const end=Math.max(start+1,Number(thresholds[nextIndex]||paragonWaveRequirement()));
   const local=Math.max(0,Math.min(1,(wave-start)/(end-start)));
-  const waveScale=.82+local*.62;
-  const prestigeScale=1+Math.min(.28,Math.max(0,Number(save.prestigeLevel||0))*.004);
-  return Math.max(10,Math.floor(zoneBase*waveScale*prestigeScale*combatSpeedHpMultiplierV282()));
+
+  // Within one area the mob grows by ~55%, preventing abrupt walls.
+  const waveScale=.90+local*.55;
+
+  // Prestige makes PvE slightly stronger, but never explodes exponentially.
+  const prestigeScale=1+Math.min(.35,prestige*.0045);
+
+  const speedScale=typeof combatSpeedHpMultiplierV282==="function"
+    ?combatSpeedHpMultiplierV282():1;
+
+  return Math.max(10,Math.floor(zoneBase*waveScale*prestigeScale*speedScale));
 }
 function waveKillRequirement(wave){
   wave=Math.max(1,Number(wave||1));
@@ -1660,9 +1673,16 @@ function v10MaxHp(){
  ));
 }
 function v10BossMaxHp(){
- const base=normalEnemyMaxHp(),zone=Math.max(0,Number(save.zone||0)),wave=Math.max(1,Number(save.wave||1));
- const mult=5.5+zone*.42+Math.min(1.8,wave/220*1.8);
- return Math.max(base,Math.floor(base*mult));
+  const mobHp=Math.max(10,normalEnemyMaxHp());
+  const zone=Math.max(0,Math.min(ZONES.length-1,Number(save.zone||0)));
+  const wave=Math.max(1,Number(save.wave||1));
+
+  // Boss target: roughly 5–8 normal mobs worth of HP.
+  const zoneMult=5.0+zone*.38;
+  const lateWaveBonus=Math.min(1.0,(wave/Math.max(1,paragonWaveRequirement()))*1.0);
+  const mult=zoneMult+lateWaveBonus;
+
+  return Math.max(mobHp,Math.floor(mobHp*mult));
 }
 function v10EnemyMaxHp(){return save.waveBoss?v10BossMaxHp():normalEnemyMaxHp()}
 function v10RawEnemyDamage(){
@@ -4478,7 +4498,15 @@ document.addEventListener("click",e=>{
 
   function bossMaxHp(d){
     const req=Math.max(100,Number(d.reqPower||100));
-    return Math.max(500,Math.floor(req*(d.safe?2.8:6.2)));
+
+    // Safe dungeons are faster; risky dungeons are real boss fights.
+    const baseMult=d.safe?3.0:7.0;
+
+    // Later dungeons gain a small extra endurance bonus without becoming absurd.
+    const idx=Math.max(0,DUNGEONS_V218.findIndex(x=>x.id===d.id));
+    const progression=1+Math.min(.30,idx*.035);
+
+    return Math.max(500,Math.floor(req*baseMult*progression));
   }
 
   function ensureBattlePanel(root){
@@ -5963,3 +5991,17 @@ window.OMI_BALANCE_V2319={
    Keeps zone/mob/boss/dungeon power balance.
    Fix: zone unlock progression is wave-only, so power() cannot blank the UI. */
 window.OMI_V2319_STABLE_POWER_BALANCE=true;
+
+/* V23.19.2 PVE HP BALANCE
+   Farm mobs: smooth zone/wave curve, ~2–4 hit target.
+   Farm bosses: ~5–8 normal-mob HP.
+   Dungeon bosses: safe ~3x reqPower, risky ~7x reqPower + light progression scaling.
+   Zone unlock remains wave-only and never depends on power().
+*/
+window.OMI_PVE_HP_BALANCE_V23192={
+  zoneBaseHp:[160,520,1450,3800,9000,19000,35000,60000],
+  farmBossBaseMultiplier:5,
+  dungeonSafeMultiplier:3,
+  dungeonRiskyMultiplier:7,
+  unlockMode:"wave_only_safe"
+};
