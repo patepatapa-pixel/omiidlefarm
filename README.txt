@@ -559,3 +559,13 @@ V22.10 PVP HOTFIX
 - Az atk és hp változók const helyett let változók, mert a Pet Fusion PvP balance módosítja őket.
 - A PvP párbaj API emiatt most már nem dob 500-as hibát.
 - A V22.9 vizuális PvP aréna és effektek megmaradtak.
+
+
+=== V22.91 FINAL UPDATE ===
+- PvP teljesen külön stat rendszer: PvE erő/szint/paragon/pet nem számít.
+- PvP fejlesztés kizárólag Lélekkőből: ATK, HP, DEF, Block (max 40%), Szerencse/Krit, Dupla találat.
+- Felszerelésből PvP-ben kizárólag a PvP sebzés opció számít.
+- Dungeon többfutam: 1x/2x/3x/5x ingyenes; csak 10x prémium.
+- Legendary alap drop 3%.
+- Endgame rarity: Legendary -> Imperial -> Celestial -> Eternal.
+- Fegyver attack végső plafon: 1500.

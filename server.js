@@ -111,12 +111,12 @@ function serverPowerV283(s={}){
  const petSkill=rank("pet")*.03+rank("pack")*.03+rank("bond")*.025+rank("instinct")*.025+rank("alpha")*.02+rank("evolution")*.03+rank("petMaster")*.04;
  const inv=Array.isArray(s.inventory)?s.inventory:[],eq=s.equipped||{},items=Object.values(eq).map(id=>inv.find(x=>String(x?.id)===String(id))).filter(Boolean);
  let atk=0,def=0,atkPct=0,defPct=0;
- for(const it of items){const mult=1+Math.max(0,n(it.plus))*.1;atk+=Math.floor(Math.max(0,n(it.atk))*mult);def+=Math.floor(Math.max(0,n(it.def))*mult);for(const o of (Array.isArray(it.options)?it.options:[]).slice(0,5)){if(o?.key==="atkPct")atkPct+=n(o.value);if(o?.key==="defPct")defPct+=n(o.value)}}
+ for(const it of items){const mult=1+Math.max(0,n(it.plus))*.1,rawCap=({normal:260,rare:360,epic:480,mythic:640,legendary:800})[String(it.rarity||"normal")]||260;atk+=Math.min(2000,Math.floor(Math.min(rawCap,Math.max(0,n(it.atk)))*mult));def+=Math.floor(Math.max(0,n(it.def))*mult);for(const o of (Array.isArray(it.options)?it.options:[]).slice(0,5)){if(o?.key==="atkPct")atkPct+=n(o.value);if(o?.key==="defPct")defPct+=n(o.value)}}
  const pets=Array.isArray(s.pets)?s.pets:[],active=(Array.isArray(s.activePets)?s.activePets:[]).slice(0,Math.max(1,n(s.petSlotsUnlocked)||1));let petDamage=0;
  for(const i of active){const p=pets[i];if(!p)continue;const entries=[{bonus:p.bonus||"damage",value:Math.max(0,n(p.value))},...(Array.isArray(p.extraOptions)?p.extraOptions:[])];for(const o of entries){const v=Math.max(0,n(o?.value))*(1+petSkill);if(o?.bonus==="damage")petDamage+=v;else if(o?.bonus==="all")petDamage+=v}}
  const petCap=.65;petDamage=petCap*petDamage/(petDamage+petCap);atk*=1+petDamage;
  const level=Math.max(1,n(s.level)||1),paragon=Math.max(0,n(s.paragonLevel)),prestige=Math.max(0,Math.min(100,n(s.prestigeLevel))),base=s.base||{},ps=s.paragonStats||{};
- const damage=Math.max(1,Math.floor((5+level*.65+Math.max(1,n(base.weaponTraining)||1)*2.2+atk)*(1+skillPower+Math.min(4,n(ps.damage)*.02*paragon))*(1+atkPct/100)*(1+Math.min(.5,prestige*.005))));
+ const damage=Math.max(1,Math.min(30000,Math.floor((5+level*.65+Math.max(1,n(base.weaponTraining)||1)*2.2+atk)*(1+skillPower+Math.min(4,n(ps.damage)*.02*paragon))*(1+atkPct/100)*(1+Math.min(.5,prestige*.005)))));
  const zone=Math.max(0,n(s.zone)),wave=Math.max(1,n(s.wave)||1),target=Math.max(10,Math.floor(30*(1+zone*1.2)*Math.pow(1+wave/100,.5)));
  const rawDef=Math.max(0,(def+Math.max(1,n(base.armorTraining)||1)*2+level*.3+prestige*1.5)*(1+defPct/100)),effectiveDef=Math.max(0,Math.floor(target*(3*rawDef/(rawDef+target*2))));
  const mount=s.mounts?.[s.activeMount],mountRaw=Math.max(0,Math.floor(n(mount?.level)))*.02,mountCap=.25,mountMult=1+mountCap*mountRaw/(mountRaw+mountCap);
@@ -236,7 +236,13 @@ async function init(){
   updateContent.updates=Array.isArray(updateContent.updates)?updateContent.updates:[];
   updateContent.store={discord:"nervos11",products:[],...(updateContent.store||{})};
   updateContent.store.products=Array.isArray(updateContent.store.products)?updateContent.store.products:[];
-  if(!updateContent.store.products.some(p=>p?.id==="dungeon_batch_10_eur"))updateContent.store.products.push({id:"dungeon_batch_10_eur",name:"Dungeon 2× / 3× / 5× futam",icon:"🏰",priceText:"10 €",description:"Egyszerre több dungeon külön jutalom- és droppróbával",visible:true});
+  const dungeonBatchProduct=updateContent.store.products.find(p=>p?.id==="dungeon_batch_10_eur");
+  if(dungeonBatchProduct){Object.assign(dungeonBatchProduct,{name:"Dungeon 10× prémium futam",icon:"🏰",description:"Az 1× / 2× / 3× / 5× futam ingyenes. Ez a csomag kizárólag a 10× futamot oldja fel."});}
+  else updateContent.store.products.push({id:"dungeon_batch_10_eur",name:"Dungeon 10× prémium futam",icon:"🏰",priceText:"10 €",description:"Az 1× / 2× / 3× / 5× futam ingyenes. Ez a csomag kizárólag a 10× futamot oldja fel.",visible:true});
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_91")){
+    updateContent.updates.unshift({id:"v22_91",version:"V22.91 FINAL",title:"Végső PvP és endgame balance",date:"2026-08-21",summary:"A PvP teljesen külön fejlődési rendszert kapott, és elkészült a végső dungeon/gear balance.",changes:["PvP-ben a PvE erő, szint, Paragon és pet nem számít.","PvP ATK, HP, DEF, Block, Szerencse/Krit és Dupla találat kizárólag Lélekkőből fejleszthető.","Block maximum 40%.","Felszerelésből csak a PvP sebzés opció számít PvP-ben.","1× / 2× / 3× / 5× dungeon futam ingyenes; csak a 10× prémium.","Legendary alap rarity 3%.","Endgame rarity: Legendary → Imperial → Celestial → Eternal.","Fegyver attack végső plafon: 1500."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
   if(!updateContent.updates.some(x=>x&&x.id==="v22_42")){
     updateContent.updates.unshift({id:"v22_42",version:"V22.42",title:"Admin által vezérelt frissítések",date:"2026-08-21",summary:"Új, átlátható fejlesztési napló került a játékba.",changes:["Minden új verzió automatikusan bekerül az admin Frissítések oldalára.","Az admin bejegyzésenként közzéteheti vagy elrejtheti a frissítéseket.","A játékosok kizárólag a közzétett változásokat látják.","A legújabb látható frissítés ÚJ jelvényt kap."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
@@ -432,6 +438,10 @@ async function init(){
     updateContent.updates.unshift({id:"v22_89",version:"V22.89",title:"Még kompaktabb meglévő petbónuszok",date:"2026-08-21",summary:"A jelenlegi és új petek számai tovább csökkentek, hogy a felszerelés, DEF, Paragon és dungeonfejlődés jelentősége megmaradjon.",changes:["Minden meglévő pet fő értéke az eredeti balanszolt alap 20%-ára kerül.","A meglévő extra petopciók ugyanezt az arányos korrekciót kapják.","Azok a fiókok is pontos értéket kapnak, amelyek már futtatták a V22.88 migrációját.","Az újonnan idézett alap- és adminpetek már közvetlenül az új kisebb értékkel érkeznek.","A pet neve, ritkasága, fúziós szintje, opciótípusa és gyűjteményi értéke megmarad.","A ranglista ereje minden meglévő játékosnál szerveroldalon újraszámítódik."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_90")){
+    updateContent.updates.unshift({id:"v22_90",version:"V22.90",title:"2000 ATK felszerelés és 30 000 sebzésplafon",date:"2026-08-21",summary:"A felszerelések és a teljes harci sebzés kompakt, ritkaság- és fejlődésalapú végjátékbalanszt kaptak.",changes:["Egyetlen felszerelés tényleges ATK-ja sem lehet több 2000-nél.","A ritkasági +15 ATK-célértékek: Normal 650, Rare 900, Epic 1200, Mythic 1600, Legendary 2000.","A 2000 ATK kizárólag kiváló végjátékos Legendary tárggyal és magas fejlesztéssel érhető el.","A tárgy ATK dobása az aktuális területhez és a Wave 400-as fejlődéshez igazodik.","A nem fegyver típusú tárgyakon az extra ATK csak 8% eséllyel jelenik meg és lényegesen kisebb.","A Vándorkereskedő felszerelései nem adhatnak azonnal maximális ATK-ot.","A meglévő túl magas tárgyak ritkaságuk szerint automatikusan korrekciót kapnak, de nem törlődnek.","A végső találati sebzés kritikus találattal, nyílvesszővel és bossbónusszal együtt sem lépheti túl a 30 000-et.","A szerveres ranglista- és PvP-számítás ugyanezeket a korlátokat használja."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
   const powerCapMigration="v2282_rank_power_cap_30000";
   if(!(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[powerCapMigration])).rows[0]){await q("UPDATE game_saves SET power=LEAST(power,30000)");await q("INSERT INTO system_migrations(migration_key) VALUES($1)",[powerCapMigration])}
   const realPowerMigration="v2283_recalculate_real_power";
@@ -451,6 +461,12 @@ async function init(){
     const rows=(await q("SELECT user_id,save_data FROM game_saves")).rows;
     for(const row of rows){const s=row.save_data||{};if(!s.petBalanceV289){for(const p of (Array.isArray(s.pets)?s.pets:[])){if(!p||typeof p!=="object")continue;p.value=Math.max(0,Number(p.value||0)*(4/7));if(Array.isArray(p.extraOptions))for(const o of p.extraOptions)o.value=Math.max(0,Number(o?.value||0)*(4/7))}s.petBalanceV289=true}await q("UPDATE game_saves SET save_data=$1,power=$2,updated_at=NOW() WHERE user_id=$3",[s,serverPowerV283(s),row.user_id])}
     await q("INSERT INTO system_migrations(migration_key) VALUES($1)",[petBalanceMigration]);
+  }
+  const itemAttackMigration="v2290_item_attack_caps";
+  if(!(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[itemAttackMigration])).rows[0]){
+    const rows=(await q("SELECT user_id,save_data FROM game_saves")).rows,caps={normal:260,rare:360,epic:480,mythic:640,legendary:800};
+    for(const row of rows){const s=row.save_data||{};if(!s.itemAttackBalanceV290){for(const it of (Array.isArray(s.inventory)?s.inventory:[])){if(!it||typeof it!=="object")continue;it.atk=Math.max(0,Math.min(caps[String(it.rarity||"normal")]||260,Number(it.atk||0)))}s.itemAttackBalanceV290=true}await q("UPDATE game_saves SET save_data=$1,power=$2,updated_at=NOW() WHERE user_id=$3",[s,serverPowerV283(s),row.user_id])}
+    await q("INSERT INTO system_migrations(migration_key) VALUES($1)",[itemAttackMigration]);
   }
   const capMigration="v2246_wallet_caps";
   const capDone=(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[capMigration])).rows[0];
@@ -501,7 +517,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.89.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.90.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{
@@ -917,31 +933,47 @@ async function mainConfig(){
     return (await q("SELECT value FROM game_content WHERE key='main'")).rows[0]?.value||{};
   }catch{return {}}
 }
-function pvpStats(save){
-  const petArr=Array.isArray(save.pets)?save.pets:[];
-  const activePet=petArr.find(p=>String(p.id??p.uid??p.name)===String(save.activePet)) || petArr.find(p=>p.active===true);
-  const fusionMult=Math.max(1,Number(activePet?.fusionMultiplier||1));
-  const fusionTier=Math.max(0,Number(activePet?.fusionLevel||0));
-
+function pvpGearBonusPct(save){
   save=save||{};
-  const level=Math.max(1,Number(save.level||1));
-  const base=save.base||{},ps=save.paragonStats||{};
-  let atk=5+level*.65+Number(base.weaponTraining||1)*2.2+Math.min(60,Number(ps.damage||0)*1.2);
-  let def=3+level*.4+Number(base.armorTraining||1)*1.5+Number(save.prestigeLevel||0)*2;
+  let pct=0;
+  const inv=Array.isArray(save.inventory)?save.inventory:[];
   for(const id of Object.values(save.equipped||{})){
-    const it=(save.inventory||[]).find(x=>x.id===id); if(!it)continue;
-    const up=1+Number(it.plus||0)*.10;
-    atk+=Number(it.atk||0)*up;def+=Number(it.def||0)*up;
+    const it=inv.find(x=>String(x.id)===String(id));
+    if(!it)continue;
+    for(const o of (Array.isArray(it.options)?it.options:[])){
+      if(o && o.key==="pvpDmg")pct+=Math.max(0,Number(o.value||0));
+    }
   }
-  let hp=Math.floor(100+level*5+def*1.5+Number(save.paragonLevel||0)*8);
-  const skillLv=k=>Math.max(0,Math.min(5,Math.floor(Number(save.skills?.[k]||0))));
-  atk*=1+Math.min(1,Number(save.skills?.root||0))*.05+skillLv("power")*.06;
-  atk*=1+Math.min(.5,Number(save.prestigeLevel||0)*.005);
-  const crit=Math.min(.70,.05+skillLv("crit")*.015+Number(ps.crit||0)*.005);
-  const petPvP=1+Math.min(.60,(fusionMult-1)*.55);
-  atk*=petPvP;
-  hp=Math.floor(hp*(1+Math.min(.35,(fusionMult-1)*.30)));
-  return {level,atk:Math.max(1,Math.floor(atk)),def:Math.max(0,Math.floor(def)),hp:Math.max(1,hp),crit,fusionTier,petPvP};
+  return Math.min(80,pct);
+}
+function pvpBuild(save){
+  save=save||{};
+  const raw=save.pvpBuild||{};
+  return {
+    atk:Math.max(0,Math.min(100,Math.floor(Number(raw.atk||0)))),
+    hp:Math.max(0,Math.min(100,Math.floor(Number(raw.hp||0)))),
+    def:Math.max(0,Math.min(100,Math.floor(Number(raw.def||0)))),
+    block:Math.max(0,Math.min(40,Math.floor(Number(raw.block||0)))),
+    luck:Math.max(0,Math.min(60,Math.floor(Number(raw.luck||0)))),
+    double:Math.max(0,Math.min(40,Math.floor(Number(raw.double||0))))
+  };
+}
+function pvpUpgradeCost(stat,level){
+  const base={atk:3,hp:3,def:3,block:6,luck:5,double:7}[stat]||5;
+  return Math.max(1,Math.floor(base*Math.pow(1.11,Math.max(0,Number(level||0)))));
+}
+function pvpStats(save){
+  save=save||{};
+  const b=pvpBuild(save),gearPvpPct=pvpGearBonusPct(save);
+  // FINAL RULE: no PvE level, Paragon, pets, PvE attack/defense or total power are used here.
+  let atk=100+b.atk*15;
+  const hp=1000+b.hp*80;
+  const def=40+b.def*10;
+  atk*=1+gearPvpPct/100;
+  const crit=Math.min(.40,.05+b.luck*.005);
+  const block=Math.min(.40,b.block*.01);
+  const doubleHit=Math.min(.20,b.double*.005);
+  return {level:1,atk:Math.max(1,Math.floor(atk)),def:Math.max(0,Math.floor(def)),hp:Math.max(1,Math.floor(hp)),crit,block,doubleHit,gearPvpPct,build:b};
 }
 app.post("/api/admin/player/:id/leaderboard",auth,admin,async(req,res)=>{
   const hidden=Boolean(req.body.hidden);
@@ -958,6 +990,31 @@ app.post("/api/admin/player/:id/profile",auth,admin,async(req,res)=>{
   res.json({ok:true});
 });
 
+
+app.get("/api/pvp/profile",auth,async(req,res)=>{
+  const row=(await q("SELECT save_data FROM game_saves WHERE user_id=$1",[req.user.id])).rows[0];
+  if(!row)return res.status(404).json({error:"Mentés nem található."});
+  const save=row.save_data||{},levels=pvpBuild(save),stats=pvpStats(save);
+  const costs={};for(const k of Object.keys(levels))costs[k]=pvpUpgradeCost(k,levels[k]);
+  res.json({levels,stats,costs,soul:Math.max(0,Math.floor(Number(save.soul||0)))});
+});
+app.post("/api/pvp/upgrade",auth,async(req,res)=>{
+  try{
+    const stat=String(req.body.stat||"");
+    const max={atk:100,hp:100,def:100,block:40,luck:60,double:40};
+    if(!(stat in max))return res.status(400).json({error:"Ismeretlen PvP stat."});
+    const row=(await q("SELECT save_data FROM game_saves WHERE user_id=$1 FOR UPDATE",[req.user.id])).rows[0];
+    if(!row)return res.status(404).json({error:"Mentés nem található."});
+    const save=row.save_data||{},levels=pvpBuild(save),lv=levels[stat];
+    if(lv>=max[stat])return res.status(400).json({error:"Ez a PvP stat már maximumon van."});
+    const cost=pvpUpgradeCost(stat,lv),soul=Math.max(0,Math.floor(Number(save.soul||0)));
+    if(soul<cost)return res.status(400).json({error:`Nincs elég lélekkő. Kell: ${cost}`});
+    save.soul=soul-cost;save.pvpBuild={...levels,[stat]:lv+1};
+    await q("UPDATE game_saves SET save_data=$1,updated_at=NOW() WHERE user_id=$2",[save,req.user.id]);
+    res.json({ok:true,cost,soul:save.soul,levels:save.pvpBuild,stats:pvpStats(save)});
+  }catch(e){console.error("PVP UPGRADE ERROR:",e);res.status(500).json({error:"A PvP fejlesztés nem sikerült."});}
+});
+
 app.get("/api/pvp/opponents",auth,async(req,res)=>{
   const cfg=await mainConfig(),pc={minLevel:20,...(cfg.pvp||{})};
   const me=(await q("SELECT level FROM game_saves WHERE user_id=$1",[req.user.id])).rows[0];
@@ -968,7 +1025,7 @@ app.get("/api/pvp/opponents",auth,async(req,res)=>{
     WHERE u.id<>$1 AND u.role='player' AND u.banned=FALSE AND g.level >= $2
     ORDER BY ABS(u.pvp_rating-$3),g.power DESC LIMIT 30
   `,[req.user.id,pc.minLevel,req.user.pvp_rating||1000])).rows;
-  res.json({locked:false,minLevel:pc.minLevel,rows:rows.map(r=>({id:r.id,player_name:r.player_name,pvp_rating:r.pvp_rating,power:r.power,level:r.level,avatar:{equipped:r.save_data?.equipped||{},inventory:r.save_data?.inventory||[],activeAura:r.save_data?.activeAura||"none",activePet:r.save_data?.activePet}}))});
+  res.json({locked:false,minLevel:pc.minLevel,rows:rows.map(r=>({id:r.id,player_name:r.player_name,pvp_rating:r.pvp_rating,power:Math.floor(pvpStats(r.save_data).atk+pvpStats(r.save_data).def+pvpStats(r.save_data).hp/10),level:r.level,avatar:{equipped:r.save_data?.equipped||{},inventory:r.save_data?.inventory||[],activeAura:r.save_data?.activeAura||"none",activePet:r.save_data?.activePet}}))});
 });
 app.post("/api/pvp/fight",auth,async(req,res)=>{
   try{
@@ -990,13 +1047,17 @@ app.post("/api/pvp/fight",auth,async(req,res)=>{
     while(ah>0&&bh>0&&turn<200){
       turn++;
       const aCrit=Math.random()<A.crit,bCrit=Math.random()<B.crit;
-      const ad=Math.max(1,Math.floor((A.atk*(aCrit?1.75:1)-B.def*.50)/(1+Math.max(0,B.fusionTier||0)*.025)));
+      const aBlocked=Math.random()<B.block;
+      let ad=aBlocked?0:Math.max(1,Math.floor(A.atk*(aCrit?1.75:1)-B.def*.50));
+      const aDouble=!aBlocked&&Math.random()<A.doubleHit;if(aDouble)ad*=2;
       bh=Math.max(0,bh-ad);
-      log.push({turn,from:"a",damage:ad,crit:aCrit,aHp:ah,bHp:bh});
+      log.push({turn,from:"a",damage:ad,crit:aCrit,blocked:aBlocked,doubleHit:aDouble,aHp:ah,bHp:bh});
       if(bh<=0)break;
-      const bd=Math.max(1,Math.floor((B.atk*(bCrit?1.75:1)-A.def*.50)/(1+Math.max(0,A.fusionTier||0)*.025)));
+      const bBlocked=Math.random()<A.block;
+      let bd=bBlocked?0:Math.max(1,Math.floor(B.atk*(bCrit?1.75:1)-A.def*.50));
+      const bDouble=!bBlocked&&Math.random()<B.doubleHit;if(bDouble)bd*=2;
       ah=Math.max(0,ah-bd);
-      log.push({turn,from:"b",damage:bd,crit:bCrit,aHp:ah,bHp:bh});
+      log.push({turn,from:"b",damage:bd,crit:bCrit,blocked:bBlocked,doubleHit:bDouble,aHp:ah,bHp:bh});
     }
     const winnerId=ah===bh?(Math.random()<.5?a.id:b.id):(ah>bh?a.id:b.id);
     const loserId=winnerId===a.id?b.id:a.id;
@@ -1039,7 +1100,7 @@ app.get("/api/pvp/history",auth,async(req,res)=>{
 app.post("/api/shop/request",auth,async(req,res)=>{
   const cfg=await mainConfig(),products=cfg.store?.products||[];
   const id=String(req.body.product_id||"");
-  const product=products.find(x=>String(x.id)===id) || (id==="auto_paragon_10_eur"?{id,name:"Auto Paragon szintelő",priceText:"10 €"}:id==="dungeon_batch_10_eur"?{id,name:"Dungeon 2× / 3× / 5× futam",priceText:"10 €"}:null);
+  const product=products.find(x=>String(x.id)===id) || (id==="auto_paragon_10_eur"?{id,name:"Auto Paragon szintelő",priceText:"10 €"}:id==="dungeon_batch_10_eur"?{id,name:"Dungeon 10× prémium futam",priceText:"10 €"}:null);
   if(!product)return res.status(404).json({error:"A termék nem található."});
   const note=String(req.body.note||"").slice(0,500);
   await q("INSERT INTO purchase_requests(user_id,product_id,product_name,price_text,note) VALUES($1,$2,$3,$4,$5)",[req.user.id,id,product.name||id,product.priceText||"",note]);
