@@ -168,6 +168,17 @@ async function init(){
     await q("INSERT INTO system_migrations(migration_key) VALUES($1)",[balanceMigration]);
   }
 
+  // Every deployed release is automatically registered here as a hidden draft.
+  // Publishing remains an explicit per-entry admin decision.
+  await q("CREATE TABLE IF NOT EXISTS game_content(key TEXT PRIMARY KEY,value JSONB NOT NULL DEFAULT '{}'::jsonb,updated_at TIMESTAMPTZ DEFAULT NOW())");
+  const updateContentRow=(await q("SELECT value FROM game_content WHERE key='main'")).rows[0];
+  const updateContent=updateContentRow?.value||{};
+  updateContent.updates=Array.isArray(updateContent.updates)?updateContent.updates:[];
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_42")){
+    updateContent.updates.unshift({id:"v22_42",version:"V22.42",title:"Admin által vezérelt frissítések",date:"2026-08-21",summary:"Új, átlátható fejlesztési napló került a játékba.",changes:["Minden új verzió automatikusan bekerül az admin Frissítések oldalára.","Az admin bejegyzésenként közzéteheti vagy elrejtheti a frissítéseket.","A játékosok kizárólag a közzétett változásokat látják.","A legújabb látható frissítés ÚJ jelvényt kap."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
+
   await q(`
     CREATE TABLE IF NOT EXISTS discord_links(
       user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
@@ -209,7 +220,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.41.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.42.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{

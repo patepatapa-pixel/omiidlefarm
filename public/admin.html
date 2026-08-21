@@ -80,7 +80,7 @@
 <h2>🛠️ ADMIN GAME STUDIO</h2>
 <p>Minden játékosérték és új játéktartalom kezelése egy helyen.</p>
 <div class="studio-tabs">
-<button data-studio="players">👥 Játékosok</button><button data-studio="gameplay">🎮 Játékmenet</button><button data-studio="pvp">⚔️ PvP</button><button data-studio="exchange">⚖️ Váltópiac / Pet árak</button><button data-studio="store">💳 Feltöltés / Shop</button><button data-studio="bosses">👹 Bossok</button><button data-studio="items">⚔️ Tárgyak</button><button data-studio="pets">🐾 Petek</button><button data-studio="auras">✨ Aurák</button><button data-studio="zones">🗺️ Területek</button><button data-studio="raw">🧬 Haladó</button>
+<button data-studio="players">👥 Játékosok</button><button data-studio="gameplay">🎮 Játékmenet</button><button data-studio="pvp">⚔️ PvP</button><button data-studio="exchange">⚖️ Váltópiac / Pet árak</button><button data-studio="store">💳 Feltöltés / Shop</button><button data-studio="updates">📢 Frissítések</button><button data-studio="bosses">👹 Bossok</button><button data-studio="items">⚔️ Tárgyak</button><button data-studio="pets">🐾 Petek</button><button data-studio="auras">✨ Aurák</button><button data-studio="zones">🗺️ Területek</button><button data-studio="raw">🧬 Haladó</button>
 </div>
 
 <div class="studio-page" id="studio-exchange">
@@ -202,6 +202,22 @@
 <script type="text/x-omi-admin-fragment" id="petMultiOptionAdminTemplate"><hr><h3>✨ Imperial / Eternal többopciós kraft</h3><p class="muted">A Celestial pet még nem lehet többopciós. Új extra adottság kizárólag Imperial vagy Eternal kraft után nyílhat; a meglévő adottságok értékei összeadódnak.</p><div class="admin-stat-grid"><label>Imperial többopció esély %<input id="cfgPetMultiImperialChance" type="number" min="0" max="100" step="0.1"></label><label>Eternal többopció esély %<input id="cfgPetMultiEternalChance" type="number" min="0" max="100" step="0.1"></label><label>Új opció minimum %<input id="cfgPetMultiMinPct" type="number" min="0" step="0.1"></label><label>Új opció maximum %<input id="cfgPetMultiMaxPct" type="number" min="0" step="0.1"></label><label>Maximum extra opció<input id="cfgPetMultiMaxOptions" type="number" min="1" max="3"></label></div><button id="savePetMultiOption">💾 TÖBBOPCIÓS KRAFT MENTÉSE</button></script>
 <div class="studio-page" id="studio-auras"><h3>✨ Aura készítő</h3><div id="auraBuilder"></div><button data-add="auras">+ Aura létrehozása</button><div id="auraList"></div></div>
 <div class="studio-page" id="studio-zones"><h3>🗺️ Farmterületek HP-ja és fix mobaranya</h3><p class="muted">Területenként megadható a normál mob fix aranya. Ezt sem az aranydropp-bónusz, sem a wave száma nem növeli; az offline farm is ugyanezt használja. Az aranydropp-bónusz csak bossaranyra hat.</p><div class="admin-stat-grid"><label>⚔️ Célzott találat / normál mob<input id="cfgMobTargetHits" type="number" min="1" max="100" step="0.1"></label></div><div id="zoneHpBalanceEditor" class="admin-stat-grid zone-balance-editor"></div><button id="saveZoneHpBalance">💾 TERÜLETI HP ÉS FIX MOBARANY MENTÉSE</button><hr><h3>➕ Új terület készítése</h3><div id="zoneBuilder"></div><button data-add="zones">+ Terület létrehozása</button><div id="zoneList"></div></div>
+<div class="studio-page" id="studio-updates">
+ <h3>📢 Frissítések kezelése</h3>
+ <p class="muted">Az új verzió automatikusan bekerül ide rejtve. Te döntöd el, melyik bejegyzést mikor látják a játékosok.</p>
+ <div class="builder-form update-editor-v242">
+  <label>Verzió<input id="updateVersion" placeholder="V22.42"></label>
+  <label>Cím<input id="updateTitle" placeholder="Frissítések felület"></label>
+  <label>Dátum<input id="updateDate" type="date"></label>
+  <label>Rövid összefoglaló<input id="updateSummary" placeholder="A frissítés legfontosabb tartalma"></label>
+  <label class="update-changes-field-v242">Változások – soronként egy<textarea id="updateChanges" placeholder="Új funkció\nJavítás\nBalanszmódosítás"></textarea></label>
+  <label class="v222-check"><input id="updateVisible" type="checkbox"> Azonnal látható a játékosoknak</label>
+  <input id="updateEditIndex" type="hidden" value="">
+ </div>
+ <button id="saveUpdateEntry">💾 Frissítés mentése</button><button id="cancelUpdateEdit" type="button">Mégse / új bejegyzés</button>
+ <div id="adminUpdatesList" class="builder-list update-admin-list-v242"></div>
+</div>
+
 <div class="studio-page" id="studio-raw"><h3>🧬 Teljes konfiguráció</h3><textarea id="contentJson" class="json-editor"></textarea><button id="saveContentJson">💾 Konfiguráció mentése</button></div>
 </section>
 

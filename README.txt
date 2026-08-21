@@ -1,4 +1,10 @@
-OMI IDLE FARM ONLINE V22.41
+OMI IDLE FARM ONLINE V22.42
+
+V22.42 ADMIN ÁLTAL VEZÉRELT FRISSÍTÉSEK:
+- Új Frissítések oldal a játékosoknak.
+- Minden verzió automatikusan rejtett adminbejegyzésként kerül be.
+- Bejegyzésenként kapcsolható a láthatóság.
+- Szerkeszthető verzió, cím, dátum, összefoglaló és változáslista.
 
 V22.41 TELJES IDLE FARM ÚJRABALANSZ:
 - kisebb, átlátható erőskála: kezdéstől kb. 20 000-es végjátékig

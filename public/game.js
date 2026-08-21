@@ -1574,7 +1574,7 @@ async function v10LoadGameplay(){
 
 
 // ================= V11 PVP / SHOP / DYNAMIC CONTENT =================
-let V11_CONTENT={bosses:[],items:[],pets:[],auras:[],zones:[],store:{discord:"nervos11",products:[]},pvp:{minLevel:20,rewardGold:500,cooldownSec:10,ratingChange:18}};
+let V11_CONTENT={bosses:[],items:[],pets:[],auras:[],zones:[],updates:[],store:{discord:"nervos11",products:[]},pvp:{minLevel:20,rewardGold:500,cooldownSec:10,ratingChange:18}};
 
 function v11ApplyContent(){
  const c=V11_CONTENT;
@@ -1688,9 +1688,17 @@ async function v11LoadContent(){
   const d=await api("/api/content-config");
   V11_CONTENT={...V11_CONTENT,...(d.config||{}),store:{...V11_CONTENT.store,...(d.config?.store||{})},pvp:{...V11_CONTENT.pvp,...(d.config?.pvp||{})}};
   window.OMI_CONTENT={...(window.OMI_CONTENT||{}),...(d.config||{})};
-  v11ApplyContent();renderStore();renderExchange();renderPets();
+  v11ApplyContent();renderStore();renderExchange();renderPets();renderUpdatesV242();
  }catch(e){console.warn("V11 content",e)}
 }
+
+function updateEscV242(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function renderUpdatesV242(){
+ const box=$("#updatesList");if(!box)return;
+ const rows=(Array.isArray(V11_CONTENT.updates)?V11_CONTENT.updates:[]).filter(x=>x&&x.visible).sort((a,b)=>String(b.date||b.createdAt||"").localeCompare(String(a.date||a.createdAt||"")));
+ box.innerHTML=rows.length?rows.map((u,i)=>`<article class="update-card-v242 ${i===0?"latest":""}"><div class="update-version-v242"><b>${updateEscV242(u.version||"UPDATE")}</b>${i===0?"<span>ÚJ</span>":""}<time>${updateEscV242(u.date||"")}</time></div><div class="update-body-v242"><h2>${updateEscV242(u.title||"Frissítés")}</h2>${u.summary?`<p>${updateEscV242(u.summary)}</p>`:""}${Array.isArray(u.changes)&&u.changes.length?`<ul>${u.changes.map(x=>`<li>${updateEscV242(x)}</li>`).join("")}</ul>`:""}</div></article>`).join(""):'<div class="updates-empty-v242"><b>📭 Nincs közzétett frissítés</b><span>Az admin később itt jelenítheti meg az újdonságokat.</span></div>';
+}
+document.addEventListener("click",e=>{if(e.target.closest?.('[data-tab="updates"]'))setTimeout(renderUpdatesV242,40)},true);
 
 // PvP
 async function loadPvp(){

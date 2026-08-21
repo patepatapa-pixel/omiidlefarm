@@ -44,7 +44,7 @@ let studioPlayers=[],studioConfig={bosses:[],items:[],pets:[],auras:[],zones:[]}
 const qs=s=>document.querySelector(s),qsa=s=>[...document.querySelectorAll(s)];
 async function sa(url,opt={}){let r=await fetch(url,{headers:{"Content-Type":"application/json"},...opt}),d=await r.json();if(!r.ok)throw Error(d.error||"Hiba");return d}
 const num=id=>Number(qs(id)?.value||0);
-async function loadStudioV8(){try{let p=await sa("/api/admin/players-full");studioPlayers=p.players||[];qs("#studioPlayer").innerHTML=studioPlayers.map(x=>`<option value="${x.id}">${x.username}</option>`).join("");fillSP();let c=await sa("/api/content-config");studioConfig={bosses:[],items:[],pets:[],auras:[],zones:[],...(c.config||{})};renderBuildersV8()}catch(e){console.error(e)}}
+async function loadStudioV8(){try{let p=await sa("/api/admin/players-full");studioPlayers=p.players||[];qs("#studioPlayer").innerHTML=studioPlayers.map(x=>`<option value="${x.id}">${x.username}</option>`).join("");fillSP();let c=await sa("/api/content-config");studioConfig={bosses:[],items:[],pets:[],auras:[],zones:[],updates:[],...(c.config||{})};renderBuildersV8()}catch(e){console.error(e)}}
 function curSP(){return studioPlayers.find(x=>String(x.id)===qs("#studioPlayer").value)}
 function fillSP(){let p=curSP();if(!p)return;let s=p.save_data||{},v={admLevel:s.level||1,admParagon:s.paragonLevel||0,admPrestige:s.prestigeLevel||0,admGold:s.gold||0,admGems:s.gems||0,admOre:s.ore||0,admSoul:s.soul||0,admTickets:s.tickets||0,admSkillPoints:s.skillPoints||0,admParagonPoints:s.paragonPoints||0,admAuraTokens:s.auraTokens||0,admWave:s.wave||1,admKills:s.kills||0,admLuck:s.base?.luck||1};Object.entries(v).forEach(([k,x])=>qs("#"+k).value=x);qs("#playerSaveJson").value=JSON.stringify(s,null,2)}
 qs("#studioPlayer")?.addEventListener("change",fillSP);
@@ -71,6 +71,7 @@ function renderBuildersV8(){
  fillEconomyAdmin();
  fillDefaultBossGems();
  fillZoneHpBalance();
+ renderUpdatesAdminV242();
 }
 async function saveConfigV8(){await sa("/api/admin/content-config",{method:"POST",body:JSON.stringify({config:studioConfig})});renderBuildersV8()}
 qsa("[data-add]").forEach(btn=>btn.onclick=async()=>{
@@ -87,6 +88,29 @@ qsa("[data-add]").forEach(btn=>btn.onclick=async()=>{
 });
 qs("#saveContentJson")?.addEventListener("click",async()=>{try{studioConfig=JSON.parse(qs("#contentJson").value);await saveConfigV8();alert("✅ Mentve")}catch(e){alert("❌ Hibás JSON")}});
 loadStudioV8();
+
+// V22.42 admin-controlled update center
+function escUpdateV242(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function resetUpdateEditorV242(){
+ ["#updateVersion","#updateTitle","#updateSummary","#updateChanges","#updateEditIndex"].forEach(s=>{if(qs(s))qs(s).value=""});
+ if(qs("#updateDate"))qs("#updateDate").value=new Date().toISOString().slice(0,10);
+ if(qs("#updateVisible"))qs("#updateVisible").checked=false;
+}
+function renderUpdatesAdminV242(){
+ const box=qs("#adminUpdatesList");if(!box)return;
+ studioConfig.updates=Array.isArray(studioConfig.updates)?studioConfig.updates:[];
+ box.innerHTML=studioConfig.updates.length?studioConfig.updates.map((u,i)=>`<div class="builder-entry update-admin-entry-v242 ${u.visible?"is-visible":"is-hidden"}"><div><b>${escUpdateV242(u.version||"Frissítés")} · ${escUpdateV242(u.title||"Névtelen")}</b><small>${escUpdateV242(u.date||"")} · ${u.visible?"🟢 LÁTHATÓ":"⚫ REJTVE"}</small></div><div class="update-admin-actions-v242"><button data-update-edit="${i}">✏️ Szerkesztés</button><button data-update-toggle="${i}">${u.visible?"🙈 Elrejtés":"👁️ Közzététel"}</button><button class="danger" data-update-delete="${i}">🗑️ Törlés</button></div></div>`).join(""):'<p class="muted">Még nincs frissítési bejegyzés.</p>';
+ box.querySelectorAll("[data-update-edit]").forEach(b=>b.onclick=()=>{const i=+b.dataset.updateEdit,u=studioConfig.updates[i];qs("#updateVersion").value=u.version||"";qs("#updateTitle").value=u.title||"";qs("#updateDate").value=u.date||"";qs("#updateSummary").value=u.summary||"";qs("#updateChanges").value=(u.changes||[]).join("\n");qs("#updateVisible").checked=!!u.visible;qs("#updateEditIndex").value=i;scrollTo({top:qs("#studio-updates").offsetTop-20,behavior:"smooth"})});
+ box.querySelectorAll("[data-update-toggle]").forEach(b=>b.onclick=async()=>{const u=studioConfig.updates[+b.dataset.updateToggle];u.visible=!u.visible;await saveConfigV8()});
+ box.querySelectorAll("[data-update-delete]").forEach(b=>b.onclick=async()=>{if(!confirm("Biztosan törlöd ezt a frissítést?"))return;studioConfig.updates.splice(+b.dataset.updateDelete,1);await saveConfigV8()});
+}
+qs("#saveUpdateEntry")?.addEventListener("click",async()=>{
+ const version=qs("#updateVersion").value.trim(),title=qs("#updateTitle").value.trim();if(!version||!title)return alert("A verzió és a cím kötelező.");
+ const i=qs("#updateEditIndex").value,old=i!==""?studioConfig.updates[+i]:null;
+ const entry={id:old?.id||("update_"+Date.now()),version,title,date:qs("#updateDate").value||new Date().toISOString().slice(0,10),summary:qs("#updateSummary").value.trim(),changes:qs("#updateChanges").value.split("\n").map(x=>x.trim()).filter(Boolean),visible:qs("#updateVisible").checked,createdAt:old?.createdAt||new Date().toISOString()};
+ if(i!=="")studioConfig.updates[+i]=entry;else studioConfig.updates.unshift(entry);await saveConfigV8();resetUpdateEditorV242();alert("✅ Frissítés mentve.");
+});
+qs("#cancelUpdateEdit")?.addEventListener("click",resetUpdateEditorV242);
 
 
 // V10 gameplay editor
