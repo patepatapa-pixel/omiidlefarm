@@ -21,7 +21,7 @@ const ZONES=[
 ];
 const BASE_UPS=[
  {key:"weaponTraining",name:"Fegyveredzés",icon:"⚔️",base:20,desc:"+ sebzés"},
- {key:"armorTraining",name:"Páncéledzés",icon:"🛡️",base:25,desc:"+ boss arany"},
+ {key:"armorTraining",name:"Páncéledzés",icon:"🛡️",base:25,desc:"+ DEF, Max HP és boss arany"},
  {key:"mining",name:"Bányászat",icon:"⛏️",base:35,desc:"+ érc drop"},
  {key:"luck",name:"Szerencse",icon:"🍀",base:50,desc:"+ ritka drop"}
 ];
@@ -565,7 +565,7 @@ function renderUpgrade(){
  let equipped=Object.keys(save.equipped).map(s=>equipObj(s)).filter(Boolean);
  $("#upgradeSlots").innerHTML=equipped.length?equipped.map(it=>`<div class="upgrade-target rarity-${it.rarity}"><div><b>${SLOT_ICONS[it.slot]} ${it.name} +${it.plus}</b><small>${itemSummary(it)}</small></div><button data-upgrade-item="${it.id}" ${it.plus>=15?"disabled":""}>${it.plus>=15?"MAX":`+${it.plus+1} · ${fmt(upgradeCost(it))} 💰 + ${oreCost(it)} ⛏️`}</button></div>`).join(""):'<p class="muted">Nincs felszerelt tárgy.</p>';
  $("#upgradeInfo").innerHTML=[0,3,6,9,12,14].map(x=>`<div class="bonus-list"><div><span>+${x} → +${x+1}</span><b>${upgradeChance(x)}%</b></div></div>`).join("");
- $$("[data-upgrade-item]").forEach(b=>b.onclick=()=>{let it=save.inventory.find(x=>x.id==b.dataset.upgradeItem),gc=upgradeCost(it),oc=oreCost(it);if(save.gold<gc||save.ore<oc)return toast("Nincs elég arany vagy érc.");save.gold-=gc;save.ore-=oc;addFarmActivityV264("upgrades",1);let ok=Math.random()*100<upgradeChance(it.plus);if(ok){it.plus++;toast("✅ Fejlesztés sikeres! +"+it.plus)}else{toast("❌ Fejlesztés sikertelen.")}persist();renderAll()})
+ $$("[data-upgrade-item]").forEach(b=>b.onclick=()=>{let it=save.inventory.find(x=>x.id==b.dataset.upgradeItem),gc=upgradeCost(it),oc=oreCost(it);if(save.gold<gc||save.ore<oc)return toast("Nincs elég arany vagy érc.");save.gold-=gc;save.ore-=oc;let ok=Math.random()*100<upgradeChance(it.plus);if(ok){it.plus++;toast("✅ Fejlesztés sikeres! +"+it.plus)}else{toast("❌ Fejlesztés sikertelen.")}persist();renderAll()})
 }
 function renderSkills(){
  if(save.skillResetNotice){
@@ -1474,11 +1474,11 @@ function waveKillRequirement(wave){
 function realFarmGearV262(){return Object.keys(save.equipped||{}).map(slot=>equipObj(slot)).filter(it=>it&&!it.starterV260&&!it.unsellable)}
 function farmGearScoreV262(){return Math.floor(realFarmGearV262().reduce((sum,it)=>{const st=itemStats(it),opts=Array.isArray(it.options)?it.options.reduce((n,o)=>n+Math.max(0,Number(o?.value||0))*.7,0):0;return sum+st.atk+st.def*.7+(st.crit+st.drop)*100+opts},0))}
 function addFarmActivityV264(type,count=1){save.farmActivityV264=save.farmActivityV264||{drops:0,bosses:0,upgrades:0,dungeons:0};if(type in save.farmActivityV264)save.farmActivityV264[type]=Math.max(0,Number(save.farmActivityV264[type]||0)+Math.max(0,Number(count||0)))}
-function farmActivityPointsV264(){const a=save.farmActivityV264||{};return Math.min(5,Number(a.drops||0))+Math.min(6,Number(a.bosses||0)*3)+Math.min(8,Number(a.upgrades||0)*4)+Math.min(8,Number(a.dungeons||0)*8)}
+function farmActivityPointsV264(){const a=save.farmActivityV264||{};return Math.min(5,Number(a.drops||0))+Math.min(6,Number(a.bosses||0)*3)}
 function farmCheckpointPassedV264(wave){const checkpoint=Math.floor(Math.max(0,Number(wave||0))/25)*25;return checkpoint<25||Number(save.lastFarmCheckpointV264||0)>=checkpoint}
 function farmReadinessV262(wave=save.wave){
  wave=Math.max(1,Number(wave||1));
- const points=farmActivityPointsV264(),target=15,checkpoint=wave>=25&&wave%25===0,passed=checkpoint&&Number(save.lastFarmCheckpointV264||0)>=wave;
+ const points=farmActivityPointsV264(),target=11,checkpoint=wave>=25&&wave%25===0,passed=checkpoint&&Number(save.lastFarmCheckpointV264||0)>=wave;
  return {points,target,pct:Math.min(1,points/target),ready:!checkpoint||passed||points>=target,checkpoint,passed};
 }
 function renderFarmReadinessV262(){
@@ -1486,7 +1486,7 @@ function renderFarmReadinessV262(){
  const blocked=r.checkpoint&&!r.ready;box.classList.toggle("blocked",blocked);if(bar)bar.style.width=Math.round(r.pct*100)+"%";
  const a=save.farmActivityV264||{},next=Math.max(25,Math.ceil(save.wave/25)*25);
  if(title)title.textContent=save.wave<25?`Farm aktivitás · ${r.points}/${r.target}`:`Farm aktivitás · ${r.points}/${r.target} pont`;
- if(text)text.textContent=`Wave ${next} ellenőrzés · Drop ${Math.min(5,a.drops||0)}/5 · Boss ${Math.min(2,a.bosses||0)}/2 · Fejlesztés ${Math.min(2,a.upgrades||0)}/2 · Dungeon ${Math.min(1,a.dungeons||0)}/1`;
+ if(text)text.textContent=`Wave ${next} ellenőrzés · Drop ${Math.min(5,a.drops||0)}/5 · Boss ${Math.min(2,a.bosses||0)}/2 · Fejlesztés és dungeon nem kell`;
  if(state)state.textContent=blocked?"⚠️ MÉG KELL AKTIVITÁSPONT":r.points>=r.target?"✅ KÖVETKEZŐ PRÓBA KÉSZ":"⚔️ AKTIVITÁS GYŰJTÉSE";
  renderUpgradeAllFarmGearV263();
 }
@@ -1504,13 +1504,12 @@ function upgradeAllFarmGearV263(){
  if(save.gold<c.gold||save.ore<c.ore)return toast(`❌ A teljes körhöz ${fmt(c.gold)} arany és ${fmt(c.ore)} érc szükséges.`);
  if(!confirm(`${c.items.length} felszerelt tárgy egyszeri fejlesztési köre?\n\nTeljes költség: ${fmt(c.gold)} arany + ${fmt(c.ore)} érc\nMinden tárgy a saját fejlesztési esélyével próbálkozik.`))return;
  save.gold-=c.gold;save.ore-=c.ore;let success=0;c.items.forEach(it=>{if(Math.random()*100<upgradeChance(it.plus)){it.plus++;success++}});
- addFarmActivityV264("upgrades",c.items.length);
  persist();renderAll();toast(`⚒️ Közös fejlesztés: ${success}/${c.items.length} sikeres · -${fmt(c.gold)} arany · -${fmt(c.ore)} érc`);
 }
 function passFarmCheckpointV262(wave=save.wave,show=true){
  const r=farmReadinessV262(wave);if(!r.checkpoint)return true;if(r.passed)return true;if(r.ready){save.lastFarmCheckpointV264=Math.max(Number(save.lastFarmCheckpointV264||0),Number(wave));save.farmActivityV264={drops:0,bosses:0,upgrades:0,dungeons:0};save.gearTrialFailsV262=0;if(show)toast(`✅ Wave ${wave} Farm aktivitás teljesítve!`);return true}
  save.waveKills=0;applyWaveGoal();enemyHp=normalEnemyMaxHp();
- if(show)toast(`⚔️ Wave ${wave}: még ${Math.max(0,r.target-r.points)} Farm aktivitáspont szükséges. Fejlessz tárgyat vagy teljesíts dungeont!`);
+ if(show)toast(`⚔️ Wave ${wave}: még ${Math.max(0,r.target-r.points)} Farm aktivitáspont szükséges. Szerezz tárgydropot vagy győzz le bosst!`);
  renderFarmReadinessV262();return false;
 }
 function applyWaveGoal(){
@@ -1545,17 +1544,21 @@ const V10_DEFAULTS={
  bossRewardMult:1,mobDamageHpPct:2.1,bossGemAmount:1,bossGemDropChance:20,defaultBossFixedGold:120
 };
 let V10CFG={...V10_DEFAULTS};
-let v10PlayerTimer=null,v10EnemyTimer=null,v10RegenTimer=null;
+let v10PlayerTimer=null,v10EnemyTimer=null,v10RegenTimer=null,v265GuardUntil=0;
 
 function v10Defense(){
  const b=bonuses(),io=itemOptionBonuses();
- return Math.max(0,Math.floor(((b.def||0)+(save.base?.armorTraining||1)*1.5+(save.level||1)*.35+save.prestigeLevel*2)*(1+io.defPct/100)));
+ return Math.max(0,Math.floor(((b.def||0)+(save.base?.armorTraining||1)*3.5+(save.level||1)*.45+save.prestigeLevel*2.5)*(1+io.defPct/100)));
 }
+function defenseReductionV265(){const d=v10Defense(),g=window.OMI_CONTENT?.gameplay||{},cap=Math.max(.1,Math.min(.85,Number(g.defenseReductionCapPct??75)/100)),rating=Math.max(10,Number(g.defenseRatingBase??55)+save.zone*30+Math.pow(Math.max(1,save.wave),.72)*1.2);return Math.min(cap,d/(d+rating))}
+function defenseGuardChanceV265(){const d=Math.sqrt(Math.max(0,v10Defense())),g=window.OMI_CONTENT?.gameplay||{},cap=Math.max(0,Math.min(.4,Number(g.defenseGuardCapPct??25)/100));return Math.min(cap,(d/(d+18))*.35)}
+function dungeonDefenseModifierV266(){return Math.max(-.18,Math.min(.35,(defenseReductionV265()-.25)*.65+defenseGuardChanceV265()*.35))}
+function dungeonIncomingMultiplierV266(){return Math.max(.28,1-defenseReductionV265()*.75-defenseGuardChanceV265()*.25)}
 function v10MaxHp(){
  const io=itemOptionBonuses();
  const cfg=(typeof V10CFG!=="undefined"&&V10CFG)?V10CFG:V10_DEFAULTS;
  return Math.max(1,Math.floor(
-   (cfg.basePlayerHp+(save.level-1)*cfg.hpPerLevel+v10Defense()*1.5+save.paragonLevel*8)*(1+io.hpPct/100)
+   (cfg.basePlayerHp+(save.level-1)*cfg.hpPerLevel+v10Defense()*2.5+save.paragonLevel*8)*(1+io.hpPct/100)
  ));
 }
 function v10BossMaxHp(){
@@ -1566,10 +1569,11 @@ function v10BossMaxHp(){
 function v10EnemyMaxHp(){return save.waveBoss?v10BossMaxHp():normalEnemyMaxHp()}
 function v10RawEnemyDamage(){
  const z=ZONES[save.zone],mx=v10MaxHp();
- let raw=mx*(V10CFG.mobDamageHpPct/100);
- raw += save.zone*5 + Math.pow(save.wave,1.08)*.32 + z.gold*.0015;
+ const mobPct=4.2+save.zone*.12+Math.min(1.8,save.wave/800),bossPct=9.2+save.zone*.22+Math.min(2.8,save.wave/550);
+ let raw=mx*((save.waveBoss?bossPct:mobPct)/100);
+ raw += save.zone*2+Math.pow(save.wave,1.04)*.08+z.gold*.0005;
  raw*=V10CFG.monsterDamageMult;
- if(save.waveBoss)raw*=V10CFG.bossDamageMult;
+ if(save.waveBoss)raw*=Math.max(.5,Number(V10CFG.bossDamageMult||1.45)/1.45);
 
  // Kezdővédelem: az első területen / alacsony szinten a normál mob
  // veszélyes, de nem tud respawn-loopba zárni.
@@ -1579,9 +1583,13 @@ function v10RawEnemyDamage(){
  }
  return Math.max(1,Math.floor(raw));
 }
-function v10EnemyHit(){
- const reduction=Math.min(.82,v10Defense()*(V10CFG.defenseEffectPct/100));
- return Math.max(1,Math.floor(v10RawEnemyDamage()*(1-reduction)));
+function v10EnemyHit(rollGuard=false){
+ let hit=v10RawEnemyDamage()*(1-defenseReductionV265());
+ if(rollGuard&&Math.random()<defenseGuardChanceV265()){
+   const g=window.OMI_CONTENT?.gameplay||{},guardReduction=Math.max(.2,Math.min(.8,Number(g.defenseGuardReductionPct??50)/100));hit*=1-guardReduction;
+   v265GuardUntil=Date.now()+650;const fighter=$("#page-farm .v10-fighter.player");if(fighter){fighter.classList.add("guard-v265");setTimeout(()=>fighter.classList.remove("guard-v265"),650)}
+ }
+ return Math.max(1,Math.floor(hit));
 }
 function v10IsAlive(){return !save.respawnUntil || Date.now()>=save.respawnUntil}
 function v10EnsurePlayerHp(){
@@ -1747,7 +1755,7 @@ function v10PlayerAttack(){
 function v10EnemyAttack(){
  if(!v10IsAlive())return;
  v10EnsurePlayerHp();
- save.playerHp=Math.max(0,save.playerHp-v10EnemyHit());
+ save.playerHp=Math.max(0,save.playerHp-v10EnemyHit(true));
  if(save.playerHp<=0){
    const diedToBoss=Boolean(save.waveBoss);
    save.deaths++;
@@ -1807,15 +1815,17 @@ function v10Render(){
  const pb=$("#playerHpBar");if(pb)pb.style.width=Math.min(100,hp/mx*100)+"%";
  if($("#playerHpText"))$("#playerHpText").textContent=`${fmt(Math.ceil(hp))} / ${fmt(mx)} HP`;
  if($("#combatDefense"))$("#combatDefense").textContent=fmt(v10Defense());
+ if($("#combatDefenseReduction"))$("#combatDefenseReduction").textContent=(defenseReductionV265()*100).toFixed(1)+"%";
+ if($("#combatGuardChance"))$("#combatGuardChance").textContent=(defenseGuardChanceV265()*100).toFixed(1)+"%";
  if($("#enemyDamageText"))$("#enemyDamageText").textContent=fmt(v10EnemyHit());
  if($("#enemyRegenText"))$("#enemyRegenText").textContent=`💚 Regen ${save.waveBoss?V10CFG.bossRegenPct:V10CFG.mobRegenPct}%/mp`;
  if($("#enemyAttackSpeedText"))$("#enemyAttackSpeedText").textContent=`⏱️ ${V10CFG.enemyAttackSec} mp`;
  if($("#playerCombatState")){
    const left=Math.max(0,Math.ceil((save.respawnUntil-Date.now())/1000));
-   $("#playerCombatState").textContent=v10IsAlive()?"⚔️ Automatikusan harcol":`🛡️ Újraéledési védelem: ${left} mp · MAX HP`;
+   $("#playerCombatState").textContent=v10IsAlive()?(Date.now()<v265GuardUntil?"🛡️ BLOKK!":"⚔️ Automatikusan harcol"):`🛡️ Újraéledési védelem: ${left} mp · MAX HP`;
  }
  if($("#charStatHP"))$("#charStatHP").textContent=`${fmt(Math.ceil(hp))} / ${fmt(mx)}`;
- if($("#charStatDefense"))$("#charStatDefense").textContent=fmt(v10Defense());
+ if($("#charStatDefense"))$("#charStatDefense").textContent=`${fmt(v10Defense())} · ${(defenseReductionV265()*100).toFixed(1)}% csökk. · ${(defenseGuardChanceV265()*100).toFixed(1)}% blokk`;
  if($("#charStatDeaths"))$("#charStatDeaths").textContent=fmt(save.deaths);
  if($("#enemyHp"))$("#enemyHp").textContent=fmt(Math.max(0,Math.ceil(enemyHp)));
  if($("#enemyMaxHp"))$("#enemyMaxHp").textContent=fmt(em);
@@ -1909,7 +1919,8 @@ const v11BaseRawDamage=v10RawEnemyDamage;
 v10RawEnemyDamage=function(){
  const b=save.waveBoss?v11Boss():null;
  if(!b)return v11BaseRawDamage();
- let raw=Number(b.damage||10)*V10CFG.bossDamageMult;
+ const scaled=v10MaxHp()*((9.5+save.zone*.25+Math.min(3,save.wave/500))/100),configured=Math.max(0,Number(b.damage||0));
+ let raw=Math.max(configured,scaled)*Math.max(.5,Number(V10CFG.bossDamageMult||1.45)/1.45);
  return Math.max(1,Math.floor(raw));
 };
 const v11BaseAwardBoss=v10AwardBossKill;
@@ -4064,6 +4075,7 @@ document.addEventListener("click",e=>{
     else if(ratio < 1.50) c = .70 + (ratio-1.00)*.40; // 70–90%
     else c = .90 + Math.min(.05,(ratio-1.50)*.03);    // max 95%
 
+    c+=typeof dungeonDefenseModifierV266==="function"?dungeonDefenseModifierV266():0;
     return Math.max(.05,Math.min(.95,c));
   }
 
@@ -4352,7 +4364,7 @@ document.addEventListener("click",e=>{
           <div class="v219-fighter-main">
             <div class="v219-name-row"><b>Saját karakter</b><span>${F(Math.max(0,b.playerHp))} / ${F(b.playerMaxHp)} HP</span></div>
             <div class="v219-hp"><div style="width:${php}%"></div></div>
-            <small>⚔️ Erő: ${F(P())}</small>
+            <small>⚔️ Erő: ${F(P())} · 🛡️ DEF: ${F(typeof v10Defense==="function"?v10Defense():0)} · 🧱 ${typeof defenseReductionV265==="function"?(defenseReductionV265()*100).toFixed(1):0}%</small>
           </div>
         </div>
 
@@ -4457,6 +4469,7 @@ document.addEventListener("click",e=>{
       else if(ratio<1.00)c=.45+(ratio-.80)*1.25;
       else if(ratio<1.50)c=.70+(ratio-1.00)*.40;
       else c=.90+Math.min(.05,(ratio-1.50)*.03);
+      c+=typeof dungeonDefenseModifierV266==="function"?dungeonDefenseModifierV266():0;
       return Math.max(.05,Math.min(.95,c));
     })();
 
@@ -4490,9 +4503,10 @@ document.addEventListener("click",e=>{
 
       if(b.win){
         const bossDmg=Math.max(1,Math.floor(b.bossMaxHp/roundsTarget*(.82+Math.random()*.35)));
-        const incoming=d.safe
+        const incomingBase=d.safe
           ? Math.max(1,Math.floor(b.playerMaxHp*.035))
           : Math.max(1,Math.floor(b.playerMaxHp*(.045+Math.random()*.045)));
+        const incoming=Math.max(1,Math.floor(incomingBase*(typeof dungeonIncomingMultiplierV266==="function"?dungeonIncomingMultiplierV266():1)));
         b.bossHp=Math.max(0,b.bossHp-bossDmg);
         b.playerHp=d.safe
           ? Math.max(Math.floor(b.playerMaxHp*.35),b.playerHp-incoming)
@@ -4506,7 +4520,7 @@ document.addEventListener("click",e=>{
         }
       }else{
         const bossDmg=Math.max(1,Math.floor(b.bossMaxHp*(.045+Math.random()*.045)));
-        const incoming=Math.max(1,Math.floor(b.playerMaxHp*(.11+Math.random()*.09)));
+        const incoming=Math.max(1,Math.floor(b.playerMaxHp*(.11+Math.random()*.09)*(typeof dungeonIncomingMultiplierV266==="function"?dungeonIncomingMultiplierV266():1)));
         b.bossHp=Math.max(Math.floor(b.bossMaxHp*.18),b.bossHp-bossDmg);
         b.playerHp=Math.max(0,b.playerHp-incoming);
         b.log=`⚔️ ${F(bossDmg)} sebzés a bossnak · 💥 ${F(incoming)} sebzést kaptál.`; triggerDungeonEffect(b.dungeon.effectType); document.getElementById("v219DungeonBattle")?.classList.add("v220-hit"); setTimeout(()=>document.getElementById("v219DungeonBattle")?.classList.remove("v220-hit"),180);

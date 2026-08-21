@@ -298,6 +298,22 @@ async function init(){
     updateContent.updates.unshift({id:"v22_64",version:"V22.64",title:"Farm aktivitás és kezdőgear eltávolítás",date:"2026-08-21",summary:"A gear-erő kapu helyett többféle játéktevékenység biztosítja a folyamatos és változatos wave-haladást.",changes:["A gear-erő követelmény teljesen megszűnt.","Minden 25. wave előtt 15 Farm aktivitáspont gyűjthető.","A tárgydrop legfeljebb 5, két boss összesen 6 pontot ad.","Egy tárgyfejlesztési próbálkozás 4 pontot ad, így a kizárólagos wave-farm önmagában nem elég.","Egy dungeon teljesítése 8 pontot ad, és kiválthatja a fejlesztési utat.","Az aktivitás már menet közben gyűlik, ezért aktív játéknál az ellenőrzőpont nem lassítja a wave-et.","A Paragon a legutóbbi Farm aktivitás ellenőrzés teljesítését is vizsgálja.","A Kalandor kezdőfelszerelés kiosztása megszűnt.","A korábban kiosztott Kalandor kezdőtárgyak mentésbetöltéskor automatikusan eltávolításra kerülnek.","A MINDENT FEJLESZT gomb megmaradt, és aktivitáspontot is ad."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_65")){
+    updateContent.updates.unshift({id:"v22_65",version:"V22.65",title:"Jelentős DEF és blokkolás",date:"2026-08-21",summary:"A védelem most valóban meghatározza a túlélést: sebzéscsökkentést, több HP-t és blokkolási esélyt biztosít.",changes:["A DEF új, területhez és wave-hez igazodó sebzéscsökkentési képletet kapott.","A közepes védelem már érezhető, a magas védelem pedig fokozatosan közelít a 75%-os maximumhoz.","A DEF külön blokkolási esélyt ad, legfeljebb 25%-ot.","Sikeres blokk alapból további 50%-kal csökkenti az adott ütést.","A DEF maximális HP-hoz adott értéke 1,5-ről 2,5 HP-ra nőtt pontonként.","A Páncéledzés szintenként lényegesen több valódi védelmet ad.","Az Automata harc élőben mutatja a DEF-et, a sebzéscsökkentést és a blokk esélyét.","Blokkoláskor külön látványos BLOKK jelzés jelenik meg.","A Karakter statisztikában is látszik mindhárom védelmi érték."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_66")){
+    updateContent.updates.unshift({id:"v22_66",version:"V22.66",title:"DEF-hez hangolt teljes PvE sebzés",date:"2026-08-21",summary:"A mobok, wave bossok, egyedi bossok és dungeonok sebzése most az új védelemrendszerhez igazodik.",changes:["A normál mobok alapsebzése a játékos HP-jához, az aktuális területhez és a wave-hez skálázódik.","A wave bossok külön, lényegesen veszélyesebb sebzésgörbét kaptak.","Az adminból létrehozott bossok megtartják a beállított sebzésüket, de legalább a megfelelő wave-szintű veszélyt jelentik.","A DEF sebzéscsökkentése minden normál és bossütésre érvényes.","A dungeon sikerességi esélyét az erő mellett most a DEF és a blokk esélye is módosítja.","Alacsony védelem csökkenti, megfelelő védelem érezhetően növeli a dungeon győzelmi esélyét.","A dungeonban kijelzett beérkező sebzés ténylegesen csökken a DEF alapján.","A dungeon harci felület kiírja az aktuális DEF-et és sebzéscsökkentést.","A kezdő szakasz védelmet kapott a halálspirál ellen, miközben a későbbi bossok veszélyesek maradnak."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_67")){
+    updateContent.updates.unshift({id:"v22_67",version:"V22.67",title:"Dungeon nélküli Farm aktivitás",date:"2026-08-21",summary:"A wave- és Paragon-haladáshoz többé semmilyen dungeon teljesítése nem szükséges.",changes:["A dungeon kikerült a Farm aktivitáspontok forrásai közül.","A 15 pont pontosan teljesíthető 5 drop-ponttal, 6 boss-ponttal és egy 4 pontos tárgyfejlesztéssel.","A dungeon továbbra is külön jutalmas opcionális tartalom marad.","A Farm aktivitás panel egyértelműen jelzi, hogy dungeon nem szükséges.","A wave ellenőrzőpont és a Paragon kizárólag a dropot, bossokat és tárgyfejlesztést vizsgálja."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_68")){
+    updateContent.updates.unshift({id:"v22_68",version:"V22.68",title:"Fejlesztés nélküli Farm aktivitás",date:"2026-08-21",summary:"A wave- és Paragon-haladáshoz többé tárgyfejlesztés sem szükséges.",changes:["A tárgyfejlesztés kikerült a Farm aktivitáspontok forrásai közül.","A Farm aktivitás követelménye 15-ről 11 pontra csökkent.","Öt tárgydrop összesen 5 pontot ad.","Két boss legyőzése összesen 6 pontot ad.","A MINDENT FEJLESZT gomb megmarad, de nem befolyásolja a wave- vagy Paragon-haladást.","Sem dungeon, sem tárgyfejlesztés nem kötelező az ellenőrzőpontokhoz."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
   const capMigration="v2246_wallet_caps";
   const capDone=(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[capMigration])).rows[0];
   if(!capDone){
@@ -347,7 +363,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.64.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.68.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{
