@@ -33,10 +33,20 @@ $("#banBtn").onclick=async()=>{if(!selected)return;try{await api(`/api/admin/pla
 $("#resetBtn").onclick=async()=>{if(!selected||!confirm("Biztosan teljesen reseteljük ennek a játékosnak a mentését?"))return;try{await api(`/api/admin/player/${selected.user.id}/reset`,{method:"POST",body:"{}"});toast("Mentés resetelve.");$("#playerModal").classList.remove("open");loadPlayers()}catch(e){toast(e.message)}};
 $("#grantBtn").onclick=async()=>{if(!selected)return;try{await api(`/api/admin/player/${selected.user.id}/grant`,{method:"POST",body:JSON.stringify({type:$("#grantType").value,amount:Number($("#grantAmount").value)})});toast("Jutalom hozzáadva.");openPlayer(selected.user.id)}catch(e){toast(e.message)}};
 async function loadLogs(){try{let d=await api("/api/admin/logs");$("#logs").innerHTML=d.rows.map(x=>`<div class="quest"><b>${x.action}</b><small>${x.admin_name||"?"} → ${x.target_name||"?"} · ${new Date(x.created_at).toLocaleString("hu-HU")}</small></div>`).join("")||"<p>Nincs napló.</p>"}catch(e){toast(e.message)}}
-$$("[data-a]").forEach(b=>b.onclick=()=>{$$("[data-a]").forEach(x=>x.classList.remove("active"));$$("[id^='a-']").forEach(x=>x.classList.remove("active"));b.classList.add("active");$("#a-"+b.dataset.a).classList.add("active");if(b.dataset.a==="logs")loadLogs()});
+async function loadAntiCheatV276(){
+ try{
+  const d=await api("/api/admin/anticheat-alerts"),rows=d.rows||[],unread=rows.filter(x=>x.status==="new").length;
+  $("#antiCheatCountV276").textContent=unread;
+  $("#antiCheatAlertsV276").innerHTML=rows.length?rows.map(x=>{const e=x.evidence||{};return `<article class="anticheat-alert-v276 ${x.status==="new"?"new":"read"}"><div class="anticheat-risk-v276"><b>${x.risk_level==="high"?"MAGAS":"GYANÚS"}</b><span>${Number(e.cps||0).toFixed(1)} katt/mp</span></div><div><h3>⚠️ ${x.player_name||x.username}</h3><p>${Number(e.samples||0)} kattintás · szabályosság ${Math.round(Number(e.regularity||0)*100)}% · azonos cél ${Math.round(Number(e.sameTargetRatio||0)*100)}%</p><small>${new Date(x.created_at).toLocaleString("hu-HU")} · Jelzés #${x.id}</small></div><div class="anticheat-actions-v276">${x.status==="new"?`<button data-anticheat-read="${x.id}">✓ Megnéztem</button>`:"<span>✓ Ellenőrizve</span>"}<button data-anticheat-player="${x.user_id}">👤 Játékos</button></div></article>`}).join(""):"<div class='anticheat-empty-v276'>✅ Nincs autoclicker-gyanús esemény.</div>";
+  $$('[data-anticheat-read]').forEach(b=>b.onclick=async()=>{await api(`/api/admin/anticheat-alert/${b.dataset.anticheatRead}/read`,{method:"POST",body:"{}"});loadAntiCheatV276()});
+  $$('[data-anticheat-player]').forEach(b=>b.onclick=()=>openPlayer(b.dataset.anticheatPlayer));
+ }catch(e){toast(e.message)}
+}
+$$("[data-a]").forEach(b=>b.onclick=()=>{$$("[data-a]").forEach(x=>x.classList.remove("active"));$$("[id^='a-']").forEach(x=>x.classList.remove("active"));b.classList.add("active");$("#a-"+b.dataset.a).classList.add("active");if(b.dataset.a==="logs")loadLogs();if(b.dataset.a==="anticheat")loadAntiCheatV276()});
 $("#refreshPlayers").onclick=loadPlayers;
+$("#refreshAntiCheatV276").onclick=loadAntiCheatV276;
 $("#adminLogout").onclick=async()=>{try{await api("/api/logout",{method:"POST",body:"{}"})}catch{}location.href="/"};
-ensureAdmin();
+ensureAdmin();setTimeout(loadAntiCheatV276,500);setInterval(loadAntiCheatV276,20000);
 
 
 // V8 ADMIN STUDIO
@@ -46,9 +56,9 @@ async function sa(url,opt={}){let r=await fetch(url,{headers:{"Content-Type":"ap
 const num=id=>Number(qs(id)?.value||0);
 async function loadStudioV8(){try{let p=await sa("/api/admin/players-full");studioPlayers=p.players||[];qs("#studioPlayer").innerHTML=studioPlayers.map(x=>`<option value="${x.id}">${x.username}</option>`).join("");fillSP();let c=await sa("/api/content-config");studioConfig={bosses:[],items:[],pets:[],auras:[],zones:[],updates:[],...(c.config||{})};renderBuildersV8()}catch(e){console.error(e)}}
 function curSP(){return studioPlayers.find(x=>String(x.id)===qs("#studioPlayer").value)}
-function fillSP(){let p=curSP();if(!p)return;let s=p.save_data||{},v={admLevel:s.level||1,admParagon:s.paragonLevel||0,admPrestige:s.prestigeLevel||0,admGold:s.gold||0,admGems:s.gems||0,admOre:s.ore||0,admSoul:s.soul||0,admTickets:s.tickets||0,admSkillPoints:s.skillPoints||0,admParagonPoints:s.paragonPoints||0,admAuraTokens:s.auraTokens||0,admWave:s.wave||1,admKills:s.kills||0,admLuck:s.base?.luck||1};Object.entries(v).forEach(([k,x])=>qs("#"+k).value=x);qs("#playerSaveJson").value=JSON.stringify(s,null,2)}
+function fillSP(){let p=curSP();if(!p)return;let s=p.save_data||{},v={admLevel:s.level||1,admParagon:s.paragonLevel||0,admPrestige:s.prestigeLevel||0,admGold:s.gold||0,admGems:s.gems||0,admOre:s.ore||0,admSoul:s.soul||0,admTickets:s.tickets||0,admSkillPoints:s.skillPoints||0,admParagonPoints:s.paragonPoints||0,admAuraTokens:s.auraTokens||0,admPrestigeTokens:s.prestigeTokens||0,admWave:s.wave||1,admKills:s.kills||0,admLuck:s.base?.luck||1};Object.entries(v).forEach(([k,x])=>qs("#"+k).value=x);qs("#playerSaveJson").value=JSON.stringify(s,null,2)}
 qs("#studioPlayer")?.addEventListener("change",fillSP);
-qs("#savePlayerStats")?.addEventListener("click",async()=>{let p=curSP(),s=structuredClone(p.save_data||{});Object.assign(s,{level:num("#admLevel"),paragonLevel:num("#admParagon"),prestigeLevel:num("#admPrestige"),gold:num("#admGold"),gems:num("#admGems"),ore:num("#admOre"),soul:num("#admSoul"),tickets:num("#admTickets"),skillPoints:num("#admSkillPoints"),paragonPoints:num("#admParagonPoints"),auraTokens:num("#admAuraTokens"),wave:num("#admWave"),kills:num("#admKills")});s.base={...(s.base||{}),luck:num("#admLuck")};s.speed10Unlocked=Boolean(qs("#admSpeed10Unlocked")?.checked);if(!s.speed10Unlocked&&Number(s.combatSpeed)===10)s.combatSpeed=3;await sa("/api/admin/player-save",{method:"POST",body:JSON.stringify({id:p.id,save:s})});p.save_data=s;fillSP();alert("✅ Mentve")});
+qs("#savePlayerStats")?.addEventListener("click",async()=>{let p=curSP(),s=structuredClone(p.save_data||{});Object.assign(s,{level:num("#admLevel"),paragonLevel:num("#admParagon"),prestigeLevel:Math.min(100,num("#admPrestige")),gold:num("#admGold"),gems:num("#admGems"),ore:num("#admOre"),soul:num("#admSoul"),tickets:num("#admTickets"),skillPoints:num("#admSkillPoints"),paragonPoints:num("#admParagonPoints"),auraTokens:num("#admAuraTokens"),prestigeTokens:num("#admPrestigeTokens"),wave:num("#admWave"),kills:num("#admKills")});s.base={...(s.base||{}),luck:num("#admLuck")};s.speed10Unlocked=Boolean(qs("#admSpeed10Unlocked")?.checked);if(!s.speed10Unlocked&&Number(s.combatSpeed)===10)s.combatSpeed=3;await sa("/api/admin/player-save",{method:"POST",body:JSON.stringify({id:p.id,save:s})});p.save_data=s;fillSP();alert("✅ Mentve")});
 qs("#savePlayerJson")?.addEventListener("click",async()=>{try{let p=curSP(),s=JSON.parse(qs("#playerSaveJson").value);await sa("/api/admin/player-save",{method:"POST",body:JSON.stringify({id:p.id,save:s})});p.save_data=s;fillSP();alert("✅ Teljes mentés frissítve")}catch(e){alert("❌ "+e.message)}});
 qsa("[data-studio]").forEach(b=>b.onclick=()=>{qsa(".studio-page").forEach(x=>x.classList.remove("active"));qs("#studio-"+b.dataset.studio).classList.add("active")});
 const schemas={
@@ -147,7 +157,11 @@ const V10_GAMEPLAY_DEFAULTS={
  goldBonusCapPct:100,
  mobTargetHits:2,
  zoneHpMultipliers:[100,100,100,100,100,100,100,100],
- zoneFixedGold:[5,9,16,28,48,80,130,210]
+ zoneFixedGold:[5,9,16,28,48,80,130,210],
+ zoneFixedXp:[6,15,35,85,220,600,1650,4500],
+ zoneSoulDropChancePct:[1,1.5,2,2.5,3,3.5,4,5],
+ zoneSoulDropMin:[1,1,1,1,1,1,1,1],
+ zoneSoulDropMax:[1,1,1,2,2,2,3,3]
 };
 
 function v10GameplayCfg(){
@@ -176,15 +190,19 @@ function fillDefaultBossGems(){
 const V226_ZONE_NAMES=["Zöld mező","Sötét erdő","Elhagyott bánya","Démon torony","Sárkány-völgy","Mennydörgés fennsík","Üresség","Isteni kapu"];
 function v226ZoneNames(){return [...V226_ZONE_NAMES,...(studioConfig.zones||[]).map(z=>z.name||"Egyedi terület")]}
 function fillZoneHpBalance(){
- const g=v10GameplayCfg(),multipliers=Array.isArray(g.zoneHpMultipliers)?g.zoneHpMultipliers:[],fixedGold=Array.isArray(g.zoneFixedGold)?g.zoneFixedGold:V10_GAMEPLAY_DEFAULTS.zoneFixedGold;
+ const g=v10GameplayCfg(),multipliers=Array.isArray(g.zoneHpMultipliers)?g.zoneHpMultipliers:[],fixedGold=Array.isArray(g.zoneFixedGold)?g.zoneFixedGold:V10_GAMEPLAY_DEFAULTS.zoneFixedGold,fixedXp=Array.isArray(g.zoneFixedXp)?g.zoneFixedXp:V10_GAMEPLAY_DEFAULTS.zoneFixedXp,soulChance=Array.isArray(g.zoneSoulDropChancePct)?g.zoneSoulDropChancePct:V10_GAMEPLAY_DEFAULTS.zoneSoulDropChancePct,soulMin=Array.isArray(g.zoneSoulDropMin)?g.zoneSoulDropMin:V10_GAMEPLAY_DEFAULTS.zoneSoulDropMin,soulMax=Array.isArray(g.zoneSoulDropMax)?g.zoneSoulDropMax:V10_GAMEPLAY_DEFAULTS.zoneSoulDropMax;
  if(qs("#cfgMobTargetHits"))qs("#cfgMobTargetHits").value=Number(g.mobTargetHits||2);
- const root=qs("#zoneHpBalanceEditor");if(root)root.innerHTML=v226ZoneNames().map((name,i)=>`<article class="zone-balance-card"><h4>🗺️ ${name}</h4><label>❤️ Mob HP szorzó %<input data-zone-hp-mult="${i}" type="number" min="10" max="1000" step="1" value="${Number(multipliers[i]??100)}"></label><label>💰 Fix arany / mob<input data-zone-fixed-gold="${i}" type="number" min="0" step="1" value="${Number(fixedGold[i]??studioConfig.zones?.[i-8]?.gold??0)}"></label><small>A normál mob mindig pontosan ezt adja; az aranydropp-bónusz csak a bossokra hat.</small></article>`).join("");
+ const root=qs("#zoneHpBalanceEditor");if(root)root.innerHTML=v226ZoneNames().map((name,i)=>`<article class="zone-balance-card"><h4>🗺️ ${name}</h4><label>❤️ Mob HP szorzó %<input data-zone-hp-mult="${i}" type="number" min="10" max="1000" step="1" value="${Number(multipliers[i]??100)}"></label><label>💰 Fix arany / mob<input data-zone-fixed-gold="${i}" type="number" min="0" step="1" value="${Number(fixedGold[i]??studioConfig.zones?.[i-8]?.gold??0)}"></label><label>⭐ Fix XP / mob<input data-zone-fixed-xp="${i}" type="number" min="0" step="1" value="${Number(fixedXp[i]??studioConfig.zones?.[i-8]?.xp??0)}"></label><div class="v23201-soul-admin"><label>🔵 Lélekkő drop %<input data-zone-soul-chance="${i}" type="number" min="0" max="100" step="0.1" value="${Number(soulChance[i]??0)}"></label><label>🔵 Minimum db<input data-zone-soul-min="${i}" type="number" min="0" step="1" value="${Number(soulMin[i]??0)}"></label><label>🔵 Maximum db<input data-zone-soul-max="${i}" type="number" min="0" step="1" value="${Number(soulMax[i]??0)}"></label></div><small>0% = nincs Lélekkő drop. Minden normál mobnál külön dobás történik.</small></article>`).join("");
 }
 qs("#saveZoneHpBalance")?.addEventListener("click",async()=>{
  const g=v10GameplayCfg();g.mobTargetHits=Math.max(1,Number(qs("#cfgMobTargetHits")?.value||2));
  g.zoneHpMultipliers=v226ZoneNames().map((_,i)=>Math.max(10,Math.min(1000,Number(qs(`[data-zone-hp-mult="${i}"]`)?.value||100))));
  g.zoneFixedGold=v226ZoneNames().map((_,i)=>Math.max(0,Math.floor(Number(qs(`[data-zone-fixed-gold="${i}"]`)?.value??0))));
- studioConfig.gameplay=g;await saveConfigV8();fillZoneHpBalance();alert("✅ A területi HP- és aranyszorzók elmentve.");
+ g.zoneFixedXp=v226ZoneNames().map((_,i)=>Math.max(0,Math.floor(Number(qs(`[data-zone-fixed-xp="${i}"]`)?.value??0))));
+ g.zoneSoulDropChancePct=v226ZoneNames().map((_,i)=>Math.max(0,Math.min(100,Number(qs(`[data-zone-soul-chance="${i}"]`)?.value??0))));
+ g.zoneSoulDropMin=v226ZoneNames().map((_,i)=>Math.max(0,Math.floor(Number(qs(`[data-zone-soul-min="${i}"]`)?.value??0))));
+ g.zoneSoulDropMax=v226ZoneNames().map((_,i)=>Math.max(g.zoneSoulDropMin[i],Math.floor(Number(qs(`[data-zone-soul-max="${i}"]`)?.value??g.zoneSoulDropMin[i]))));
+ studioConfig.gameplay=g;await saveConfigV8();fillZoneHpBalance();alert("✅ Területi HP, arany, fix XP és Lélekkő drop elmentve.");
 });
 qs("#saveDefaultBossGems")?.addEventListener("click",async()=>{
  const g=v10GameplayCfg();
@@ -245,8 +263,10 @@ qs("#savePvpConfig")?.addEventListener("click",async()=>{
 function renderShopAdmin(){
  studioConfig.store={discord:"nervos11",products:[],...(studioConfig.store||{})};
  const defaults=[
-  {id:"premium_speed_10x",name:"10× Harci / Wave Sebesség",icon:"⚡",priceText:"3 €",description:"Prémium 10× farmsebesség",visible:true},
-  {id:"auto_paragon_10_eur",name:"Auto Paragon szintelő",icon:"🌟",priceText:"10 €",description:"Automatikus Paragon szintlépés",visible:true}
+  {id:"premium_speed_10x",name:"10× Harci / Wave Sebesség",icon:"⚡",priceText:"3 E-érme",description:"Prémium 10× farmsebesség",visible:true},
+  {id:"auto_paragon_10_eur",name:"Auto Paragon szintelő",icon:"🌟",priceText:"10 E-érme",description:"Automatikus Paragon szintlépés",visible:true},
+  {id:"full_auto_20_eur",name:"Teljes Automata Rendszer",icon:"🤖",priceText:"20 E-érme",description:"Teljes automatikus fejlődés Prestige-ig",visible:true},
+  {id:"dungeon_batch_10_eur",name:"Dungeon 2× / 3× / 5× futam",icon:"🏰",priceText:"10 E-érme",description:"Egyszerre több dungeon külön jutalom- és droppróbával",visible:true}
  ];
  defaults.forEach(d=>{if(!studioConfig.store.products.some(p=>p.id===d.id))studioConfig.store.products.unshift(d)});
  qs("#shopProductList").innerHTML=(studioConfig.store.products||[]).map((p,i)=>`<div class="builder-entry"><b>${p.icon||"💰"} ${p.name}</b><small>${p.priceText||""} · ${p.visible===false?"REJTVE":"LÁTHATÓ"} · ${p.description||""}</small><button data-shop-edit="${i}">Szerkesztés</button><button data-shop-del="${i}">Törlés</button></div>`).join("");
@@ -391,7 +411,7 @@ function v222FillEditor(){
   if(!selected)return;
   const s=selected.game?.save_data||{};
   v222Set("v222Gold",s.gold||0);
-  v222Set("v222Gems",s.gems||0);
+  v222Set("v222Gems",s.gems||0);v222Set("v222ECoins",s.eCoins||0);
   v222Set("v222Ore",s.ore||0);
   v222Set("v222Soul",s.soul||0);
   v222Set("v222Tickets",s.tickets||0);
@@ -402,6 +422,7 @@ function v222FillEditor(){
   v222Set("v222Prestige",s.prestigeLevel??s.prestige??0);
   v222Set("v222ParagonPoints",s.paragonStatPoints??s.statPoints??0);
   v222Set("v222AuraTokens",s.auraTokens||0);
+  v222Set("v222PrestigeTokens",s.prestigeTokens||0);
   v222Set("v222SkillPoints",s.skillPoints||0);
   v222Set("v222HpRegen",s.hpRegenLevel||0);
   v222Set("v222Kills",s.kills||selected.game?.kills||0);
@@ -423,6 +444,8 @@ function v222FillEditor(){
   if(t)t.checked=Boolean(s.speed10Unlocked);
   const ap=document.getElementById("v237AutoParagon");
   if(ap)ap.checked=Boolean(s.autoParagonUnlocked);
+  const db=document.getElementById("v279DungeonBatch");
+  if(db)db.checked=Boolean(s.dungeonBatchUnlocked);
   v222Set("v222CombatSpeed",s.combatSpeed||1);
 }
 async function v222ReloadSelected(){
@@ -432,11 +455,11 @@ async function v222ReloadSelected(){
 }
 function v222Payload(){
   return {
-    gold:v222Num("v222Gold"),gems:v222Num("v222Gems"),ore:v222Num("v222Ore"),
+    gold:v222Num("v222Gold"),gems:v222Num("v222Gems"),eCoins:v222Num("v222ECoins"),ore:v222Num("v222Ore"),
     soul:v222Num("v222Soul"),tickets:v222Num("v222Tickets"),level:v222Num("v222Level"),
     xp:v222Num("v222Xp"),wave:v222Num("v222Wave"),paragonLevel:v222Num("v222Paragon"),
     prestigeLevel:v222Num("v222Prestige"),paragonStatPoints:v222Num("v222ParagonPoints"),
-    auraTokens:v222Num("v222AuraTokens"),skillPoints:v222Num("v222SkillPoints"),
+    auraTokens:v222Num("v222AuraTokens"),prestigeTokens:v222Num("v222PrestigeTokens"),skillPoints:v222Num("v222SkillPoints"),
     hpRegenLevel:v222Num("v222HpRegen"),kills:v222Num("v222Kills"),deaths:v222Num("v222Deaths"),
     base:{
       weaponTraining:v222Num("v222WeaponTraining"),
@@ -451,6 +474,9 @@ function v222Payload(){
     },
     speed10Unlocked:Boolean(document.getElementById("v222Speed10")?.checked),
     autoParagonUnlocked:Boolean(document.getElementById("v237AutoParagon")?.checked),
+     fullAutoUnlocked:Boolean(document.getElementById("v299FullAuto")?.checked),
+     fullAutoEnabled:Boolean((curSP()?.save_data?.fullAutoEnabled ?? false) && document.getElementById("v299FullAuto")?.checked),
+    dungeonBatchUnlocked:Boolean(document.getElementById("v279DungeonBatch")?.checked),
     combatSpeed:Number(document.getElementById("v222CombatSpeed")?.value||1)
   };
 }
@@ -495,3 +521,16 @@ openPlayer=async function(id){
   await _v222OpenPlayer(id);
   setTimeout(v222FillEditor,0);
 };
+
+
+/* ================= V22.94 INGYENES JÁTÉK BEÁLLÍTÓ ================= */
+function gameAssistEsc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+async function runGameAssistant(){
+ const prompt=document.getElementById("gameAssistantPrompt"),btn=document.getElementById("gameAssistantRun"),st=document.getElementById("gameAssistantStatus"),request=String(prompt?.value||"").trim();
+ if(request.length<4)return alert("Írd le, mit szeretnél beállítani.");
+ btn.disabled=true;st.innerHTML='<b>⚙️ Beállítás feldolgozása...</b>';
+ try{const d=await api("/api/admin/game-assistant/apply",{method:"POST",body:JSON.stringify({request})});st.innerHTML=`<div class="ai-dev-success">✅ ${gameAssistEsc(d.message||"Elmentve.")}</div><div class="game-assistant-change-list">${(d.changes||[]).map(x=>`<span>• ${gameAssistEsc(x)}</span>`).join("")}</div>`;prompt.value="";if(d.config){studioConfig={bosses:[],items:[],pets:[],auras:[],zones:[],updates:[],...d.config};renderBuildersV8()}}
+ catch(e){st.innerHTML='<div class="ai-dev-error">❌ '+gameAssistEsc(e.message)+'</div>'}finally{btn.disabled=false}
+}
+document.addEventListener("click",e=>{if(e.target.id==="gameAssistantRun"){e.preventDefault();runGameAssistant()}});
+

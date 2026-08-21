@@ -4,8 +4,9 @@
 <header class="topbar"><div class="brand"><span>⚙️ OMI</span> ADMIN</div><div class="top-actions"><a href="/" style="color:#ddd">← Játék</a><button class="ghost" id="adminLogout">Kilépés</button></div></header>
 <main>
 <section class="hero card"><div><div class="eyebrow">ADMIN PANEL</div><h1>OMI Idle Farm kezelőfelület</h1><p>Játékosok, mentések, tiltások, jutalmak és ranglista ellenőrzése.</p></div><div class="hero-power"><small>JÁTÉKOSOK</small><strong id="playerCount">0</strong></div></section>
-<nav class="tabs" style="position:static;margin:12px 0"><button class="tab active" data-a="players">👥 Játékosok</button><button class="tab" data-a="logs">📜 Admin napló</button></nav>
+<nav class="tabs" style="position:static;margin:12px 0"><button class="tab active" data-a="players">👥 Játékosok</button><button class="tab" data-a="anticheat">🛡️ Csalásfigyelő <span id="antiCheatCountV276">0</span></button><button class="tab" data-a="logs">📜 Admin napló</button></nav>
 <section class="page active" id="a-players"><section class="card"><div class="title-row"><h2>👥 Játékosok</h2><button id="refreshPlayers">↻ Frissítés</button></div><div id="players"></div></section></section>
+<section class="page" id="a-anticheat"><section class="card anticheat-admin-v276"><div class="title-row"><div><h2>🛡️ Autoclicker-értesítések</h2><p class="muted">Az észlelés figyelmeztetés, nem automatikus bizonyíték. Tiltás előtt ellenőrizd a mintát.</p></div><button id="refreshAntiCheatV276">↻ Frissítés</button></div><div id="antiCheatAlertsV276"></div></section></section>
 <section class="page" id="a-logs"><section class="card"><h2>📜 Admin műveletek</h2><div id="logs"></div></section></section>
 </main>
 <div class="modal" id="playerModal"><div class="modal-box" style="width:min(650px,100%)"><button class="modal-x" id="playerClose">×</button><h2 id="pmName">Játékos</h2>
@@ -33,7 +34,7 @@
     <label>🌟 Paragon<input id="v222Paragon" type="number" min="0"></label>
     <label>👑 Prestige<input id="v222Prestige" type="number" min="0"></label>
     <label>📌 Paragon pont<input id="v222ParagonPoints" type="number" min="0"></label>
-    <label>✨ Aura token<input id="v222AuraTokens" type="number" min="0"></label>
+    <label>✨ Aura token<input id="v222AuraTokens" type="number" min="0"></label><label>🟡 Prestige token<input id="v222PrestigeTokens" type="number" min="0"></label>
 
     <label>📚 Skill pont<input id="v222SkillPoints" type="number" min="0"></label>
     <label>❤️ HP Regen szint<input id="v222HpRegen" type="number" min="0"></label>
@@ -55,7 +56,9 @@
 
   <div class="v222-premium-row">
     <label class="v222-check"><input id="v222Speed10" type="checkbox"> ⚡ 10× gyorsítás feloldva</label>
-    <label class="v222-check"><input id="v237AutoParagon" type="checkbox"> 🌟 Auto Paragon (10 €) feloldva</label>
+    <label class="v222-check"><input id="v237AutoParagon" type="checkbox"> 🌟 Auto Paragon (10 E-érme) feloldva</label>
+    <label class="v222-check"><input id="v299FullAuto" type="checkbox"> 🤖 Teljes Automata Rendszer (20 E-érme) feloldva</label>
+    <label class="v222-check"><input id="v279DungeonBatch" type="checkbox"> 🏰 Dungeon 2× / 3× / 5× (10 E-érme) feloldva</label>
     <label>Aktív speed
       <select id="v222CombatSpeed">
         <option value="1">1×</option>
@@ -80,7 +83,7 @@
 <h2>🛠️ ADMIN GAME STUDIO</h2>
 <p>Minden játékosérték és új játéktartalom kezelése egy helyen.</p>
 <div class="studio-tabs">
-<button data-studio="players">👥 Játékosok</button><button data-studio="gameplay">🎮 Játékmenet</button><button data-studio="pvp">⚔️ PvP</button><button data-studio="exchange">⚖️ Váltópiac / Pet árak</button><button data-studio="store">💳 Feltöltés / Shop</button><button data-studio="npcshop">🏪 NPC bolt</button><button data-studio="casino">🎰 Kaszinó</button><button data-studio="updates">📢 Frissítések</button><button data-studio="bosses">👹 Bossok</button><button data-studio="items">⚔️ Tárgyak</button><button data-studio="pets">🐾 Petek</button><button data-studio="auras">✨ Aurák</button><button data-studio="zones">🗺️ Területek</button><button data-studio="raw">🧬 Haladó</button>
+<button data-studio="players">👥 Játékosok</button><button data-studio="gameplay">🎮 Játékmenet</button><button data-studio="pvp">⚔️ PvP</button><button data-studio="exchange">⚖️ Váltópiac / Pet árak</button><button data-studio="store">🪙 E-érme / Beváltható csomagok</button><button data-studio="npcshop">🏪 NPC bolt</button><button data-studio="casino">🎰 Kaszinó</button><button data-studio="updates">📢 Frissítések</button><button data-studio="bosses">👹 Bossok</button><button data-studio="items">⚔️ Tárgyak</button><button data-studio="pets">🐾 Petek</button><button data-studio="auras">✨ Aurák</button><button data-studio="zones">🗺️ Területek</button><button data-studio="aidev">🤖 Játék Beállító</button><button data-studio="raw">🧬 Haladó</button>
 </div>
 
 <div class="studio-page" id="studio-exchange">
@@ -135,7 +138,7 @@
 </div>
 
 <div class="studio-page" id="studio-store">
- <h3>💳 Feltöltés / privát vásárlás</h3>
+ <h3>🪙 E-érme / beváltható csomagok</h3>
  <p class="muted">A weboldal csak vásárlási igényt rögzít. Fizetési adatot nem tárol. Discord elérhetőség: <b>nervos11</b>.</p>
  <div class="builder-form">
   <label>Termék ID<input id="shopProductId" placeholder="gold_1"></label>
@@ -221,7 +224,7 @@
 <div class="admin-stat-grid">
 <label>Level<input id="admLevel" type="number"></label><label>Paragon<input id="admParagon" type="number"></label><label>Prestige<input id="admPrestige" type="number"></label><label>Gold<input id="admGold" type="number"></label>
 <label>Gem<input id="admGems" type="number"></label><label>Érc<input id="admOre" type="number"></label><label>Lélek<input id="admSoul" type="number"></label><label>Jegy<input id="admTickets" type="number"></label>
-<label>Skill pont<input id="admSkillPoints" type="number"></label><label>Paragon pont<input id="admParagonPoints" type="number"></label><label>Aura token<input id="admAuraTokens" type="number"></label><label>Wave<input id="admWave" type="number"></label>
+<label>Skill pont<input id="admSkillPoints" type="number"></label><label>Paragon pont<input id="admParagonPoints" type="number"></label><label>Aura token<input id="admAuraTokens" type="number"></label><label>Prestige token<input id="admPrestigeTokens" type="number"></label><label>Wave<input id="admWave" type="number"></label>
 <label>Kill<input id="admKills" type="number"></label><label>Szerencse<input id="admLuck" type="number"></label><label>⚡ 10× Speed<input id="admSpeed10Unlocked" type="checkbox"></label>
 </div>
 <button id="savePlayerStats">💾 Statok mentése</button> <button id="savePlayerProfile">🎮 Játékosnév mentése</button> <button id="toggleLeaderboard">🏆 Ranglistáról elrejtés</button>
@@ -247,6 +250,17 @@
  </div>
  <button id="saveUpdateEntry">💾 Frissítés mentése</button><button id="cancelUpdateEdit" type="button">Mégse / új bejegyzés</button>
  <div id="adminUpdatesList" class="builder-list update-admin-list-v242"></div>
+</div>
+
+
+<div class="studio-page" id="studio-aidev">
+ <h3>🤖 Ingyenes Játék Beállító</h3>
+ <p class="muted">Nincs API-kulcs és nincs fizetős AI. Magyar mondatokból az előre engedélyezett játékértékeket állítja át az adatbázisban, ezért nincs szükség Render újratelepítésre.</p>
+ <div class="game-assistant-examples"><b>Példák:</b><span>Minden boss HP legyen 500000</span><span>Az Árnykirály sebzés legyen 2500</span><span>PvP jutalom legyen 5000 arany</span><span>PvP várakozás legyen 5</span><span>Lélekkő maximum legyen 50000</span></div>
+ <label class="ai-dev-prompt-label">Mit szeretnél beállítani?<textarea id="gameAssistantPrompt" class="ai-dev-prompt" placeholder="Példa: Minden boss HP legyen 800000"></textarea></label>
+ <div class="ai-dev-warning">✅ Csak engedélyezett játékértékeket módosít. Forráskódot, GitHubot és Rendert nem módosít.</div>
+ <button id="gameAssistantRun" class="ai-dev-run">💾 BEÁLLÍTÁS ALKALMAZÁSA</button>
+ <div id="gameAssistantStatus" class="ai-dev-status"></div>
 </div>
 
 <div class="studio-page" id="studio-raw"><h3>🧬 Teljes konfiguráció</h3><textarea id="contentJson" class="json-editor"></textarea><button id="saveContentJson">💾 Konfiguráció mentése</button></div>
