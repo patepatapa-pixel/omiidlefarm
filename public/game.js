@@ -347,7 +347,7 @@ function rarityName(k){return RARITIES.find(x=>x.key===k)?.name||k}
 function sellValue(it){if(it&&(it.unsellable||it.starterV260))return 0;let r=RARITIES.find(x=>x.key===it.rarity)||RARITIES[0];return Math.floor((5+save.level*1.2)*(1+save.zone*.35)*r.mult*(1+it.plus*.25))}
 function addItem(it){
  ensureItemOptions(it);if(!it.options.length)rollItemOptions(it);
- if(save.inventory.length>=120){save.gold+=sellValue(it);return toast("🎒 Inventory tele — tárgy automatikusan eladva.")}
+ if(save.inventory.length>=120 && Number(save.highestZoneEver||save.zone||0)>=3){save.gold+=sellValue(it);return toast("🎒 Inventory tele — tárgy automatikusan eladva.")}
  save.inventory.push(it);save.stats.itemsFound++;if(it.rarity==="legendary")save.stats.legendary++;
  $("#lastDrop").innerHTML=`<b class="rarity-${it.rarity}">${SLOT_ICONS[it.slot]} ${it.name} +${it.plus}</b><small>${rarityName(it.rarity)} · ${it.options.length}/5 opt</small>`;
  toast(`🎁 ${rarityName(it.rarity)} drop: ${it.name}`)
@@ -965,6 +965,7 @@ function doPrestige(automatic=false){
  save.level=1;save.xp=0;save.wave=1;save.waveKills=0;save.waveGoal=10;save.waveBoss=false;save.bossHp=0;save.zone=0;
  save.base={weaponTraining:1,armorTraining:1,mining:1,luck:1};
  save.gold=0;save.gems=0;save.ore=0;
+ if(save.autoDeleteSettings)save.autoDeleteSettings.enabled=false;
  // A képességfa és a kiosztott képességpontok Paragon után is tartósak.
  save.inventory=[];save.equipped={weapon:null,helmet:null,armor:null,gloves:null,boots:null,ring:null};
  save.playerHp=0;save.deaths=0;save.respawnUntil=0;enemyHp=normalEnemyMaxHp();v10EnsurePlayerHp();
@@ -990,6 +991,7 @@ function doTruePrestige(){
  save.paragonLevel=0; // A kiosztott Paragon statok és a megmaradt pontok tartósak.
  save.level=1;save.xp=0;save.wave=1;save.waveKills=0;save.waveGoal=8;save.waveBoss=false;save.bossHp=0;save.zone=0;
  save.base={weaponTraining:1,armorTraining:1,mining:1,luck:1};save.gold=0;save.gems=0;save.ore=0;
+ if(save.autoDeleteSettings)save.autoDeleteSettings.enabled=false;
  save.inventory=[];save.equipped={weapon:null,helmet:null,armor:null,gloves:null,boots:null,ring:null};
  save.playerHp=0;save.deaths=0;save.respawnUntil=0;enemyHp=normalEnemyMaxHp();v10EnsurePlayerHp();
  persist();if(currentUser&&cloudReady){cloudSave();setTimeout(()=>cloudSave(),900)}renderAll();
@@ -3544,6 +3546,11 @@ document.addEventListener("click",e=>{
   let cleanupLock=false;
   let lastRemoved=0;
 
+  function unlocked(){
+    const s=(typeof save!=="undefined"&&save)?save:null;
+    return Boolean(s && Number(s.highestZoneEver||s.zone||0)>=3);
+  }
+
   function cfg(){
     const s=(typeof save!=="undefined"&&save)?save:null;
     if(!s)return JSON.parse(JSON.stringify(DEFAULTS));
@@ -3554,6 +3561,7 @@ document.addEventListener("click",e=>{
       ...DEFAULTS.rarities,
       ...(s.autoDeleteSettings.rarities||{})
     };
+    if(!unlocked())s.autoDeleteSettings.enabled=false;
     return s.autoDeleteSettings;
   }
 
@@ -3630,6 +3638,7 @@ document.addEventListener("click",e=>{
 
   function shouldDelete(item,settings,refs){
     if(!item||typeof item!=="object")return false;
+    if(item.unsellable||item.starterV260)return false;
     if(isEquipped(item,refs))return false;
     if(settings.protectLocked && (item.locked===true || item.favorite===true || item.favourite===true || item.isLocked===true))return false;
 
@@ -3651,6 +3660,12 @@ document.addEventListener("click",e=>{
     const s=(typeof save!=="undefined"&&save)?save:null;
     const settings=cfg();
     const inv=inventoryArray();
+    if(!unlocked()){
+      settings.enabled=false;
+      updateStatus();
+      if(showToast && typeof toast==="function")toast("🔒 Az automatikus tárgytörlés a Démon torony elérése után nyílik meg.");
+      return 0;
+    }
     if(!s||!inv||!settings.enabled)return 0;
 
     cleanupLock=true;
@@ -3683,7 +3698,10 @@ document.addEventListener("click",e=>{
     const settings=cfg();
     const enabled=document.getElementById("v216AutoDeleteEnabled");
     if(!enabled)return;
-    enabled.checked=Boolean(settings.enabled);
+    const available=unlocked();
+    enabled.checked=available&&Boolean(settings.enabled);
+    enabled.disabled=!available;
+    document.querySelectorAll("#page-inventory [data-v216-rarity],#v216MaxPowerDelete,#v216ProtectPlus,#v216ProtectLocked,#v216SaveAutoDelete,#v216RunAutoDelete").forEach(el=>el.disabled=!available);
     document.querySelectorAll("[data-v216-rarity]").forEach(el=>{
       el.checked=Boolean(settings.rarities[normRarity(el.dataset.v216Rarity)]);
     });
@@ -3698,6 +3716,12 @@ document.addEventListener("click",e=>{
 
   function saveUI(){
     const settings=cfg();
+    if(!unlocked()){
+      settings.enabled=false;
+      loadUI();
+      if(typeof toast==="function")toast("🔒 Az automatikus tárgytörlés a Démon torony eléréséig zárolva van.");
+      return;
+    }
     settings.enabled=Boolean(document.getElementById("v216AutoDeleteEnabled")?.checked);
     document.querySelectorAll("[data-v216-rarity]").forEach(el=>{
       settings.rarities[normRarity(el.dataset.v216Rarity)]=Boolean(el.checked);
@@ -3715,6 +3739,11 @@ document.addEventListener("click",e=>{
     const el=document.getElementById("v216AutoDeleteStatus");
     if(!el)return;
     const s=cfg();
+    if(!unlocked()){
+      el.textContent="🔒 Zárolva · A Démon torony elérése után használható";
+      el.classList.remove("active");
+      return;
+    }
     const selected=Object.entries(s.rarities).filter(([,v])=>v).map(([k])=>({
       normal:"Common",rare:"Rare",epic:"Epic",mythic:"Mythic",legendary:"Legendary"
     }[k])).join(", ");
