@@ -5265,49 +5265,53 @@ window.v222AdminSpeedSupported=true;
 })();
 
 
-/* ================= V22.91 FINAL PVP SOULSTONE SYSTEM ================= */
+/* ================= V22.94 PVP FIXED SOULSTONE SESSION ================= */
 (function(){
  const MAX={atk:100,hp:100,def:100,block:40,luck:60,double:40};
  const LABEL={atk:"⚔️ PvP Támadás",hp:"❤️ PvP HP",def:"🛡️ PvP Védelem",block:"🧱 Block",luck:"🍀 Szerencse / Krit",double:"⚡ Dupla találat"};
+ let active=false,leaving=false,budget=0;
  function F(n){return typeof fmt==="function"?fmt(n):Math.floor(Number(n||0)).toLocaleString("hu-HU")}
- function ensure(){
-  const p=document.getElementById("page-pvp");if(!p)return null;
-  let box=document.getElementById("v291PvpBuild");
-  if(!box){box=document.createElement("section");box.id="v291PvpBuild";box.className="card v291-pvp-build";const layout=p.querySelector(".layout");p.insertBefore(box,layout||p.firstChild)}
-  return box;
+ function ensure(){const p=document.getElementById("page-pvp");if(!p)return null;let box=document.getElementById("v291PvpBuild");if(!box){box=document.createElement("section");box.id="v291PvpBuild";box.className="card v291-pvp-build";const layout=p.querySelector(".layout");p.insertBefore(box,layout||p.firstChild)}return box}
+ async function startSession(){
+   if(active)return load();
+   // Save the exact visible soul amount first; this becomes the fixed PvP spending pool.
+   const visible=Math.max(0,Math.floor(Number(save?.soul||0)));
+   const d=await api("/api/pvp/session/start",{method:"POST",body:JSON.stringify({soul:visible})});
+   active=true;budget=Number(d.budget||0);
+   // While PvP is open save.soul is reserved for NEW farm drops only.
+   if(typeof save!=="undefined"&&save){save.soul=Math.max(0,Number(d.pending||0));save.pvpBuild={...(d.levels||{})};persist?.();renderAll?.()}
+   return load();
  }
  async function load(){
   if(typeof currentUser!=="undefined"&&!currentUser)return;
   const box=ensure();if(!box)return;
   try{
-   const d=await api("/api/pvp/profile"),st=d.stats||{},lv=d.levels||{};
-   box.innerHTML=`<div class="v291-head"><div><small>🏟️ KÜLÖN PVP KARAKTER</small><h2>PvP fejlesztés · csak Lélekkőből</h2><p>A PvE szinted, Paragonod, peted, PvE attackod és összerőd itt <b>nem számít</b>. Felszerelésből kizárólag a <b>PvP sebzés bónusz</b> kerül át.</p></div><div class="v291-soul"><span>🧿 Lélekkő</span><b>${F(d.soul||0)}</b></div></div>
+   const d=await api("/api/pvp/profile"),st=d.stats||{},lv=d.levels||{};budget=Number(d.soul||0);active=Boolean(d.sessionActive||active);
+   box.innerHTML=`<div class="v291-head"><div><small>🏟️ KÜLÖN PVP KARAKTER</small><h2>PvP fejlesztés · csak Lélekkőből</h2><p>Belépéskor a nálad lévő lélekkő lesz a <b>kiosztható PvP keret</b>. A PvP közben droppolt új lélekkő külön gyűlik, és kilépéskor kapod meg róla az értesítést.</p></div><div class="v291-soul"><span>🧿 Kiosztható</span><b>${F(budget)}</b><small>Háttérben droppolt: +${F(d.pendingSoul||save?.soul||0)}</small></div></div>
    <div class="v291-summary"><span><small>PvP ATK</small><b>${F(st.atk)}</b></span><span><small>PvP HP</small><b>${F(st.hp)}</b></span><span><small>PvP DEF</small><b>${F(st.def)}</b></span><span><small>Block</small><b>${Math.round((st.block||0)*100)}%</b></span><span><small>Krit</small><b>${Math.round((st.crit||0)*100)}%</b></span><span><small>Dupla ütés</small><b>${Math.round((st.doubleHit||0)*100)}%</b></span><span><small>Item PvP bónusz</small><b>+${Number(st.gearPvpPct||0).toFixed(1)}%</b></span></div>
-   <div class="v291-grid">${Object.keys(MAX).map(k=>{const n=Number(lv[k]||0),cost=d.costs?.[k]||0,max=MAX[k];return `<article><div><b>${LABEL[k]}</b><small>${n} / ${max} szint</small></div><button data-v291-up="${k}" ${n>=max||Number(d.soul||0)<cost?"disabled":""}>${n>=max?"MAX":`+1 · ${F(cost)} 🧿`}</button></article>`}).join("")}</div>
+   <div class="v291-grid">${Object.keys(MAX).map(k=>{const n=Number(lv[k]||0),cost=Number(d.costs?.[k]||0),max=MAX[k];return `<article><div><b>${LABEL[k]}</b><small>${n} / ${max} szint</small></div><button data-v291-up="${k}" ${n>=max||budget<cost?"disabled":""}>${n>=max?"MAX":`+1 · ${F(cost)} 🧿`}</button></article>`}).join("")}</div>
    <div class="v291-note">🧱 Block maximum 40% · 🍀 Szerencse növeli a kritikus esélyt · ⚡ Dupla találat külön második ütést ad.</div>`;
    box.querySelectorAll("[data-v291-up]").forEach(b=>b.onclick=async()=>{
-    b.disabled=true;
-    try{
-      const d2=await api("/api/pvp/upgrade",{method:"POST",body:JSON.stringify({stat:b.dataset.v291Up})});
-      // Keep the local/cloud save in sync with the authoritative PvP upgrade response.
-      if(typeof save!=="undefined"&&save){
-        save.soul=Math.max(0,Number(d2.soul??save.soul??0));
-        save.pvpBuild={...(d2.levels||{})};
-        save.last=Date.now();
-        localStorage.setItem("omiIdleComplete",JSON.stringify(save));
-      }
-      if(typeof renderAll==="function")renderAll();
-      if(typeof toast==="function")toast(`🏟️ PvP stat fejlesztve! -${F(d2.cost||0)} lélekkő`);
-      await load();
-      if(typeof loadPvp==="function")loadPvp();
-    }catch(e){
-      if(typeof toast==="function")toast("❌ "+e.message);
-      b.disabled=false;
-    }
-   })
+    b.disabled=true;try{const d2=await api("/api/pvp/upgrade",{method:"POST",body:JSON.stringify({stat:b.dataset.v291Up})});budget=Number(d2.soul||0);if(typeof save!=="undefined"&&save){save.pvpBuild={...(d2.levels||{})};persist?.()}toast?.(`🏟️ PvP stat fejlesztve! -${F(d2.cost||0)} lélekkő`);await load();if(typeof loadPvp==="function")loadPvp()}catch(e){toast?.("❌ "+e.message);b.disabled=false}
+   });
   }catch(e){box.innerHTML=`<p>❌ ${e.message}</p>`}
  }
- window.v291LoadPvpBuild=load;
- window.addEventListener("load",()=>setTimeout(load,700));
- document.addEventListener("click",e=>{if(e.target.closest?.('[data-tab="pvp"]'))setTimeout(load,80)},true);
+ async function endSession(){
+   if(!active||leaving)return;leaving=true;
+   try{
+     // Push farmed soulstones accumulated while the PvP page was open.
+     if(typeof cloudSave==="function")await cloudSave();
+     else if(typeof api==="function"&&typeof save!=="undefined")await api("/api/save",{method:"POST",body:JSON.stringify({save})});
+     const d=await api("/api/pvp/session/end",{method:"POST",body:"{}"});
+     active=false;budget=0;
+     if(typeof save!=="undefined"&&save){save.soul=Math.max(0,Number(d.total||0));persist?.();renderAll?.()}
+     const dropped=Math.max(0,Number(d.dropped||0));
+     if(dropped>0)toast?.(`🧿 +${F(dropped)} lélekkő droppolt, amíg PvP-ben voltál!`);
+     else toast?.("🏟️ Kiléptél a PvP-ből · nem droppolt új lélekkő.");
+   }catch(e){console.warn("PvP session end",e)}finally{leaving=false}
+ }
+ window.v291LoadPvpBuild=load;window.v294StartPvpSoulSession=startSession;window.v294EndPvpSoulSession=endSession;
+ document.addEventListener("click",e=>{const t=e.target.closest?.("[data-tab]");if(!t)return;if(t.dataset.tab==="pvp"){setTimeout(startSession,50)}else if(active){endSession()}},true);
+ window.addEventListener("beforeunload",()=>{if(active&&typeof navigator!=="undefined"&&navigator.sendBeacon){try{navigator.sendBeacon("/api/pvp/session/end",new Blob(["{}"],{type:"application/json"}))}catch{}}});
 })();
+

@@ -744,8 +744,11 @@ app.post("/api/save",auth,async(req,res)=>{
     data.speed10Unlocked=Boolean(premiumSource.speed10Unlocked);
     data.autoParagonUnlocked=Boolean(premiumSource.autoParagonUnlocked);
     data.dungeonBatchUnlocked=Boolean(premiumSource.dungeonBatchUnlocked);
-    // PvP progression is server-authoritative. A stale browser autosave must never roll it back.
+    // PvP progression/session is server-authoritative. A stale browser autosave must never roll it back.
     if(stored && stored.pvpBuild && typeof stored.pvpBuild==="object")data.pvpBuild=pvpBuild(stored);
+    if(stored && stored.pvpSoulSession && stored.pvpSoulSession.active){
+      data.pvpSoulSession={...stored.pvpSoulSession,active:true,budget:Math.max(0,Math.floor(Number(stored.pvpSoulSession.budget||0)))};
+    }
     const power=serverPowerV283(data);
     const requestedWallet={gold:Number(data.gold||0),gems:Number(data.gems||0),ore:Number(data.ore||0),soul:Number(data.soul||0)};
     const economyConfig=await mainConfig(),caps={gold:5000000,gems:50000,ore:100000,soul:50000,...(economyConfig.economyCaps||{})};
@@ -1006,12 +1009,47 @@ app.post("/api/admin/player/:id/profile",auth,admin,async(req,res)=>{
 });
 
 
+app.post("/api/pvp/session/start",auth,async(req,res)=>{
+  try{
+    const row=(await q("SELECT save_data FROM game_saves WHERE user_id=$1 FOR UPDATE",[req.user.id])).rows[0];
+    if(!row)return res.status(404).json({error:"Mentés nem található."});
+    const save=row.save_data||{};
+    // The browser is the live game state; accept the visible soul balance, but never above the configured wallet cap.
+    const cfg=await mainConfig(),cap=Math.max(1,Math.floor(Number(cfg.economyCaps?.soul||50000)));
+    const visible=Math.max(0,Math.min(cap,Math.floor(Number(req.body?.soul ?? save.soul ?? 0))));
+    let sess=save.pvpSoulSession;
+    if(!sess?.active){
+      sess={active:true,budget:visible,startedAt:Date.now()};
+      save.pvpSoulSession=sess;
+      save.soul=0; // new farmed soulstones collect here while PvP is open
+      await q("UPDATE game_saves SET save_data=$1,updated_at=NOW() WHERE user_id=$2",[save,req.user.id]);
+    }
+    const levels=pvpBuild(save),stats=pvpStats(save),costs={};for(const k of Object.keys(levels))costs[k]=pvpUpgradeCost(k,levels[k]);
+    res.json({ok:true,budget:Math.max(0,Math.floor(Number(sess.budget||0))),pending:Math.max(0,Math.floor(Number(save.soul||0))),levels,stats,costs});
+  }catch(e){console.error("PVP SESSION START ERROR:",e);res.status(500).json({error:"A PvP lélekkő keret nem indítható."})}
+});
+
+app.post("/api/pvp/session/end",auth,async(req,res)=>{
+  try{
+    const row=(await q("SELECT save_data FROM game_saves WHERE user_id=$1 FOR UPDATE",[req.user.id])).rows[0];
+    if(!row)return res.status(404).json({error:"Mentés nem található."});
+    const save=row.save_data||{},sess=save.pvpSoulSession;
+    if(!sess?.active)return res.json({ok:true,dropped:0,total:Math.max(0,Math.floor(Number(save.soul||0)))});
+    const cfg=await mainConfig(),cap=Math.max(1,Math.floor(Number(cfg.economyCaps?.soul||50000)));
+    const dropped=Math.max(0,Math.floor(Number(save.soul||0))),remaining=Math.max(0,Math.floor(Number(sess.budget||0)));
+    save.soul=Math.min(cap,dropped+remaining);
+    delete save.pvpSoulSession;
+    await q("UPDATE game_saves SET save_data=$1,updated_at=NOW() WHERE user_id=$2",[save,req.user.id]);
+    res.json({ok:true,dropped,remaining,total:save.soul});
+  }catch(e){console.error("PVP SESSION END ERROR:",e);res.status(500).json({error:"A PvP lélekkő keret lezárása nem sikerült."})}
+});
+
 app.get("/api/pvp/profile",auth,async(req,res)=>{
   const row=(await q("SELECT save_data FROM game_saves WHERE user_id=$1",[req.user.id])).rows[0];
   if(!row)return res.status(404).json({error:"Mentés nem található."});
-  const save=row.save_data||{},levels=pvpBuild(save),stats=pvpStats(save);
+  const save=row.save_data||{},levels=pvpBuild(save),stats=pvpStats(save),sess=save.pvpSoulSession;
   const costs={};for(const k of Object.keys(levels))costs[k]=pvpUpgradeCost(k,levels[k]);
-  res.json({levels,stats,costs,soul:Math.max(0,Math.floor(Number(save.soul||0)))});
+  res.json({levels,stats,costs,soul:Math.max(0,Math.floor(Number(sess?.active?sess.budget:save.soul||0))),pendingSoul:Math.max(0,Math.floor(Number(sess?.active?save.soul:0))),sessionActive:Boolean(sess?.active)});
 });
 app.post("/api/pvp/upgrade",auth,async(req,res)=>{
   try{
@@ -1020,13 +1058,15 @@ app.post("/api/pvp/upgrade",auth,async(req,res)=>{
     if(!(stat in max))return res.status(400).json({error:"Ismeretlen PvP stat."});
     const row=(await q("SELECT save_data FROM game_saves WHERE user_id=$1 FOR UPDATE",[req.user.id])).rows[0];
     if(!row)return res.status(404).json({error:"Mentés nem található."});
-    const save=row.save_data||{},levels=pvpBuild(save),lv=levels[stat];
+    const save=row.save_data||{},levels=pvpBuild(save),lv=levels[stat],sess=save.pvpSoulSession;
     if(lv>=max[stat])return res.status(400).json({error:"Ez a PvP stat már maximumon van."});
-    const cost=pvpUpgradeCost(stat,lv),soul=Math.max(0,Math.floor(Number(save.soul||0)));
-    if(soul<cost)return res.status(400).json({error:`Nincs elég lélekkő. Kell: ${cost}`});
-    save.soul=soul-cost;save.pvpBuild={...levels,[stat]:lv+1};
+    const cost=pvpUpgradeCost(stat,lv);
+    const available=Math.max(0,Math.floor(Number(sess?.active?sess.budget:save.soul||0)));
+    if(available<cost)return res.status(400).json({error:`Nincs elég lélekkő. Kell: ${cost}`});
+    if(sess?.active){sess.budget=available-cost;save.pvpSoulSession=sess}else save.soul=available-cost;
+    save.pvpBuild={...levels,[stat]:lv+1};
     await q("UPDATE game_saves SET save_data=$1,updated_at=NOW() WHERE user_id=$2",[save,req.user.id]);
-    res.json({ok:true,cost,soul:save.soul,levels:save.pvpBuild,stats:pvpStats(save)});
+    res.json({ok:true,cost,soul:Math.max(0,Math.floor(Number(sess?.active?sess.budget:save.soul||0))),pendingSoul:Math.max(0,Math.floor(Number(sess?.active?save.soul:0))),levels:save.pvpBuild,stats:pvpStats(save),sessionActive:Boolean(sess?.active)});
   }catch(e){console.error("PVP UPGRADE ERROR:",e);res.status(500).json({error:"A PvP fejlesztés nem sikerült."});}
 });
 
@@ -1404,6 +1444,54 @@ async function aiTriggerRender(commitSha){
   if(!r.ok)throw new Error("A GitHub commit elkészült, de a Render deploy indítása hibát adott: HTTP "+r.status);
   return {ok:true,status:r.status};
 }
+
+// ===================== V22.94 FREE GAME SETTING ASSISTANT =====================
+function huNorm(s){return String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")}
+function firstNum(s,rx){const m=String(s).match(rx);return m?Number(String(m[1]).replace(/\s/g,"")):null}
+app.post("/api/admin/game-assistant/apply",auth,admin,async(req,res)=>{
+  try{
+    const request=String(req.body?.request||"").trim();
+    if(request.length<4)return res.status(400).json({error:"Írd le, mit szeretnél beállítani."});
+    const n=huNorm(request),cfg=await mainConfig(),changes=[];
+    cfg.bosses=Array.isArray(cfg.bosses)?cfg.bosses:[];cfg.pvp={...(cfg.pvp||{})};cfg.gameplay={...(cfg.gameplay||{})};
+    const hp=firstNum(n,/(?:hp|eletero)\s*(?:legyen|=|:)??\s*([0-9 ]+)/i);
+    const dmg=firstNum(n,/(?:sebzes|damage)\s*(?:legyen|=|:)??\s*([0-9 ]+)/i);
+    const gold=firstNum(n,/(?:arany(?:\s*jutalom)?|gold)\s*(?:legyen|=|:)??\s*([0-9 ]+)/i);
+    const gems=firstNum(n,/(?:gyemant(?:\s*jutalom)?|gem)\s*(?:legyen|=|:)??\s*([0-9 ]+)/i);
+    const drop=firstNum(n,/(?:drop(?:\s*esely)?|targy drop)\s*(?:legyen|=|:)??\s*([0-9]+(?:[.,][0-9]+)?)/i);
+    const targetAll=/minden\s+boss|osszes\s+boss/.test(n);
+    let targets=[];
+    if(targetAll)targets=cfg.bosses;
+    else if(/boss/.test(n)){
+      targets=cfg.bosses.filter(b=>{const bn=huNorm(b.name||b.id);return bn&&n.includes(bn)});
+      if(!targets.length&&cfg.bosses.length===1)targets=[cfg.bosses[0]];
+    }
+    if(targets.length){
+      targets.forEach(b=>{
+        if(hp!=null){b.hp=Math.max(1,Math.floor(hp));changes.push(`${b.name||b.id}: HP = ${b.hp}`)}
+        if(dmg!=null){b.damage=Math.max(0,Math.floor(dmg));changes.push(`${b.name||b.id}: sebzés = ${b.damage}`)}
+        if(gold!=null){b.gold=Math.max(0,Math.floor(gold));changes.push(`${b.name||b.id}: arany = ${b.gold}`)}
+        if(gems!=null){b.gems=Math.max(0,Math.floor(gems));changes.push(`${b.name||b.id}: gyémánt = ${b.gems}`)}
+        if(drop!=null){b.dropChance=Math.max(0,Math.min(100,Number(String(drop).replace(',','.'))));changes.push(`${b.name||b.id}: drop = ${b.dropChance}%`)}
+      });
+    }
+    if(/pvp/.test(n)){
+      const reward=firstNum(n,/(?:jutalom|reward|arany)\s*(?:legyen|=|:)??\s*([0-9 ]+)/i);
+      const cooldown=firstNum(n,/(?:cooldown|varakozas)\s*(?:legyen|=|:)??\s*([0-9 ]+)/i);
+      const minLevel=firstNum(n,/(?:minimum\s*szint|min\s*szint)\s*(?:legyen|=|:)??\s*([0-9 ]+)/i);
+      if(reward!=null){cfg.pvp.rewardGold=Math.max(0,Math.floor(reward));changes.push(`PvP győzelmi arany = ${cfg.pvp.rewardGold}`)}
+      if(cooldown!=null){cfg.pvp.cooldownSec=Math.max(0,Math.floor(cooldown));changes.push(`PvP várakozás = ${cfg.pvp.cooldownSec} mp`)}
+      if(minLevel!=null){cfg.pvp.minLevel=Math.max(1,Math.floor(minLevel));changes.push(`PvP minimum szint = ${cfg.pvp.minLevel}`)}
+    }
+    const soulCap=firstNum(n,/(?:lelekk(?:o|ő)\s*(?:limit|maximum|max)|soul\s*cap)\s*(?:legyen|=|:)??\s*([0-9 ]+)/i);
+    if(soulCap!=null){cfg.economyCaps={gold:5000000,gems:50000,ore:100000,soul:50000,...(cfg.economyCaps||{}),soul:Math.max(1,Math.floor(soulCap))};changes.push(`Lélekkő maximum = ${cfg.economyCaps.soul}`)}
+    if(!changes.length)return res.status(400).json({error:"Ezt a kérést még nem ismerem fel. Próbáld például: ‘Minden boss HP legyen 500000’ vagy ‘PvP jutalom legyen 5000 arany’."});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[cfg]);
+    await q("INSERT INTO admin_logs(admin_id,target_user_id,action) VALUES($1,NULL,$2)",[req.user.id,`GAME_ASSISTANT: ${request.slice(0,180)}`]);
+    res.json({ok:true,changes,config:cfg,message:"A játékbeállítás azonnal elmentve."});
+  }catch(e){console.error("GAME ASSISTANT ERROR",e);res.status(500).json({error:"A játékbeállítás nem sikerült."})}
+});
+
 app.get("/api/admin/ai-developer/status",auth,admin,async(req,res)=>{
   const cfg=aiDevConfig();
   const rows=(await q("SELECT id,request_text,status,summary,commit_sha,changed_files,error_text,created_at,finished_at FROM ai_development_runs ORDER BY id DESC LIMIT 12")).rows.catch(()=>[]);

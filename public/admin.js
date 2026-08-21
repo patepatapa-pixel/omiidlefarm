@@ -512,33 +512,14 @@ openPlayer=async function(id){
 };
 
 
-/* ================= V22.92 AI FEJLESZTŐ UI ================= */
-function aiDevEsc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-async function loadAiDeveloper(){
- const cfg=document.getElementById("aiDevConfig"),runs=document.getElementById("aiDevRuns");
- if(!cfg||!runs)return;
- try{
-  const d=await api("/api/admin/ai-developer/status");
-  const s=d.services||{};
-  cfg.innerHTML=`<div class="ai-dev-service ${s.openai?'ok':'bad'}">${s.openai?'✅':'❌'} AI API</div><div class="ai-dev-service ${s.github?'ok':'bad'}">${s.github?'✅':'❌'} GitHub ${aiDevEsc(s.repo||'')}</div><div class="ai-dev-service ${s.render?'ok':'bad'}">${s.render?'✅':'❌'} Render Deploy</div><div class="ai-dev-service">🌿 ${aiDevEsc(s.branch||'main')}</div><div class="ai-dev-service">🧠 ${aiDevEsc(s.model||'')}</div>`;
-  const list=Array.isArray(d.runs)?d.runs:[];
-  runs.innerHTML=list.length?list.map(r=>`<div class="ai-dev-run-row"><div><b>#${r.id} ${aiDevEsc(r.status)}</b> <span class="muted">${new Date(r.created_at).toLocaleString('hu-HU')}</span></div><div>${aiDevEsc(r.request_text)}</div>${r.summary?`<div class="muted">${aiDevEsc(r.summary)}</div>`:''}${r.commit_sha?`<div class="ai-dev-sha">Commit: ${aiDevEsc(r.commit_sha.slice(0,12))}</div>`:''}${r.error_text?`<div class="ai-dev-error">❌ ${aiDevEsc(r.error_text)}</div>`:''}</div>`).join(""):'<div class="muted">Még nincs AI fejlesztési futás.</div>';
- }catch(e){cfg.innerHTML='<span class="ai-dev-error">❌ '+aiDevEsc(e.message)+'</span>'}
+/* ================= V22.94 INGYENES JÁTÉK BEÁLLÍTÓ ================= */
+function gameAssistEsc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+async function runGameAssistant(){
+ const prompt=document.getElementById("gameAssistantPrompt"),btn=document.getElementById("gameAssistantRun"),st=document.getElementById("gameAssistantStatus"),request=String(prompt?.value||"").trim();
+ if(request.length<4)return alert("Írd le, mit szeretnél beállítani.");
+ btn.disabled=true;st.innerHTML='<b>⚙️ Beállítás feldolgozása...</b>';
+ try{const d=await api("/api/admin/game-assistant/apply",{method:"POST",body:JSON.stringify({request})});st.innerHTML=`<div class="ai-dev-success">✅ ${gameAssistEsc(d.message||"Elmentve.")}</div><div class="game-assistant-change-list">${(d.changes||[]).map(x=>`<span>• ${gameAssistEsc(x)}</span>`).join("")}</div>`;prompt.value="";if(d.config){studioConfig={bosses:[],items:[],pets:[],auras:[],zones:[],updates:[],...d.config};renderBuildersV8()}}
+ catch(e){st.innerHTML='<div class="ai-dev-error">❌ '+gameAssistEsc(e.message)+'</div>'}finally{btn.disabled=false}
 }
-async function runAiDeveloper(){
- const prompt=document.getElementById("aiDevPrompt"),btn=document.getElementById("aiDevRun"),st=document.getElementById("aiDevStatus");
- const request=String(prompt?.value||"").trim();
- if(request.length<8)return alert("Írd le részletesebben, mit szeretnél fejleszteni.");
- if(!confirm("Az AI most valóban módosíthatja a projekt forráskódját, GitHubra commitolhatja és elindíthatja a Render telepítést. Folytatod?"))return;
- btn.disabled=true;st.innerHTML='<b>🧠 AI dolgozik a fejlesztésen...</b><br><span class="muted">Kód elemzése → módosítás → ellenőrzés → GitHub commit → Render deploy.</span>';
- try{
-  const d=await api("/api/admin/ai-developer/run",{method:"POST",body:JSON.stringify({request})});
-  st.innerHTML=`<div class="ai-dev-success">✅ ${aiDevEsc(d.message||'Kész.')}</div><div>${aiDevEsc(d.summary||'')}</div><div class="muted">Módosított fájlok: ${aiDevEsc((d.changedFiles||[]).join(', '))}</div><div class="ai-dev-sha">Commit: ${aiDevEsc(d.commitSha||'')}</div>`;
-  prompt.value="";
- }catch(e){st.innerHTML='<div class="ai-dev-error">❌ '+aiDevEsc(e.message)+'</div>'}
- finally{btn.disabled=false;await loadAiDeveloper()}
-}
-document.addEventListener("click",e=>{
- if(e.target.id==="aiDevRun"){e.preventDefault();runAiDeveloper()}
- if(e.target.closest("[data-studio='aidev']"))setTimeout(loadAiDeveloper,50);
-});
+document.addEventListener("click",e=>{if(e.target.id==="gameAssistantRun"){e.preventDefault();runGameAssistant()}});
+

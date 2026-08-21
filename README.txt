@@ -582,3 +582,11 @@ GITHUB_BRANCH = main (vagy a Renderhez kötött branch)
 RENDER_DEPLOY_HOOK_URL = a Render service Settings > Deploy Hook titkos URL-je
 A kulcsokat SOHA ne írd admin mezőbe vagy forráskódba; csak Render Environment alatt add meg.
 A rendszer exact search/replace patcheket engedélyez, JavaScript szintaxist ellenőriz, tiltja a shell/exec jellegű kódot az AI utasításaiban, ellenőrzi hogy a GitHub fájlok megegyeznek-e a futó verzióval, majd egyetlen Git commitot készít és csak ezután indít Render deployt.
+
+V22.94 FINAL FREE GAME ASSISTANT + PVP SOUL SESSION
+- Admin AI Fejlesztő UI replaced by free rule-based Játék Beállító (no OpenAI API required).
+- PvP soulstone budget is frozen on PvP entry and is fully spendable on PvP stats.
+- Soulstones farmed while PvP page is open accumulate separately.
+- Leaving PvP merges remaining PvP budget + farmed soulstones and shows a dropped-soul notification.
+- PvP build remains server-authoritative and persists after refresh.
+- Casino currencies remain Gold / Gems / Ore only. Soulstones cannot be gambled.

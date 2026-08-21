@@ -82,7 +82,7 @@
 <h2>🛠️ ADMIN GAME STUDIO</h2>
 <p>Minden játékosérték és új játéktartalom kezelése egy helyen.</p>
 <div class="studio-tabs">
-<button data-studio="players">👥 Játékosok</button><button data-studio="gameplay">🎮 Játékmenet</button><button data-studio="pvp">⚔️ PvP</button><button data-studio="exchange">⚖️ Váltópiac / Pet árak</button><button data-studio="store">💳 Feltöltés / Shop</button><button data-studio="npcshop">🏪 NPC bolt</button><button data-studio="casino">🎰 Kaszinó</button><button data-studio="updates">📢 Frissítések</button><button data-studio="bosses">👹 Bossok</button><button data-studio="items">⚔️ Tárgyak</button><button data-studio="pets">🐾 Petek</button><button data-studio="auras">✨ Aurák</button><button data-studio="zones">🗺️ Területek</button><button data-studio="aidev">🤖 AI Fejlesztő</button><button data-studio="raw">🧬 Haladó</button>
+<button data-studio="players">👥 Játékosok</button><button data-studio="gameplay">🎮 Játékmenet</button><button data-studio="pvp">⚔️ PvP</button><button data-studio="exchange">⚖️ Váltópiac / Pet árak</button><button data-studio="store">💳 Feltöltés / Shop</button><button data-studio="npcshop">🏪 NPC bolt</button><button data-studio="casino">🎰 Kaszinó</button><button data-studio="updates">📢 Frissítések</button><button data-studio="bosses">👹 Bossok</button><button data-studio="items">⚔️ Tárgyak</button><button data-studio="pets">🐾 Petek</button><button data-studio="auras">✨ Aurák</button><button data-studio="zones">🗺️ Területek</button><button data-studio="aidev">🤖 Játék Beállító</button><button data-studio="raw">🧬 Haladó</button>
 </div>
 
 <div class="studio-page" id="studio-exchange">
@@ -253,15 +253,13 @@
 
 
 <div class="studio-page" id="studio-aidev">
- <h3>🤖 AI Fejlesztő + automatikus telepítés</h3>
- <p class="muted">Írd le magyarul, mit szeretnél módosítani a játékban. Az AI elkészíti a célzott kódmódosítást, ellenőrzi a JavaScriptet, egyetlen GitHub commitba menti, majd elindítja a Render deployt.</p>
- <div id="aiDevConfig" class="ai-dev-config">Állapot betöltése...</div>
- <label class="ai-dev-prompt-label">Fejlesztési kérés<textarea id="aiDevPrompt" class="ai-dev-prompt" placeholder="Példa: A dungeon oldalon legyen külön napi ranglista, ami a mai legtöbb sikeres futamot mutatja. Adminból lehessen ki-be kapcsolni."></textarea></label>
- <div class="ai-dev-warning">⚠️ A gomb valódi forráskód-módosítást és telepítést indít. Csak admin használhatja. A titkos kulcsok soha nem kerülnek a böngészőbe.</div>
- <button id="aiDevRun" class="ai-dev-run">🚀 FEJLESZTÉS + GITHUB + RENDER TELEPÍTÉS</button>
- <div id="aiDevStatus" class="ai-dev-status"></div>
- <h3 style="margin-top:22px">📜 Legutóbbi AI fejlesztések</h3>
- <div id="aiDevRuns" class="builder-list"></div>
+ <h3>🤖 Ingyenes Játék Beállító</h3>
+ <p class="muted">Nincs API-kulcs és nincs fizetős AI. Magyar mondatokból az előre engedélyezett játékértékeket állítja át az adatbázisban, ezért nincs szükség Render újratelepítésre.</p>
+ <div class="game-assistant-examples"><b>Példák:</b><span>Minden boss HP legyen 500000</span><span>Az Árnykirály sebzés legyen 2500</span><span>PvP jutalom legyen 5000 arany</span><span>PvP várakozás legyen 5</span><span>Lélekkő maximum legyen 50000</span></div>
+ <label class="ai-dev-prompt-label">Mit szeretnél beállítani?<textarea id="gameAssistantPrompt" class="ai-dev-prompt" placeholder="Példa: Minden boss HP legyen 800000"></textarea></label>
+ <div class="ai-dev-warning">✅ Csak engedélyezett játékértékeket módosít. Forráskódot, GitHubot és Rendert nem módosít.</div>
+ <button id="gameAssistantRun" class="ai-dev-run">💾 BEÁLLÍTÁS ALKALMAZÁSA</button>
+ <div id="gameAssistantStatus" class="ai-dev-status"></div>
 </div>
 
 <div class="studio-page" id="studio-raw"><h3>🧬 Teljes konfiguráció</h3><textarea id="contentJson" class="json-editor"></textarea><button id="saveContentJson">💾 Konfiguráció mentése</button></div>
