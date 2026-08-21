@@ -502,7 +502,7 @@ function renderCharacterVisual(){
 
 function renderCore(){
  let z=ZONES[save.zone];
- $("#gold").textContent=fmt(save.gold);$("#gems").textContent=fmt(save.gems);$("#ore").textContent=fmt(save.ore);$("#soul").textContent=fmt(save.soul);$("#tickets").textContent=fmt(save.tickets);$("#level").textContent=save.level;$("#xpText").textContent=`${fmt(save.xp)} / ${fmt(needXp())} XP`;$("#power").textContent=fmt(power());$("#rankName").textContent=rankName();$("#gps").textContent=`~${fmt(zoneMobGold(save.zone)*damage()/Math.max(1,z.hp))} / mp`;
+ $("#gold").textContent=fmt(save.gold);$("#gems").textContent=fmt(save.gems);$("#ore").textContent=fmt(save.ore);$("#soul").textContent=fmt(save.soul);$("#tickets").textContent=fmt(save.tickets);$("#level").textContent=save.level;$("#xpText").textContent=`${fmt(save.xp)} / ${fmt(needXp())} XP`;updateXpBarV23203();$("#power").textContent=fmt(power());$("#rankName").textContent=rankName();$("#gps").textContent=`~${fmt(zoneMobGold(save.zone)*damage()/Math.max(1,z.hp))} / mp`;
  $("#zoneName").textContent=z.name;$("#enemyIcon").textContent=z.icon;$("#enemyName").textContent=z.enemy;$("#enemyHp").textContent=fmt(Math.max(0,enemyHp));$("#enemyMaxHp").textContent=fmt(z.hp);$("#hpbar").style.width=Math.max(0,enemyHp/z.hp*100)+"%";$("#damageText").textContent=fmt(damage());$("#critText").textContent=(critChance()*100).toFixed(1)+"%";$("#dropText").textContent=(dropBonus()*100).toFixed(1)+"%";
  renderEquipped();renderBonuses();renderCharacterVisual()
 }
@@ -1797,7 +1797,7 @@ function v161LiveHud(){
  set("#soul",fmt(save.soul));
  set("#tickets",fmt(save.tickets));
  set("#level",save.level);
- set("#xpText",`${fmt(save.xp)} / ${fmt(needXp())} XP`);
+ set("#xpText",`${fmt(save.xp)} / ${fmt(needXp())} XP`);updateXpBarV23203();
  set("#power",fmt(power()));
  set("#waveNumber",save.wave);
  set("#waveKills",save.waveKills);
@@ -3485,7 +3485,24 @@ document.addEventListener("click",e=>{
     };
   }
 
-  function render(){
+  /* V23.20.3 - vizuális XP haladás */
+function updateXpBarV23203(){
+ const current=Math.max(0,Number(save?.xp||0));
+ const need=Math.max(1,Number(needXp()||1));
+ const pct=Math.max(0,Math.min(100,current/need*100));
+ const bar=document.getElementById("xpBarV23203");
+ const pctEl=document.getElementById("xpPctV23203");
+ if(bar){
+   bar.style.width=pct.toFixed(2)+"%";
+   bar.setAttribute("aria-valuenow",String(Math.round(pct)));
+   bar.setAttribute("aria-valuemin","0");
+   bar.setAttribute("aria-valuemax","100");
+   bar.setAttribute("role","progressbar");
+ }
+ if(pctEl)pctEl.textContent=Math.floor(pct)+"%";
+}
+
+function render(){
     const v=values();
     document.querySelectorAll("[data-context-bar] [data-val]").forEach(el=>{
       const key=el.dataset.val;
