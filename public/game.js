@@ -5393,6 +5393,8 @@ window.v222AdminSpeedSupported=true;
 (function(){
   let v229BattleTimer=null;
   let v229Battle=null;
+  let v306CooldownUntil=0;
+  let v306CooldownTimer=null;
 
   function page(){return document.getElementById("page-pvp");}
   function F(n){return (typeof fmt==="function")?fmt(Number(n||0)):Math.floor(Number(n||0)).toLocaleString("hu-HU");}
@@ -5405,7 +5407,7 @@ window.v222AdminSpeedSupported=true;
     });
     let d={};
     try{d=await r.json()}catch(e){}
-    if(!r.ok)throw new Error(d.error||d.message||`HTTP ${r.status}`);
+    if(!r.ok){const err=new Error(d.error||d.message||`HTTP ${r.status}`);err.data=d;throw err;}
     return d;
   }
 
@@ -5534,6 +5536,35 @@ window.v222AdminSpeedSupported=true;
     },420);
   }
 
+  function cooldownLeftV306(){return Math.max(0,Math.ceil((v306CooldownUntil-Date.now())/1000))}
+  function drawCooldownV306(){
+    const p=page();if(!p)return;
+    let box=p.querySelector("#v306PvpCooldown");
+    if(!box){box=document.createElement("div");box.id="v306PvpCooldown";box.className="v306-pvp-cooldown";const arena=ensureArena();arena?.after(box)}
+    const left=cooldownLeftV306();
+    if(left>0){
+      box.classList.add("active");
+      box.innerHTML=`<span>⏳</span><div><small>KÖVETKEZŐ PÁRBAJ</small><b>${left} másodperc</b></div><i><em style="width:${Math.max(0,Math.min(100,left/60*100))}%"></em></i>`;
+    }else{
+      box.classList.remove("active");
+      box.innerHTML=`<span>⚔️</span><div><small>PVP</small><b>Új párbaj indítható</b></div>`;
+    }
+    p.querySelectorAll("[data-pvp-fight],[data-fight],[data-defender],.pvp-fight-btn,.fight-pvp-btn,button[data-player-id]").forEach(btn=>{
+      if(left>0){btn.disabled=true;btn.dataset.v306Cooldown="1"}
+      else if(btn.dataset.v306Cooldown==="1"){btn.disabled=false;delete btn.dataset.v306Cooldown}
+    });
+  }
+  function startCooldownV306(seconds=60){
+    const sec=Math.max(1,Math.floor(Number(seconds||60)));
+    v306CooldownUntil=Date.now()+sec*1000;
+    clearInterval(v306CooldownTimer);
+    drawCooldownV306();
+    v306CooldownTimer=setInterval(()=>{
+      drawCooldownV306();
+      if(cooldownLeftV306()<=0){clearInterval(v306CooldownTimer);v306CooldownTimer=null}
+    },250);
+  }
+
   async function fight(defenderId,button){
     if(!defenderId)return;
     const old=button?.textContent;
@@ -5548,6 +5579,7 @@ window.v222AdminSpeedSupported=true;
       });
       if(!data?.battle)throw new Error("A szerver nem adott vissza párbaj adatot.");
       playBattle(data.battle);
+      startCooldownV306(Number(data.cooldownSec||60));
       if(typeof toast==="function"){
         const meId=data.battle?.a?.id;
         const won=Number(data.battle.winnerId)===Number(meId);
@@ -5557,6 +5589,7 @@ window.v222AdminSpeedSupported=true;
       if(typeof renderPvp==="function")setTimeout(renderPvp,800);
       if(typeof renderAll==="function")setTimeout(renderAll,900);
     }catch(e){
+      if(Number(e?.data?.cooldownRemaining)>0)startCooldownV306(Number(e.data.cooldownRemaining));
       if(typeof toast==="function")toast("❌ "+e.message);
       const arena=ensureArena();
       if(arena)arena.innerHTML=`<div class="v229-error">❌ ${e.message}</div>`;
@@ -5608,6 +5641,7 @@ window.v222AdminSpeedSupported=true;
   function setup(){
     ensureArena();
     drawBattle();
+    drawCooldownV306();
     bindFightButtons();
   }
 

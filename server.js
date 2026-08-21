@@ -1107,9 +1107,12 @@ app.post("/api/pvp/fight",auth,async(req,res)=>{
     const defenderId=Number(req.body.defender_id);
     if(!Number.isInteger(defenderId)||defenderId<=0||defenderId===Number(req.user.id))
       return res.status(400).json({error:"Hibás ellenfél."});
-    const cfg=await mainConfig(),pc={minLevel:20,rewardGold:500,cooldownSec:10,ratingWin:18,ratingLoss:20,...(cfg.pvp||{})};
+    const cfg=await mainConfig(),pc={minLevel:20,rewardGold:500,cooldownSec:60,ratingWin:18,ratingLoss:20,...(cfg.pvp||{})};
     const last=(await q("SELECT created_at FROM pvp_fights WHERE challenger_id=$1 ORDER BY id DESC LIMIT 1",[req.user.id])).rows[0];
-    if(last && (Date.now()-new Date(last.created_at).getTime())<pc.cooldownSec*1000)return res.status(429).json({error:`Várj ${pc.cooldownSec} másodpercet két párbaj között.`});
+    if(last && (Date.now()-new Date(last.created_at).getTime())<pc.cooldownSec*1000){
+      const remaining=Math.max(1,Math.ceil((pc.cooldownSec*1000-(Date.now()-new Date(last.created_at).getTime()))/1000));
+      return res.status(429).json({error:`Várj ${remaining} másodpercet két párbaj között.`,cooldownRemaining:remaining,cooldownSec:Number(pc.cooldownSec||60)});
+    }
     const rows=(await q(`
       SELECT u.id,u.username,u.player_name,u.pvp_rating,g.save_data,g.level
       FROM users u JOIN game_saves g ON g.user_id=u.id WHERE u.id=ANY($1::bigint[])
@@ -1155,7 +1158,7 @@ app.post("/api/pvp/fight",auth,async(req,res)=>{
       log:log.slice(0,80)
     };
     await q("INSERT INTO pvp_fights(challenger_id,defender_id,winner_id,battle_data) VALUES($1,$2,$3,$4)",[a.id,b.id,winnerId,battle]);
-    res.json({ok:true,battle});
+    res.json({ok:true,battle,cooldownSec:Number(pc.cooldownSec||60)});
   }catch(e){
     console.error("PVP FIGHT ERROR:",e);
     res.status(500).json({error:"A párbaj nem sikerült."});
