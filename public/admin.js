@@ -210,14 +210,22 @@ qs("#savePvpConfig")?.addEventListener("click",async()=>{
 
 function renderShopAdmin(){
  studioConfig.store={discord:"nervos11",products:[],...(studioConfig.store||{})};
- qs("#shopProductList").innerHTML=(studioConfig.store.products||[]).map((p,i)=>`<div class="builder-entry"><b>${p.icon||"💰"} ${p.name}</b><small>${p.priceText||""} · ${p.description||""}</small><button data-shop-del="${i}">Törlés</button></div>`).join("");
+ const defaults=[
+  {id:"premium_speed_10x",name:"10× Harci / Wave Sebesség",icon:"⚡",priceText:"3 €",description:"Prémium 10× farmsebesség",visible:true},
+  {id:"auto_paragon_10_eur",name:"Auto Paragon szintelő",icon:"🌟",priceText:"10 €",description:"Automatikus Paragon szintlépés",visible:true}
+ ];
+ defaults.forEach(d=>{if(!studioConfig.store.products.some(p=>p.id===d.id))studioConfig.store.products.unshift(d)});
+ qs("#shopProductList").innerHTML=(studioConfig.store.products||[]).map((p,i)=>`<div class="builder-entry"><b>${p.icon||"💰"} ${p.name}</b><small>${p.priceText||""} · ${p.visible===false?"REJTVE":"LÁTHATÓ"} · ${p.description||""}</small><button data-shop-edit="${i}">Szerkesztés</button><button data-shop-del="${i}">Törlés</button></div>`).join("");
+ qsa("[data-shop-edit]").forEach(b=>b.onclick=()=>{const i=Number(b.dataset.shopEdit),p=studioConfig.store.products[i];qs("#shopProductEditIndex").value=i;qs("#shopProductId").value=p.id||"";qs("#shopProductName").value=p.name||"";qs("#shopProductIcon").value=p.icon||"";qs("#shopProductPrice").value=p.priceText||"";qs("#shopProductDesc").value=p.description||"";qs("#shopProductVisible").checked=p.visible!==false;qs("#addShopProduct").textContent="💾 Módosítás mentése"});
  qsa("[data-shop-del]").forEach(b=>b.onclick=async()=>{studioConfig.store.products.splice(Number(b.dataset.shopDel),1);await saveConfigV8();renderShopAdmin()});
 }
 qs("#addShopProduct")?.addEventListener("click",async()=>{
- const p={id:qs("#shopProductId").value.trim()||"product_"+Date.now(),name:qs("#shopProductName").value.trim(),icon:qs("#shopProductIcon").value.trim()||"💰",priceText:qs("#shopProductPrice").value.trim(),description:qs("#shopProductDesc").value.trim()};
+ const p={id:qs("#shopProductId").value.trim()||"product_"+Date.now(),name:qs("#shopProductName").value.trim(),icon:qs("#shopProductIcon").value.trim()||"💰",priceText:qs("#shopProductPrice").value.trim(),description:qs("#shopProductDesc").value.trim(),visible:qs("#shopProductVisible").checked};
  if(!p.name)return alert("Adj terméknevet!");
- studioConfig.store={discord:"nervos11",products:[],...(studioConfig.store||{})};studioConfig.store.products.push(p);await saveConfigV8();renderShopAdmin();alert("✅ Csomag létrehozva.");
+ studioConfig.store={discord:"nervos11",products:[],...(studioConfig.store||{})};const edit=qs("#shopProductEditIndex").value;if(edit!=="")studioConfig.store.products[Number(edit)]=p;else studioConfig.store.products.push(p);await saveConfigV8();resetShopEditor();renderShopAdmin();alert("✅ Csomag elmentve és a Feltöltés oldal frissítve.");
 });
+function resetShopEditor(){["#shopProductId","#shopProductName","#shopProductIcon","#shopProductPrice","#shopProductDesc","#shopProductEditIndex"].forEach(id=>{if(qs(id))qs(id).value=""});if(qs("#shopProductVisible"))qs("#shopProductVisible").checked=true;if(qs("#addShopProduct"))qs("#addShopProduct").textContent="💾 Csomag mentése"}
+qs("#cancelShopProductEdit")?.addEventListener("click",resetShopEditor);
 async function loadShopRequests(){
  try{
   const d=await sa("/api/admin/shop-requests");
@@ -240,12 +248,15 @@ function fillEconomyAdmin(){
  if(petMultiTemplate&&petPage&&!qs("#cfgPetMultiImperialChance")){petPage.insertAdjacentHTML("beforeend",petMultiTemplate.textContent);petMultiTemplate.remove()}
  const e=economyAdminCfg(),map={cfgExchangeGemsGold:e.exchange.gems.gold,cfgExchangeGemsAmount:e.exchange.gems.amount,cfgExchangeOreGold:e.exchange.ore.gold,cfgExchangeOreAmount:e.exchange.ore.amount,cfgExchangeTicketsGold:e.exchange.tickets.gold,cfgExchangeTicketsAmount:e.exchange.tickets.amount,cfgPetSummonCost:e.petSummonCost,cfgPetSlot2Cost:e.petSlotCosts[0],cfgPetSlot3Cost:e.petSlotCosts[1],cfgPetSlot4Cost:e.petSlotCosts[2],cfgPetRateCommon:e.petSummonRates.normal,cfgPetRateRare:e.petSummonRates.rare,cfgPetRateEpic:e.petSummonRates.epic,cfgPetRateMythic:e.petSummonRates.mythic,cfgPetRateLegendary:e.petSummonRates.legendary,cfgPetFusionRare:e.petFusionCosts.rare,cfgPetFusionMythic:e.petFusionCosts.mythic,cfgPetFusionLegendary:e.petFusionCosts.legendary,cfgPetFusionCelestial:e.petFusionCosts.celestial,cfgPetFusionImperial:e.petFusionCosts.imperial,cfgPetFusionEternal:e.petFusionCosts.eternal,cfgPetReqRare:e.petFusionRequirements.rare,cfgPetReqMythic:e.petFusionRequirements.mythic,cfgPetReqLegendary:e.petFusionRequirements.legendary,cfgPetReqCelestial:e.petFusionRequirements.celestial,cfgPetReqImperial:e.petFusionRequirements.imperial,cfgPetReqEternal:e.petFusionRequirements.eternal,cfgPetMultiImperialChance:e.petMultiOption.imperialChancePct,cfgPetMultiEternalChance:e.petMultiOption.eternalChancePct,cfgPetMultiMinPct:e.petMultiOption.minPct,cfgPetMultiMaxPct:e.petMultiOption.maxPct,cfgPetMultiMaxOptions:e.petMultiOption.maxExtraOptions,cfgAchGemsPoints:e.achievementExchange.gems.points,cfgAchGemsAmount:e.achievementExchange.gems.amount,cfgAchOrePoints:e.achievementExchange.ore.points,cfgAchOreAmount:e.achievementExchange.ore.amount,cfgAchTicketsPoints:e.achievementExchange.tickets.points,cfgAchTicketsAmount:e.achievementExchange.tickets.amount};
  Object.entries(map).forEach(([id,value])=>{const el=qs("#"+id);if(el)el.value=value});
+ const m={shardChancePct:2,shardAmount:1,shardsRequired:10,chestCost:{gold:250000,gems:10,ore:25,soul:1,tickets:1},upgradeCostMultiplier:1,...(studioConfig.mounts||{})};m.chestCost={gold:250000,gems:10,ore:25,soul:1,tickets:1,...(m.chestCost||{})};
+ const mm={cfgMountShardChance:m.shardChancePct,cfgMountShardAmount:m.shardAmount,cfgMountShardRequired:m.shardsRequired,cfgMountChestGold:m.chestCost.gold,cfgMountChestGems:m.chestCost.gems,cfgMountChestOre:m.chestCost.ore,cfgMountChestSoul:m.chestCost.soul,cfgMountChestTickets:m.chestCost.tickets,cfgMountUpgradeMult:m.upgradeCostMultiplier};Object.entries(mm).forEach(([id,value])=>{const el=qs("#"+id);if(el)el.value=value});
 }
 qs("#saveEconomyConfig")?.addEventListener("click",async()=>{
  const positive=id=>Math.max(1,Math.floor(num("#"+id)));
  studioConfig.economy={...studioConfig.economy,exchange:{gems:{gold:positive("cfgExchangeGemsGold"),amount:positive("cfgExchangeGemsAmount")},ore:{gold:positive("cfgExchangeOreGold"),amount:positive("cfgExchangeOreAmount")},tickets:{gold:positive("cfgExchangeTicketsGold"),amount:positive("cfgExchangeTicketsAmount")}},petSummonCost:positive("cfgPetSummonCost"),petSlotCosts:[positive("cfgPetSlot2Cost"),positive("cfgPetSlot3Cost"),positive("cfgPetSlot4Cost")],petFusionCosts:economyAdminCfg().petFusionCosts,achievementExchange:{gems:{points:positive("cfgAchGemsPoints"),amount:positive("cfgAchGemsAmount")},ore:{points:positive("cfgAchOrePoints"),amount:positive("cfgAchOreAmount")},tickets:{points:positive("cfgAchTicketsPoints"),amount:positive("cfgAchTicketsAmount")}}};
  await saveConfigV8();fillEconomyAdmin();alert("✅ Váltópiac és pet árak elmentve.");
 });
+qs("#saveMountConfig")?.addEventListener("click",async()=>{const n=id=>Math.max(0,Number(qs("#"+id)?.value||0));studioConfig.mounts={shardChancePct:Math.min(100,n("cfgMountShardChance")),shardAmount:Math.max(1,Math.floor(n("cfgMountShardAmount"))),shardsRequired:Math.max(1,Math.floor(n("cfgMountShardRequired"))),chestCost:{gold:Math.floor(n("cfgMountChestGold")),gems:Math.floor(n("cfgMountChestGems")),ore:Math.floor(n("cfgMountChestOre")),soul:Math.floor(n("cfgMountChestSoul")),tickets:Math.floor(n("cfgMountChestTickets"))},upgradeCostMultiplier:Math.max(.1,n("cfgMountUpgradeMult"))};await saveConfigV8();fillEconomyAdmin();alert("✅ Hátasbeállítások elmentve és a játékosoknál frissülnek.")});
 qs("#savePetFusionCosts")?.addEventListener("click",async()=>{
  const cost=id=>Math.max(0,Math.floor(num("#"+id)));
  const need=id=>Math.max(2,Math.floor(num("#"+id)));

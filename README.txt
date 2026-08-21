@@ -1,4 +1,19 @@
-OMI IDLE FARM ONLINE V22.37
+OMI IDLE FARM ONLINE V22.39
+
+V22.39 ÚJ:
+- a dungeon gyorsítás kazamatánként tartósan mentődik
+- a kiválasztott 1×/2×/5× sebesség teljesítés után sem tűnik el
+- hátastöredék kijelzés a felső erőforrásoknál és a Dungeon oldalon
+- alap hátastöredék-esély 2%, adminból állítható
+- adminból állítható töredékmennyiség, ládakövetelmény, összes ládaár és fejlesztési költségszorzó
+- a Discord fül, oldalkártya és lebegő Discord panel kikerült a látható webes felületről
+
+V22.38 ÚJ:
+- Auto Paragon kapcsoló közvetlenül a Paragon/Prestige panelen
+- csak admin által feloldott játékos kapcsolhatja be
+- admin-visszavonáskor automatikusan zárolódik
+- Feltöltés csomagok szerkeszthetők: név, ikon, ár, leírás és láthatóság
+- a 10× gyorsítás és az Auto Paragon ára a mentett adminbeállításból frissül
 
 V22.37 ÚJ:
 - 12 gyűjthető hátas ritkasági súlyozással

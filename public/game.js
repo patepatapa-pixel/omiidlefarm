@@ -1329,7 +1329,7 @@ function setCombatSpeed(n){
  if(![1,2,3,10].includes(n))return;
 
  if(n===10&&!save.speed10Unlocked){
-   toast("🔒 A 10× sebesség prémium. A Feltöltés / Discord fülön 3 €.");
+   toast("🔒 A 10× sebesség prémium. Az aktuális ára a Feltöltés fülön látható.");
    const tab=$('[data-tab="shop"]');
    if(tab)tab.click();
    return;
@@ -1737,13 +1737,21 @@ $("#refreshPvp")?.addEventListener("click",loadPvp);
 
 // Shop
 function renderStore(){
- const s=V11_CONTENT.store||{},products=s.products||[];
- $("#storeProducts").innerHTML=products.length?products.map((p,i)=>`
+ const s=V11_CONTENT.store||{},products=s.products||[],visibleProducts=products.filter(p=>p.visible!==false);
+ $("#storeProducts").innerHTML=visibleProducts.length?visibleProducts.map((p,i)=>`
   <div class="store-product">
    <div class="store-icon">${p.icon||"💰"}</div><h3>${p.name||"Csomag"}</h3>
    <p>${p.description||""}</p><strong>${p.priceText||"Privát ár"}</strong>
    <button data-buy-product="${p.id||i}">💬 Vásárlási igény</button>
-  </div>`).join(""):'<p class="muted">Jelenleg nincs beállított vásárlási csomag. Discord: nervos11</p>';
+  </div>`).join(""):'<p class="muted">Jelenleg nincs beállított vásárlási csomag.</p>';
+ const speed=products.find(p=>p.id==="premium_speed_10x"),auto=products.find(p=>p.id==="auto_paragon_10_eur");
+ const speedPrice=document.querySelector(".premium-price-v165");if(speedPrice&&speed)speedPrice.textContent=speed.priceText||"3 €";
+ const autoPrice=document.querySelector(".auto-paragon-v237>div>b");if(autoPrice&&auto)autoPrice.textContent=auto.priceText||"10 €";
+ const speedCard=document.querySelector(".premium-speed-v165"),autoCard=document.querySelector(".auto-paragon-v237");
+ if(speedCard&&speed){speedCard.querySelector("h2").textContent=speed.name||"10× Harci / Wave Sebesség";speedCard.querySelector("p").textContent=speed.description||"Prémium 10× farmsebesség";speedCard.style.display=speed.visible===false?"none":""}
+ if(autoCard&&auto){autoCard.querySelector("h2").textContent=auto.name||"Auto Paragon szintelő";autoCard.querySelector("p").textContent=auto.description||"Automatikus Paragon szintlépés";autoCard.style.display=auto.visible===false?"none":""}
+ window.V238_AUTO_PARAGON_PRODUCT=auto||{id:"auto_paragon_10_eur",name:"Auto Paragon szintelő",priceText:"10 €",visible:true};
+ window.dispatchEvent(new CustomEvent("store-config-updated"));
  $$("[data-buy-product]").forEach(b=>b.onclick=async()=>{
    if(!currentUser)return openAuth("login");
    try{const d=await api("/api/shop/request",{method:"POST",body:JSON.stringify({product_id:String(b.dataset.buyProduct),note:"Weboldalról küldött igény"})});alert(d.message)}catch(e){alert(e.message)}
@@ -3733,6 +3741,7 @@ document.addEventListener("click",e=>{
     const s=s218();
     if(!s.dungeonStats) s.dungeonStats={runs:0,wins:0,losses:0,streak:0};
     if(!s.dungeonClears) s.dungeonClears={};
+    if(!s.dungeonSpeeds) s.dungeonSpeeds={};
   }
 
   function applyRewards(d){
@@ -3836,6 +3845,7 @@ document.addEventListener("click",e=>{
         <div class="v218-dungeon-summary">
           <div><small>🎫 Jegy</small><b>${fmt218(s.tickets||0)}</b></div>
           <div><small>🔵 Lélekkő</small><b>${fmt218(s.soul||0)}</b></div>
+          <div><small>🧩 Hátastöredék</small><b>${fmt218(s.mountShards||0)}</b></div>
           <div><small>⚔️ Erő</small><b>${fmt218(p218())}</b></div>
           <div><small>🏆 Siker</small><b>${stats.wins}</b></div>
           <div><small>💀 Bukás</small><b>${stats.losses}</b></div>
@@ -3864,6 +3874,7 @@ document.addEventListener("click",e=>{
               <span><small>Jegy</small><b>${d.ticketCost}</b></span>
               <span><small>Siker esélyed</small><b>${d.safe?"100%":chance+"%"}</b></span>
               <span><small>Teljesítve</small><b>${clears}×</b></span>
+              <span><small>⚡ Mentett gyorsítás</small><b>${Number(s.dungeonSpeeds?.[d.id]||1)}×</b></span>
             </div>
 
             <div class="v218-chance">
@@ -4025,7 +4036,7 @@ document.addEventListener("click",e=>{
 
       <div class="v219-combat-log">${b.log||"A harc elkezdődött..."}</div>
     `;
-    panel.querySelectorAll("[data-v216-dungeon-speed]").forEach(btn=>btn.onclick=()=>{if(!activeBattle)return;activeBattle.speed=Number(btn.dataset.v216DungeonSpeed)||1;drawBattle()});
+    panel.querySelectorAll("[data-v216-dungeon-speed]").forEach(btn=>btn.onclick=()=>{if(!activeBattle)return;activeBattle.speed=Number(btn.dataset.v216DungeonSpeed)||1;const s=S();s.dungeonSpeeds=s.dungeonSpeeds||{};s.dungeonSpeeds[activeBattle.dungeon.id]=activeBattle.speed;if(typeof persist==="function")persist();drawBattle()});
     panel.querySelector("[data-v216-dungeon-skip]")?.addEventListener("click",()=>{if(activeBattle&&!activeBattle.finished)finishBattle(Boolean(activeBattle.win))});
   }
 
@@ -4125,7 +4136,7 @@ document.addEventListener("click",e=>{
       bossHp:bh,
       bossMaxHp:bh,
       round:1,
-      speed:1,
+      speed:Number(s.dungeonSpeeds?.[d.id]||1),
       win:predeterminedWin,
       log:`${d.bossIcon||"👹"} ${d.bossName||"Boss"} megjelent!`
     };

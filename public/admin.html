@@ -105,6 +105,20 @@
   <label>🎫 Kapott dungeon ticket<input id="cfgAchTicketsAmount" type="number" min="1"></label>
  </div>
  <button id="saveEconomyConfig">💾 Váltópiac és pet árak mentése</button>
+ <hr><h3>🐎 Hátasrendszer balansz</h3>
+ <p class="muted">A töredék legyen ritka. Példa: 2% esély átlagosan körülbelül 50 bosskillenként ad töredéket.</p>
+ <div class="admin-stat-grid">
+  <label>🧩 Boss töredékesély %<input id="cfgMountShardChance" type="number" min="0" max="100" step="0.1"></label>
+  <label>🧩 Kapott töredék / siker<input id="cfgMountShardAmount" type="number" min="1" step="1"></label>
+  <label>🎁 Ládához szükséges töredék<input id="cfgMountShardRequired" type="number" min="1" step="1"></label>
+  <label>💰 Ládanyitás arany<input id="cfgMountChestGold" type="number" min="0"></label>
+  <label>💎 Ládanyitás gyémánt<input id="cfgMountChestGems" type="number" min="0"></label>
+  <label>⛏️ Ládanyitás érc<input id="cfgMountChestOre" type="number" min="0"></label>
+  <label>🔵 Ládanyitás lélekkő<input id="cfgMountChestSoul" type="number" min="0"></label>
+  <label>🎫 Ládanyitás dungeon token<input id="cfgMountChestTickets" type="number" min="0"></label>
+  <label>⬆️ Fejlesztési költségszorzó<input id="cfgMountUpgradeMult" type="number" min="0.1" step="0.1"></label>
+ </div>
+ <button id="saveMountConfig">💾 Hátasbeállítások mentése</button>
 </div>
 
 
@@ -128,8 +142,10 @@
   <label>Ikon<input id="shopProductIcon" placeholder="💰"></label>
   <label>Ár kiírás<input id="shopProductPrice" placeholder="pl. 5 EUR"></label>
   <label>Leírás<input id="shopProductDesc" placeholder="Játékbeli aranycsomag"></label>
+  <label class="v222-check"><input id="shopProductVisible" type="checkbox" checked> Látható a Feltöltés oldalon</label>
+  <input id="shopProductEditIndex" type="hidden" value="">
  </div>
- <button id="addShopProduct">+ Új vásárlási csomag</button>
+ <button id="addShopProduct">💾 Csomag mentése</button><button id="cancelShopProductEdit" type="button">Mégse / új csomag</button>
  <div id="shopProductList" class="builder-list"></div>
  <h3 style="margin-top:18px">📨 Vásárlási igények</h3>
  <button id="refreshShopRequests">↻ Frissítés</button>

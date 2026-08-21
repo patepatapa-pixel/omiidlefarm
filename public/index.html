@@ -10,7 +10,7 @@
 <header class="topbar">
   <div class="brand"><span>⚔️ OMI</span> IDLE FARM <em>COMPLETE</em></div>
   <div class="top-actions">
-    <span class="build-version" id="buildVersionBadge">V22.37</span><span id="onlineUser">👤 Vendég</span>
+    <span class="build-version" id="buildVersionBadge">V22.39</span><span id="onlineUser">👤 Vendég</span>
     <button class="ghost" id="leaderboardBtn">🏆 Ranglista</button>
     <button class="ghost admin-only-btn" id="adminPanelBtn" style="display:none">⚙️ Adminpanel</button><button class="ghost" id="authBtn">Belépés</button>
     <span id="saveState">💾 Mentve</span>
@@ -30,7 +30,7 @@
   <button class="tab" data-tab="aurashop">✨ Prestige Aura Shop</button>
   <button class="tab" data-tab="dungeon">🏰 Dungeon</button>
   <button class="tab" data-tab="quests">📜 Küldetések</button>
-  <button class="tab" data-tab="pvp">⚔️ PvP</button><button class="tab" data-tab="shop">💳 Feltöltés / Discord</button><button class="tab" data-tab="stats">📊 Statisztika</button>
+  <button class="tab" data-tab="pvp">⚔️ PvP</button><button class="tab" data-tab="shop">💳 Feltöltés</button><button class="tab" data-tab="stats">📊 Statisztika</button>
   <button class="tab" data-tab="mounts">🐎 Hátasok</button>
 </nav>
 
@@ -47,7 +47,6 @@
         <span>🎲 Normal → Legendary opt rendszer</span>
         <span>🌟 Paragon rendszer</span>
         <span>🏟️ PvP aréna</span>
-        <span>💬 Discord: nervos11</span>
       </div>
     </div>
     <div class="guest-login-card">
@@ -88,6 +87,7 @@
   <div class="resource card"><span>⛏️ Érc</span><strong id="ore">0</strong><small>fejlesztéshez</small></div>
   <div class="resource card"><span>🧿 Lélekkő</span><strong id="soul">0</strong><small>ritka fejlesztés</small></div>
   <div class="resource card"><span>🎫 Dungeon jegy</span><strong id="tickets">0</strong><small>bossokhoz</small></div>
+  <div class="resource card mount-shard-resource-v239"><span>🧩 Hátastöredék</span><strong id="mountShardsTop">0</strong><small>ritka boss drop</small></div>
   <div class="resource card"><span>⭐ Szint</span><strong id="level">1</strong><small id="xpText">0 / 100 XP</small></div>
 </section>
 
@@ -211,6 +211,11 @@
         <div class="prestige-progress"><div id="prestigeProgress"></div></div>
         <small id="prestigeText">200-as szinten prestigelhetsz.</small>
         <button id="prestigeBtn" class="prestige-btn">👑 PRESTIGE</button>
+        <div class="auto-paragon-control-v238" id="autoParagonControl">
+          <div><b>🌟 Automata Paragon szintelő</b><small id="autoParagonHint">Prémium jogosultság szükséges.</small></div>
+          <label class="auto-paragon-switch-v238"><input type="checkbox" id="autoParagonToggle"><span>BEKAPCSOLÁS</span></label>
+          <button type="button" id="autoParagonShopLink">💳 FELTÖLTÉS</button>
+        </div>
       </section>
     <section class="card paragon-guide-v224">
       <div class="paragon-guide-head"><div><small>MIÉRT ÉRI MEG?</small><h3>🌟 Minél magasabb a Paragon, annál könnyebb a következő kör</h3></div><span>ÁLLANDÓ FEJLŐDÉS</span></div>
@@ -290,7 +295,7 @@
           <button class="combat-speed-btn" data-speed="3">⚡ 3×</button>
           <button class="combat-speed-btn locked" data-speed="10">🔒 10×</button>
         </div>
-        <small class="speed-note-v165">1× / 2× / 3× ingyenes. A 10× prémium sebesség 3 €, a Feltöltés / Discord fülön érhető el.</small>
+        <small class="speed-note-v165">1× / 2× / 3× ingyenes. A 10× prémium sebesség ára a Feltöltés fülön látható.</small>
       </div>
 <div class="wave-panel">
  <div><small>WAVE</small><b id="waveNumber">1</b></div>
@@ -656,7 +661,7 @@
  </div>
 </section>
 
-<!-- SHOP / DISCORD -->
+<!-- SHOP -->
 <section class="page" id="page-mounts">
   <div class="mount-hero-v237">
     <div><span class="eyebrow">ISTÁLLÓ ÉS GYŰJTEMÉNY</span><h2>🐎 Gyűjthető hátasok</h2><p>A hátas ritka boss-zsákmány. A duplikátumok fejlesztőponttá alakulnak, ezért minden megszerzett példány értékes.</p></div>
@@ -689,11 +694,11 @@
       <h2>10× Harci / Wave Sebesség</h2>
       <p>A saját karaktered támadási sebességét 10×-re állíthatod, így gyorsabban haladsz a wave-ekkel.</p>
       <div><b class="premium-price-v165">3 €</b> <span id="speed10PurchaseState">🔒 Nincs aktiválva</span></div>
-      <small>Vásárlás/aktiválás privátban: Discord <b>nervos11</b>.</small>
+      <small>Az aktiválás a webes vásárlási igény elküldése után történik.</small>
     </div>
   </section>
   <section class="card auto-paragon-v237">
-    <div class="auto-paragon-icon-v237">🌟</div><div><span class="eyebrow">PRÉMIUM AUTOMATIZÁLÁS</span><h2>Auto Paragon szintelő</h2><p>Amikor eléred a következő Paragon wave-követelményét, automatikusan végrehajtja a szintlépést és azonnal folytatja a farmolást.</p><b>10 €</b> <span id="autoParagonPurchaseState">🔒 Nincs aktiválva</span><small>Egyszeri aktiválás · Discord: <b>nervos11</b></small></div><button data-buy-product="auto_paragon_10_eur">💬 VÁSÁRLÁSI IGÉNY</button>
+    <div class="auto-paragon-icon-v237">🌟</div><div><span class="eyebrow">PRÉMIUM AUTOMATIZÁLÁS</span><h2>Auto Paragon szintelő</h2><p>Amikor eléred a következő Paragon wave-követelményét, automatikusan végrehajtja a szintlépést és azonnal folytatja a farmolást.</p><b>10 €</b> <span id="autoParagonPurchaseState">🔒 Nincs aktiválva</span><small>Egyszeri, admin által aktivált jogosultság.</small></div><button data-buy-product="auto_paragon_10_eur">💬 VÁSÁRLÁSI IGÉNY</button>
   </section>
 
  <div class="layout">
@@ -702,13 +707,6 @@
    <div class="shop-warning">⚠️ A weboldal nem kér és nem tárol bankkártyaadatot. Valódi fizetés és a játékbeli jóváírás privát egyeztetéssel történik.</div>
    <div id="storeProducts" class="store-grid"></div>
   </section>
-  <aside class="card discord-card">
-   <div class="discord-logo">💬</div>
-   <h2>Discord elérhetőség</h2>
-   <p>Vásárlás, segítség és privát egyeztetés:</p>
-   <strong>nervos11</strong>
-   <p class="muted">A vásárlási igényt a weboldalon is elküldheted, majd Discordon tudod velem egyeztetni.</p>
-  </aside>
  </div>
 </section>
 
@@ -775,36 +773,6 @@
 <div id="toast"></div>
 <input id="importFile" type="file" accept=".json" hidden>
 <script src="game.js"></script>
-
-<div id="v227DiscordWidget" class="v227-discord-widget" aria-label="Discord közösség">
-  <button id="v227DiscordToggle" class="v227-discord-toggle" type="button" title="Discord közösség">
-    <span class="v227-discord-logo">☁</span>
-    <span>DISCORD</span>
-  </button>
-  <div id="v227DiscordPanel" class="v227-discord-panel">
-    <button id="v227DiscordClose" class="v227-discord-close" type="button">×</button>
-    <div class="v227-discord-icon">💬</div>
-    <div>
-      <small>OMI IDLE FARM KÖZÖSSÉG</small>
-      <h3>Csatlakozz a Discordhoz!</h3>
-      <p>Hírek, frissítések, Dungeon/PvP beszélgetés, segítség, hibajelentés és közösségi események.</p>
-    </div>
-    <div class="v227-discord-tags">
-      <span>📢 Hírek</span><span>⚔️ PvP</span><span>🏰 Dungeon</span>
-      <span>🐾 Pet</span><span>🆘 Segítség</span><span>💡 Ötletek</span>
-    </div>
-    <a class="v227-discord-join" href="https://discord.gg/kJscYgMtq" target="_blank" rel="noopener noreferrer">
-      💬 CSATLAKOZÁS A DISCORDHOZ
-    </a>
-    <div class="v228-link-box">
-      <b>🔗 Játékfiók ↔ Discord összekötés</b>
-      <small>A rangjaid így automatikusan követik a játékbeli szintedet.</small>
-      <button id="v228DiscordLinkCode" type="button">🔑 ÖSSZEKÖTŐ KÓD KÉRÉSE</button>
-      <div id="v228DiscordLinkResult"></div>
-    </div>
-    <small class="v227-discord-note">A Discordon a botnak küldd el a megjelenő /link parancsot.</small>
-  </div>
-</div>
 
 <section class="site-vote-v237"><div><b>Mit gondolsz az oldalról?</b><small>Bejelentkezve egy szavazatod lehet.</small></div><button id="siteLikeBtn">👍 <span id="siteLikeCount">0</span></button><button id="siteDislikeBtn">👎 <span id="siteDislikeCount">0</span></button></section>
 <script src="v237.js"></script>
