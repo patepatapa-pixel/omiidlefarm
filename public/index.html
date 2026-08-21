@@ -7,18 +7,51 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-<div id="v2321LangSwitcher" class="v2321-lang-switcher" aria-label="Nyelvválasztó / Language selector">
-  <span class="v2326-lang-label">🌐 NYELV / LANGUAGE</span>
-  <div class="v2326-lang-buttons">
-    <button type="button" data-v2321-lang="hu" title="Magyar nyelv" aria-label="Magyar nyelv">
-      <span class="v2326-flag">🇭🇺</span><strong>MAGYAR</strong>
-    </button>
-    <button type="button" data-v2321-lang="en" title="English language" aria-label="English language">
-      <span class="v2326-flag">🇬🇧</span><strong>ENGLISH</strong>
-    </button>
+<header class="topbar">
+  <div class="brand"><span>⚔️ OMI</span> IDLE FARM <em>COMPLETE</em></div>
+  <div class="top-actions">
+    <span class="build-version" id="buildVersionBadge">V22.90</span><span id="onlineUser">👤 Vendég</span>
+    <button class="ghost" id="leaderboardBtn">🏆 Ranglista</button>
+    <button class="ghost admin-only-btn" id="adminPanelBtn" style="display:none">⚙️ Adminpanel</button><button class="ghost" id="authBtn">Belépés</button>
+    <span id="saveState">💾 Mentve</span>
+    <button class="ghost" id="exportBtn">Export</button>
+    <button class="ghost" id="importBtn">Import</button>
   </div>
-</div>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" data-tab="character">🧙 Karakter</button><button class="tab" data-tab="farm">⚔️ Farm</button>
+  <button class="tab" data-tab="inventory">🎒 Inventory</button>
+  <button class="tab" data-tab="upgrade">🔨 Fejlesztés</button>
+  <button class="tab" data-tab="skills">✨ Képességek</button>
+  <button class="tab" data-tab="pets">🐾 Petek</button>
+  <button class="tab" data-tab="exchange">⚖️ Váltópiac</button>
+  <button class="tab" data-tab="paragon">👑 Paragon / Prestige</button>
+  <button class="tab" data-tab="aurashop">✨ Prestige Aura Shop</button>
+  <button class="tab" data-tab="dungeon">🏰 Dungeon</button>
+  <button class="tab" data-tab="quests">📜 Küldetések</button>
+  <button class="tab" data-tab="pvp">⚔️ PvP</button><button class="tab" data-tab="shop">🪙 E-érme</button><button class="tab" data-tab="stats">📊 Statisztika</button>
+  <button class="tab" data-tab="mounts">🐎 Hátasok</button>
+  <button class="tab" data-tab="npcshop">🏪 Vándorkereskedő</button>
+  <button class="tab" data-tab="casino">🎰 Kaszinó</button>
+  <button class="tab" data-tab="updates">📢 Frissítések</button>
+</nav>
+
+
+<section id="guestLanding" class="guest-landing">
+  <div class="guest-hero">
+    <div class="guest-copy">
+      <div class="eyebrow">⚔️ OMI IDLE FARM ONLINE</div>
+      <h1>Építs sötét fantasy karaktert, farmolj automatikusan és juss egyre magasabb wave-ekre.</h1>
+      <p>A karaktered automatikusan harcol, te pedig felszerelést fejlesztesz, opciókat forgatsz, peteket és aurákat szerzel, bossokat győzöl le és PvP-ben is megmérkőzhetsz más játékosokkal.</p>
+      <div class="guest-features">
+        <span>👹 Boss minden wave utolsó killje után</span>
+        <span>⚔️ +0 → +15 felszerelések</span>
+        <span>🎲 Legendary → Imperial → Celestial → Eternal</span>
+        <span>🌟 Paragon rendszer</span>
+        <span>🏟️ PvP aréna</span>
+      </div>
+    </div>
     <div class="guest-login-card">
       <div class="guest-login-logo">🐉</div>
       <h2>Belépés a játékba</h2>
