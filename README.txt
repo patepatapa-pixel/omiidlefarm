@@ -1,4 +1,21 @@
-OMI IDLE FARM ONLINE V22.40
+OMI IDLE FARM ONLINE V22.41
+
+V22.41 TELJES IDLE FARM ÚJRABALANSZ:
+- kisebb, átlátható erőskála: kezdéstől kb. 20 000-es végjátékig
+- új területküszöbök: 1 / 25 / 70 / 180 / 450 / 1 000 / 2 200 / 5 000
+- új fix mobaranyak: 5 / 9 / 16 / 28 / 48 / 80 / 130 / 210
+- olcsóbb, folyamatosabban vásárolható alapfejlesztések, tárgyforgatás és HP regen
+- 40–20 000 erő közé rendezett dungeonök, 80–9 000 közötti aranyjutalmakkal
+- endgame dungeon gear 3 500 / 9 000 / 18 000 erőtől
+- Paragon első követelménye Wave 250, utána szintenként +10
+- boss után 10% eséllyel +2, 5% eséllyel +3, 3% eséllyel +5 wave
+- rövidebb, 8–18 mobos wave-ek
+- egyszeri szervergazdasági reset: arany, gyémánt, érc, lélekkő és achievement pont
+- dungeon token, aura token és hátastöredék NEM nullázódik
+- petek, hátasok, Paragon és prémium jogosultságok megmaradnak
+- az alapsebzés, fegyveredzés, védelem, HP, mobsebzés és boss HP az új erőskálához igazítva
+- a petsebzés és Paragon-szorzó kontrollált, ezért nem ugrik milliósra a karaktererő
+- a PvP támadás, védelem és HP ugyanazt a kompakt skálát követi
 
 V22.40 ÚJ:
 - a Feltöltés oldalon kiemelten látszik: Discord nervos11

@@ -11,19 +11,19 @@ const RARITIES=[
 ];
 const ZONES=[
  {name:"Zöld mező",icon:"🐗",enemy:"Vadkan",hp:45,gold:10,xp:6,need:1,drop:.10},
- {name:"Sötét erdő",icon:"🐺",enemy:"Árnyfarkas",hp:150,gold:35,xp:15,need:120,drop:.13},
- {name:"Elhagyott bánya",icon:"🦂",enemy:"Skorpió",hp:520,gold:95,xp:35,need:380,drop:.16},
- {name:"Démon torony",icon:"👹",enemy:"Démon őr",hp:1700,gold:280,xp:85,need:1100,drop:.19},
- {name:"Sárkány-völgy",icon:"🐉",enemy:"Ősi sárkány",hp:6000,gold:900,xp:220,need:3200,drop:.23},
- {name:"Mennydörgés fennsík",icon:"⚡",enemy:"Viharóriás",hp:18000,gold:2700,xp:600,need:9000,drop:.27},
- {name:"Üresség",icon:"🌌",enemy:"Void Lord",hp:60000,gold:8500,xp:1650,need:25000,drop:.31},
- {name:"Isteni kapu",icon:"👁️",enemy:"Égi őrző",hp:190000,gold:25000,xp:4500,need:70000,drop:.36}
+ {name:"Sötét erdő",icon:"🐺",enemy:"Árnyfarkas",hp:150,gold:9,xp:15,need:25,drop:.13},
+ {name:"Elhagyott bánya",icon:"🦂",enemy:"Skorpió",hp:520,gold:16,xp:35,need:70,drop:.16},
+ {name:"Démon torony",icon:"👹",enemy:"Démon őr",hp:1700,gold:28,xp:85,need:180,drop:.19},
+ {name:"Sárkány-völgy",icon:"🐉",enemy:"Ősi sárkány",hp:6000,gold:48,xp:220,need:450,drop:.23},
+ {name:"Mennydörgés fennsík",icon:"⚡",enemy:"Viharóriás",hp:18000,gold:80,xp:600,need:1000,drop:.27},
+ {name:"Üresség",icon:"🌌",enemy:"Void Lord",hp:60000,gold:130,xp:1650,need:2200,drop:.31},
+ {name:"Isteni kapu",icon:"👁️",enemy:"Égi őrző",hp:190000,gold:210,xp:4500,need:5000,drop:.36}
 ];
 const BASE_UPS=[
- {key:"weaponTraining",name:"Fegyveredzés",icon:"⚔️",base:60,desc:"+ sebzés"},
- {key:"armorTraining",name:"Páncéledzés",icon:"🛡️",base:80,desc:"+ arany"},
- {key:"mining",name:"Bányászat",icon:"⛏️",base:110,desc:"+ érc drop"},
- {key:"luck",name:"Szerencse",icon:"🍀",base:160,desc:"+ ritka drop"}
+ {key:"weaponTraining",name:"Fegyveredzés",icon:"⚔️",base:20,desc:"+ sebzés"},
+ {key:"armorTraining",name:"Páncéledzés",icon:"🛡️",base:25,desc:"+ boss arany"},
+ {key:"mining",name:"Bányászat",icon:"⛏️",base:35,desc:"+ érc drop"},
+ {key:"luck",name:"Szerencse",icon:"🍀",base:50,desc:"+ ritka drop"}
 ];
 const SKILL_TREE=[
  {key:"root",branch:"root",name:"Kalandor mag",icon:"✨",max:1,desc:"Megnyitja a három fejlődési ágat",effect:"+5% teljes sebzés"},
@@ -116,6 +116,14 @@ const ACH=[
  {id:"w100",name:"Wave 100",type:"wave",target:100,points:5},{id:"w500",name:"Wave 500",type:"wave",target:500,points:15}
 ];
 
+// V22.41 readable goals: no million/billion progression requirements.
+const V2241_DAILY_GOLD={dg50k:[800,{ore:3}],dg250k:[3000,{gold:300}],dg1m:[8000,{gems:1}],dg10m:[20000,{gems:2,tickets:1}]};
+DAILY.forEach(q=>{const b=V2241_DAILY_GOLD[q.id];if(b){q.target=b[0];q.reward=b[1];q.desc=`Szerezz ${b[0].toLocaleString("hu-HU")} aranyat`}});
+DAILY.forEach(q=>{if(Number(q.reward?.gold||0)>500)q.reward.gold=Math.max(50,Math.floor(q.reward.gold/100))});
+const V2241_ACH_GOALS={g100k:1000,g1m:5000,g10m:20000,g100m:75000,g1b:200000,p1k:100,p10k:500,p100k:2500,p1m:10000};
+ACH.forEach(a=>{if(V2241_ACH_GOALS[a.id])a.target=V2241_ACH_GOALS[a.id]});
+DUNGEONS.forEach((d,i)=>{const needs=[80,450,1800,6000],gold=[350,1200,3500,9000];d.need=needs[i];d.rewardGold=gold[i];d.hp=Math.max(100,d.need*5)});
+
 let save=JSON.parse(localStorage.getItem("omiIdleComplete")||"null")||{
  gold:0,gems:10,ore:0,soul:0,tickets:3,level:1,xp:0,skillPoints:0,kills:0,zone:0,
  base:{weaponTraining:1,armorTraining:1,mining:1,luck:1},skills:{power:0,gold:0,crit:0,drop:0,offline:0,pet:0},
@@ -198,16 +206,17 @@ function petBonusText(p){return petBonusEntries(p).map(x=>`${PET_BONUS_NAMES[x.b
 function bonuses(){
  let atk=0,def=0,gold=0,crit=0,drop=0;
  Object.keys(save.equipped).forEach(s=>{let it=equipObj(s);if(!it)return;let st=itemStats(it);atk+=st.atk;def+=st.def;crit+=st.crit;drop+=st.drop});
- let pets=petObjs(), ps=petScale();
- pets.forEach(pet=>petBonusEntries(pet).forEach(opt=>{const v=Number(opt.value||0);if(opt.bonus==="damage")atk*=1+v*ps;if(opt.bonus==="gold")gold+=v*ps;if(opt.bonus==="crit")crit+=v*ps;if(opt.bonus==="drop")drop+=v*ps;if(opt.bonus==="all"){atk*=1+v*ps;gold+=v*ps;crit+=v*.5*ps;drop+=v*.5*ps}}));
+ let pets=petObjs(),ps=petScale(),petDamage=0;
+ pets.forEach(pet=>petBonusEntries(pet).forEach(opt=>{const v=Number(opt.value||0)*ps;if(opt.bonus==="damage")petDamage+=v;if(opt.bonus==="gold")gold+=v;if(opt.bonus==="crit")crit+=v;if(opt.bonus==="drop")drop+=v;if(opt.bonus==="all"){petDamage+=v;gold+=v;crit+=v*.5;drop+=v*.5}}));
+ atk*=1+Math.min(1.5,petDamage);
  return {atk,def,gold,crit,drop}
 }
 function damage(){
- let b=bonuses(),io=itemOptionBonuses(),base=6+save.level*1.2+save.base.weaponTraining*4+b.atk;
- let total=base*(1+skillBonus("power")+save.paragonStats.damage*.02*save.paragonLevel)*(1+io.atkPct/100);
+ let b=bonuses(),io=itemOptionBonuses(),base=5+save.level*.65+save.base.weaponTraining*2.2+b.atk;
+ let total=base*(1+skillBonus("power")+Math.min(4,save.paragonStats.damage*.02*save.paragonLevel))*(1+io.atkPct/100);
  if(save.waveBoss)total*=1+io.bossDmg/100;
  if(save.waveBoss)total*=1+skillBonus("boss");
- return Math.floor(total)
+ return Math.max(1,Math.floor(total))
 }
 function critChance(){let io=itemOptionBonuses();return Math.min(.85,.05+skillBonus("crit")+bonuses().crit+save.paragonStats.crit*.005*save.paragonLevel+io.crit/100)}
 function normalGoldBonusCap(){const raw=window.OMI_CONTENT?.gameplay?.goldBonusCapPct;return Math.max(0,Number(raw??100))/100}
@@ -223,9 +232,9 @@ function fixedZoneGold(zoneIndex=save.zone){
 function zoneMobGold(zoneIndex=save.zone){return fixedZoneGold(zoneIndex)}
 function bossGoldReward(baseGold){return Math.max(0,Math.floor(Math.max(0,Number(baseGold||0))*goldBonus()))}
 function dropBonus(){let io=itemOptionBonuses();return skillBonus("drop")+bonuses().drop+(save.base.luck-1)*.01+save.paragonStats.drop*.01*save.paragonLevel+io.drop/100}
-function power(){let b=bonuses();return Math.floor(damage()*11+b.def*7+save.level*20+save.base.mining*8+save.base.luck*8)}
-function rankName(){let p=power();return p<500?"Kezdő":p<2500?"Harcos":p<10000?"Elit":p<40000?"Mester":p<120000?"Hős":"Isteni"}
-function baseCost(d){return Math.floor(d.base*Math.pow(1.58,save.base[d.key]-1))}
+function power(){let b=bonuses();return Math.floor(damage()*1.2+b.def*.8+save.level*.8+save.base.mining*.5+save.base.luck*.5)}
+function rankName(){let p=power();return p<25?"Kezdő":p<180?"Harcos":p<1000?"Elit":p<5000?"Mester":p<15000?"Hős":"Isteni"}
+function baseCost(d){return Math.floor(d.base*Math.pow(1.32,save.base[d.key]-1))}
 function rarityRoll(){
  let bonus=(save.base.luck-1)*.25+skillBonus("drop")*15;
  let r=Math.random()*100;
@@ -280,7 +289,7 @@ function itemOptionText(o){
 }
 function itemRerollCost(it){
  const r={normal:1,rare:2,epic:4,mythic:8,legendary:15}[it.rarity]||1;
- return Math.floor((1500+Number(it.plus||0)*650)*r);
+ return Math.floor((80+Number(it.plus||0)*35)*r);
 }
 function rerollItemOptions(id){
  const it=save.inventory.find(x=>Number(x.id)===Number(id));if(!it)return;
@@ -315,7 +324,7 @@ function createItem(){
  return rollItemOptions(it)
 }
 function rarityName(k){return RARITIES.find(x=>x.key===k)?.name||k}
-function sellValue(it){let r=RARITIES.find(x=>x.key===it.rarity)||RARITIES[0];return Math.floor((30+save.level*8)*(1+save.zone*.7)*r.mult*(1+it.plus*.4))}
+function sellValue(it){let r=RARITIES.find(x=>x.key===it.rarity)||RARITIES[0];return Math.floor((5+save.level*1.2)*(1+save.zone*.35)*r.mult*(1+it.plus*.25))}
 function addItem(it){
  ensureItemOptions(it);if(!it.options.length)rollItemOptions(it);
  if(save.inventory.length>=120){save.gold+=sellValue(it);return toast("🎒 Inventory tele — tárgy automatikusan eladva.")}
@@ -548,7 +557,7 @@ function renderSkills(){
  $$("[data-tree-skill]").forEach(b=>b.onclick=()=>{const n=SKILL_TREE.find(x=>x.key===b.dataset.treeSkill);if(!n||skillRank(n.key)>=n.max||!unlocked(n))return;const cost=soulCost(n);if(save.soul<cost)return toast(`Nincs elég lélekkő. Kell: ${cost}`);save.soul-=cost;save.skills[n.key]=skillRank(n.key)+1;persist();renderAll();toast(`🌟 ${n.name}: ${save.skills[n.key]}/${n.max} · -${cost} lélekkő`)});
 }
 const ECONOMY_DEFAULTS={
- exchange:{gems:{gold:10000000,amount:25},ore:{gold:1000000,amount:10},tickets:{gold:5000000,amount:1}},
+ exchange:{gems:{gold:2500,amount:5},ore:{gold:1200,amount:10},tickets:{gold:3500,amount:1}},
  petSummonCost:10,petSlotCosts:[50,150,300],petSummonRates:{normal:55,rare:28,epic:12,mythic:4,legendary:1}
 };
 function economyCfg(){
@@ -1241,7 +1250,7 @@ function normalEnemyMaxHp(){
 function waveKillRequirement(wave){
   wave=Math.max(1,Number(wave||1));
   // Farm szakaszok: később több mob kell, de nem válik unalmassá.
-  return Math.min(40,10+Math.floor((wave-1)/25));
+  return Math.min(18,8+Math.floor((wave-1)/50));
 }
 function applyWaveGoal(){
   save.waveGoal=waveKillRequirement(save.wave);
@@ -1249,8 +1258,8 @@ function applyWaveGoal(){
 
 // ================= V15.5 WAVE / BOSS / PARAGON RULES =================
 function paragonWaveRequirement(){
-  // Paragon 1 = wave 500, Paragon 2 = 510, Paragon 3 = 520...
-  return 500 + Math.max(0,Number(save.paragonLevel||0))*10;
+  // Kompakt idle kör: Paragon 1 = wave 250, majd körönként +10 wave.
+  return 250 + Math.max(0,Number(save.paragonLevel||0))*10;
 }
 function isBossCheckpointWave(wave){
   return Number(wave||1)%10===0;
@@ -1265,30 +1274,30 @@ function restartCurrentBossWave(){
 
 // ================= V10 FULL COMBAT =================
 const V10_DEFAULTS={
- basePlayerHp:180,hpPerLevel:12,defenseEffectPct:1.15,
- monsterDamageMult:1,bossDamageMult:1.65,bossRegenPct:.40,mobRegenPct:0,
+ basePlayerHp:100,hpPerLevel:5,defenseEffectPct:.8,
+ monsterDamageMult:1,bossDamageMult:1.45,bossRegenPct:.20,mobRegenPct:0,
  playerRegenPct:1.2,playerAttackSec:1,enemyAttackSec:1.35,
- respawnSec:6,respawnHpPct:100,waveKills:10,bossHpGrowthPct:18,
- bossRewardMult:1,mobDamageHpPct:2.1,bossGemAmount:1,bossGemDropChance:100,defaultBossFixedGold:1000
+ respawnSec:5,respawnHpPct:100,waveKills:8,bossHpGrowthPct:8,
+ bossRewardMult:1,mobDamageHpPct:2.1,bossGemAmount:1,bossGemDropChance:20,defaultBossFixedGold:120
 };
 let V10CFG={...V10_DEFAULTS};
 let v10PlayerTimer=null,v10EnemyTimer=null,v10RegenTimer=null;
 
 function v10Defense(){
  const b=bonuses(),io=itemOptionBonuses();
- return Math.max(0,Math.floor(((b.def||0)+(save.base?.armorTraining||1)*3+(save.level||1)*.8+save.prestigeLevel*5)*(1+io.defPct/100)));
+ return Math.max(0,Math.floor(((b.def||0)+(save.base?.armorTraining||1)*1.5+(save.level||1)*.35+save.prestigeLevel*2)*(1+io.defPct/100)));
 }
 function v10MaxHp(){
  const io=itemOptionBonuses();
  const cfg=(typeof V10CFG!=="undefined"&&V10CFG)?V10CFG:V10_DEFAULTS;
  return Math.max(1,Math.floor(
-   (cfg.basePlayerHp+(save.level-1)*cfg.hpPerLevel+v10Defense()*2+save.paragonLevel*20)*(1+io.hpPct/100)
+   (cfg.basePlayerHp+(save.level-1)*cfg.hpPerLevel+v10Defense()*1.5+save.paragonLevel*8)*(1+io.hpPct/100)
  ));
 }
 function v10BossMaxHp(){
  const base=normalEnemyMaxHp();
  // Boss minden 10. wave-en komoly fal, de nem irreális.
- return Math.max(base,Math.floor(base*(5.5+Math.min(12,save.wave*.012))));
+ return Math.max(base,Math.floor(base*(4+Math.min(6,save.wave*.006))));
 }
 function v10EnemyMaxHp(){return save.waveBoss?v10BossMaxHp():normalEnemyMaxHp()}
 function v10RawEnemyDamage(){
@@ -1415,6 +1424,7 @@ function v10AwardNormalKill(){
  }
  v161LiveHud();
 }
+function rollBossWaveAdvance(){const r=Math.random()*100;if(r<3)return 5;if(r<8)return 3;if(r<18)return 2;return 1}
 function v10AwardBossKill(){
  const z=ZONES[save.zone];
  const reward=bossGoldReward(V10CFG.defaultBossFixedGold??1000);
@@ -1426,13 +1436,14 @@ function v10AwardBossKill(){
  const oldWave=save.wave;
  save.waveBoss=false;
  save.bossHp=0;
- save.wave++;
+ const waveAdvance=rollBossWaveAdvance();save.wave+=waveAdvance;
  save.waveKills=0;
  applyWaveGoal();
  applyWaveGoal();
  enemyHp=normalEnemyMaxHp();
 
- $("#combatLog").textContent=`🏆 Wave ${oldWave} Boss legyőzve! +${fmt(reward)} arany${bossGemsWon?` · +${bossGemsWon} gyémánt`:""}. Wave ${save.wave} indul.`;
+ $("#combatLog").textContent=`🏆 Wave ${oldWave} Boss legyőzve! +${fmt(reward)} arany${bossGemsWon?` · +${bossGemsWon} gyémánt`:""}. ${waveAdvance>1?`⚡ +${waveAdvance} WAVE UGRÁS! `:""}Wave ${save.wave} indul.`;
+ if(waveAdvance===5)toast("⚡ JACKPOT! A boss +5 wave-et ugrott!");
  if(oldWave%100===0){
    save.gems+=3; save.soul+=3; save.ore+=25;
    toast(`💎 Wave ${oldWave} mérföldkő: +3 kristály, +3 lélekkő, +25 érc`);
@@ -1485,7 +1496,7 @@ function playerHpRegenPct(){
  return Math.max(0,Number(cfg.playerRegenPct||0)+Number(save.hpRegenLevel||0)*0.35+io.hpRegen);
 }
 function hpRegenUpgradeCost(){
- return Math.floor(2500*Math.pow(1.42,Number(save.hpRegenLevel||0)));
+ return Math.floor(120*Math.pow(1.34,Number(save.hpRegenLevel||0)));
 }
 function upgradeHpRegen(){
  const cost=hpRegenUpgradeCost();
@@ -1641,12 +1652,12 @@ v10AwardBossKill=function(){
  const oldWave=save.wave;
  save.waveBoss=false;
  save.bossHp=0;
- save.wave++;
+ const waveAdvance=rollBossWaveAdvance();save.wave+=waveAdvance;
  save.waveKills=0;
  applyWaveGoal();
  enemyHp=ZONES[save.zone].hp;
 
- $("#combatLog").textContent=`🏆 ${b.name||"Boss"} legyőzve! +${fmt(reward)} arany · +${fmt(Number(b.xp||0))} XP${gemsWon?` · +${gemsWon} gyémánt`:""} · Wave ${save.wave}`;
+ $("#combatLog").textContent=`🏆 ${b.name||"Boss"} legyőzve! +${fmt(reward)} arany · +${fmt(Number(b.xp||0))} XP${gemsWon?` · +${gemsWon} gyémánt`:""}${waveAdvance>1?` · ⚡ +${waveAdvance} wave`:""} · Wave ${save.wave}`;
  toast(`🏆 ${b.name||"Boss"} legyőzve!`);
  persist();
 };
@@ -3709,6 +3720,13 @@ document.addEventListener("click",e=>{
     }
   ];
 
+  // V22.41 compact, readable progression scale.
+  const V2241_DUNGEON_BALANCE=[
+    [40,[80,120]],[110,[140,220]],[260,[240,360]],[550,[420,650]],[1100,[700,1050]],
+    [2200,[1100,1600]],[4000,[1700,2500]],[7000,[2600,3800]],[12000,[4000,5800]],[20000,[6500,9000]]
+  ];
+  DUNGEONS_V218.forEach((d,i)=>{const b=V2241_DUNGEON_BALANCE[i];if(!b)return;d.reqPower=b[0];d.rewards.gold=b[1]});
+
   function s218(){ return (typeof save!=="undefined"&&save)?save:{}; }
   function p218(){ return (typeof power==="function")?Number(power()||0):0; }
   function fmt218(n){ return (typeof fmt==="function")?fmt(n):Math.floor(n).toLocaleString("hu-HU"); }
@@ -4367,15 +4385,15 @@ window.v222AdminSpeedSupported=true;
   const ENDGAME_RARITIES={
     immortal:{
       name:"Immortal", icon:"♾️", tier:1, tierLabel:"T1",
-      minDungeonPower:55000, gearMult:1.38, optionMult:1.25, dropBase:.035
+      minDungeonPower:3500, gearMult:1.38, optionMult:1.25, dropBase:.035
     },
     celestial:{
       name:"Celestial", icon:"🌌", tier:2, tierLabel:"T2",
-      minDungeonPower:150000, gearMult:1.78, optionMult:1.50, dropBase:.020
+      minDungeonPower:9000, gearMult:1.78, optionMult:1.50, dropBase:.020
     },
     eternal:{
       name:"Eternal", icon:"🔥", tier:3, tierLabel:"T3",
-      minDungeonPower:300000, gearMult:2.30, optionMult:1.85, dropBase:.010
+      minDungeonPower:18000, gearMult:2.30, optionMult:1.85, dropBase:.010
     }
   };
   const SLOTS=["weapon","helmet","armor","gloves","boots","ring"];
@@ -4439,14 +4457,14 @@ window.v222AdminSpeedSupported=true;
     const dp=Number(dungeon?.reqPower||0);
 
     // HARD RULE: below 55,000 recommended dungeon power these rarities can NEVER drop.
-    if(dp<55000)return null;
+    if(dp<3500)return null;
 
     const rarity=strongestEligibleRarity(dp);
     if(!rarity)return null;
     const cfg=ENDGAME_RARITIES[rarity];
 
     // Player must also actually be at least 55k power.
-    if(playerPower()<55000)return null;
+    if(playerPower()<3500)return null;
 
     // Slightly better chance in harder dungeons while remaining rare.
     const over=Math.max(0,dp/cfg.minDungeonPower-1);
@@ -4497,10 +4515,10 @@ window.v222AdminSpeedSupported=true;
 
       const rows=rarityRowsForDungeon(d);
 
-      if(Number(d.reqPower||0)<55000){
+      if(Number(d.reqPower||0)<3500){
         box.innerHTML=`
           <small>💎 Endgame rare gear</small>
-          <div class="v226-locked">🔒 55 000+ ajánlott erősségű Dungeonban nyílik meg.</div>`;
+          <div class="v226-locked">🔒 3 500+ ajánlott erősségű Dungeonban nyílik meg.</div>`;
         return;
       }
 
@@ -4549,7 +4567,7 @@ window.v222AdminSpeedSupported=true;
             </div>
           </div>`).join("")}
       </div>
-      <p>55 000 alatt ezek a ritkaságok nem eshetnek. Minél magasabb Dungeonba mész, annál magasabb tier válik elérhetővé.</p>`;
+      <p>3 500 erő alatt ezek a ritkaságok nem eshetnek. Minél magasabb Dungeonba mész, annál magasabb tier válik elérhetővé.</p>`;
   }
 
   function refresh(){

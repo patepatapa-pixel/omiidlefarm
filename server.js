@@ -139,7 +139,34 @@ async function init(){
       vote SMALLINT NOT NULL CHECK(vote IN (-1,1)),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+    CREATE TABLE IF NOT EXISTS system_migrations(
+      migration_key TEXT PRIMARY KEY,
+      applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
   `);
+
+  // V22.41 one-time economy restart. Persistent special tokens stay untouched.
+  const balanceMigration="v2241_compact_economy_reset";
+  const already=(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[balanceMigration])).rows[0];
+  if(!already){
+    const rows=(await q("SELECT user_id,save_data FROM game_saves")).rows;
+    for(const row of rows){
+      const s=row.save_data||{};
+      s.gold=0;s.gems=0;s.ore=0;s.soul=0;s.achievementPoints=0;
+      // tickets, auraTokens and mountShards intentionally remain unchanged.
+      await q("UPDATE game_saves SET save_data=$1,gold=0,updated_at=NOW() WHERE user_id=$2",[s,row.user_id]);
+    }
+    await q("CREATE TABLE IF NOT EXISTS game_content(key TEXT PRIMARY KEY,value JSONB NOT NULL DEFAULT '{}'::jsonb,updated_at TIMESTAMPTZ DEFAULT NOW())");
+    const contentRow=(await q("SELECT value FROM game_content WHERE key='main'")).rows[0];
+    const content=contentRow?.value||{};
+    content.balanceVersion=2241;
+    content.gameplay={...(content.gameplay||{}),basePlayerHp:100,hpPerLevel:5,defenseEffectPct:.8,bossDamageMult:1.45,bossRegenPct:.2,respawnSec:5,zoneFixedGold:[5,9,16,28,48,80,130,210],defaultBossFixedGold:120,bossGemDropChance:20,mobTargetHits:2,waveKills:8,bossHpGrowthPct:8};
+    content.mounts={...(content.mounts||{}),shardChancePct:2,shardAmount:1,shardsRequired:10,chestCost:{gold:1500,gems:10,ore:25,soul:1,tickets:1},upgradeCostMultiplier:1};
+    content.economy={...(content.economy||{}),exchange:{gems:{gold:2500,amount:5},ore:{gold:1200,amount:10},tickets:{gold:3500,amount:1}}};
+    if(Array.isArray(content.bosses))content.bosses=content.bosses.map(b=>({...b,gold:Math.max(40,Math.floor(Number(b.gold||120)/20))}));
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[content]);
+    await q("INSERT INTO system_migrations(migration_key) VALUES($1)",[balanceMigration]);
+  }
 
   await q(`
     CREATE TABLE IF NOT EXISTS discord_links(
@@ -182,7 +209,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.40.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.41.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{
@@ -563,14 +590,14 @@ function pvpStats(save){
   save=save||{};
   const level=Math.max(1,Number(save.level||1));
   const base=save.base||{},ps=save.paragonStats||{};
-  let atk=8+level*1.7+Number(base.weaponTraining||1)*5+Number(ps.damage||0)*3;
-  let def=5+level*1.05+Number(base.armorTraining||1)*4+Number(save.prestigeLevel||0)*4;
+  let atk=5+level*.65+Number(base.weaponTraining||1)*2.2+Math.min(60,Number(ps.damage||0)*1.2);
+  let def=3+level*.4+Number(base.armorTraining||1)*1.5+Number(save.prestigeLevel||0)*2;
   for(const id of Object.values(save.equipped||{})){
     const it=(save.inventory||[]).find(x=>x.id===id); if(!it)continue;
     const up=1+Number(it.plus||0)*.10;
     atk+=Number(it.atk||0)*up;def+=Number(it.def||0)*up;
   }
-  let hp=Math.floor(220+level*18+def*3+Number(save.paragonLevel||0)*30);
+  let hp=Math.floor(100+level*5+def*1.5+Number(save.paragonLevel||0)*8);
   const skillLv=k=>Math.max(0,Math.min(5,Math.floor(Number(save.skills?.[k]||0))));
   atk*=1+Math.min(1,Number(save.skills?.root||0))*.05+skillLv("power")*.06;
   const crit=Math.min(.70,.05+skillLv("crit")*.015+Number(ps.crit||0)*.005);

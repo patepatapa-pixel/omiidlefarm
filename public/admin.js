@@ -91,29 +91,29 @@ loadStudioV8();
 
 // V10 gameplay editor
 const V10_GAMEPLAY_DEFAULTS={
- basePlayerHp:180,
- hpPerLevel:12,
- defenseEffectPct:1.15,
+ basePlayerHp:100,
+ hpPerLevel:5,
+ defenseEffectPct:.8,
  monsterDamageMult:1,
- bossDamageMult:1.65,
- bossRegenPct:0.40,
+ bossDamageMult:1.45,
+ bossRegenPct:0.20,
  mobRegenPct:0,
  playerRegenPct:1.2,
  playerAttackSec:1,
  enemyAttackSec:1.35,
- respawnSec:6,
+ respawnSec:5,
  respawnHpPct:100,
- waveKills:10,
- bossHpGrowthPct:18,
+ waveKills:8,
+ bossHpGrowthPct:8,
  bossRewardMult:1,
  mobDamageHpPct:2.1,
  bossGemAmount:1,
  bossGemDropChance:100,
- defaultBossFixedGold:1000,
+ defaultBossFixedGold:120,
  goldBonusCapPct:100,
  mobTargetHits:2,
  zoneHpMultipliers:[100,100,100,100,100,100,100,100],
- zoneFixedGold:[10,35,95,280,900,2700,8500,25000]
+ zoneFixedGold:[5,9,16,28,48,80,130,210]
 };
 
 function v10GameplayCfg(){
@@ -237,7 +237,7 @@ qs("#refreshShopRequests")?.addEventListener("click",loadShopRequests);
 setTimeout(()=>{fillPvpAdmin();renderShopAdmin();loadShopRequests();fillV11PlayerMeta()},1300);
 
 // V22.19 exchange market and pet economy
-const V219_ECONOMY_DEFAULTS={exchange:{gems:{gold:10000000,amount:25},ore:{gold:1000000,amount:10},tickets:{gold:5000000,amount:1}},petSummonCost:10,petSlotCosts:[50,150,300],petSummonRates:{normal:55,rare:28,epic:12,mythic:4,legendary:1},petFusionCosts:{rare:10,mythic:10,legendary:10,celestial:10,imperial:10,eternal:10},petFusionRequirements:{rare:5,mythic:3,legendary:3,celestial:3,imperial:3,eternal:3},petMultiOption:{imperialChancePct:10,eternalChancePct:20,minPct:2,maxPct:8,maxExtraOptions:2},achievementExchange:{gems:{points:10,amount:5},ore:{points:5,amount:50},tickets:{points:8,amount:2}}};
+const V219_ECONOMY_DEFAULTS={exchange:{gems:{gold:2500,amount:5},ore:{gold:1200,amount:10},tickets:{gold:3500,amount:1}},petSummonCost:10,petSlotCosts:[50,150,300],petSummonRates:{normal:55,rare:28,epic:12,mythic:4,legendary:1},petFusionCosts:{rare:10,mythic:10,legendary:10,celestial:10,imperial:10,eternal:10},petFusionRequirements:{rare:5,mythic:3,legendary:3,celestial:3,imperial:3,eternal:3},petMultiOption:{imperialChancePct:10,eternalChancePct:20,minPct:2,maxPct:8,maxExtraOptions:2},achievementExchange:{gems:{points:10,amount:5},ore:{points:5,amount:50},tickets:{points:8,amount:2}}};
 function economyAdminCfg(){
  const e=studioConfig.economy||{},x=e.exchange||{};
  const ax=e.achievementExchange||{};
@@ -248,7 +248,7 @@ function fillEconomyAdmin(){
  if(petMultiTemplate&&petPage&&!qs("#cfgPetMultiImperialChance")){petPage.insertAdjacentHTML("beforeend",petMultiTemplate.textContent);petMultiTemplate.remove()}
  const e=economyAdminCfg(),map={cfgExchangeGemsGold:e.exchange.gems.gold,cfgExchangeGemsAmount:e.exchange.gems.amount,cfgExchangeOreGold:e.exchange.ore.gold,cfgExchangeOreAmount:e.exchange.ore.amount,cfgExchangeTicketsGold:e.exchange.tickets.gold,cfgExchangeTicketsAmount:e.exchange.tickets.amount,cfgPetSummonCost:e.petSummonCost,cfgPetSlot2Cost:e.petSlotCosts[0],cfgPetSlot3Cost:e.petSlotCosts[1],cfgPetSlot4Cost:e.petSlotCosts[2],cfgPetRateCommon:e.petSummonRates.normal,cfgPetRateRare:e.petSummonRates.rare,cfgPetRateEpic:e.petSummonRates.epic,cfgPetRateMythic:e.petSummonRates.mythic,cfgPetRateLegendary:e.petSummonRates.legendary,cfgPetFusionRare:e.petFusionCosts.rare,cfgPetFusionMythic:e.petFusionCosts.mythic,cfgPetFusionLegendary:e.petFusionCosts.legendary,cfgPetFusionCelestial:e.petFusionCosts.celestial,cfgPetFusionImperial:e.petFusionCosts.imperial,cfgPetFusionEternal:e.petFusionCosts.eternal,cfgPetReqRare:e.petFusionRequirements.rare,cfgPetReqMythic:e.petFusionRequirements.mythic,cfgPetReqLegendary:e.petFusionRequirements.legendary,cfgPetReqCelestial:e.petFusionRequirements.celestial,cfgPetReqImperial:e.petFusionRequirements.imperial,cfgPetReqEternal:e.petFusionRequirements.eternal,cfgPetMultiImperialChance:e.petMultiOption.imperialChancePct,cfgPetMultiEternalChance:e.petMultiOption.eternalChancePct,cfgPetMultiMinPct:e.petMultiOption.minPct,cfgPetMultiMaxPct:e.petMultiOption.maxPct,cfgPetMultiMaxOptions:e.petMultiOption.maxExtraOptions,cfgAchGemsPoints:e.achievementExchange.gems.points,cfgAchGemsAmount:e.achievementExchange.gems.amount,cfgAchOrePoints:e.achievementExchange.ore.points,cfgAchOreAmount:e.achievementExchange.ore.amount,cfgAchTicketsPoints:e.achievementExchange.tickets.points,cfgAchTicketsAmount:e.achievementExchange.tickets.amount};
  Object.entries(map).forEach(([id,value])=>{const el=qs("#"+id);if(el)el.value=value});
- const m={shardChancePct:2,shardAmount:1,shardsRequired:10,chestCost:{gold:250000,gems:10,ore:25,soul:1,tickets:1},upgradeCostMultiplier:1,...(studioConfig.mounts||{})};m.chestCost={gold:250000,gems:10,ore:25,soul:1,tickets:1,...(m.chestCost||{})};
+ const m={shardChancePct:2,shardAmount:1,shardsRequired:10,chestCost:{gold:1500,gems:10,ore:25,soul:1,tickets:1},upgradeCostMultiplier:1,...(studioConfig.mounts||{})};m.chestCost={gold:1500,gems:10,ore:25,soul:1,tickets:1,...(m.chestCost||{})};
  const mm={cfgMountShardChance:m.shardChancePct,cfgMountShardAmount:m.shardAmount,cfgMountShardRequired:m.shardsRequired,cfgMountChestGold:m.chestCost.gold,cfgMountChestGems:m.chestCost.gems,cfgMountChestOre:m.chestCost.ore,cfgMountChestSoul:m.chestCost.soul,cfgMountChestTickets:m.chestCost.tickets,cfgMountUpgradeMult:m.upgradeCostMultiplier};Object.entries(mm).forEach(([id,value])=>{const el=qs("#"+id);if(el)el.value=value});
 }
 qs("#saveEconomyConfig")?.addEventListener("click",async()=>{
