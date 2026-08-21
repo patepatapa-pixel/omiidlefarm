@@ -4852,7 +4852,7 @@ function render(){
     try{if(typeof persist==="function")persist()}catch(e){}
   }
   function scoreOpt(o){
-    const w={atkPct:10,bossDmg:9,crit:8,drop:7,hpPct:6,defPct:6,hpRegen:4,pvpDmg:2};
+    const w={atkPct:24,defPct:20,crit:18,bossDmg:14,hpPct:5,hpRegen:3,drop:1,pvpDmg:1};
     return (w[o?.key]||1)*Math.max(.1,Number(o?.value||0));
   }
   function rarityRankV314(it){
@@ -4862,19 +4862,15 @@ function render(){
     if(!it)return -Infinity;
     let score=0;
     try{
-      if(typeof itemPowerScore==="function")score+=Number(itemPowerScore(it)||0);
-      else if(typeof itemScore==="function")score+=Number(itemScore(it)||0);
-    }catch(e){}
-    try{
       const st=typeof itemStats==="function"?itemStats(it):{};
-      score+=Number(st.atk||it.atk||0)*12;
-      score+=Number(st.def||it.def||0)*8;
-      score+=Number(st.crit||it.crit||0)*1800;
-      score+=Number(st.drop||it.drop||0)*1400;
+      score+=Number(st.atk||it.atk||0)*28;
+      score+=Number(st.def||it.def||0)*18;
+      score+=Number(st.crit||it.crit||0)*2400;
+      score+=Number(st.drop||it.drop||0)*120;
     }catch(e){}
-    score+=Number(it.plus||0)*120;
+    score+=Number(it.plus||0)*240;
     (Array.isArray(it.options)?it.options:[]).forEach(o=>{
-      const w={atkPct:80,bossDmg:72,crit:68,drop:55,hpPct:45,defPct:45,hpRegen:30,pvpDmg:12}[o?.key]||8;
+      const w={atkPct:170,bossDmg:95,crit:110,defPct:125,hpPct:30,hpRegen:15,drop:8,pvpDmg:8}[o?.key]||6;
       score+=Math.max(0,Number(o?.value||0))*w;
     });
     return score;
@@ -4919,8 +4915,9 @@ function render(){
     while(guard++<12){
       const candidates=BASE_UPS.map(d=>({d,c:baseCost(d)})).filter(x=>Number(s.gold||0)>=x.c);
       if(!candidates.length)break;
-      // balanced progression: favor the lowest level, then cheapest
-      candidates.sort((a,b)=>(Number(s.base[a.d.key]||1)-Number(s.base[b.d.key]||1))||(a.c-b.c));
+      // Power focus: direct combat stats first.
+      const powerPriority={weaponTraining:0,armorTraining:1,luck:2,mining:3};
+      candidates.sort((a,b)=>(powerPriority[a.d.key]??9)-(powerPriority[b.d.key]??9)||(a.c-b.c));
       const x=candidates[0];s.gold-=x.c;s.base[x.d.key]=Number(s.base[x.d.key]||1)+1;n++;
     }
     return n;
@@ -4930,8 +4927,8 @@ function render(){
     const s=S();if(!s)return 0;
     s.paragonStats={damage:0,gold:0,drop:0,crit:0,...(s.paragonStats||{})};
     let pts=Math.max(0,Math.floor(Number(s.paragonPoints||0))),spent=0;
-    // 45% damage, 25% gold, 20% drop, 10% crit, one point at a time to keep distribution balanced.
-    const order=["damage","gold","damage","drop","damage","gold","crit","damage","drop","gold"];
+    // Power focus: damage and crit first.
+    const order=["damage","damage","crit","damage","damage","crit","damage","damage","damage","crit"];
     while(pts>0&&spent<1000){const k=order[spent%order.length];s.paragonStats[k]=Number(s.paragonStats[k]||0)+1;pts--;spent++}
     s.paragonPoints=pts;
     return spent;
@@ -4996,8 +4993,8 @@ function render(){
 
   function autoSkills(){
     const s=S();if(!s||typeof SKILL_TREE==="undefined"||typeof soulCost!=="function"||typeof skillRank!=="function"||typeof unlocked!=="function")return 0;
-    // Priority: raw power -> drop/gold -> sustain/offline. Spend conservatively so PvP/dungeon soulstones are not fully drained.
-    const priority=["power","crit","drop","gold","pet","offline"];
+    // Power focus: combat nodes first, economy after.
+    const priority=["power","combat","crit","berserk","precision","slayer","warMaster","pet","offline","drop","gold"];
     let bought=0,guard=0;
     while(guard++<20){
       const nodes=SKILL_TREE.filter(n=>unlocked(n)&&skillRank(n.key)<Number(n.max||0)&&Number(s.soul||0)>=soulCost(n));
@@ -5048,7 +5045,7 @@ function render(){
       if(Array.isArray(s?.mounts)){
         // compatibility for array-based mount collections
         let best=-1,bestScore=-Infinity;
-        s.mounts.forEach((m,i)=>{const sc=Number(m?.power||m?.value||m?.bonusPct||0);if(sc>bestScore){bestScore=sc;best=i}});
+        s.mounts.forEach((m,i)=>{const sc=Number(m?.level||0)*10000+Number(m?.power||0)*100+Number(m?.value||0)*10+Number(m?.bonusPct||0);if(sc>bestScore){bestScore=sc;best=i}});
         if(best>=0){s.activeMount=best}
       }
     }catch(e){}
@@ -5085,7 +5082,7 @@ function render(){
     const s=S()||{};
     const unlocked=Boolean(s.fullAutoUnlocked);
     const active=Boolean(unlocked&&s.fullAutoEnabled);
-    p.innerHTML=`<div class="v302-auto-copy"><small>🤖 20 E-ÉRME · AUTOMATA RENDSZER</small><h3>Teljes Automata Rendszer</h3><p>Kényelmi automatizálás ugyanazzal a haladási tempóval, mint a kézi játék: legerősebb farmzóna és Speed · Equip Best · felszerelés fejlesztés/forgatás · képességfa · alap fejlesztések · Paragon statok · pet/hátas · intelligens selejtezés · Auto Paragon és Auto Prestige. Nem ad rejtett sebzés-, drop-, wave- vagy Prestige-szorzót.</p><em>${unlocked?"✅ Admin által feloldva":"🔒 Előbb az adminnak kell feloldania a fiókodon."}</em>${active?`<strong class="v303-auto-progress">⚙️ Haladás: Wave ${Number(s.wave||1)} · Paragon ${Number(s.paragonLevel||0)} · Prestige ${Number(s.prestigeLevel||0)} · Erő ${typeof power==="function"?fmt(power()):"..."}</strong>`:""}</div><button id="v299FullAutoToggleBtn" class="v302-auto-toggle ${active?"active":""}" ${unlocked?"":"disabled"}>${active?"🟢 AUTOMATA AKTÍV":"🤖 "+(unlocked?"AUTOMATA BEKAPCSOLÁSA":"NINCS FELOLDVA")}</button>`;
+    p.innerHTML=`<div class="v302-auto-copy"><small>🤖 20 E-ÉRME · AUTOMATA RENDSZER</small><h3>Teljes Automata Rendszer</h3><p>POWER FÓKUSZÚ automatizálás: a lehető legnagyobb karaktererőt célozza. Rarity szerint a legjobb felszerelést választja, azonos rarityn belül a magasabb harci értéket; előre veszi az ATK/DEF fejlesztést, harci skilleket, Paragon damage/crit statokat, petet és hátast. Nem kap rejtett szorzót, ugyanazokat az erőforrásokat használja, mint a kézi játék.</p><em>${unlocked?"✅ Admin által feloldva":"🔒 Előbb az adminnak kell feloldania a fiókodon."}</em>${active?`<strong class="v303-auto-progress">⚙️ Haladás: Wave ${Number(s.wave||1)} · Paragon ${Number(s.paragonLevel||0)} · Prestige ${Number(s.prestigeLevel||0)} · Erő ${typeof power==="function"?fmt(power()):"..."}</strong>`:""}</div><button id="v299FullAutoToggleBtn" class="v302-auto-toggle ${active?"active":""}" ${unlocked?"":"disabled"}>${active?"🟢 AUTOMATA AKTÍV":"🤖 "+(unlocked?"AUTOMATA BEKAPCSOLÁSA":"NINCS FELOLDVA")}</button>`;
     p.querySelector("#v299FullAutoToggleBtn")?.addEventListener("click",()=>{
       if(!s.fullAutoUnlocked){if(typeof toast==="function")toast("🔒 Az admin még nem oldotta fel a Teljes Automata Rendszert.");return}
       s.fullAutoEnabled=!s.fullAutoEnabled;
@@ -6019,3 +6016,9 @@ window.OMI_BALANCE_V2319={
  dungeonRecommendedPower:[1200,3000,6500,11000,18000,28000,40000,55000,72000,90000],
  powerCap:100000
 };
+
+/* V23.20.8 STABLE FULL RESTORE
+   Based on V23.20.3 stable UI/render/combat.
+   Restored: skill tree, base upgrades, item upgrades, farm zones, pets, dungeons, Paragon/Prestige.
+   Added only isolated Full Auto Power Focus. */
+window.OMI_STABLE_FULL_RESTORE_V23208=true;
