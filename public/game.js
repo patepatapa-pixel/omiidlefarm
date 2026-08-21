@@ -482,8 +482,38 @@ function renderZones(){
  const best=strongestUnlockedZone();
  if(save.zone!==best){save.zone=best;save.waveBoss=false;save.waveRiftBossV284=false;save.bossHp=0;save.waveKills=0;enemyHp=normalEnemyMaxHp();persist()}
  const thresholds=zoneWaveThresholdsV285();
- $("#zones").innerHTML=ZONES.map((z,i)=>{const weak=i<best,locked=i>best;return `<div class="zone ${i===save.zone?"active":""} ${locked?"locked":""} ${weak?"zone-too-weak":""}" data-zone="${i}"><b>${z.icon} ${z.name}</b><small>⚔️ ERŐ CÉL: ${fmt(zoneMinPowerV319(i))} · 🌊 Feloldás: Wave ${fmt(thresholds[i])} · ⚔️ Minimum erő: ${fmt(zoneMinPowerV319(i))} · 🛡️ Ajánlott DEF: ${fmt(recommendedDefenseV271(i,save.wave))}</small><small>Drop: ${(z.drop*100).toFixed(0)}% · 💰 Fix ${fmt(zoneMobGold(i))} arany / mob · ❤️ Mob HP: ${fmt(i===save.zone?normalEnemyMaxHp():Math.max(10,Math.floor(([160,520,1450,3800,9000,19000,35000,60000][i]||60000)*.90)))} · 👹 Boss: ~${(5+i*.38).toFixed(1)}× mob · Paragon cél: Wave ${fmt(paragonWaveRequirement())}</small>${weak?'<strong class="zone-cap-badge">⬆️ TELJESÍTETT TERÜLET</strong>':locked?`<strong class="zone-cap-badge">🔒 WAVE ${fmt(thresholds[i])} SZÜKSÉGES</strong>`:""}</div>`}).join("");
- $$("[data-zone]").forEach(e=>e.onclick=()=>{let i=+e.dataset.zone,current=strongestUnlockedZone();if(i>current)return toast("🔒 Ezt a területet még nem oldottad fel.");if(i<current)return toast("⛔ A teljesített terület végleg lezárult ebben a Paragon-ciklusban.");grantStarterGearV260(i);save.zone=i;save.waveKills=0;save.waveBoss=false;save.bossHp=0;enemyHp=normalEnemyMaxHp();persist();renderAll();toast("🗺️ "+ZONES[i].name)})
+ $("#zones").innerHTML=ZONES.map((z,i)=>{
+ const weak=i<best,locked=i>best,g=zoneGoalStateV23194(i);
+ const waveState=g.waveDone
+   ? `<span class="v23194-goal done">✅ Wave ${fmt(g.waveNeed)} TELJESÍTVE</span>`
+   : `<span class="v23194-goal pending">🌊 Wave ${fmt(g.waveNeed)} kell · most ${fmt(g.waveNow)}</span>`;
+ const powerState=g.powerDone
+   ? `<span class="v23194-goal done">✅ ${fmt(g.powerNeed)} ERŐ TELJESÍTVE</span>`
+   : `<span class="v23194-goal power">⚔️ Erő cél: ${fmt(g.powerNow)} / ${fmt(g.powerNeed)}</span>`;
+ const powerBar=g.powerNeed>0
+   ? `<div class="v23194-powerbar"><div style="width:${g.powerPct.toFixed(1)}%"></div></div>`
+   : "";
+ return `<div class="zone ${i===save.zone?"active":""} ${locked?"locked":""} ${weak?"zone-too-weak":""}" data-zone="${i}">
+   <b>${z.icon} ${z.name}</b>
+   <div class="v23194-goals">${waveState}${powerState}</div>
+   ${powerBar}
+   <small>🛡️ Ajánlott DEF: ${fmt(recommendedDefenseV271(i,save.wave))}</small>
+   <small>Drop: ${(z.drop*100).toFixed(0)}% · 💰 Fix ${fmt(zoneMobGold(i))} arany / mob · ❤️ Mob HP: ${fmt(i===save.zone?normalEnemyMaxHp():Math.max(10,Math.floor(([160,520,1450,3800,9000,19000,35000,60000][i]||60000)*.90)))} · 👹 Boss: ~${(5+i*.38).toFixed(1)}× mob</small>
+   ${weak?'<strong class="zone-cap-badge">⬆️ TELJESÍTETT TERÜLET</strong>':locked
+     ? `<strong class="zone-cap-badge">${g.waveDone&&!g.powerDone?`⚔️ MÉG ${fmt(Math.max(0,g.powerNeed-g.powerNow))} ERŐ KELL`:!g.waveDone?`🌊 WAVE CÉL HIÁNYZIK`:"🔒 ZÁROLVA"}</strong>`
+     : '<strong class="zone-cap-badge v23194-open">✅ MINDKÉT CÉL TELJESÍTVE</strong>'}
+ </div>`
+}).join("");
+ $$("[data-zone]").forEach(e=>e.onclick=()=>{
+ let i=+e.dataset.zone,current=strongestUnlockedZone(),g=zoneGoalStateV23194(i);
+ if(i>current){
+   if(!g.waveDone)return toast(`🌊 Még el kell érned a Wave ${fmt(g.waveNeed)} célt.`);
+   if(!g.powerDone)return toast(`⚔️ A Wave cél kész ✅ · még ${fmt(Math.max(0,g.powerNeed-g.powerNow))} ERŐ hiányzik.`);
+   return toast("🔒 Ezt a területet még nem oldottad fel.");
+ }
+ if(i<current)return toast("⛔ A teljesített terület végleg lezárult ebben a Paragon-ciklusban.");
+ grantStarterGearV260(i);save.zone=i;save.waveKills=0;save.waveBoss=false;save.bossHp=0;enemyHp=normalEnemyMaxHp();persist();renderAll();toast("🗺️ "+ZONES[i].name)
+})
 }
 function zoneWaveThresholdsV285(){
  const count=Math.max(1,ZONES.length),req=Math.max(1,paragonWaveRequirement());
@@ -494,6 +524,24 @@ function zoneMinPowerV319(zone){
  const gates=[0,900,2200,4500,8500,14500,23000,34000];
  zone=Math.max(0,Math.min(gates.length-1,Math.floor(Number(zone||0))));
  return gates[zone];
+}
+function zoneGoalStateV23194(i){
+ try{
+  const thresholds=zoneWaveThresholdsV285();
+  const waveNeed=Math.max(1,Number(thresholds[i]||1));
+  const powerNeed=Math.max(0,Number(zoneMinPowerV319(i)||0));
+  const waveNow=Math.max(1,Number(save?.wave||1));
+  let powerNow=0;
+  try{powerNow=Math.max(0,Number(typeof power==="function"?power():0)||0)}catch(e){powerNow=0}
+  return {
+   waveNeed,powerNeed,waveNow,powerNow,
+   waveDone:waveNow>=waveNeed,
+   powerDone:powerNow>=powerNeed,
+   powerPct:powerNeed<=0?100:Math.max(0,Math.min(100,powerNow/powerNeed*100))
+  };
+ }catch(e){
+  return {waveNeed:1,powerNeed:0,waveNow:1,powerNow:0,waveDone:false,powerDone:false,powerPct:0};
+ }
 }
 function progressionMinimumZoneV260(){
  const s=(typeof save!=="undefined"&&save)?save:{};
@@ -6050,7 +6098,14 @@ window.OMI_PVE_HP_BALANCE_V23192={
      if(!box){box=document.createElement("div");box.id="powerGateV23193";box.className="card";host.prepend(box)}
      const x=nextZonePowerProgressV23193();
      if(!x.need){box.innerHTML="<b>⚔️ Területi erőkapu</b><small>Elérted a legmagasabb területet.</small>";return}
-     box.innerHTML=`<b>⚔️ Következő terület erőcél</b><div style="margin:8px 0;height:12px;border-radius:8px;overflow:hidden;background:#151922"><div style="height:100%;width:${x.pct.toFixed(1)}%;background:linear-gradient(90deg,#d7a73b,#ffe18a)"></div></div><small>${typeof fmt==="function"?fmt(x.power):x.power} / ${typeof fmt==="function"?fmt(x.need):x.need} ERŐ · ${x.pct.toFixed(1)}%${x.blocked?` · 🔥 Felzárkózási bónusz: ${x.mult.toFixed(2)}× farm jutalom`:""}</small>`;
+     const cur=Math.max(0,Math.min(ZONES.length-1,Number(save?.zone||0))),next=Math.min(ZONES.length-1,cur+1),g=zoneGoalStateV23194(next);
+     box.innerHTML=`<b>🎯 Következő terület céljai</b>
+       <div class="v23194-summary-goals">
+         <span class="${g.waveDone?"done":"pending"}">${g.waveDone?"✅":"🌊"} Wave ${typeof fmt==="function"?fmt(g.waveNeed):g.waveNeed}${g.waveDone?" teljesítve":` · most ${typeof fmt==="function"?fmt(g.waveNow):g.waveNow}`}</span>
+         <span class="${g.powerDone?"done":"power"}">${g.powerDone?"✅":"⚔️"} ${typeof fmt==="function"?fmt(g.powerNow):g.powerNow} / ${typeof fmt==="function"?fmt(g.powerNeed):g.powerNeed} ERŐ</span>
+       </div>
+       <div class="v23194-powerbar"><div style="width:${g.powerPct.toFixed(1)}%"></div></div>
+       <small>${g.waveDone&&!g.powerDone?`✅ Wave kész · már csak ${typeof fmt==="function"?fmt(Math.max(0,g.powerNeed-g.powerNow)):Math.max(0,g.powerNeed-g.powerNow)} ERŐ kell.`:g.waveDone&&g.powerDone?"✅ Mindkét cél teljesítve. A következő terület elérhető.":"Először teljesítsd a Wave célt és közben építsd az erődet."}${x.blocked?` · 🔥 ${x.mult.toFixed(2)}× felzárkózási farmjutalom`:""}</small>`;
    }catch(e){console.warn("[POWER GATE UI]",e)}
  }
  window.addEventListener("load",()=>setTimeout(drawPowerGateV23193,500));
@@ -6064,3 +6119,9 @@ window.OMI_PVE_HP_BALANCE_V23192={
    power() is try/catch isolated so a bad power calculation cannot blank the UI.
 */
 window.OMI_POWER_GATE_V23193={gates:[0,900,2200,4500,8500,14500,23000,34000],catchup:[1.15,2.25]};
+
+/* V23.19.4 DUAL GOAL DISPLAY
+   Every zone shows Wave and Power as separate goals.
+   Wave completion gets a checkmark immediately.
+   The zone opens only after both Wave + Power are completed. */
+window.OMI_DUAL_ZONE_GOALS_V23194=true;

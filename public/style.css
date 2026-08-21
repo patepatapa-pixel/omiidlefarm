@@ -4835,3 +4835,29 @@ nav.tabs{display:flex!important;flex-wrap:wrap!important;justify-content:center;
 
 /* V23.19 */
 .zone small{line-height:1.45}.zone.locked{opacity:.68}
+
+/* V23.19.4 Wave + Power dual-goal UI */
+.v23194-goals{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0 6px}
+.v23194-goal,.v23194-summary-goals span{
+ display:inline-flex;align-items:center;gap:5px;
+ padding:5px 8px;border-radius:8px;font-size:11px;font-weight:1000
+}
+.v23194-goal.done,.v23194-summary-goals .done{
+ border:1px solid rgba(70,210,125,.38);background:rgba(28,112,67,.18);color:#7ff0a8
+}
+.v23194-goal.pending,.v23194-summary-goals .pending{
+ border:1px solid rgba(101,148,205,.30);background:rgba(49,83,120,.17);color:#a7caee
+}
+.v23194-goal.power,.v23194-summary-goals .power{
+ border:1px solid rgba(229,178,64,.38);background:rgba(130,90,20,.18);color:#ffd773
+}
+.v23194-powerbar{
+ width:100%;height:9px;overflow:hidden;border-radius:99px;
+ background:#10151d;border:1px solid rgba(110,130,160,.25);margin:5px 0 8px
+}
+.v23194-powerbar>div{
+ height:100%;border-radius:99px;background:linear-gradient(90deg,#b97a24,#ffd96b);
+ transition:width .3s ease
+}
+.v23194-open{color:#7ff0a8!important}
+.v23194-summary-goals{display:flex;gap:8px;flex-wrap:wrap;margin:9px 0 5px}
