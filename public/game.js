@@ -5536,7 +5536,11 @@ window.v222AdminSpeedSupported=true;
     },420);
   }
 
-  function cooldownLeftV306(){return Math.max(0,Math.ceil((v306CooldownUntil-Date.now())/1000))}
+  function cooldownLeftV306(){
+    const s=(typeof save!=="undefined"&&save)?save:{};
+    const until=Math.max(Number(v306CooldownUntil||0),Number(s.pvpCooldownUntil||0));
+    return Math.max(0,Math.ceil((until-Date.now())/1000));
+  }
   function drawCooldownV306(){
     const p=page();if(!p)return;
     let box=p.querySelector("#v306PvpCooldown");
@@ -5556,14 +5560,46 @@ window.v222AdminSpeedSupported=true;
   }
   function startCooldownV306(seconds=60){
     const sec=Math.max(1,Math.floor(Number(seconds||60)));
-    v306CooldownUntil=Date.now()+sec*1000;
+    const until=Date.now()+sec*1000;
+    v306CooldownUntil=until;
+    if(typeof save!=="undefined"&&save)save.pvpCooldownUntil=until;
+    try{if(typeof persist==="function")persist()}catch(e){}
     clearInterval(v306CooldownTimer);
     drawCooldownV306();
     v306CooldownTimer=setInterval(()=>{
       drawCooldownV306();
-      if(cooldownLeftV306()<=0){clearInterval(v306CooldownTimer);v306CooldownTimer=null}
-    },250);
+      if(cooldownLeftV306()<=0){
+        clearInterval(v306CooldownTimer);v306CooldownTimer=null;
+        v306CooldownUntil=0;
+        if(typeof save!=="undefined"&&save)save.pvpCooldownUntil=0;
+        try{if(typeof persist==="function")persist()}catch(e){}
+      }
+    },1000);
   }
+
+  function resumeCooldownV308(){
+    const left=cooldownLeftV306();
+    if(left>0){
+      if(!v306CooldownTimer){
+        v306CooldownTimer=setInterval(()=>{
+          drawCooldownV306();
+          if(cooldownLeftV306()<=0){
+            clearInterval(v306CooldownTimer);v306CooldownTimer=null;
+            v306CooldownUntil=0;
+            if(typeof save!=="undefined"&&save)save.pvpCooldownUntil=0;
+          }
+        },1000);
+      }
+      drawCooldownV306();
+    }else drawCooldownV306();
+  }
+  setInterval(()=>{
+    try{
+      const p=page();
+      if(p && (p.classList.contains("active") || p.offsetParent!==null))resumeCooldownV308();
+    }catch(e){}
+  },500);
+  window.v308ResumePvpCooldown=resumeCooldownV308;
 
   async function fight(defenderId,button){
     if(!defenderId)return;
@@ -5641,7 +5677,7 @@ window.v222AdminSpeedSupported=true;
   function setup(){
     ensureArena();
     drawBattle();
-    drawCooldownV306();
+    resumeCooldownV308();
     bindFightButtons();
   }
 
