@@ -211,7 +211,7 @@ save.waveBoss=Boolean(save.waveBoss||false);
 save.bossHp=Number(save.bossHp||0);
 save.paragonLevel=Number(save.paragonLevel||0);
 save.prestigeLevel=Number(save.prestigeLevel||0);
-save.fullAutoUnlocked=Boolean(save.fullAutoUnlocked);save.fullAutoEnabled=Boolean(save.fullAutoUnlocked&&save.fullAutoEnabled);
+save.eCoins=Math.max(0,Math.floor(Number(save.eCoins||0)));save.fullAutoUnlocked=Boolean(save.fullAutoUnlocked);save.fullAutoEnabled=Boolean(save.fullAutoUnlocked&&save.fullAutoEnabled);
 save.prestigeTokens=Number(save.prestigeTokens||0);
 save.paragonPoints=Number(save.paragonPoints||0);
 save.auraTokens=Number(save.auraTokens||0);
@@ -2171,7 +2171,11 @@ $("#refreshPvp")?.addEventListener("click",loadPvp);
 
 // Shop
 function renderStore(){
- const s=V11_CONTENT.store||{},rawProducts=Array.isArray(s.products)?s.products:[],fallbackFullAuto={id:"full_auto_20_eur",name:"Teljes Automata Rendszer",icon:"🤖",priceText:"20 €",description:"Teljes automatikus fejlődés Prestige-ig: Equip Best, item fejlesztés és opcióforgatás, alap fejlesztések, Paragon statok, automata selejtezés, Auto Paragon és Auto Prestige.",visible:true};
+ const balanceHost=document.getElementById("storeProducts");
+ let bal=document.getElementById("v2320ECoinBalance");
+ if(balanceHost&&!bal){bal=document.createElement("div");bal.id="v2320ECoinBalance";bal.className="v2320-ecoin-balance";balanceHost.parentNode.insertBefore(bal,balanceHost)}
+ if(bal)bal.innerHTML=`<span>🪙</span><div><small>E-ÉRME EGYENLEGED</small><b>${fmt(Number(save.eCoins||0))} E-érme</b><em>Csak admin adhatja · Discord/event jutalomként szerezhető.</em></div>`;
+ const s=V11_CONTENT.store||{},rawProducts=Array.isArray(s.products)?s.products:[],fallbackFullAuto={id:"full_auto_20_eur",name:"Teljes Automata Rendszer",icon:"🤖",priceText:"20 E-érme",description:"Teljes automatikus fejlődés Prestige-ig: Equip Best, item fejlesztés és opcióforgatás, alap fejlesztések, Paragon statok, automata selejtezés, Auto Paragon és Auto Prestige.",visible:true};
  const products=[...rawProducts];
  if(!products.some(p=>p?.id==="full_auto_20_eur"))products.unshift(fallbackFullAuto);
  const visibleProducts=products.filter(p=>p.visible!==false);
@@ -2180,22 +2184,32 @@ function renderStore(){
    <div class="store-icon">${p.icon||"💰"}</div><h3>${p.name||"Csomag"}</h3>
    <p>${p.description||""}</p><strong>${p.priceText||"Privát ár"}</strong>
    ${p.id==="full_auto_20_eur"?`<small class="v300-auto-state">${save.fullAutoUnlocked?"✅ Fiókodon feloldva": "🔒 Admin aktiválás szükséges vásárlás után"}</small>`:""}
-   <button data-buy-product="${p.id||i}">${p.id==="full_auto_20_eur"&&save.fullAutoUnlocked?"✅ MÁR AKTÍV":"💬 Vásárlási igény"}</button>
+   <button data-buy-product="${p.id||i}">${p.id==="full_auto_20_eur"&&save.fullAutoUnlocked?"✅ MÁR AKTÍV":"🪙 KIVÁLTÁS"}</button>
   </div>`).join(""):'<p class="muted">Jelenleg nincs beállított vásárlási csomag.</p>';
  const speed=products.find(p=>p.id==="premium_speed_10x"),auto=products.find(p=>p.id==="auto_paragon_10_eur"),dungeonBatch=products.find(p=>p.id==="dungeon_batch_10_eur"),fullAuto=products.find(p=>p.id==="full_auto_20_eur")||fallbackFullAuto;
- const speedPrice=document.querySelector(".premium-price-v165");if(speedPrice&&speed)speedPrice.textContent=speed.priceText||"3 €";
- const autoPrice=document.querySelector(".auto-paragon-v237>div>b");if(autoPrice&&auto)autoPrice.textContent=auto.priceText||"10 €";
+ const speedPrice=document.querySelector(".premium-price-v165");if(speedPrice&&speed)speedPrice.textContent=speed.priceText||"3 E-érme";
+ const autoPrice=document.querySelector(".auto-paragon-v237>div>b");if(autoPrice&&auto)autoPrice.textContent=auto.priceText||"10 E-érme";
  const speedCard=document.querySelector(".premium-speed-v165"),autoCard=document.querySelector(".auto-paragon-v237");
  if(speedCard&&speed){speedCard.querySelector("h2").textContent=speed.name||"10× Harci / Wave Sebesség";speedCard.querySelector("p").textContent=speed.description||"Prémium 10× farmsebesség";speedCard.style.display=speed.visible===false?"none":""}
  if(autoCard&&auto){autoCard.querySelector("h2").textContent=auto.name||"Auto Paragon szintelő";autoCard.querySelector("p").textContent=auto.description||"Automatikus Paragon szintlépés";autoCard.style.display=auto.visible===false?"none":""}
- window.V238_AUTO_PARAGON_PRODUCT=auto||{id:"auto_paragon_10_eur",name:"Auto Paragon szintelő",priceText:"10 €",visible:true};
- window.V279_DUNGEON_BATCH_PRODUCT=dungeonBatch||{id:"dungeon_batch_10_eur",name:"Dungeon 10× prémium futam",priceText:"10 €",visible:true};
+ window.V238_AUTO_PARAGON_PRODUCT=auto||{id:"auto_paragon_10_eur",name:"Auto Paragon szintelő",priceText:"10 E-érme",visible:true};
+ window.V279_DUNGEON_BATCH_PRODUCT=dungeonBatch||{id:"dungeon_batch_10_eur",name:"Dungeon 10× prémium futam",priceText:"10 E-érme",visible:true};
  window.V300_FULL_AUTO_PRODUCT=fullAuto;
  window.dispatchEvent(new CustomEvent("store-config-updated"));
  $$("[data-buy-product]").forEach(b=>b.onclick=async()=>{
    if(!currentUser)return openAuth("login");
-   if(String(b.dataset.buyProduct)==="full_auto_20_eur"&&save.fullAutoUnlocked){toast("✅ A Teljes Automata Rendszer már fel van oldva a fiókodon.");return}
-   try{const d=await api("/api/shop/request",{method:"POST",body:JSON.stringify({product_id:String(b.dataset.buyProduct),note:"Weboldalról küldött igény"})});alert(d.message)}catch(e){alert(e.message)}
+   const id=String(b.dataset.buyProduct);
+   const already=(id==="premium_speed_10x"&&save.speed10Unlocked)||(id==="auto_paragon_10_eur"&&save.autoParagonUnlocked)||(id==="dungeon_batch_10_eur"&&save.dungeonBatchUnlocked)||(id==="full_auto_20_eur"&&save.fullAutoUnlocked);
+   if(already){toast("✅ Ez a jogosultság már fel van oldva.");return}
+   try{
+     const d=await api("/api/shop/redeem",{method:"POST",body:JSON.stringify({product_id:id})});
+     save.eCoins=Number(d.eCoins||0);
+     if(id==="premium_speed_10x"){save.speed10Unlocked=true;save.combatSpeed=10}
+     if(id==="auto_paragon_10_eur")save.autoParagonUnlocked=true;
+     if(id==="dungeon_batch_10_eur")save.dungeonBatchUnlocked=true;
+     if(id==="full_auto_20_eur")save.fullAutoUnlocked=true;
+     persist();renderAll();renderStore();toast(d.message||"✅ E-érme beváltás sikeres.");
+   }catch(e){alert(e.message)}
  });
 }
 setTimeout(v11LoadContent,1000);
@@ -5025,7 +5039,7 @@ document.addEventListener("click",e=>{
     const s=S()||{};
     const unlocked=Boolean(s.fullAutoUnlocked);
     const active=Boolean(unlocked&&s.fullAutoEnabled);
-    p.innerHTML=`<div class="v302-auto-copy"><small>🤖 20 € PRÉMIUM RENDSZER</small><h3>Teljes Automata Rendszer</h3><p>Kényelmi automatizálás ugyanazzal a haladási tempóval, mint a kézi játék: legerősebb farmzóna és Speed · Equip Best · felszerelés fejlesztés/forgatás · képességfa · alap fejlesztések · Paragon statok · pet/hátas · intelligens selejtezés · Auto Paragon és Auto Prestige. Nem ad rejtett sebzés-, drop-, wave- vagy Prestige-szorzót.</p><em>${unlocked?"✅ Admin által feloldva":"🔒 Előbb az adminnak kell feloldania a fiókodon."}</em>${active?`<strong class="v303-auto-progress">⚙️ Haladás: Wave ${Number(s.wave||1)} · Paragon ${Number(s.paragonLevel||0)} · Prestige ${Number(s.prestigeLevel||0)} · Erő ${typeof power==="function"?fmt(power()):"..."}</strong>`:""}</div><button id="v299FullAutoToggleBtn" class="v302-auto-toggle ${active?"active":""}" ${unlocked?"":"disabled"}>${active?"🟢 AUTOMATA AKTÍV":"🤖 "+(unlocked?"AUTOMATA BEKAPCSOLÁSA":"NINCS FELOLDVA")}</button>`;
+    p.innerHTML=`<div class="v302-auto-copy"><small>🤖 20 E-ÉRME · AUTOMATA RENDSZER</small><h3>Teljes Automata Rendszer</h3><p>Kényelmi automatizálás ugyanazzal a haladási tempóval, mint a kézi játék: legerősebb farmzóna és Speed · Equip Best · felszerelés fejlesztés/forgatás · képességfa · alap fejlesztések · Paragon statok · pet/hátas · intelligens selejtezés · Auto Paragon és Auto Prestige. Nem ad rejtett sebzés-, drop-, wave- vagy Prestige-szorzót.</p><em>${unlocked?"✅ Admin által feloldva":"🔒 Előbb az adminnak kell feloldania a fiókodon."}</em>${active?`<strong class="v303-auto-progress">⚙️ Haladás: Wave ${Number(s.wave||1)} · Paragon ${Number(s.paragonLevel||0)} · Prestige ${Number(s.prestigeLevel||0)} · Erő ${typeof power==="function"?fmt(power()):"..."}</strong>`:""}</div><button id="v299FullAutoToggleBtn" class="v302-auto-toggle ${active?"active":""}" ${unlocked?"":"disabled"}>${active?"🟢 AUTOMATA AKTÍV":"🤖 "+(unlocked?"AUTOMATA BEKAPCSOLÁSA":"NINCS FELOLDVA")}</button>`;
     p.querySelector("#v299FullAutoToggleBtn")?.addEventListener("click",()=>{
       if(!s.fullAutoUnlocked){if(typeof toast==="function")toast("🔒 Az admin még nem oldotta fel a Teljes Automata Rendszert.");return}
       s.fullAutoEnabled=!s.fullAutoEnabled;
@@ -5959,3 +5973,261 @@ window.OMI_BALANCE_V2319={
  dungeonRecommendedPower:[1200,3000,6500,11000,18000,28000,40000,55000,72000,90000],
  powerCap:100000
 };
+
+
+/* ================= V23.21 HU / EN LANGUAGE SYSTEM ================= */
+(function(){
+  const KEY="omiLangV2321";
+  const exact={
+    "Feltöltés":"E-Coin",
+    "E-érme":"E-Coin",
+    "Karakter":"Character",
+    "Farm":"Farm",
+    "Felszerelés":"Equipment",
+    "Képességek":"Skills",
+    "Petek":"Pets",
+    "Hátasok":"Mounts",
+    "Kazamaták":"Dungeons",
+    "PvP":"PvP",
+    "Statisztika":"Statistics",
+    "Ranglista":"Leaderboard",
+    "Frissítések":"Updates",
+    "Kaszinó":"Casino",
+    "Beállítások":"Settings",
+    "Arany":"Gold",
+    "Gyémánt":"Diamonds",
+    "Érc":"Ore",
+    "Lélekkő":"Soul Stone",
+    "Dungeon jegy":"Dungeon Ticket",
+    "Erő":"Power",
+    "Statpont":"Stat Point",
+    "Aura token":"Aura Token",
+    "Prestige token":"Prestige Token",
+    "Szint":"Level",
+    "Wave":"Wave",
+    "Következő párbaj":"Next Duel",
+    "Új párbaj indítható":"New duel available",
+    "Válassz ellenfelet!":"Choose an opponent!",
+    "Párbaj aréna":"Duel Arena",
+    "PvP Aréna":"PvP Arena",
+    "Legutóbbi párbajok":"Recent Duels",
+    "Jutalmak":"Rewards",
+    "Ajánlott erő":"Recommended Power",
+    "Ajánlott DEF":"Recommended DEF",
+    "Jegy / futam":"Ticket / Run",
+    "Siker esélyed":"Your Success Chance",
+    "Teljesítve":"Completed",
+    "Lehetséges jutalom":"Possible Reward",
+    "Belépés":"Enter",
+    "Farmolás":"Farm",
+    "Kezdők barlangja":"Beginner Cave",
+    "Kezdő":"Beginner",
+    "Harcos":"Warrior",
+    "Elit":"Elite",
+    "Mester":"Master",
+    "Hős":"Hero",
+    "Legenda":"Legend",
+    "Isteni":"Divine",
+    "Aktiválva":"Activated",
+    "Nincs aktiválva":"Not Activated",
+    "Bekapcsolás":"Enable",
+    "Kikapcsolás":"Disable",
+    "Automata aktív":"Automation Active",
+    "Nincs feloldva":"Not Unlocked",
+    "Admin által feloldva":"Unlocked by Admin",
+    "Teljes Automata Rendszer":"Full Automation System",
+    "Auto Paragon szintelő":"Auto Paragon Leveler",
+    "10× Harci / Wave Sebesség":"10× Combat / Wave Speed",
+    "E-érme rendszer":"E-Coin System",
+    "E-érme egyenleged":"Your E-Coin Balance",
+    "Kiváltás":"Redeem",
+    "Már aktív":"Already Active",
+    "Csak admin adhatja":"Admin Only",
+    "Discordon/eventeken nyerhető":"Earnable on Discord / Events",
+    "Nem szükséges a normál fejlődéshez":"Not Required for Normal Progress",
+    "E-érméért kiváltható funkciók":"Features Redeemable with E-Coins",
+    "A játék ingyenesen játszható":"The game is free to play",
+    "Nem kötelező":"Not Required",
+    "Önkéntes támogatás":"Voluntary Support",
+    "Nincs még 3 egyforma peted.":"You do not have 3 identical pets yet.",
+    "Pet összeolvasztás / reroll":"Pet Fusion / Reroll",
+    "ÖSSZES EGYSZERRE":"MERGE ALL",
+    "Legjobb hátas":"Best Mount",
+    "LEGJOBB HÁTAS":"BEST MOUNT",
+    "KAZAMATA RENDSZER":"DUNGEON SYSTEM",
+    "PRÉMIUM":"PREMIUM",
+    "PRÉMIUM AUTOMATIZÁLÁS":"PREMIUM AUTOMATION",
+    "KÖVETKEZŐ PÁRBAJ":"NEXT DUEL",
+    "PVP ARÉNA":"PVP ARENA",
+    "Új terület feloldva":"New Area Unlocked",
+    "Minimum erő":"Minimum Power",
+    "Feloldás":"Unlock",
+    "Teljesített terület":"Completed Area",
+    "WAVE SZÜKSÉGES":"WAVE REQUIRED",
+    "Normál farm":"Normal Farm",
+    "BOSS":"BOSS",
+    "Wave teljesítve!":"Wave completed!",
+    "Szintlépés!":"Level Up!",
+    "Győzelem!":"Victory!",
+    "Vereség":"Defeat",
+    "Várj":"Wait",
+    "másodpercet":"seconds",
+    "Készülj a következő párbajra!":"Prepare for the next duel!",
+    "Új párbaj indítható":"New Duel Available",
+    "Várakozás a következő párbajig":"Waiting for the next duel",
+    "Teljes költség":"Total Cost",
+    "Egyszerre teljesítendő":"Runs at Once",
+    "PRÉMIUM FUTAM AKTÍV":"PREMIUM RUN ACTIVE",
+    "Nincs elég gyémánt.":"Not enough diamonds.",
+    "Nincs elég lélekkő.":"Not enough Soul Stones.",
+    "Nincs elég E-érméd.":"Not enough E-Coins.",
+    "Játékosok":"Players",
+    "Ellenfél":"Opponent",
+    "Te":"You",
+    "Kör":"Round",
+    "ÉLŐ PÁRBAJ":"LIVE DUEL",
+    "A párbaj elkezdődött...":"The duel has started...",
+    "Kritikus találat":"Critical Hit",
+    "DUPLA TALÁLAT":"DOUBLE HIT",
+    "blokkolta az ütést!":"blocked the hit!",
+    "sebzést okozott":"dealt damage",
+    "Arany és támogatói csomagok":"Gold and Support Packages",
+    "E-érme / Beváltható csomagok":"E-Coin / Redeemable Packages",
+    "E-érme / beváltható csomagok":"E-Coin / Redeemable Packages",
+    "Keress Discordon":"Find us on Discord",
+    "E-ÉRME ÉS KÖZÖSSÉGI JUTALMAK":"E-COINS & COMMUNITY REWARDS",
+    "Csak admin adhatja · Discord/event jutalomként szerezhető.":"Admin only · Earnable as Discord/event rewards.",
+    "Ezen a felületen nincs eurós fizetés és nincs bankkártyás vásárlás.":"There are no euro payments or card purchases on this page.",
+    "játékbeli beváltási pont":"in-game redemption point",
+    "Képességfejlődés":"Skill Progress",
+    "Kimaxolt képességek":"Maxed Skills",
+    "Elérhető lélekkő":"Available Soul Stones",
+    "Saját istálló":"Your Stable",
+    "ŐSI LÁDA NYITÁSA":"OPEN ANCIENT CHEST",
+    "Hátasesély":"Mount Chance",
+    "egyébként 1 töredék":"otherwise 1 shard",
+    "Aktív pet":"Active Pet",
+    "Nincs":"None",
+    "Üres":"Empty"
+  };
+
+  const regexRules=[
+    [/^(\d+)\s*másodperc$/i,(_,n)=>`${n} seconds`],
+    [/^(\d+)\s*másodperc$/i,(_,n)=>`${n} seconds`],
+    [/^Wave\s+(\d+)\s+szükséges$/i,(_,n)=>`Wave ${n} required`],
+    [/^(\d+)\s*E-érme$/i,(_,n)=>`${n} E-Coin`],
+    [/^(\d+)\s*jegy$/i,(_,n)=>`${n} tickets`],
+    [/^(\d+)×\s*futam$/i,(_,n)=>`${n}× runs`],
+    [/^(\d+)\s*mp$/i,(_,n)=>`${n} sec`],
+    [/^Lv\.(\d+)$/i,(_,n)=>`Lv.${n}`],
+    [/^(\d+)\s*erő$/i,(_,n)=>`${n} Power`]
+  ];
+
+  function norm(s){return String(s||"").replace(/\s+/g," ").trim()}
+  function translateString(s){
+    if(window.OMI_LANG_V2321!=="en")return s;
+    const raw=String(s??"");
+    const t=norm(raw);
+    if(!t)return raw;
+    if(exact[t])return raw.replace(t,exact[t]);
+    for(const [rx,fn] of regexRules){const m=t.match(rx);if(m)return raw.replace(t,fn(...m))}
+    // Phrase-level replacements inside longer dynamic strings.
+    let out=raw;
+    const parts=[
+      ["Nincs elég lélekkő","Not enough Soul Stones"],
+      ["Nincs elég gyémánt","Not enough diamonds"],
+      ["Nincs elég E-érméd","Not enough E-Coins"],
+      ["Wave teljesítve","Wave completed"],
+      ["Boss legyőzve","Boss defeated"],
+      ["Szintlépés","Level up"],
+      ["Győzelem","Victory"],
+      ["Vereség","Defeat"],
+      ["Következő","Next"],
+      ["Ajánlott erő","Recommended Power"],
+      ["Ajánlott DEF","Recommended DEF"],
+      ["Minimum erő","Minimum Power"],
+      ["Feloldás","Unlock"],
+      ["Teljesítve","Completed"],
+      ["Jutalom","Reward"],
+      ["Arany","Gold"],
+      ["Gyémánt","Diamonds"],
+      ["Lélekkő","Soul Stone"],
+      ["Érc","Ore"],
+      ["jegy","ticket"],
+      ["erő","Power"],
+      ["másodperc","seconds"],
+      ["párbaj","duel"],
+      ["ellenfél","opponent"]
+    ];
+    for(const [hu,en] of parts)out=out.replaceAll(hu,en);
+    return out;
+  }
+
+  function rememberOriginal(el,kind,val){
+    const k="v2321"+kind;
+    if(el.dataset && !el.dataset[k])el.dataset[k]=val;
+  }
+
+  function translateNode(node){
+    if(window.OMI_LANG_V2321!=="en")return;
+    if(node.nodeType===Node.TEXT_NODE){
+      const p=node.parentElement;
+      if(!p||p.closest("#v2321LangSwitcher"))return;
+      const before=node.nodeValue;
+      const after=translateString(before);
+      if(after!==before)node.nodeValue=after;
+      return;
+    }
+    if(node.nodeType!==Node.ELEMENT_NODE)return;
+    const el=node;
+    if(el.closest("#v2321LangSwitcher"))return;
+    el.childNodes.forEach(translateNode);
+    ["title","placeholder","aria-label"].forEach(attr=>{
+      if(el.hasAttribute?.(attr)){
+        const v=el.getAttribute(attr);
+        const nv=translateString(v);
+        if(nv!==v)el.setAttribute(attr,nv);
+      }
+    });
+  }
+
+  function restoreHungarian(root=document.body){
+    if(!root)return;
+    // Dynamic UI is re-rendered frequently. The cleanest restore is reload after switching to HU.
+    location.reload();
+  }
+
+  function apply(){
+    document.documentElement.lang=window.OMI_LANG_V2321==="en"?"en":"hu";
+    document.querySelectorAll("[data-v2321-lang]").forEach(b=>b.classList.toggle("active",b.dataset.v2321Lang===window.OMI_LANG_V2321));
+    if(window.OMI_LANG_V2321==="en")translateNode(document.body);
+  }
+
+  window.OMI_LANG_V2321=localStorage.getItem(KEY)==="en"?"en":"hu";
+  window.omiTranslateV2321=translateString;
+
+  document.addEventListener("click",e=>{
+    const b=e.target.closest?.("[data-v2321-lang]");
+    if(!b)return;
+    const next=b.dataset.v2321Lang==="en"?"en":"hu";
+    localStorage.setItem(KEY,next);
+    if(next==="hu" && window.OMI_LANG_V2321==="en"){location.reload();return}
+    window.OMI_LANG_V2321=next;
+    apply();
+  },true);
+
+  const obs=new MutationObserver(muts=>{
+    if(window.OMI_LANG_V2321!=="en")return;
+    for(const m of muts){
+      m.addedNodes.forEach(translateNode);
+      if(m.type==="characterData")translateNode(m.target);
+    }
+  });
+
+  window.addEventListener("load",()=>{
+    apply();
+    obs.observe(document.body,{subtree:true,childList:true,characterData:true});
+    setInterval(()=>{if(window.OMI_LANG_V2321==="en")translateNode(document.body)},1800);
+  });
+})();
+

@@ -255,10 +255,10 @@ qs("#savePvpConfig")?.addEventListener("click",async()=>{
 function renderShopAdmin(){
  studioConfig.store={discord:"nervos11",products:[],...(studioConfig.store||{})};
  const defaults=[
-  {id:"premium_speed_10x",name:"10× Harci / Wave Sebesség",icon:"⚡",priceText:"3 €",description:"Prémium 10× farmsebesség",visible:true},
-  {id:"auto_paragon_10_eur",name:"Auto Paragon szintelő",icon:"🌟",priceText:"10 €",description:"Automatikus Paragon szintlépés",visible:true},
-  {id:"full_auto_20_eur",name:"Teljes Automata Rendszer",icon:"🤖",priceText:"20 €",description:"Teljes automatikus fejlődés Prestige-ig",visible:true},
-  {id:"dungeon_batch_10_eur",name:"Dungeon 2× / 3× / 5× futam",icon:"🏰",priceText:"10 €",description:"Egyszerre több dungeon külön jutalom- és droppróbával",visible:true}
+  {id:"premium_speed_10x",name:"10× Harci / Wave Sebesség",icon:"⚡",priceText:"3 E-érme",description:"Prémium 10× farmsebesség",visible:true},
+  {id:"auto_paragon_10_eur",name:"Auto Paragon szintelő",icon:"🌟",priceText:"10 E-érme",description:"Automatikus Paragon szintlépés",visible:true},
+  {id:"full_auto_20_eur",name:"Teljes Automata Rendszer",icon:"🤖",priceText:"20 E-érme",description:"Teljes automatikus fejlődés Prestige-ig",visible:true},
+  {id:"dungeon_batch_10_eur",name:"Dungeon 2× / 3× / 5× futam",icon:"🏰",priceText:"10 E-érme",description:"Egyszerre több dungeon külön jutalom- és droppróbával",visible:true}
  ];
  defaults.forEach(d=>{if(!studioConfig.store.products.some(p=>p.id===d.id))studioConfig.store.products.unshift(d)});
  qs("#shopProductList").innerHTML=(studioConfig.store.products||[]).map((p,i)=>`<div class="builder-entry"><b>${p.icon||"💰"} ${p.name}</b><small>${p.priceText||""} · ${p.visible===false?"REJTVE":"LÁTHATÓ"} · ${p.description||""}</small><button data-shop-edit="${i}">Szerkesztés</button><button data-shop-del="${i}">Törlés</button></div>`).join("");
@@ -403,7 +403,7 @@ function v222FillEditor(){
   if(!selected)return;
   const s=selected.game?.save_data||{};
   v222Set("v222Gold",s.gold||0);
-  v222Set("v222Gems",s.gems||0);
+  v222Set("v222Gems",s.gems||0);v222Set("v222ECoins",s.eCoins||0);
   v222Set("v222Ore",s.ore||0);
   v222Set("v222Soul",s.soul||0);
   v222Set("v222Tickets",s.tickets||0);
@@ -447,7 +447,7 @@ async function v222ReloadSelected(){
 }
 function v222Payload(){
   return {
-    gold:v222Num("v222Gold"),gems:v222Num("v222Gems"),ore:v222Num("v222Ore"),
+    gold:v222Num("v222Gold"),gems:v222Num("v222Gems"),eCoins:v222Num("v222ECoins"),ore:v222Num("v222Ore"),
     soul:v222Num("v222Soul"),tickets:v222Num("v222Tickets"),level:v222Num("v222Level"),
     xp:v222Num("v222Xp"),wave:v222Num("v222Wave"),paragonLevel:v222Num("v222Paragon"),
     prestigeLevel:v222Num("v222Prestige"),paragonStatPoints:v222Num("v222ParagonPoints"),
