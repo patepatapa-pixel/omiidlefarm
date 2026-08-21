@@ -278,6 +278,10 @@ async function init(){
     updateContent.updates.unshift({id:"v22_59",version:"V22.59",title:"Frissítési részletek megjelenítési javítása",date:"2026-08-21",summary:"Az összecsukható frissítések részletes változáslistája most már teljesen látható.",changes:["A hibás teljes magasságú összecsukott fejléc eltávolítva.","A lenyíló rész saját látható tartalomblokkot kapott.","Megnyitáskor a kártya automatikusan a teljes változáslistához igazodik.","A gombfelirat jelzi, hogy a részletek megnyithatók vagy bezárhatók.","Az Összes megnyitása és Összes bezárása vezérlők továbbra is működnek."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_60")){
+    updateContent.updates.unshift({id:"v22_60",version:"V22.60",title:"Kötelező területhaladás és felszerelésvédelem",date:"2026-08-21",summary:"Felszerelés levételével többé nem lehet a kezdő területen maradni vagy visszafarmolni.",changes:["A minimum farmterületet a wave, Paragon, Prestige és a valaha elért terület együtt határozza meg.","A valaha elért legmagasabb terület tartósan mentésre kerül.","A korábbi gyengébb területek automatikusan lezáródnak.","Területváltáskor a rendszer automatikusan felszereli a legerősebb elérhető tárgyakat.","Minden hiányzó felszereléshelyre területhez skálázott Kalandor kezdőtárgy kerül.","A Kalandor kezdőszett nem adható el és a tömeges eladás sem törli.","A rendes droptárgyak erősebb fejlődést adnak, ezért továbbra is megéri felszerelést farmolni.","Paragon és Prestige után sem lehet felszerelés nélkül visszamaradni az első területen."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
   const capMigration="v2246_wallet_caps";
   const capDone=(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[capMigration])).rows[0];
   if(!capDone){
@@ -327,7 +331,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.59.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.60.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{

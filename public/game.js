@@ -155,7 +155,7 @@ if(save.lastDaily!==new Date().toDateString()){save.dailyClaimed={};save.dailyBa
 function normalizeV6Save(s){
  s=s&&typeof s==="object"?s:{};
  s.gold=Number(s.gold||0);s.gems=Number(s.gems||10);s.ore=Number(s.ore||0);s.soul=Number(s.soul||0);s.tickets=Number(s.tickets||3);
- s.level=Math.max(1,Number(s.level||1));s.xp=Number(s.xp||0);s.skillPoints=Number(s.skillPoints||0);s.kills=Number(s.kills||0);s.zone=Math.max(0,Math.min(ZONES.length-1,Number(s.zone||0)));
+ s.level=Math.max(1,Number(s.level||1));s.xp=Number(s.xp||0);s.skillPoints=Number(s.skillPoints||0);s.kills=Number(s.kills||0);s.zone=Math.max(0,Math.min(ZONES.length-1,Number(s.zone||0)));s.highestZoneEver=Math.max(s.zone,Math.min(ZONES.length-1,Math.floor(Number(s.highestZoneEver||0))));
  s.base={weaponTraining:1,armorTraining:1,mining:1,luck:1,...(s.base||{})};
  s.skills={root:0,power:0,crit:0,boss:0,gold:0,drop:0,afk:0,offline:0,afkCap:0,pet:0,pack:0,...(s.skills||{})};
  if(Number(s.skillTreeVersion||0)<3){
@@ -344,7 +344,7 @@ function createItem(){
  return rollItemOptions(it)
 }
 function rarityName(k){return RARITIES.find(x=>x.key===k)?.name||k}
-function sellValue(it){let r=RARITIES.find(x=>x.key===it.rarity)||RARITIES[0];return Math.floor((5+save.level*1.2)*(1+save.zone*.35)*r.mult*(1+it.plus*.25))}
+function sellValue(it){if(it&&(it.unsellable||it.starterV260))return 0;let r=RARITIES.find(x=>x.key===it.rarity)||RARITIES[0];return Math.floor((5+save.level*1.2)*(1+save.zone*.35)*r.mult*(1+it.plus*.25))}
 function addItem(it){
  ensureItemOptions(it);if(!it.options.length)rollItemOptions(it);
  if(save.inventory.length>=120){save.gold+=sellValue(it);return toast("🎒 Inventory tele — tárgy automatikusan eladva.")}
@@ -452,11 +452,14 @@ function renderCore(){
 }
 function renderZones(){
  const best=strongestUnlockedZone();
- $("#zones").innerHTML=ZONES.map((z,i)=>{const weak=i<best;return `<div class="zone ${i===save.zone?"active":""} ${power()<z.need?"locked":""} ${weak?"zone-too-weak":""}" data-zone="${i}"><b>${z.icon} ${z.name}</b><small>${z.enemy} · Ajánlott erő: ${fmt(z.need)}</small><small>Drop: ${(z.drop*100).toFixed(0)}% · 💰 Fix ${fmt(zoneMobGold(i))} arany / mob · 🌊 Wave haladás</small>${weak?'<strong class="zone-cap-badge">⬆️ TÚL GYENGE TERÜLET NEKED</strong>':""}</div>`}).join("");
- $$("[data-zone]").forEach(e=>e.onclick=()=>{let i=+e.dataset.zone;if(power()<ZONES[i].need)return toast("🔒 Még nem vagy elég erős.");if(i<strongestUnlockedZone())return toast("⬆️ Túl erős vagy ehhez a területhez. Válaszd a legerősebb megnyitott területet!");save.zone=i;save.waveKills=0;save.waveBoss=false;save.bossHp=0;enemyHp=normalEnemyMaxHp();persist();renderAll();toast("🗺️ "+ZONES[i].name)})
+ $("#zones").innerHTML=ZONES.map((z,i)=>{const weak=i<best,locked=i>best;return `<div class="zone ${i===save.zone?"active":""} ${locked?"locked":""} ${weak?"zone-too-weak":""}" data-zone="${i}"><b>${z.icon} ${z.name}</b><small>${z.enemy} · Ajánlott erő: ${fmt(z.need)}</small><small>Drop: ${(z.drop*100).toFixed(0)}% · 💰 Fix ${fmt(zoneMobGold(i))} arany / mob · 🌊 Wave haladás</small>${weak?'<strong class="zone-cap-badge">⬆️ LEZÁRT KORÁBBI TERÜLET</strong>':locked?'<strong class="zone-cap-badge">🔒 MÉG NINCS FELOLDVA</strong>':""}</div>`}).join("");
+ $$("[data-zone]").forEach(e=>e.onclick=()=>{let i=+e.dataset.zone,current=strongestUnlockedZone();if(i>current)return toast("🔒 Ezt a területet még nem oldottad fel.");if(i<current)return toast("⬆️ A korábbi területek lezárultak. Folytasd a jelenlegi területen!");grantStarterGearV260(i);save.zone=i;save.waveKills=0;save.waveBoss=false;save.bossHp=0;enemyHp=normalEnemyMaxHp();persist();renderAll();toast("🗺️ "+ZONES[i].name)})
 }
-function strongestUnlockedZone(){let best=0,p=power();ZONES.forEach((z,i)=>{if(p>=Number(z.need||0))best=i});return best}
-function ensurePowerAppropriateZone(){const best=strongestUnlockedZone();if(save.zone<best){save.zone=best;save.waveBoss=false;save.bossHp=0;enemyHp=normalEnemyMaxHp();toast(`🗺️ Automatikus területváltás: ${ZONES[best].name}`);return true}return false}
+function progressionMinimumZoneV260(){const w=Math.max(1,Number(save.wave||1)),p=Math.max(0,Number(save.paragonLevel||0)),pr=Math.max(0,Number(save.prestigeLevel||0)),waveSteps=[1,25,75,150,250,400,650,950];let byWave=0;waveSteps.forEach((n,i)=>{if(w>=n)byWave=i});const byParagon=p>=25?7:p>=17?6:p>=12?5:p>=8?4:p>=5?3:p>=3?2:p>=1?1:0,byPrestige=Math.min(7,Math.floor(pr/15));return Math.min(ZONES.length-1,Math.max(byWave,byParagon,byPrestige,Number(save.highestZoneEver||0)))}
+function equipBestSilentV260(){Object.keys(SLOT_NAMES).forEach(slot=>{const choices=save.inventory.filter(x=>x&&x.slot===slot&&Number.isFinite(Number(x.id))).sort((a,b)=>itemScore(b)-itemScore(a));if(choices.length)save.equipped[slot]=choices[0].id})}
+function grantStarterGearV260(zoneIndex){equipBestSilentV260();const z=ZONES[zoneIndex]||ZONES[0],scale=Math.max(1,Number(z.need||1)),defs=[['weapon',Math.max(6,Math.floor(scale*.42)),0],['helmet',0,Math.max(3,Math.floor(scale*.13))],['armor',0,Math.max(5,Math.floor(scale*.22))],['gloves',Math.max(2,Math.floor(scale*.08)),0],['boots',0,Math.max(2,Math.floor(scale*.1))],['ring',Math.max(1,Math.floor(scale*.05)),0]];let added=0;defs.forEach(([slot,atk,def])=>{if(save.equipped?.[slot])return;const it={id:save.uid++,slot,rarity:'normal',name:`Kalandor ${SLOT_NAMES[slot]}`,plus:0,atk,def,crit:0,drop:0,options:[],starterV260:true,unsellable:true};save.inventory.push(it);save.equipped[slot]=it.id;added++});if(added)toast(`🧰 ${added} hiányzó kezdőtárgy felszerelve: ${z.name}`);return added>0}
+function strongestUnlockedZone(){let byPower=0,p=power();ZONES.forEach((z,i)=>{if(p>=Number(z.need||0))byPower=i});const best=Math.min(ZONES.length-1,Math.max(byPower,progressionMinimumZoneV260()));save.highestZoneEver=Math.max(Number(save.highestZoneEver||0),best);return best}
+function ensurePowerAppropriateZone(){const best=strongestUnlockedZone();if(save.zone<best){grantStarterGearV260(best);save.zone=best;save.highestZoneEver=Math.max(Number(save.highestZoneEver||0),best);save.waveBoss=false;save.bossHp=0;enemyHp=normalEnemyMaxHp();persist();toast(`🗺️ Kötelező területváltás: ${ZONES[best].name}`);return true}return false}
 function renderBaseUpgrades(){
  $("#baseUpgrades").innerHTML=BASE_UPS.map(d=>`<div class="upgrade-row"><div class="upgrade-icon">${d.icon}</div><div><b>${d.name} · Lv.${save.base[d.key]}</b><small>${d.desc}</small></div><button data-base="${d.key}" ${save.gold<baseCost(d)?"disabled":""}>${fmt(baseCost(d))} 💰</button></div>`).join("");
  $$("[data-base]").forEach(b=>b.onclick=()=>{let d=BASE_UPS.find(x=>x.key===b.dataset.base),c=baseCost(d);if(save.gold<c)return;save.gold-=c;save.base[d.key]++;persist();renderAll();toast("⬆️ "+d.name)})
@@ -550,7 +553,7 @@ function renderInventory(){
 
  $$("[data-equip]").forEach(b=>b.onclick=()=>{let it=save.inventory.find(x=>x.id==b.dataset.equip);save.equipped[it.slot]=it.id;persist();renderAll();toast("🛡️ Felszerelve: "+it.name)});
  $$("[data-reroll]").forEach(b=>b.onclick=()=>rerollItemOptions(+b.dataset.reroll));
- $$("[data-sell]").forEach(b=>b.onclick=()=>{let id=+b.dataset.sell,it=save.inventory.find(x=>x.id===id);if(Object.values(save.equipped).includes(id))return toast("Előbb vedd le / cseréld le.");save.gold+=sellValue(it);save.inventory=save.inventory.filter(x=>x.id!==id);persist();renderAll()})
+ $$("[data-sell]").forEach(b=>b.onclick=()=>{let id=+b.dataset.sell,it=save.inventory.find(x=>x.id===id);if(it?.unsellable||it?.starterV260)return toast("🔒 A Kalandor kezdőszett nem adható el.");if(Object.values(save.equipped).includes(id))return toast("Előbb vedd le / cseréld le.");save.gold+=sellValue(it);save.inventory=save.inventory.filter(x=>x.id!==id);persist();renderAll()})
 }
 function upgradeChance(plus){return [100,100,95,90,82,74,64,54,44,35,28,22,17,12,8,5][plus]||0}
 function upgradeCost(it){return Math.floor(sellValue(it)*(2+it.plus*.8))}
@@ -1201,7 +1204,7 @@ function renderAll(){
 ;renderHpRegenAndOptions();renderCombatSpeed();renderDynamicEquipment();renderV17QuickStats();renderAuraPageV171();renderAuraPageV174();window.v212RenderContextBars?.()}
 $("#bossBtn").onclick=()=>toast("👹 A boss automatikusan jön minden wave végén.");
 $("#petSummon").onclick=summonPet;
-$("#sellNormal").onclick=()=>{let equipped=new Set(Object.values(save.equipped));let sold=0;save.inventory=save.inventory.filter(it=>{if(it.rarity==="normal"&&!equipped.has(it.id)){save.gold+=sellValue(it);sold++;return false}return true});persist();renderAll();toast(`${sold} normál tárgy eladva`)};
+$("#sellNormal").onclick=()=>{let equipped=new Set(Object.values(save.equipped));let sold=0;save.inventory=save.inventory.filter(it=>{if(it.rarity==="normal"&&!it.unsellable&&!it.starterV260&&!equipped.has(it.id)){save.gold+=sellValue(it);sold++;return false}return true});persist();renderAll();toast(`${sold} normál tárgy eladva`)};
 $("#sortInventory").onclick=()=>{let r={legendary:5,mythic:4,epic:3,rare:2,normal:1};save.inventory.sort((a,b)=>r[b.rarity]-r[a.rarity]||b.plus-a.plus);persist();renderInventory()};
 $$(".tab").forEach(t=>t.onclick=()=>{$$(".tab").forEach(x=>x.classList.remove("active"));$$(".page").forEach(x=>x.classList.remove("active"));t.classList.add("active");$("#page-"+t.dataset.tab).classList.add("active");renderAll()});
 $("#hardReset").onclick=()=>{if(confirm("Biztosan TELJESEN törlöd a játékmentést?")){localStorage.removeItem("omiIdleComplete");location.reload()}};
