@@ -62,7 +62,7 @@ const pool=new pg.Pool({
 const q=(text,params=[])=>pool.query(text,params);
 
 const DEFAULT_SAVE={
- gold:0,gems:10,ore:0,soul:0,tickets:3,prestigeTokens:0,level:1,xp:0,skillPoints:0,kills:0,zone:0,
+ gold:0,gems:10,ore:0,soul:0,tickets:3,eCoins:0,prestigeTokens:0,level:1,xp:0,skillPoints:0,kills:0,zone:0,fullAutoUnlocked:false,fullAutoEnabled:false,
  base:{weaponTraining:1,armorTraining:1,mining:1,luck:1},
  skills:{power:0,gold:0,crit:0,drop:0,offline:0,pet:0},
  inventory:[],equipped:{weapon:null,helmet:null,armor:null,gloves:null,boots:null,ring:null},
@@ -79,6 +79,7 @@ function setAuth(res,u){
     httpOnly:true,
     sameSite:"lax",
     secure:process.env.NODE_ENV==="production",
+    path:"/",
     maxAge:30*24*60*60*1000
   });
 }
@@ -117,12 +118,12 @@ function serverPowerV283(s={}){
  for(const i of active){const p=pets[i];if(!p)continue;const entries=[{bonus:p.bonus||"damage",value:Math.max(0,n(p.value))},...(Array.isArray(p.extraOptions)?p.extraOptions:[])];for(const o of entries){const v=Math.max(0,n(o?.value))*(1+petSkill);if(o?.bonus==="damage")petDamage+=v;else if(o?.bonus==="all")petDamage+=v}}
  const petCap=.65;petDamage=petCap*petDamage/(petDamage+petCap);atk*=1+petDamage;
  const level=Math.max(1,n(s.level)||1),paragon=Math.max(0,n(s.paragonLevel)),prestige=Math.max(0,Math.min(100,n(s.prestigeLevel))),base=s.base||{},ps=s.paragonStats||{};
- const damage=Math.max(1,Math.min(30000,Math.floor((5+level*.65+Math.max(1,n(base.weaponTraining)||1)*2.2+atk)*(1+skillPower+Math.min(4,n(ps.damage)*.02*paragon))*(1+atkPct/100)*(1+Math.min(.5,prestige*.005)))));
+ const damage=Math.max(1,Math.min(70000,Math.floor((5+level*.65+Math.max(1,n(base.weaponTraining)||1)*2.2+atk)*(1+skillPower+Math.min(4,n(ps.damage)*.02*paragon))*(1+atkPct/100)*(1+Math.min(.5,prestige*.005)))));
  const zone=Math.max(0,n(s.zone)),wave=Math.max(1,n(s.wave)||1),target=Math.max(10,Math.floor(30*(1+zone*1.2)*Math.pow(1+wave/100,.5)));
  const rawDef=Math.max(0,(def+Math.max(1,n(base.armorTraining)||1)*2+level*.3+prestige*1.5)*(1+defPct/100)),effectiveDef=Math.max(0,Math.floor(target*(3*rawDef/(rawDef+target*2))));
  const mount=s.mounts?.[s.activeMount],mountRaw=Math.max(0,Math.floor(n(mount?.level)))*.02,mountCap=.25,mountMult=1+mountCap*mountRaw/(mountRaw+mountCap);
- const raw=(damage*1.2+effectiveDef*.8+level*.8+Math.max(1,n(base.mining)||1)*.5+Math.max(1,n(base.luck)||1)*.5)*mountMult,cap=30000;
- return Math.max(0,Math.floor(cap*raw/(raw+cap)));
+ const raw=(damage*1.2+effectiveDef*.8+level*.8+Math.max(1,n(base.mining)||1)*.5+Math.max(1,n(base.luck)||1)*.5)*mountMult,cap=100000;
+ return Math.max(0,Math.min(cap,Math.floor(cap*raw/(raw+cap*.42))));
 }
 
 async function init(){
@@ -233,7 +234,7 @@ async function init(){
     const contentRow=(await q("SELECT value FROM game_content WHERE key='main'")).rows[0];
     const content=contentRow?.value||{};
     content.balanceVersion=2241;
-    content.gameplay={...(content.gameplay||{}),basePlayerHp:100,hpPerLevel:5,defenseEffectPct:.8,bossDamageMult:1.45,bossRegenPct:.2,respawnSec:5,zoneFixedGold:[5,9,16,28,48,80,130,210],defaultBossFixedGold:120,bossGemDropChance:20,mobTargetHits:2,waveKills:8,bossHpGrowthPct:8};
+    content.gameplay={...(content.gameplay||{}),basePlayerHp:100,hpPerLevel:5,defenseEffectPct:.8,bossDamageMult:1.45,bossRegenPct:.2,respawnSec:5,zoneFixedGold:[5,9,16,28,48,80,130,210],zoneFixedXp:[6,15,35,85,220,600,1650,4500],zoneSoulDropChancePct:[1,1.5,2,2.5,3,3.5,4,5],zoneSoulDropMin:[1,1,1,1,1,1,1,1],zoneSoulDropMax:[1,1,1,2,2,2,3,3],defaultBossFixedGold:120,bossGemDropChance:20,mobTargetHits:2,waveKills:8,bossHpGrowthPct:8};
     content.mounts={...(content.mounts||{}),shardChancePct:2,shardAmount:1,shardsRequired:10,chestCost:{gold:1500,gems:10,ore:25,soul:1,tickets:1},upgradeCostMultiplier:1};
     content.economy={...(content.economy||{}),exchange:{gems:{gold:2500,amount:5},ore:{gold:1200,amount:10},tickets:{gold:3500,amount:1}}};
     if(Array.isArray(content.bosses))content.bosses=content.bosses.map(b=>({...b,gold:Math.max(40,Math.floor(Number(b.gold||120)/20))}));
@@ -249,9 +250,12 @@ async function init(){
   updateContent.updates=Array.isArray(updateContent.updates)?updateContent.updates:[];
   updateContent.store={discord:"nervos11",products:[],...(updateContent.store||{})};
   updateContent.store.products=Array.isArray(updateContent.store.products)?updateContent.store.products:[];
+  const fullAutoProduct=updateContent.store.products.find(p=>p?.id==="full_auto_20_eur");
+  if(fullAutoProduct){Object.assign(fullAutoProduct,{name:"Teljes Automata Rendszer",icon:"🤖",priceText:"20 E-érme",description:"Teljes Prestige-felkészítő automatizálás: Equip Best, item fejlesztés/forgatás, alap fejlesztések, Paragon statok, selejtezés és automatikus Paragon/Prestige."});}
+  else updateContent.store.products.push({id:"full_auto_20_eur",name:"Teljes Automata Rendszer",icon:"🤖",priceText:"20 E-érme",description:"Teljes Prestige-felkészítő automatizálás: Equip Best, item fejlesztés/forgatás, alap fejlesztések, Paragon statok, selejtezés és automatikus Paragon/Prestige.",visible:true});
   const dungeonBatchProduct=updateContent.store.products.find(p=>p?.id==="dungeon_batch_10_eur");
   if(dungeonBatchProduct){Object.assign(dungeonBatchProduct,{name:"Dungeon 10× prémium futam",icon:"🏰",description:"Az 1× / 2× / 3× / 5× futam ingyenes. Ez a csomag kizárólag a 10× futamot oldja fel."});}
-  else updateContent.store.products.push({id:"dungeon_batch_10_eur",name:"Dungeon 10× prémium futam",icon:"🏰",priceText:"10 €",description:"Az 1× / 2× / 3× / 5× futam ingyenes. Ez a csomag kizárólag a 10× futamot oldja fel.",visible:true});
+  else updateContent.store.products.push({id:"dungeon_batch_10_eur",name:"Dungeon 10× prémium futam",icon:"🏰",priceText:"10 E-érme",description:"Az 1× / 2× / 3× / 5× futam ingyenes. Ez a csomag kizárólag a 10× futamot oldja fel.",visible:true});
   if(!updateContent.updates.some(x=>x&&x.id==="v22_91")){
     updateContent.updates.unshift({id:"v22_91",version:"V22.91 FINAL",title:"Végső PvP és endgame balance",date:"2026-08-21",summary:"A PvP teljesen külön fejlődési rendszert kapott, és elkészült a végső dungeon/gear balance.",changes:["PvP-ben a PvE erő, szint, Paragon és pet nem számít.","PvP ATK, HP, DEF, Block, Szerencse/Krit és Dupla találat kizárólag Lélekkőből fejleszthető.","Block maximum 40%.","Felszerelésből csak a PvP sebzés opció számít PvP-ben.","1× / 2× / 3× / 5× dungeon futam ingyenes; csak a 10× prémium.","Legendary alap rarity 3%.","Endgame rarity: Legendary → Imperial → Celestial → Eternal.","Fegyver attack végső plafon: 1500."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
@@ -408,7 +412,7 @@ async function init(){
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
   if(!updateContent.updates.some(x=>x&&x.id==="v22_79")){
-    updateContent.updates.unshift({id:"v22_79",version:"V22.79",title:"Prémium többszörös dungeonfutam",date:"2026-08-21",summary:"Az 1× dungeon ingyenes marad, a 2×, 3× és 5× futam pedig közös, egyszeri 10 €-s prémium jogosultságot kapott.",changes:["Az ingyenes játékos korlátozás nélkül indíthat 1× dungeonfutamot.","A prémium csomag feloldja a 2×, 3× és 5× futamot.","A korábbi 10× futam kikerült.","A Feltöltés oldalon megjelenik a Dungeon 2× / 3× / 5× futam 10 €-s terméke.","A dungeon kártya zárolt állapotban mutatja a prémium lehetőséget és az árat.","Az admin játékosonként külön be- vagy kikapcsolhatja a jogosultságot.","Minden futam külön kulcsot fogyaszt, és külön siker-, jutalom- és droppróbát kap.","A termék neve, ára, leírása és láthatósága a Feltöltés adminoldalon szerkeszthető."],visible:false,createdAt:new Date().toISOString()});
+    updateContent.updates.unshift({id:"v22_79",version:"V22.79",title:"Prémium többszörös dungeonfutam",date:"2026-08-21",summary:"Az 1× dungeon ingyenes marad, a 2×, 3× és 5× futam pedig közös, egyszeri 10 E-érmés prémium jogosultságot kapott.",changes:["Az ingyenes játékos korlátozás nélkül indíthat 1× dungeonfutamot.","A prémium csomag feloldja a 2×, 3× és 5× futamot.","A korábbi 10× futam kikerült.","A Feltöltés oldalon megjelenik a Dungeon 2× / 3× / 5× futam 10 E-érmés terméke.","A dungeon kártya zárolt állapotban mutatja a prémium lehetőséget és az árat.","Az admin játékosonként külön be- vagy kikapcsolhatja a jogosultságot.","Minden futam külön kulcsot fogyaszt, és külön siker-, jutalom- és droppróbát kap.","A termék neve, ára, leírása és láthatósága a Feltöltés adminoldalon szerkeszthető."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
   if(!updateContent.updates.some(x=>x&&x.id==="v22_80")){
@@ -455,8 +459,8 @@ async function init(){
     updateContent.updates.unshift({id:"v22_90",version:"V22.90",title:"2000 ATK felszerelés és 30 000 sebzésplafon",date:"2026-08-21",summary:"A felszerelések és a teljes harci sebzés kompakt, ritkaság- és fejlődésalapú végjátékbalanszt kaptak.",changes:["Egyetlen felszerelés tényleges ATK-ja sem lehet több 2000-nél.","A ritkasági +15 ATK-célértékek: Normal 650, Rare 900, Epic 1200, Mythic 1600, Legendary 2000.","A 2000 ATK kizárólag kiváló végjátékos Legendary tárggyal és magas fejlesztéssel érhető el.","A tárgy ATK dobása az aktuális területhez és a Wave 400-as fejlődéshez igazodik.","A nem fegyver típusú tárgyakon az extra ATK csak 8% eséllyel jelenik meg és lényegesen kisebb.","A Vándorkereskedő felszerelései nem adhatnak azonnal maximális ATK-ot.","A meglévő túl magas tárgyak ritkaságuk szerint automatikusan korrekciót kapnak, de nem törlődnek.","A végső találati sebzés kritikus találattal, nyílvesszővel és bossbónusszal együtt sem lépheti túl a 30 000-et.","A szerveres ranglista- és PvP-számítás ugyanezeket a korlátokat használja."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
-  const powerCapMigration="v2282_rank_power_cap_30000";
-  if(!(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[powerCapMigration])).rows[0]){await q("UPDATE game_saves SET power=LEAST(power,30000)");await q("INSERT INTO system_migrations(migration_key) VALUES($1)",[powerCapMigration])}
+  const powerCapMigration="v2316_rank_power_cap_100000";
+  if(!(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[powerCapMigration])).rows[0]){await q("UPDATE game_saves SET power=LEAST(power,100000)");await q("INSERT INTO system_migrations(migration_key) VALUES($1)",[powerCapMigration])}
   const realPowerMigration="v2283_recalculate_real_power";
   if(!(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[realPowerMigration])).rows[0]){
     const rows=(await q("SELECT user_id,save_data FROM game_saves")).rows;
@@ -594,7 +598,7 @@ app.post("/api/login",async(req,res)=>{
 });
 
 app.post("/api/logout",(req,res)=>{
-  res.clearCookie("omi_token");
+  res.clearCookie("omi_token",{sameSite:"lax",secure:process.env.NODE_ENV==="production",path:"/"});
   res.json({ok:true});
 });
 
@@ -741,6 +745,7 @@ app.post("/api/save",auth,async(req,res)=>{
     const overrideApplied=Boolean(pending?.patch && Object.keys(pending.patch).length);
     if(overrideApplied)data=deepMergeSave(data,pending.patch);
     const premiumSource=overrideApplied?data:stored;
+    data.eCoins=Math.max(0,Math.floor(Number(overrideApplied?data.eCoins:stored.eCoins||0)));
     const prestigeAdvancedV298=Math.max(0,Number(data.prestigeLevel||0))>Math.max(0,Number(stored.prestigeLevel||0));
     if(prestigeAdvancedV298){
       data.pvpBuild={atk:0,hp:0,def:0,block:0,luck:0,double:0};
@@ -751,6 +756,8 @@ app.post("/api/save",auth,async(req,res)=>{
     data.speed10Unlocked=Boolean(stored.speed10Unlocked || premiumSource.speed10Unlocked);
     data.autoParagonUnlocked=Boolean(premiumSource.autoParagonUnlocked);
     data.dungeonBatchUnlocked=Boolean(stored.dungeonBatchUnlocked || premiumSource.dungeonBatchUnlocked);
+    data.fullAutoUnlocked=Boolean(stored.fullAutoUnlocked || premiumSource.fullAutoUnlocked);
+    if(!data.fullAutoUnlocked)data.fullAutoEnabled=false;
     // PvP progression/session is server-authoritative. A stale browser autosave must never roll it back.
     if(!prestigeAdvancedV298 && stored && stored.pvpBuild && typeof stored.pvpBuild==="object")data.pvpBuild=pvpBuild(stored);
     if(stored && stored.pvpSoulSession && stored.pvpSoulSession.active){
@@ -1102,9 +1109,12 @@ app.post("/api/pvp/fight",auth,async(req,res)=>{
     const defenderId=Number(req.body.defender_id);
     if(!Number.isInteger(defenderId)||defenderId<=0||defenderId===Number(req.user.id))
       return res.status(400).json({error:"Hibás ellenfél."});
-    const cfg=await mainConfig(),pc={minLevel:20,rewardGold:500,cooldownSec:10,ratingWin:18,ratingLoss:20,...(cfg.pvp||{})};
+    const cfg=await mainConfig(),pc={minLevel:20,rewardGold:500,cooldownSec:60,ratingWin:18,ratingLoss:20,...(cfg.pvp||{})};pc.cooldownSec=60;
     const last=(await q("SELECT created_at FROM pvp_fights WHERE challenger_id=$1 ORDER BY id DESC LIMIT 1",[req.user.id])).rows[0];
-    if(last && (Date.now()-new Date(last.created_at).getTime())<pc.cooldownSec*1000)return res.status(429).json({error:`Várj ${pc.cooldownSec} másodpercet két párbaj között.`});
+    if(last && (Date.now()-new Date(last.created_at).getTime())<pc.cooldownSec*1000){
+      const remaining=Math.max(1,Math.ceil((pc.cooldownSec*1000-(Date.now()-new Date(last.created_at).getTime()))/1000));
+      return res.status(429).json({error:`Várj ${remaining} másodpercet két párbaj között.`,cooldownRemaining:remaining,cooldownSec:Number(pc.cooldownSec||60)});
+    }
     const rows=(await q(`
       SELECT u.id,u.username,u.player_name,u.pvp_rating,g.save_data,g.level
       FROM users u JOIN game_saves g ON g.user_id=u.id WHERE u.id=ANY($1::bigint[])
@@ -1150,12 +1160,29 @@ app.post("/api/pvp/fight",auth,async(req,res)=>{
       log:log.slice(0,80)
     };
     await q("INSERT INTO pvp_fights(challenger_id,defender_id,winner_id,battle_data) VALUES($1,$2,$3,$4)",[a.id,b.id,winnerId,battle]);
-    res.json({ok:true,battle});
+    res.json({ok:true,battle,cooldownSec:Number(pc.cooldownSec||60),serverNow:Date.now()});
   }catch(e){
     console.error("PVP FIGHT ERROR:",e);
     res.status(500).json({error:"A párbaj nem sikerült."});
   }
 });
+
+app.get("/api/pvp/cooldown",auth,async(req,res)=>{
+  try{
+    const cfg=await mainConfig(),pc={minLevel:20,rewardGold:500,cooldownSec:60,ratingWin:18,ratingLoss:20,...(cfg.pvp||{})};pc.cooldownSec=60;
+    const last=(await q("SELECT created_at FROM pvp_fights WHERE challenger_id=$1 ORDER BY id DESC LIMIT 1",[req.user.id])).rows[0];
+    let remaining=0;
+    if(last){
+      const elapsed=Date.now()-new Date(last.created_at).getTime();
+      remaining=Math.max(0,Math.ceil((Number(pc.cooldownSec||60)*1000-elapsed)/1000));
+    }
+    res.json({ok:true,cooldownSec:Number(pc.cooldownSec||60),remaining,ready:remaining<=0});
+  }catch(e){
+    console.error("PVP COOLDOWN ERROR:",e);
+    res.status(500).json({error:"A PvP visszaszámlálás nem kérhető le."});
+  }
+});
+
 app.get("/api/pvp/history",auth,async(req,res)=>{
   const rows=(await q(`
     SELECT f.id,f.winner_id,f.created_at,
@@ -1167,10 +1194,39 @@ app.get("/api/pvp/history",auth,async(req,res)=>{
   res.json({rows});
 });
 
+
+const E_COIN_PRODUCTS={
+  premium_speed_10x:{cost:3,name:"10× Harci / Wave Sebesség",unlock:"speed10Unlocked"},
+  auto_paragon_10_eur:{cost:10,name:"Auto Paragon szintelő",unlock:"autoParagonUnlocked"},
+  dungeon_batch_10_eur:{cost:10,name:"Dungeon 10× prémium futam",unlock:"dungeonBatchUnlocked"},
+  full_auto_20_eur:{cost:20,name:"Teljes Automata Rendszer",unlock:"fullAutoUnlocked"}
+};
+app.post("/api/shop/redeem",auth,async(req,res)=>{
+  try{
+    const id=String(req.body?.product_id||"");
+    const product=E_COIN_PRODUCTS[id];
+    if(!product)return res.status(400).json({error:"Ismeretlen E-érme csomag."});
+    const row=(await q("SELECT save_data FROM game_saves WHERE user_id=$1",[req.user.id])).rows[0];
+    if(!row)return res.status(404).json({error:"Játékmentés nem található."});
+    const s=row.save_data||{};
+    if(Boolean(s[product.unlock]))return res.json({ok:true,already:true,eCoins:Math.max(0,Math.floor(Number(s.eCoins||0))),message:"Ez a jogosultság már fel van oldva."});
+    const balance=Math.max(0,Math.floor(Number(s.eCoins||0)));
+    if(balance<product.cost)return res.status(400).json({error:`Nincs elég E-érméd. Szükséges: ${product.cost} E-érme · Jelenleg: ${balance}.`});
+    s.eCoins=balance-product.cost;
+    s[product.unlock]=true;
+    if(id==="premium_speed_10x")s.combatSpeed=10;
+    await q("UPDATE game_saves SET save_data=$1,updated_at=NOW() WHERE user_id=$2",[s,req.user.id]);
+    res.json({ok:true,eCoins:s.eCoins,productId:id,message:`✅ ${product.name} feloldva · -${product.cost} E-érme`});
+  }catch(e){
+    console.error("E-COIN REDEEM ERROR:",e);
+    res.status(500).json({error:"Az E-érme beváltás nem sikerült."});
+  }
+});
+
 app.post("/api/shop/request",auth,async(req,res)=>{
   const cfg=await mainConfig(),products=cfg.store?.products||[];
   const id=String(req.body.product_id||"");
-  const product=products.find(x=>String(x.id)===id) || (id==="auto_paragon_10_eur"?{id,name:"Auto Paragon szintelő",priceText:"10 €"}:id==="dungeon_batch_10_eur"?{id,name:"Dungeon 10× prémium futam",priceText:"10 €"}:null);
+  const product=products.find(x=>String(x.id)===id) || (id==="auto_paragon_10_eur"?{id,name:"Auto Paragon szintelő",priceText:"10 E-érme"}:id==="dungeon_batch_10_eur"?{id,name:"Dungeon 10× prémium futam",priceText:"10 E-érme"}:id==="full_auto_20_eur"?{id,name:"Teljes Automata Rendszer",priceText:"20 E-érme"}:null);
   if(!product)return res.status(404).json({error:"A termék nem található."});
   const note=String(req.body.note||"").slice(0,500);
   await q("INSERT INTO purchase_requests(user_id,product_id,product_name,price_text,note) VALUES($1,$2,$3,$4,$5)",[req.user.id,id,product.name||id,product.priceText||"",note]);
@@ -1263,9 +1319,12 @@ app.post("/api/admin/player/:id/state",auth,admin,async(req,res)=>{
       }
     }
 
+    s.eCoins=Math.max(0,Math.floor(Number(b.eCoins ?? s.eCoins ?? 0)));
     s.speed10Unlocked=Boolean(s.speed10Unlocked || b.speed10Unlocked);
     s.autoParagonUnlocked=Boolean(b.autoParagonUnlocked);
     s.dungeonBatchUnlocked=Boolean(s.dungeonBatchUnlocked || b.dungeonBatchUnlocked);
+    s.fullAutoUnlocked=Boolean(s.fullAutoUnlocked || b.fullAutoUnlocked);
+    s.fullAutoEnabled=Boolean(s.fullAutoUnlocked && b.fullAutoEnabled);
     const spd=Number(b.combatSpeed||1);
     s.combatSpeed=[1,2,3,10].includes(spd) ? (spd===10 && !s.speed10Unlocked ? 3 : spd) : 1;
 
@@ -1278,7 +1337,7 @@ app.post("/api/admin/player/:id/state",auth,admin,async(req,res)=>{
       level:s.level,xp:s.xp,wave:s.wave,paragonLevel:s.paragonLevel,prestigeLevel:s.prestigeLevel,
       paragonStatPoints:s.paragonStatPoints,auraTokens:s.auraTokens,skillPoints:s.skillPoints,
       hpRegenLevel:s.hpRegenLevel,kills:s.kills,deaths:s.deaths,base:s.base,skills:s.skills,
-      speed10Unlocked:s.speed10Unlocked,autoParagonUnlocked:s.autoParagonUnlocked,dungeonBatchUnlocked:s.dungeonBatchUnlocked,combatSpeed:s.combatSpeed
+      speed10Unlocked:s.speed10Unlocked,autoParagonUnlocked:s.autoParagonUnlocked,dungeonBatchUnlocked:s.dungeonBatchUnlocked,fullAutoUnlocked:s.fullAutoUnlocked,fullAutoEnabled:s.fullAutoEnabled,combatSpeed:s.combatSpeed
     };
     await q(`
       INSERT INTO admin_pending_overrides(user_id,patch,updated_at) VALUES($1,$2,NOW())
