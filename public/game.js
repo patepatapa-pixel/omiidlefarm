@@ -482,7 +482,7 @@ function renderZones(){
  const best=strongestUnlockedZone();
  if(save.zone!==best){save.zone=best;save.waveBoss=false;save.waveRiftBossV284=false;save.bossHp=0;save.waveKills=0;enemyHp=normalEnemyMaxHp();persist()}
  const thresholds=zoneWaveThresholdsV285();
- $("#zones").innerHTML=ZONES.map((z,i)=>{const weak=i<best,locked=i>best;return `<div class="zone ${i===save.zone?"active":""} ${locked?"locked":""} ${weak?"zone-too-weak":""}" data-zone="${i}"><b>${z.icon} ${z.name}</b><small>🌊 Feloldás: Wave ${fmt(thresholds[i])} · ⚔️ Minimum erő: ${fmt(zoneMinPowerV319(i))} · 🛡️ Ajánlott DEF: ${fmt(recommendedDefenseV271(i,save.wave))}</small><small>Drop: ${(z.drop*100).toFixed(0)}% · 💰 Fix ${fmt(zoneMobGold(i))} arany / mob · ❤️ Mob HP: ${fmt(i===save.zone?normalEnemyMaxHp():Math.max(10,Math.floor(([160,520,1450,3800,9000,19000,35000,60000][i]||60000)*.90)))} · 👹 Boss: ~${(5+i*.38).toFixed(1)}× mob · Paragon cél: Wave ${fmt(paragonWaveRequirement())}</small>${weak?'<strong class="zone-cap-badge">⬆️ TELJESÍTETT TERÜLET</strong>':locked?`<strong class="zone-cap-badge">🔒 WAVE ${fmt(thresholds[i])} SZÜKSÉGES</strong>`:""}</div>`}).join("");
+ $("#zones").innerHTML=ZONES.map((z,i)=>{const weak=i<best,locked=i>best;return `<div class="zone ${i===save.zone?"active":""} ${locked?"locked":""} ${weak?"zone-too-weak":""}" data-zone="${i}"><b>${z.icon} ${z.name}</b><small>⚔️ ERŐ CÉL: ${fmt(zoneMinPowerV319(i))} · 🌊 Feloldás: Wave ${fmt(thresholds[i])} · ⚔️ Minimum erő: ${fmt(zoneMinPowerV319(i))} · 🛡️ Ajánlott DEF: ${fmt(recommendedDefenseV271(i,save.wave))}</small><small>Drop: ${(z.drop*100).toFixed(0)}% · 💰 Fix ${fmt(zoneMobGold(i))} arany / mob · ❤️ Mob HP: ${fmt(i===save.zone?normalEnemyMaxHp():Math.max(10,Math.floor(([160,520,1450,3800,9000,19000,35000,60000][i]||60000)*.90)))} · 👹 Boss: ~${(5+i*.38).toFixed(1)}× mob · Paragon cél: Wave ${fmt(paragonWaveRequirement())}</small>${weak?'<strong class="zone-cap-badge">⬆️ TELJESÍTETT TERÜLET</strong>':locked?`<strong class="zone-cap-badge">🔒 WAVE ${fmt(thresholds[i])} SZÜKSÉGES</strong>`:""}</div>`}).join("");
  $$("[data-zone]").forEach(e=>e.onclick=()=>{let i=+e.dataset.zone,current=strongestUnlockedZone();if(i>current)return toast("🔒 Ezt a területet még nem oldottad fel.");if(i<current)return toast("⛔ A teljesített terület végleg lezárult ebben a Paragon-ciklusban.");grantStarterGearV260(i);save.zone=i;save.waveKills=0;save.waveBoss=false;save.bossHp=0;enemyHp=normalEnemyMaxHp();persist();renderAll();toast("🗺️ "+ZONES[i].name)})
 }
 function zoneWaveThresholdsV285(){
@@ -491,15 +491,29 @@ function zoneWaveThresholdsV285(){
  return Array.from({length:count},(_,i)=>i===0?1:i===count-1?Math.max(2,req-18):Math.max(2,Math.round(req*Math.pow(i/(count-1),1.08))));
 }
 function zoneMinPowerV319(zone){
- const gates=[0,1500,4000,9000,18000,32000,52000,75000];
+ const gates=[0,900,2200,4500,8500,14500,23000,34000];
  zone=Math.max(0,Math.min(gates.length-1,Math.floor(Number(zone||0))));
  return gates[zone];
 }
 function progressionMinimumZoneV260(){
- const w=Math.max(1,Number(save.wave||1)),waveSteps=zoneWaveThresholdsV285();
+ const s=(typeof save!=="undefined"&&save)?save:{};
+ const w=Math.max(1,Number(s.wave||1)),waveSteps=zoneWaveThresholdsV285();
  let byWave=0;
  waveSteps.forEach((n,i)=>{if(w>=n)byWave=i});
- return Math.min(ZONES.length-1,byWave);
+
+ let p=0;
+ try{
+   p=Math.max(0,Number(typeof power==="function"?power():0)||0);
+ }catch(e){
+   console.warn("[ZONE POWER GATE] power calculation failed; keeping current zone.",e);
+   return Math.max(0,Math.min(ZONES.length-1,Number(s.zone||0)));
+ }
+
+ let byPower=0;
+ for(let i=0;i<ZONES.length;i++){
+   if(p>=zoneMinPowerV319(i))byPower=i;
+ }
+ return Math.max(0,Math.min(ZONES.length-1,byWave,byPower));
 }
 function equipBestSilentV260(){Object.keys(SLOT_NAMES).forEach(slot=>{const choices=save.inventory.filter(x=>x&&x.slot===slot&&Number.isFinite(Number(x.id))).sort((a,b)=>itemScore(b)-itemScore(a));if(choices.length)save.equipped[slot]=choices[0].id})}
 function grantStarterGearV260(){equipBestSilentV260();return false}
@@ -1550,6 +1564,28 @@ function waveRewardMultiplier(wave){
   wave=Math.max(1,Number(wave||1));
   return 1 + (wave-1)*0.018 + Math.floor((wave-1)/100)*0.35;
 }
+
+/* V23.19.3 POWER-GATE CATCH-UP
+   If the player has reached the next zone's wave requirement but lacks its power,
+   farming rewards receive a temporary catch-up multiplier. No direct/free power is granted.
+*/
+function nextZonePowerProgressV23193(){
+ try{
+   const s=(typeof save!=="undefined"&&save)?save:{},cur=Math.max(0,Math.min(ZONES.length-1,Number(s.zone||0)));
+   if(cur>=ZONES.length-1)return {blocked:false,mult:1,need:0,power:Math.max(0,Number(power()||0)),pct:100};
+   const next=cur+1,thresholds=zoneWaveThresholdsV285(),waveReady=Number(s.wave||1)>=Number(thresholds[next]||Infinity);
+   const need=Math.max(1,zoneMinPowerV319(next));
+   let p=0;try{p=Math.max(0,Number(power()||0))}catch(e){return {blocked:false,mult:1,need,power:0,pct:0}}
+   const blocked=waveReady&&p<need,pct=Math.max(0,Math.min(100,p/need*100));
+   // Strongest boost when badly underpowered, tapering as the target is reached.
+   const mult=blocked?Math.max(1.15,Math.min(2.25,1.15+(1-pct/100)*1.35)):1;
+   return {blocked,mult,need,power:p,pct};
+ }catch(e){return {blocked:false,mult:1,need:0,power:0,pct:0}}
+}
+function powerCatchupMultiplierV23193(){
+ return nextZonePowerProgressV23193().mult;
+}
+
 function normalEnemyMaxHp(){
   const zone=Math.max(0,Math.min(ZONES.length-1,Number(save.zone||0)));
   const wave=Math.max(1,Number(save.wave||1));
@@ -6005,3 +6041,26 @@ window.OMI_PVE_HP_BALANCE_V23192={
   dungeonRiskyMultiplier:7,
   unlockMode:"wave_only_safe"
 };
+
+(function(){
+ function drawPowerGateV23193(){
+   try{
+     const host=document.getElementById("page-zones");if(!host)return;
+     let box=document.getElementById("powerGateV23193");
+     if(!box){box=document.createElement("div");box.id="powerGateV23193";box.className="card";host.prepend(box)}
+     const x=nextZonePowerProgressV23193();
+     if(!x.need){box.innerHTML="<b>⚔️ Területi erőkapu</b><small>Elérted a legmagasabb területet.</small>";return}
+     box.innerHTML=`<b>⚔️ Következő terület erőcél</b><div style="margin:8px 0;height:12px;border-radius:8px;overflow:hidden;background:#151922"><div style="height:100%;width:${x.pct.toFixed(1)}%;background:linear-gradient(90deg,#d7a73b,#ffe18a)"></div></div><small>${typeof fmt==="function"?fmt(x.power):x.power} / ${typeof fmt==="function"?fmt(x.need):x.need} ERŐ · ${x.pct.toFixed(1)}%${x.blocked?` · 🔥 Felzárkózási bónusz: ${x.mult.toFixed(2)}× farm jutalom`:""}</small>`;
+   }catch(e){console.warn("[POWER GATE UI]",e)}
+ }
+ window.addEventListener("load",()=>setTimeout(drawPowerGateV23193,500));
+ setInterval(drawPowerGateV23193,1800);
+})();
+
+/* V23.19.3 progression targets:
+   Zone power gates: 0 / 900 / 2.2k / 4.5k / 8.5k / 14.5k / 23k / 34k.
+   New area requires BOTH its wave threshold and power target.
+   While wave-ready but power-blocked, fixed farm gold gets a 1.15x–2.25x catch-up bonus.
+   power() is try/catch isolated so a bad power calculation cannot blank the UI.
+*/
+window.OMI_POWER_GATE_V23193={gates:[0,900,2200,4500,8500,14500,23000,34000],catchup:[1.15,2.25]};
