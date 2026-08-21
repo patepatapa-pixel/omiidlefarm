@@ -4840,8 +4840,64 @@ document.addEventListener("click",e=>{
     return removed;
   }
 
+  function autoSkills(){
+    const s=S();if(!s||typeof SKILL_TREE==="undefined"||typeof soulCost!=="function"||typeof skillRank!=="function"||typeof unlocked!=="function")return 0;
+    // Priority: raw power -> drop/gold -> sustain/offline. Spend conservatively so PvP/dungeon soulstones are not fully drained.
+    const priority=["power","crit","drop","gold","pet","offline"];
+    let bought=0,guard=0;
+    while(guard++<20){
+      const nodes=SKILL_TREE.filter(n=>unlocked(n)&&skillRank(n.key)<Number(n.max||0)&&Number(s.soul||0)>=soulCost(n));
+      if(!nodes.length)break;
+      nodes.sort((a,b)=>{
+        const ai=priority.includes(a.branch)?priority.indexOf(a.branch):priority.includes(a.key)?priority.indexOf(a.key):99;
+        const bi=priority.includes(b.branch)?priority.indexOf(b.branch):priority.includes(b.key)?priority.indexOf(b.key):99;
+        return ai-bi || soulCost(a)-soulCost(b);
+      });
+      const n=nodes[0],cost=soulCost(n);
+      // Keep a small soul reserve for PvP / other systems.
+      if(Number(s.soul||0)-cost<Math.min(25,Math.max(5,Number(s.prestigeLevel||0)*2)))break;
+      s.soul-=cost;s.skills[n.key]=skillRank(n.key)+1;bought++;
+    }
+    return bought;
+  }
+
+  function autoBestZone(){
+    const s=S();if(!s)return 0;
+    try{
+      const best=typeof strongestUnlockedZone==="function"?strongestUnlockedZone():Number(s.zone||0);
+      if(Number(s.zone||0)!==Number(best)){
+        s.zone=best;s.waveKills=0;s.waveBoss=false;s.waveRiftBossV284=false;s.bossHp=0;
+        try{enemyHp=typeof normalEnemyMaxHp==="function"?normalEnemyMaxHp():enemyHp}catch(e){}
+        return 1;
+      }
+    }catch(e){}
+    return 0;
+  }
+
+  function autoFarmSwitch(){
+    const s=S();if(!s)return 0;
+    let changed=0;
+    // Keep the fastest owned combat speed active.
+    const desired=s.speed10Unlocked?10:3;
+    if(Number(s.combatSpeed||1)!==desired){s.combatSpeed=desired;changed++}
+    // Re-enable systems that Paragon reset may disable.
+    if(s.autoDeleteSettings && s.fullAutoUnlocked && s.autoDeleteSettings.enabled!==true){
+      s.autoDeleteSettings.enabled=true;changed++;
+    }
+    return changed;
+  }
+
   function autoPetsAndMount(){
     try{if(typeof equipBestPets==="function")equipBestPets()}catch(e){}
+    try{
+      const s=S();
+      if(Array.isArray(s?.mounts)){
+        // compatibility for array-based mount collections
+        let best=-1,bestScore=-Infinity;
+        s.mounts.forEach((m,i)=>{const sc=Number(m?.power||m?.value||m?.bonusPct||0);if(sc>bestScore){bestScore=sc;best=i}});
+        if(best>=0){s.activeMount=best}
+      }
+    }catch(e){}
     try{document.getElementById("equipBestMount")?.click()}catch(e){}
   }
 
@@ -4875,7 +4931,7 @@ document.addEventListener("click",e=>{
     const s=S()||{};
     const unlocked=Boolean(s.fullAutoUnlocked);
     const active=Boolean(unlocked&&s.fullAutoEnabled);
-    p.innerHTML=`<div class="v302-auto-copy"><small>🤖 20 € PRÉMIUM RENDSZER</small><h3>Teljes Automata Rendszer</h3><p>Automatikus Equip Best · felszerelés fejlesztés és opcióforgatás · alap fejlesztések · Paragon statok · selejtezés · Auto Paragon és Auto Prestige.</p><em>${unlocked?"✅ Admin által feloldva":"🔒 Előbb az adminnak kell feloldania a fiókodon."}</em></div><button id="v299FullAutoToggleBtn" class="v302-auto-toggle ${active?"active":""}" ${unlocked?"":"disabled"}>${active?"🟢 AUTOMATA AKTÍV":"🤖 "+(unlocked?"AUTOMATA BEKAPCSOLÁSA":"NINCS FELOLDVA")}</button>`;
+    p.innerHTML=`<div class="v302-auto-copy"><small>🤖 20 € PRÉMIUM RENDSZER</small><h3>Teljes Automata Rendszer</h3><p>Teljes karakterhaladás: legerősebb farmzóna és Speed · Equip Best · felszerelés fejlesztés/forgatás · képességfa · alap fejlesztések · Paragon statok · pet/hátas · intelligens selejtezés · Auto Paragon és Auto Prestige.</p><em>${unlocked?"✅ Admin által feloldva":"🔒 Előbb az adminnak kell feloldania a fiókodon."}</em>${active?`<strong class="v303-auto-progress">⚙️ Haladás: Wave ${Number(s.wave||1)} · Paragon ${Number(s.paragonLevel||0)} · Prestige ${Number(s.prestigeLevel||0)} · Erő ${typeof power==="function"?fmt(power()):"..."}</strong>`:""}</div><button id="v299FullAutoToggleBtn" class="v302-auto-toggle ${active?"active":""}" ${unlocked?"":"disabled"}>${active?"🟢 AUTOMATA AKTÍV":"🤖 "+(unlocked?"AUTOMATA BEKAPCSOLÁSA":"NINCS FELOLDVA")}</button>`;
     p.querySelector("#v299FullAutoToggleBtn")?.addEventListener("click",()=>{
       if(!s.fullAutoUnlocked){if(typeof toast==="function")toast("🔒 Az admin még nem oldotta fel a Teljes Automata Rendszert.");return}
       s.fullAutoEnabled=!s.fullAutoEnabled;
@@ -4892,8 +4948,21 @@ document.addEventListener("click",e=>{
       const s=S();if(!s)return;
       // Full Auto includes the existing Auto Paragon entitlement while active.
       s.autoParagonUnlocked=true;s.autoParagonEnabled=true;
-      const changed=equipBestSilent()+autoBaseUpgrades()+autoParagonStats()+autoUpgradeGear()+autoRerollEquipped()+autoCleanInventory();
+      let changed=0;
+      changed+=autoFarmSwitch();
+      changed+=autoBestZone();
+      changed+=equipBestSilent();
+      changed+=autoBaseUpgrades();
+      changed+=autoSkills();
+      changed+=autoParagonStats();
+      changed+=autoUpgradeGear();
+      // After upgrading, re-evaluate equipment before rerolling.
+      changed+=equipBestSilent();
+      changed+=autoRerollEquipped();
+      changed+=autoCleanInventory();
       autoPetsAndMount();
+      // Re-evaluate one more time after cleanup/pet/mount changes.
+      changed+=equipBestSilent();
       const advanced=maybeAdvance();
       if(changed||advanced)quietPersist();
       ensurePanel();

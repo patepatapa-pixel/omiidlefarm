@@ -4530,3 +4530,6 @@ nav.tabs{display:flex!important;flex-wrap:wrap!important;justify-content:center;
 .v302-auto-toggle.active{border-color:#55d889;background:#0d281a;color:#72f2a4;box-shadow:0 0 18px #38d87b33}
 .v302-auto-toggle:disabled{opacity:.55;cursor:not-allowed}
 @media(max-width:700px){.v302-auto-toggle{width:100%;margin-top:12px}}
+
+/* V23.03 full progression status */
+.v303-auto-progress{display:block;margin-top:9px;padding:7px 9px;border-radius:9px;background:#0d2016;border:1px solid #2e6b49;color:#75efa5;font-size:12px}
