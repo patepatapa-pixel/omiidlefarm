@@ -219,7 +219,7 @@ save.paragonStats=save.paragonStats||{damage:0,gold:0,drop:0,crit:0};
 save.ownedAuras=Array.isArray(save.ownedAuras)?save.ownedAuras:["none"];
 save.activeAura=save.activeAura||"none";
 
-let enemyHp=Math.max(1,Number(typeof normalEnemyMaxHp==="function"?normalEnemyMaxHp():ZONES[save.zone]?.hp||1));
+let enemyHp=ZONES[save.zone].hp;
 
 function persist(){save.last=Date.now();localStorage.setItem("omiIdleComplete",JSON.stringify(save));$("#saveState").textContent="💾 Mentve"}
 function toast(t){let e=$("#toast");e.textContent=t;e.classList.add("show");setTimeout(()=>e.classList.remove("show"),1700)}
@@ -304,8 +304,9 @@ function mountBonusPctV288(level){const raw=Math.max(0,Math.floor(Number(level||
 function mountPowerMultiplierV277(){const m=save.mounts?.[save.activeMount];return 1+mountBonusPctV288(m?.level)}
 function rawPowerV280(){return (damageCoreV281(false)*1.2+v10Defense()*.8+save.level*.8+save.base.mining*.5+save.base.luck*.5)*mountPowerMultiplierV277()}
 function power(){
- const raw=Math.max(0,rawPowerV280()),cap=100000;
- return Math.min(cap,Math.floor(cap*raw/(raw+cap*.42)));
+ const raw=Number(rawPowerV280()),cap=100000;
+ if(!Number.isFinite(raw)||raw<=0)return 1;
+ return Math.max(1,Math.min(cap,Math.floor(cap*raw/(raw+cap*.42))));
 }
 function rankName(){let p=power();return p<1000?"Kezdő":p<5000?"Harcos":p<15000?"Elit":p<35000?"Mester":p<65000?"Hős":p<90000?"Legenda":"Isteni"}
 function baseCost(d){return Math.floor(d.base*Math.pow(1.32,save.base[d.key]-1))}
@@ -503,9 +504,7 @@ function renderCharacterVisual(){
 function renderCore(){
  let z=ZONES[save.zone];
  $("#gold").textContent=fmt(save.gold);$("#gems").textContent=fmt(save.gems);$("#ore").textContent=fmt(save.ore);$("#soul").textContent=fmt(save.soul);$("#tickets").textContent=fmt(save.tickets);$("#level").textContent=save.level;$("#xpText").textContent=`${fmt(save.xp)} / ${fmt(needXp())} XP`;updateXpBarV23203();$("#power").textContent=fmt(power());$("#rankName").textContent=rankName();$("#gps").textContent=`~${fmt(zoneMobGold(save.zone)*damage()/Math.max(1,z.hp))} / mp`;
- const enemyMaxV23205=Math.max(1,Number(typeof v10EnemyMaxHp==="function"?v10EnemyMaxHp():typeof normalEnemyMaxHp==="function"?normalEnemyMaxHp():z.hp||1));
- if(!Number.isFinite(enemyHp)||enemyHp<=0||enemyHp>enemyMaxV23205*1.25)enemyHp=enemyMaxV23205;
- $("#zoneName").textContent=z.name;$("#enemyIcon").textContent=z.icon;$("#enemyName").textContent=z.enemy;$("#enemyHp").textContent=fmt(Math.max(0,enemyHp));$("#enemyMaxHp").textContent=fmt(enemyMaxV23205);$("#hpbar").style.width=Math.max(0,Math.min(100,enemyHp/enemyMaxV23205*100))+"%";$("#damageText").textContent=fmt(damage());$("#critText").textContent=(critChance()*100).toFixed(1)+"%";$("#dropText").textContent=(dropBonus()*100).toFixed(1)+"%";
+ $("#zoneName").textContent=z.name;$("#enemyIcon").textContent=z.icon;$("#enemyName").textContent=z.enemy;$("#enemyHp").textContent=fmt(Math.max(0,enemyHp));$("#enemyMaxHp").textContent=fmt(z.hp);$("#hpbar").style.width=Math.max(0,enemyHp/z.hp*100)+"%";$("#damageText").textContent=fmt(damage());$("#critText").textContent=(critChance()*100).toFixed(1)+"%";$("#dropText").textContent=(dropBonus()*100).toFixed(1)+"%";
  renderEquipped();renderBonuses();renderCharacterVisual()
 }
 function renderZones(){
@@ -1376,31 +1375,39 @@ async function loadMe(){
  try{
    d=await api("/api/me");
  }catch(e){
-   currentUser=null;cloudReady=false;setAuthenticatedUI(null);showLandingMessage("");
+   currentUser=null;
+   cloudReady=false;
+   setAuthenticatedUI(null);
+   showLandingMessage("");
    return;
  }
+
  currentUser=d.user;
- try{
-   if(d.save && Object.keys(d.save).length){
+ if(d.save && Object.keys(d.save).length){
+   try{
      save=normalizeV6Save(d.save);
-     if(save.lastDaily!==new Date().toDateString()){save.dailyClaimed={};save.dailyBaseline=null;save.lastDaily=new Date().toDateString()}
-   }
- }catch(e){console.error("Save normalize error:",e)}
+     if(save.lastDaily!==new Date().toDateString()){
+       save.dailyClaimed={};save.dailyBaseline=null;save.lastDaily=new Date().toDateString();
+     }
+     // Safe temporary HP until combat config is fully initialized.
+     enemyHp=Math.max(1,Number(ZONES[save.zone]?.hp||ZONES[0]?.hp||1));
+   }catch(e){console.error("Save load error:",e)}
+ }
+
  cloudReady=true;
  setAuthenticatedUI(currentUser);
 
- // Auth is already valid here. A UI/render error must never log the player out.
- try{
-   repairCombatStateV23205();
-   renderAll();
- }catch(e){console.error("Initial render error:",e)}
+ // A render error must NOT be treated as logout/session failure.
+ try{renderAll()}catch(e){console.error("Initial UI render error:",e)}
+
+ // Combat repair only after the later combat/config section has initialized.
  setTimeout(()=>{
    try{
      if(typeof v10LoadGameplay==="function")v10LoadGameplay();
-     repairCombatStateV23205();
+     if(typeof repairCombatStateV23206==="function")repairCombatStateV23206();
      if(typeof renderAll==="function")renderAll();
-   }catch(e){console.error("Gameplay init error:",e)}
- },80);
+   }catch(e){console.error("Late gameplay init error:",e)}
+ },250);
 }
 async function cloudSave(){
  if(!currentUser||!cloudReady||savingCloud)return;
@@ -1450,7 +1457,13 @@ $("#authSubmit").onclick=async()=>{
    enemyHp=ZONES[save.zone]?.hp||ZONES[0].hp;
    setAuthenticatedUI(currentUser);
    renderAll();
-   setTimeout(()=>{if(typeof v10LoadGameplay==="function")v10LoadGameplay()},50);
+   setTimeout(()=>{
+      try{
+        if(typeof v10LoadGameplay==="function")v10LoadGameplay();
+        if(typeof repairCombatStateV23206==="function")repairCombatStateV23206();
+        if(typeof renderAll==="function")renderAll();
+      }catch(e){console.error("Post-login gameplay init:",e)}
+    },250);
    toast("✅ Sikeres "+(authMode==="login"?"belépés":"regisztráció"));
  }catch(e){$("#authMsg").textContent="❌ "+e.message}
 };
@@ -1505,7 +1518,13 @@ async function landingLogin(){
    renderAll();
    showLandingMessage("");
    toast("✅ Sikeres belépés");
-   setTimeout(()=>{if(typeof v10LoadGameplay==="function")v10LoadGameplay()},50);
+   setTimeout(()=>{
+      try{
+        if(typeof v10LoadGameplay==="function")v10LoadGameplay();
+        if(typeof repairCombatStateV23206==="function")repairCombatStateV23206();
+        if(typeof renderAll==="function")renderAll();
+      }catch(e){console.error("Post-login gameplay init:",e)}
+    },250);
  }catch(e){
    showLandingMessage("❌ "+e.message,true);
  }finally{
@@ -1528,7 +1547,15 @@ setAuthenticatedUI(null);loadMe();
 // V10 combat timers are started after gameplay config loads;
 setInterval(()=>{save.stats.playSeconds++;if(save.stats.playSeconds%5===0)persist()},1000);
 
-window.OMI_CONTENT={bosses:[],items:[],pets:[],auras:[],zones:[]};fetch("/api/content-config").then(r=>r.json()).then(d=>{window.OMI_CONTENT={...window.OMI_CONTENT,...(d.config||{})};try{repairCombatStateV23205();if(typeof renderAll==="function")renderAll()}catch(e){console.error("Config combat repair:",e)}}).catch(()=>{});
+window.OMI_CONTENT={bosses:[],items:[],pets:[],auras:[],zones:[]};fetch("/api/content-config").then(r=>r.json()).then(d=>{
+ window.OMI_CONTENT={...window.OMI_CONTENT,...(d.config||{})};
+ setTimeout(()=>{
+   try{
+     if(typeof repairCombatStateV23206==="function")repairCombatStateV23206();
+     if(currentUser&&typeof renderAll==="function")renderAll();
+   }catch(e){console.error("Content config refresh:",e)}
+ },300);
+}).catch(()=>{});
 
 /* V22.29: Character blocks must never leak onto another tab. */
 (function(){
@@ -1741,21 +1768,26 @@ function v10EnsurePlayerHp(){
  if(save.playerHp>mx)save.playerHp=mx;
  if(save.playerHp<0)save.playerHp=mx;
 }
-function repairCombatStateV23205(){
+/* V23.20.6 - safe late combat repair. Never called before combat config exists. */
+function repairCombatStateV23206(){
  try{
+   const playerMax=Math.max(1,Number(v10MaxHp()||1));
    v10EnsurePlayerHp();
-   const mx=Math.max(1,Number(v10EnemyMaxHp()||normalEnemyMaxHp()||1));
-   if(!Number.isFinite(enemyHp)||enemyHp<=0||enemyHp>mx*1.25)enemyHp=mx;
+   save.playerHp=Math.max(1,Math.min(playerMax,Number(save.playerHp||playerMax)));
+
+   const mobMax=Math.max(1,Number(save.waveBoss?v10BossMaxHp():normalEnemyMaxHp()));
    if(save.waveBoss){
-     if(!Number.isFinite(Number(save.bossHp))||Number(save.bossHp)<=0)save.bossHp=mx;
-     enemyHp=Math.max(1,Math.min(mx,Number(save.bossHp||mx)));
+     if(!Number.isFinite(Number(save.bossHp))||Number(save.bossHp)<=0)save.bossHp=mobMax;
+     enemyHp=Math.max(1,Math.min(mobMax,Number(save.bossHp||mobMax)));
    }else{
      save.bossHp=0;
+     if(!Number.isFinite(Number(enemyHp))||Number(enemyHp)<=0||Number(enemyHp)>mobMax*1.5)enemyHp=mobMax;
    }
-   save.playerHp=Math.max(1,Math.min(v10MaxHp(),Number(save.playerHp||v10MaxHp())));
-   save.respawnUntil=Math.max(0,Number(save.respawnUntil||0));
    return true;
- }catch(e){console.error("Combat state repair:",e);return false}
+ }catch(e){
+   console.error("V23.20.6 combat repair:",e);
+   return false;
+ }
 }
 
 
@@ -6063,3 +6095,11 @@ window.OMI_FULL_AUTO_POWER_FOCUS_V23204={
   preserveRarityPriority:true,
   sameResourcesAsManual:true
 };
+
+/* V23.20.6 STABLE RECOVERY
+   - no top-level dynamic combat calls
+   - auth failure separated from UI failure
+   - late HP repair only after combat initialization
+   - power NaN guard
+*/
+window.OMI_STABLE_RECOVERY_V23206=true;

@@ -78,7 +78,7 @@ function setAuth(res,u){
   res.cookie("omi_token",sign(u),{
     httpOnly:true,
     sameSite:"lax",
-    secure:true,
+    secure:process.env.NODE_ENV==="production",
     path:"/",
     maxAge:30*24*60*60*1000
   });
@@ -598,7 +598,7 @@ app.post("/api/login",async(req,res)=>{
 });
 
 app.post("/api/logout",(req,res)=>{
-  res.clearCookie("omi_token",{httpOnly:true,sameSite:"lax",secure:true,path:"/"});
+  res.clearCookie("omi_token",{sameSite:"lax",secure:process.env.NODE_ENV==="production",path:"/"});
   res.json({ok:true});
 });
 
