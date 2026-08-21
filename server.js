@@ -322,6 +322,22 @@ async function init(){
     updateContent.updates.unshift({id:"v22_70",version:"V22.70",title:"Boss minden wave végén és helyben nyíló dungeonharc",date:"2026-08-21",summary:"Minden wave utolsó normál killje bosst idéz, a dungeonharc pedig a kiválasztott kártyán belül marad.",changes:["Minden wave utolsó szükséges normál killje után automatikusan boss jelenik meg.","A következő wave kizárólag a boss legyőzése után indul el.","A korábbi minden 10. wave-es bossrendszer megszűnt.","A dungeon harcpanel közvetlenül a megnyitott dungeon kártyájának alján jelenik meg.","A harc lefelé nyitja ki a kártyát, ezért nem kell a lap tetejére görgetni.","Dungeon megnyitásakor és újraindításakor a görgetési pozíció változatlan marad.","Jutalom- és statfrissítéskor a panel ugyanabban a dungeon kártyában marad."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_71")){
+    updateContent.updates.unshift({id:"v22_71",version:"V22.71",title:"Célértékes DEF-balansz minden PvE tartalomhoz",date:"2026-08-21",summary:"A területi mobok, bossok és dungeonok külön ajánlott DEF alapján biztosítanak jól követhető túlélési fejlődést.",changes:["Minden terület az aktuális wave alapján ajánlott DEF-et mutat.","Ajánlott DEF alatt a mob- és bosssebzés fokozatosan veszélyesebb, de nem okoz azonnali halálspirált.","Ajánlott DEF körül stabil automata farm érhető el.","Az ajánlottnál magasabb DEF tovább javítja a túlélést, de a sebzéscsökkentési és blokkplafon megmarad.","A normál mobok és wave bossok külön sebzésgörbét használnak.","Az adminból létrehozott bossok beállított sebzése megmarad, majd a DEF-célértékhez igazodik.","Minden dungeon külön ajánlott DEF-et jelenít meg.","A dungeon győzelmi esélye az erő és az adott dungeonhoz szükséges DEF együttese alapján számolódik.","A dungeonban kijelzett tényleges beérkező sebzés ugyanazt a DEF-képletet használja.","Az Automata harc élőben mutatja az aktuális és ajánlott DEF-et."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_72")){
+    updateContent.updates.unshift({id:"v22_72",version:"V22.72",title:"Valódi blokkolás minden PvE harcban",date:"2026-08-21",summary:"A blokk esélye most minden területi, boss- és dungeonütésnél külön sorsolódik, a DEF rendszerével összehangolva.",changes:["A normál mobok minden támadása blokkolható.","A wave bossok és az egyedi bossok támadásaira is hat a blokk.","A dungeon boss minden ütésénél külön blokkpróba történik.","A DEF először csökkenti a sebzést, sikeres blokk pedig további 50%-ot fog fel.","A dungeon számítása többé nem számolja kétszer a blokk átlagos értékét.","Sikeres blokknál látványos kék BLOKK jelzés jelenik meg.","A dungeon harcfelület kiírja a játékos aktuális blokk esélyét.","A blokk maximuma és ereje továbbra is az admin játékmenet-beállításaival szabályozható."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_73")){
+    updateContent.updates.unshift({id:"v22_73",version:"V22.73",title:"Farm aktivitás eltávolítva",date:"2026-08-21",summary:"A wave- és Paragon-haladást többé semmilyen Farm aktivitáspont vagy ellenőrzőpont nem korlátozza.",changes:["A Farm aktivitáspontok teljesen kikerültek a játékból.","Megszűnt a 25 wave-enkénti aktivitás-ellenőrzés.","A Paragon szintlépéshez kizárólag az előírt wave szükséges.","A drop, bossölés, tárgyfejlesztés és dungeon többé nem tölt kötelező aktivitássávot.","A MINDENT FEJLESZT gyorsgomb megmaradt külön, átlátható felszerelésfejlesztő panelként.","Minden wave végén továbbra is automatikusan boss jelenik meg."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_74")){
+    updateContent.updates.unshift({id:"v22_74",version:"V22.74",title:"Paragon túlfarm-védelem",date:"2026-08-21",summary:"Az Automata farm továbbra is kényelmes, de a Paragonra kész karakterrel nem termelhető végtelen wave és teljes aranyjutalom.",changes:["A Paragon wave-követelményéig minden farmjutalom 100%-os.","A Paragon elérése után még 25 wave teljes jutalmú türelmi szakasz jár.","Ezután 25 wave-enként fokozatosan csökken a normál és boss arany, valamint a tárgydrop esélye.","A Paragon-követelmény felett 100 wave-nél a wave-haladás megáll.","A farm tovább futhat, de a limitnél csak 10%-os arany- és dropjutalmat ad.","A prémium Automata Paragon a jogosult játékosnál automatikusan új ciklust indít.","A Farm felület élőben mutatja a teljes jutalmat, a türelmi szakaszt, a csökkentést és a wave-limitet.","A rendszerhez nem kell dungeon, fejlesztés vagy aktivitáspont."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
   const capMigration="v2246_wallet_caps";
   const capDone=(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[capMigration])).rows[0];
   if(!capDone){
@@ -371,7 +387,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.70.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.74.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{

@@ -3394,6 +3394,7 @@ body.v202-is-admin .admin-studio-only-v202{
 #v219DungeonBattle.v220-hit .v219-boss-icon{
   animation:v220BossHit .18s ease;
 }
+#v219DungeonBattle.v272-block{animation:dungeonBlockV272 .35s ease;box-shadow:0 0 0 2px #67b7ff,0 0 30px #38bdf899!important}@keyframes dungeonBlockV272{0%{filter:brightness(1)}35%{filter:brightness(1.75);transform:scale(1.006)}100%{filter:brightness(1);transform:scale(1)}}
 @keyframes v220PlayerHit{
   0%,100%{transform:translateX(0)}
   50%{transform:translateX(-7px)}
@@ -4448,3 +4449,10 @@ nav.tabs{display:flex!important;flex-wrap:wrap!important;justify-content:center;
 
 /* V22.59 visible update details fix */
 .update-collapsible-v258{height:auto!important;max-height:none!important}.update-details-v258{display:block!important;height:auto!important;max-height:none!important;overflow:visible!important}.update-details-v258>summary{min-height:92px!important;height:auto!important}.update-details-v258[open]>summary{min-height:76px!important}.update-details-v258:not([open])>.update-detail-content-v258{display:none!important}.update-details-v258[open]>.update-detail-content-v258{display:block!important;visibility:visible!important;opacity:1!important;height:auto!important;max-height:none!important;overflow:visible!important}.update-detail-content-v258 ul,.update-detail-content-v258 li{visibility:visible!important;opacity:1!important}.update-detail-content-v258{border-top:1px solid #303a44;box-shadow:inset 0 10px 25px #0003}
+/* V22.74: gyors fejlesztés + jól látható Paragon túlfarm állapot */
+.farm-quick-upgrade-v273{grid-template-columns:minmax(0,1fr) minmax(260px,auto)!important;align-items:center}
+.farm-quick-upgrade-v273 .farm-readiness-actions-v263{min-width:260px}
+#paragonOverfarmStateV274{display:block;padding:7px 10px;border:1px solid #2f9f68;border-radius:8px;background:#10251b;color:#75f0ad;font-size:12px;text-align:center}
+#paragonOverfarmStateV274.warning{border-color:#d5a72e;background:#2b220d;color:#ffd867}
+#paragonOverfarmStateV274.capped{border-color:#d94b5f;background:#2b1016;color:#ff8797;box-shadow:0 0 18px #d94b5f33}
+@media(max-width:700px){.farm-quick-upgrade-v273{grid-template-columns:1fr!important}.farm-quick-upgrade-v273 .farm-readiness-actions-v263{min-width:0}}

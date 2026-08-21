@@ -356,12 +356,13 @@ function addItem(it){
  toast(`🎁 ${rarityName(it.rarity)} drop: ${it.name}`)
 }
 function kill(){
- let z=ZONES[save.zone],g=zoneMobGold(save.zone);
+ let z=ZONES[save.zone],g=Math.floor(zoneMobGold(save.zone)*paragonOverfarmV274().rewardMult);
  save.gold+=g;save.stats.goldEarned+=g;save.xp+=z.xp;save.kills++;
- if(Math.random()<.07+save.base.mining*.005)save.ore++;
- if(Math.random()<.007+dropBonus()*.05)save.soul++;
- if(Math.random()<.006)save.tickets++;
- if(Math.random()<z.drop+dropBonus()){addItem(createItem());addFarmActivityV264("drops",1)}
+ const rewardMult=paragonOverfarmV274().rewardMult;
+ if(Math.random()<(.07+save.base.mining*.005)*rewardMult)save.ore++;
+ if(Math.random()<(.007+dropBonus()*.05)*rewardMult)save.soul++;
+ if(Math.random()<.006*rewardMult)save.tickets++;
+ if(Math.random()<(z.drop+dropBonus())*paragonOverfarmV274().rewardMult){addItem(createItem());addFarmActivityV264("drops",1)}
  while(save.xp>=needXp()){save.xp-=needXp();save.level++;toast(`⭐ Szintlépés! Lv.${save.level}`)}
  save.waveKills++;
  if(save.waveKills>=save.waveGoal){
@@ -455,7 +456,7 @@ function renderCore(){
 }
 function renderZones(){
  const best=strongestUnlockedZone();
- $("#zones").innerHTML=ZONES.map((z,i)=>{const weak=i<best,locked=i>best;return `<div class="zone ${i===save.zone?"active":""} ${locked?"locked":""} ${weak?"zone-too-weak":""}" data-zone="${i}"><b>${z.icon} ${z.name}</b><small>${z.enemy} · Ajánlott erő: ${fmt(z.need)}</small><small>Drop: ${(z.drop*100).toFixed(0)}% · 💰 Fix ${fmt(zoneMobGold(i))} arany / mob · 🌊 Wave haladás</small>${weak?'<strong class="zone-cap-badge">⬆️ LEZÁRT KORÁBBI TERÜLET</strong>':locked?'<strong class="zone-cap-badge">🔒 MÉG NINCS FELOLDVA</strong>':""}</div>`}).join("");
+ $("#zones").innerHTML=ZONES.map((z,i)=>{const weak=i<best,locked=i>best;return `<div class="zone ${i===save.zone?"active":""} ${locked?"locked":""} ${weak?"zone-too-weak":""}" data-zone="${i}"><b>${z.icon} ${z.name}</b><small>${z.enemy} · Ajánlott erő: ${fmt(z.need)} · 🛡️ Ajánlott DEF: ${fmt(recommendedDefenseV271(i,save.wave))}</small><small>Drop: ${(z.drop*100).toFixed(0)}% · 💰 Fix ${fmt(zoneMobGold(i))} arany / mob · 🌊 Wave haladás</small>${weak?'<strong class="zone-cap-badge">⬆️ LEZÁRT KORÁBBI TERÜLET</strong>':locked?'<strong class="zone-cap-badge">🔒 MÉG NINCS FELOLDVA</strong>':""}</div>`}).join("");
  $$("[data-zone]").forEach(e=>e.onclick=()=>{let i=+e.dataset.zone,current=strongestUnlockedZone();if(i>current)return toast("🔒 Ezt a területet még nem oldottad fel.");if(i<current)return toast("⬆️ A korábbi területek lezárultak. Folytasd a jelenlegi területen!");grantStarterGearV260(i);save.zone=i;save.waveKills=0;save.waveBoss=false;save.bossHp=0;enemyHp=normalEnemyMaxHp();persist();renderAll();toast("🗺️ "+ZONES[i].name)})
 }
 function progressionMinimumZoneV260(){const w=Math.max(1,Number(save.wave||1)),p=Math.max(0,Number(save.paragonLevel||0)),pr=Math.max(0,Number(save.prestigeLevel||0)),waveSteps=[1,25,75,150,250,400,650,950];let byWave=0;waveSteps.forEach((n,i)=>{if(w>=n)byWave=i});const byParagon=p>=25?7:p>=17?6:p>=12?5:p>=8?4:p>=5?3:p>=3?2:p>=1?1:0,byPrestige=Math.min(7,Math.floor(pr/15));return Math.min(ZONES.length-1,Math.max(byWave,byParagon,byPrestige,Number(save.highestZoneEver||0)))}
@@ -897,8 +898,7 @@ function renderWave(){
 }
 function renderParagon(){
  const req=paragonWaveRequirement();
- const activityReady=farmCheckpointPassedV264(req);
- const eligible=save.wave>=req&&activityReady;
+ const eligible=save.wave>=req;
  const setText=(id,val)=>{const e=$("#"+id);if(e)e.textContent=val};
 
  setText("prestigeLevel",save.prestigeLevel);
@@ -925,14 +925,13 @@ function renderParagon(){
 
  const text=$("#prestigeText"),paragonScale=Math.max(1,save.paragonLevel);
  if(text)text.textContent=(eligible
-   ?`Paragon szintlépés elérhető! Wave ${save.wave} / ${req}, a Farm aktivitás ellenőrzés teljesítve.`
-   :save.wave>=req&&!activityReady?`A wave-követelmény teljesült, de előbb teljesítsd a legutóbbi Farm aktivitás ellenőrzést.`
+   ?`Paragon szintlépés elérhető! Wave ${save.wave} / ${req}.`
    :`Még ${Math.max(0,req-save.wave)} wave kell a következő Paragon szinthez. Követelmény: Wave ${req}.`)+` · Paragon statok hatásszorzója: ${paragonScale}×`;
 
  const btn=$("#prestigeBtn");
  if(btn){
    btn.disabled=!eligible;
-   btn.textContent=eligible?`🌟 PARAGON SZINTLÉPÉS`:save.wave>=req?`⚔️ FARM AKTIVITÁS KELL`:`🌟 PARAGON · WAVE ${req}`;
+   btn.textContent=eligible?`🌟 PARAGON SZINTLÉPÉS`:`🌟 PARAGON · WAVE ${req}`;
  }
 
  const stats=[
@@ -959,7 +958,6 @@ function renderParagon(){
 function doPrestige(automatic=false){
  const req=paragonWaveRequirement();
  if(save.wave<req)return toast(`🔒 Következő Paragon követelmény: Wave ${req}.`);
- if(!farmCheckpointPassedV264(req))return toast("⚔️ A Paragonhoz teljesítened kell a legutóbbi Farm aktivitás ellenőrzést.");
 
  if(!automatic&&!confirm(`Paragon újrakezdés?\n\nJelenlegi Paragon: ${save.paragonLevel}\nÚj Paragon: ${save.paragonLevel+1}\nAz új szinten 1 Sebzés Paragon statpont +${(save.paragonLevel+1)*2}% sebzést ad.\nJutalom: 5 új Paragon statpont és +1 Aura token\n\nRESETELŐDIK: karakterszint, XP, wave, normál statok, alap fejlesztések, inventory, felszerelés, arany, gyémánt és érc.\nMEGMARAD: teljes képességfa, képességpontok, kill szám, kiosztott Paragon statok, lélekkő, dungeon token, petek, hátasok, aurák, achievementek és gyorsítás.`))return;
 
@@ -1376,7 +1374,7 @@ document.addEventListener("click",e=>{
 let away=Math.min((12+skillRank("afkCap")+skillRank("endurance")+skillRank("dreamMaster"))*3600,Math.max(0,(Date.now()-save.last)/1000));
 if(away>15){
  let z=ZONES[save.zone],eff=Math.min(3.5,.55+skillBonus("offline")),kills=Math.floor(away*damage()/z.hp*eff);
- if(kills>0){let g=kills*zoneMobGold(save.zone);save.gold+=g;save.stats.goldEarned+=g;save.kills+=kills;save.xp+=kills*z.xp;toast(`🌙 Offline farm: ${fmt(kills)} kill · ${fmt(g)} arany`)}
+ if(kills>0){let g=Math.floor(kills*zoneMobGold(save.zone)*paragonOverfarmV274().rewardMult);save.gold+=g;save.stats.goldEarned+=g;save.kills+=kills;save.xp+=kills*z.xp;toast(`🌙 Offline farm: ${fmt(kills)} kill · ${fmt(g)} arany`)}
 }
 while(save.xp>=needXp()){save.xp-=needXp();save.level++}
 
@@ -1473,23 +1471,22 @@ function waveKillRequirement(wave){
 }
 function realFarmGearV262(){return Object.keys(save.equipped||{}).map(slot=>equipObj(slot)).filter(it=>it&&!it.starterV260&&!it.unsellable)}
 function farmGearScoreV262(){return Math.floor(realFarmGearV262().reduce((sum,it)=>{const st=itemStats(it),opts=Array.isArray(it.options)?it.options.reduce((n,o)=>n+Math.max(0,Number(o?.value||0))*.7,0):0;return sum+st.atk+st.def*.7+(st.crit+st.drop)*100+opts},0))}
-function addFarmActivityV264(type,count=1){save.farmActivityV264=save.farmActivityV264||{drops:0,bosses:0,upgrades:0,dungeons:0};if(type in save.farmActivityV264)save.farmActivityV264[type]=Math.max(0,Number(save.farmActivityV264[type]||0)+Math.max(0,Number(count||0)))}
-function farmActivityPointsV264(){const a=save.farmActivityV264||{};return Math.min(5,Number(a.drops||0))+Math.min(6,Number(a.bosses||0)*3)}
-function farmCheckpointPassedV264(wave){const checkpoint=Math.floor(Math.max(0,Number(wave||0))/25)*25;return checkpoint<25||Number(save.lastFarmCheckpointV264||0)>=checkpoint}
-function farmReadinessV262(wave=save.wave){
- wave=Math.max(1,Number(wave||1));
- const points=farmActivityPointsV264(),target=11,checkpoint=wave>=25&&wave%25===0,passed=checkpoint&&Number(save.lastFarmCheckpointV264||0)>=wave;
- return {points,target,pct:Math.min(1,points/target),ready:!checkpoint||passed||points>=target,checkpoint,passed};
+function addFarmActivityV264(){}
+function farmActivityPointsV264(){return 0}
+function farmCheckpointPassedV264(){return true}
+function farmReadinessV262(){return {points:0,target:0,pct:1,ready:true,checkpoint:false,passed:true}}
+function paragonOverfarmV274(){
+ const req=paragonWaveRequirement(),over=Math.max(0,Math.floor(Number(save.wave||1))-req),grace=25,cap=100;
+ const steps=Math.max(0,Math.ceil((over-grace)/25)),rewardMult=Math.max(.1,1-steps*.3);
+ return {req,over,grace,cap,rewardMult,capped:over>=cap};
 }
-function renderFarmReadinessV262(){
- const r=farmReadinessV262(),box=$("#farmReadinessV262"),title=$("#farmReadinessTitleV262"),text=$("#farmReadinessTextV262"),bar=$("#farmReadinessBarV262"),state=$("#farmReadinessStateV262");if(!box)return;
- const blocked=r.checkpoint&&!r.ready;box.classList.toggle("blocked",blocked);if(bar)bar.style.width=Math.round(r.pct*100)+"%";
- const a=save.farmActivityV264||{},next=Math.max(25,Math.ceil(save.wave/25)*25);
- if(title)title.textContent=save.wave<25?`Farm aktivitás · ${r.points}/${r.target}`:`Farm aktivitás · ${r.points}/${r.target} pont`;
- if(text)text.textContent=`Wave ${next} ellenőrzés · Drop ${Math.min(5,a.drops||0)}/5 · Boss ${Math.min(2,a.bosses||0)}/2 · Fejlesztés és dungeon nem kell`;
- if(state)state.textContent=blocked?"⚠️ MÉG KELL AKTIVITÁSPONT":r.points>=r.target?"✅ KÖVETKEZŐ PRÓBA KÉSZ":"⚔️ AKTIVITÁS GYŰJTÉSE";
- renderUpgradeAllFarmGearV263();
+function renderParagonOverfarmV274(){
+ const e=$("#paragonOverfarmStateV274");if(!e)return;const o=paragonOverfarmV274(),pct=Math.round(o.rewardMult*100);
+ e.classList.toggle("warning",o.over>o.grace);e.classList.toggle("capped",o.capped);
+ e.textContent=o.capped?`⛔ PARAGON SZÜKSÉGES · ${pct}% JUTALOM · WAVE LIMIT`:o.over>o.grace?`⚠️ TÚLFARM: ${pct}% ARANY ÉS DROP · LIMITIG ${o.cap-o.over} WAVE`:o.over>0?`🌟 PARAGON ELÉRHETŐ · MÉG ${o.grace-o.over} WAVE TELJES JUTALOM`:`✅ TELJES FARMJUTALOM · PARAGON WAVE ${o.req}`;
 }
+function renderFarmReadinessV262(){renderUpgradeAllFarmGearV263();renderParagonOverfarmV274()}
+function advanceWaveV274(amount=1){const o=paragonOverfarmV274(),limit=o.req+o.cap;if(save.wave>=limit)return 0;const before=save.wave;save.wave=Math.min(limit,save.wave+Math.max(1,Math.floor(Number(amount||1))));return save.wave-before}
 function upgradeableFarmGearV263(){return realFarmGearV262().filter(it=>Number(it.plus||0)<15)}
 function upgradeAllFarmGearCostV263(){const items=upgradeableFarmGearV263();return {items,gold:items.reduce((n,it)=>n+upgradeCost(it),0),ore:items.reduce((n,it)=>n+oreCost(it),0)}}
 function renderUpgradeAllFarmGearV263(){
@@ -1506,12 +1503,7 @@ function upgradeAllFarmGearV263(){
  save.gold-=c.gold;save.ore-=c.ore;let success=0;c.items.forEach(it=>{if(Math.random()*100<upgradeChance(it.plus)){it.plus++;success++}});
  persist();renderAll();toast(`⚒️ Közös fejlesztés: ${success}/${c.items.length} sikeres · -${fmt(c.gold)} arany · -${fmt(c.ore)} érc`);
 }
-function passFarmCheckpointV262(wave=save.wave,show=true){
- const r=farmReadinessV262(wave);if(!r.checkpoint)return true;if(r.passed)return true;if(r.ready){save.lastFarmCheckpointV264=Math.max(Number(save.lastFarmCheckpointV264||0),Number(wave));save.farmActivityV264={drops:0,bosses:0,upgrades:0,dungeons:0};save.gearTrialFailsV262=0;if(show)toast(`✅ Wave ${wave} Farm aktivitás teljesítve!`);return true}
- save.waveKills=0;applyWaveGoal();enemyHp=normalEnemyMaxHp();
- if(show)toast(`⚔️ Wave ${wave}: még ${Math.max(0,r.target-r.points)} Farm aktivitáspont szükséges. Szerezz tárgydropot vagy győzz le bosst!`);
- renderFarmReadinessV262();return false;
-}
+function passFarmCheckpointV262(){return true}
 function applyWaveGoal(){
   save.waveGoal=waveKillRequirement(save.wave);
 }
@@ -1552,8 +1544,12 @@ function v10Defense(){
 }
 function defenseReductionV265(){const d=v10Defense(),g=window.OMI_CONTENT?.gameplay||{},cap=Math.max(.1,Math.min(.85,Number(g.defenseReductionCapPct??75)/100)),rating=Math.max(10,Number(g.defenseRatingBase??55)+save.zone*30+Math.pow(Math.max(1,save.wave),.72)*1.2);return Math.min(cap,d/(d+rating))}
 function defenseGuardChanceV265(){const d=Math.sqrt(Math.max(0,v10Defense())),g=window.OMI_CONTENT?.gameplay||{},cap=Math.max(0,Math.min(.4,Number(g.defenseGuardCapPct??25)/100));return Math.min(cap,(d/(d+18))*.35)}
-function dungeonDefenseModifierV266(){return Math.max(-.18,Math.min(.35,(defenseReductionV265()-.25)*.65+defenseGuardChanceV265()*.35))}
-function dungeonIncomingMultiplierV266(){return Math.max(.28,1-defenseReductionV265()*.75-defenseGuardChanceV265()*.25)}
+function recommendedDefenseV271(zone=save.zone,wave=save.wave){return Math.max(8,Math.floor(16*(1+Math.max(0,Number(zone||0))*1.05)*Math.pow(1+Math.max(0,Number(wave||1))/90,.52)))}
+function defensePressureV271(){const ratio=v10Defense()/Math.max(1,recommendedDefenseV271());return Math.max(.78,Math.min(1.45,1+(1-ratio)*.45))}
+function dungeonRecommendedDefenseV271(d){return Math.max(15,Math.floor(20+Math.sqrt(Math.max(1,Number(d?.reqPower||d?.need||100)))*4.2))}
+function dungeonDefenseModifierV266(d){const ratio=v10Defense()/Math.max(1,dungeonRecommendedDefenseV271(d));return Math.max(-.18,Math.min(.25,(ratio-1)*.16+defenseGuardChanceV265()*.18))}
+function dungeonIncomingMultiplierV266(d){const ratio=v10Defense()/Math.max(1,dungeonRecommendedDefenseV271(d)),pressure=Math.max(.72,Math.min(1.35,1+(1-ratio)*.35));return Math.max(.25,(1-defenseReductionV265()*.65)*pressure)}
+function dungeonBlockRollV272(amount){const blocked=Math.random()<defenseGuardChanceV265(),g=window.OMI_CONTENT?.gameplay||{},reduction=Math.max(.2,Math.min(.8,Number(g.defenseGuardReductionPct??50)/100));return {blocked,damage:Math.max(1,Math.floor(Number(amount||0)*(blocked?1-reduction:1)))}}
 function v10MaxHp(){
  const io=itemOptionBonuses();
  const cfg=(typeof V10CFG!=="undefined"&&V10CFG)?V10CFG:V10_DEFAULTS;
@@ -1574,6 +1570,7 @@ function v10RawEnemyDamage(){
  raw += save.zone*2+Math.pow(save.wave,1.04)*.08+z.gold*.0005;
  raw*=V10CFG.monsterDamageMult;
  if(save.waveBoss)raw*=Math.max(.5,Number(V10CFG.bossDamageMult||1.45)/1.45);
+ raw*=defensePressureV271();
 
  // Kezdővédelem: az első területen / alacsony szinten a normál mob
  // veszélyes, de nem tud respawn-loopba zárni.
@@ -1666,12 +1663,12 @@ function v161LiveHud(){
 
 function v10AwardNormalKill(){
  ensurePowerAppropriateZone();
- const z=ZONES[save.zone],g=zoneMobGold(save.zone);
+ const z=ZONES[save.zone],overfarm=paragonOverfarmV274(),g=Math.floor(zoneMobGold(save.zone)*overfarm.rewardMult);
  casinoFarmGoldV256(g);save.stats.goldEarned+=g;save.xp+=z.xp;save.kills++;
- if(Math.random()<.07+save.base.mining*.005)save.ore++;
- if(Math.random()<.007+dropBonus()*.05)save.soul++;
- if(Math.random()<.006)save.tickets++;
- if(Math.random()<z.drop+dropBonus()){addItem(createItem());addFarmActivityV264("drops",1)}
+ if(Math.random()<(.07+save.base.mining*.005)*overfarm.rewardMult)save.ore++;
+ if(Math.random()<(.007+dropBonus()*.05)*overfarm.rewardMult)save.soul++;
+ if(Math.random()<.006*overfarm.rewardMult)save.tickets++;
+ if(Math.random()<(z.drop+dropBonus())*overfarm.rewardMult){addItem(createItem());addFarmActivityV264("drops",1)}
  while(save.xp>=needXp()){save.xp-=needXp();save.level++;toast(`⭐ Szintlépés! Lv.${save.level}`)}
 
  save.waveKills++;
@@ -1702,23 +1699,23 @@ function v10AwardNormalKill(){
 function rollBossWaveAdvance(){const r=Math.random()*100;if(r<3)return 5;if(r<8)return 3;if(r<18)return 2;return 1}
 function v10AwardBossKill(){
  const z=ZONES[save.zone];
- const reward=bossGoldReward(V10CFG.defaultBossFixedGold??1000);
+ const overfarm=paragonOverfarmV274(),reward=Math.floor(bossGoldReward(V10CFG.defaultBossFixedGold??1000)*overfarm.rewardMult);
  const bossGemAmount=Math.max(0,Math.floor(Number(V10CFG.bossGemAmount??1))),bossGemChance=Math.max(0,Math.min(100,Number(V10CFG.bossGemDropChance??100)));
- const bossGemsWon=bossGemAmount>0&&Math.random()*100<bossGemChance?bossGemAmount:0;
- casinoFarmGoldV256(reward);save.stats.goldEarned+=reward;save.gems+=bossGemsWon;save.soul++;save.stats.bosses++;addFarmActivityV264("bosses",1);
- if(Math.random()<.80)addItem(createItem());
+ const bossGemsWon=bossGemAmount>0&&Math.random()*100<bossGemChance*overfarm.rewardMult?bossGemAmount:0;
+ casinoFarmGoldV256(reward);save.stats.goldEarned+=reward;save.gems+=bossGemsWon;if(Math.random()<overfarm.rewardMult)save.soul++;save.stats.bosses++;addFarmActivityV264("bosses",1);
+ if(Math.random()<.80*overfarm.rewardMult)addItem(createItem());
 
  const oldWave=save.wave;
  save.waveBoss=false;
  save.bossHp=0;
  if(!passFarmCheckpointV262(oldWave)){$("#combatLog").textContent=`⚔️ A boss elesett, de Wave ${oldWave} Farm aktivitása még nincs teljesítve.`;v161LiveHud();return}
- const waveAdvance=rollBossWaveAdvance();save.wave+=waveAdvance;
+ const rolledAdvance=rollBossWaveAdvance(),waveAdvance=advanceWaveV274(rolledAdvance);
  save.waveKills=0;
  applyWaveGoal();
  applyWaveGoal();
  enemyHp=normalEnemyMaxHp();
 
- $("#combatLog").textContent=`🏆 Wave ${oldWave} Boss legyőzve! +${fmt(reward)} arany${bossGemsWon?` · +${bossGemsWon} gyémánt`:""}. ${waveAdvance>1?`⚡ +${waveAdvance} WAVE UGRÁS! `:""}Wave ${save.wave} indul.`;
+ $("#combatLog").textContent=waveAdvance?`🏆 Wave ${oldWave} Boss legyőzve! +${fmt(reward)} arany${bossGemsWon?` · +${bossGemsWon} gyémánt`:""}. ${waveAdvance>1?`⚡ +${waveAdvance} WAVE UGRÁS! `:""}Wave ${save.wave} indul.`:`⛔ Wave ${oldWave} Boss legyőzve, de elérted a túlfarm-limitet. Lépj Paragont a további haladáshoz.`;
  if(waveAdvance===5)toast("⚡ JACKPOT! A boss +5 wave-et ugrott!");
  if(oldWave%100===0){
    save.gems+=3; save.soul+=3; save.ore+=25;
@@ -1815,6 +1812,7 @@ function v10Render(){
  const pb=$("#playerHpBar");if(pb)pb.style.width=Math.min(100,hp/mx*100)+"%";
  if($("#playerHpText"))$("#playerHpText").textContent=`${fmt(Math.ceil(hp))} / ${fmt(mx)} HP`;
  if($("#combatDefense"))$("#combatDefense").textContent=fmt(v10Defense());
+ if($("#combatRecommendedDefense"))$("#combatRecommendedDefense").textContent=fmt(recommendedDefenseV271());
  if($("#combatDefenseReduction"))$("#combatDefenseReduction").textContent=(defenseReductionV265()*100).toFixed(1)+"%";
  if($("#combatGuardChance"))$("#combatGuardChance").textContent=(defenseGuardChanceV265()*100).toFixed(1)+"%";
  if($("#enemyDamageText"))$("#enemyDamageText").textContent=fmt(v10EnemyHit());
@@ -1920,32 +1918,32 @@ v10RawEnemyDamage=function(){
  const b=save.waveBoss?v11Boss():null;
  if(!b)return v11BaseRawDamage();
  const scaled=v10MaxHp()*((9.5+save.zone*.25+Math.min(3,save.wave/500))/100),configured=Math.max(0,Number(b.damage||0));
- let raw=Math.max(configured,scaled)*Math.max(.5,Number(V10CFG.bossDamageMult||1.45)/1.45);
+ let raw=Math.max(configured,scaled)*Math.max(.5,Number(V10CFG.bossDamageMult||1.45)/1.45)*defensePressureV271();
  return Math.max(1,Math.floor(raw));
 };
 const v11BaseAwardBoss=v10AwardBossKill;
 v10AwardBossKill=function(){
  const b=v11Boss();
  if(!b)return v11BaseAwardBoss();
- const reward=bossGoldReward(b.gold||0);
+ const overfarm=paragonOverfarmV274(),reward=Math.floor(bossGoldReward(b.gold||0)*overfarm.rewardMult);
  casinoFarmGoldV256(reward);save.stats.goldEarned+=reward;
  save.xp+=Number(b.xp||0);
  const bossGems=Math.max(0,Math.floor(Number(b.gems||0))),gemChance=Math.max(0,Math.min(100,Number(b.gemDropChance??100)));
- const gemsWon=bossGems>0&&Math.random()*100<gemChance?bossGems:0;
- save.gems+=gemsWon;save.soul+=Number(b.soul||0);save.stats.bosses++;addFarmActivityV264("bosses",1);
+ const gemsWon=bossGems>0&&Math.random()*100<gemChance*overfarm.rewardMult?bossGems:0;
+ save.gems+=gemsWon;save.soul+=Math.floor(Number(b.soul||0)*overfarm.rewardMult);save.stats.bosses++;addFarmActivityV264("bosses",1);
  while(save.xp>=needXp()){save.xp-=needXp();save.level++}
- if(Math.random()<(Number(b.dropChance||80)/100))addItem(createItem());
+ if(Math.random()<(Number(b.dropChance||80)/100)*overfarm.rewardMult)addItem(createItem());
 
  const oldWave=save.wave;
  save.waveBoss=false;
  save.bossHp=0;
  if(!passFarmCheckpointV262(oldWave)){$("#combatLog").textContent=`⚔️ ${b.name||"Boss"} elesett, de a Wave ${oldWave} Farm aktivitása még nincs teljesítve.`;persist();v161LiveHud();return}
- const waveAdvance=rollBossWaveAdvance();save.wave+=waveAdvance;
+ const rolledAdvance=rollBossWaveAdvance(),waveAdvance=advanceWaveV274(rolledAdvance);
  save.waveKills=0;
  applyWaveGoal();
  enemyHp=ZONES[save.zone].hp;
 
- $("#combatLog").textContent=`🏆 ${b.name||"Boss"} legyőzve! +${fmt(reward)} arany · +${fmt(Number(b.xp||0))} XP${gemsWon?` · +${gemsWon} gyémánt`:""}${waveAdvance>1?` · ⚡ +${waveAdvance} wave`:""} · Wave ${save.wave}`;
+ $("#combatLog").textContent=waveAdvance?`🏆 ${b.name||"Boss"} legyőzve! +${fmt(reward)} arany · +${fmt(Number(b.xp||0))} XP${gemsWon?` · +${gemsWon} gyémánt`:""}${waveAdvance>1?` · ⚡ +${waveAdvance} wave`:""} · Wave ${save.wave}`:`⛔ ${b.name||"Boss"} legyőzve, de elérted a túlfarm-limitet. Lépj Paragont a további haladáshoz.`;
  toast(`🏆 ${b.name||"Boss"} legyőzve!`);
  persist();
 };
@@ -4075,7 +4073,7 @@ document.addEventListener("click",e=>{
     else if(ratio < 1.50) c = .70 + (ratio-1.00)*.40; // 70–90%
     else c = .90 + Math.min(.05,(ratio-1.50)*.03);    // max 95%
 
-    c+=typeof dungeonDefenseModifierV266==="function"?dungeonDefenseModifierV266():0;
+    c+=typeof dungeonDefenseModifierV266==="function"?dungeonDefenseModifierV266(d):0;
     return Math.max(.05,Math.min(.95,c));
   }
 
@@ -4220,6 +4218,7 @@ document.addEventListener("click",e=>{
 
             <div class="v218-dungeon-stats">
               <span><small>Ajánlott erő</small><b>${fmt218(d.reqPower)}</b></span>
+              <span><small>Ajánlott DEF</small><b>${fmt218(typeof dungeonRecommendedDefenseV271==="function"?dungeonRecommendedDefenseV271(d):0)}</b></span>
               <span><small>Jegy</small><b>${d.ticketCost}</b></span>
               <span><small>Siker esélyed</small><b>${d.safe?"100%":chance+"%"}</b></span>
               <span><small>Teljesítve</small><b>${clears}×</b></span>
@@ -4366,7 +4365,7 @@ document.addEventListener("click",e=>{
           <div class="v219-fighter-main">
             <div class="v219-name-row"><b>Saját karakter</b><span>${F(Math.max(0,b.playerHp))} / ${F(b.playerMaxHp)} HP</span></div>
             <div class="v219-hp"><div style="width:${php}%"></div></div>
-            <small>⚔️ Erő: ${F(P())} · 🛡️ DEF: ${F(typeof v10Defense==="function"?v10Defense():0)} · 🧱 ${typeof defenseReductionV265==="function"?(defenseReductionV265()*100).toFixed(1):0}%</small>
+            <small>⚔️ Erő: ${F(P())} · 🛡️ DEF: ${F(typeof v10Defense==="function"?v10Defense():0)} · 🧱 ${typeof defenseReductionV265==="function"?(defenseReductionV265()*100).toFixed(1):0}% · ✨ Blokk: ${typeof defenseGuardChanceV265==="function"?(defenseGuardChanceV265()*100).toFixed(1):0}%</small>
           </div>
         </div>
 
@@ -4472,7 +4471,7 @@ document.addEventListener("click",e=>{
       else if(ratio<1.00)c=.45+(ratio-.80)*1.25;
       else if(ratio<1.50)c=.70+(ratio-1.00)*.40;
       else c=.90+Math.min(.05,(ratio-1.50)*.03);
-      c+=typeof dungeonDefenseModifierV266==="function"?dungeonDefenseModifierV266():0;
+      c+=typeof dungeonDefenseModifierV266==="function"?dungeonDefenseModifierV266(d):0;
       return Math.max(.05,Math.min(.95,c));
     })();
 
@@ -4510,12 +4509,12 @@ document.addEventListener("click",e=>{
         const incomingBase=d.safe
           ? Math.max(1,Math.floor(b.playerMaxHp*.035))
           : Math.max(1,Math.floor(b.playerMaxHp*(.045+Math.random()*.045)));
-        const incoming=Math.max(1,Math.floor(incomingBase*(typeof dungeonIncomingMultiplierV266==="function"?dungeonIncomingMultiplierV266():1)));
+        const incomingRoll=typeof dungeonBlockRollV272==="function"?dungeonBlockRollV272(incomingBase*(typeof dungeonIncomingMultiplierV266==="function"?dungeonIncomingMultiplierV266(d):1)):{blocked:false,damage:incomingBase},incoming=incomingRoll.damage;
         b.bossHp=Math.max(0,b.bossHp-bossDmg);
         b.playerHp=d.safe
           ? Math.max(Math.floor(b.playerMaxHp*.35),b.playerHp-incoming)
           : Math.max(1,b.playerHp-incoming);
-        b.log=`⚔️ ${F(bossDmg)} sebzés a bossnak · ☠️ ${F(incoming)} sebzés érkezett.`; triggerDungeonEffect(b.dungeon.effectType); document.getElementById("v219DungeonBattle")?.classList.add("v220-hit"); setTimeout(()=>document.getElementById("v219DungeonBattle")?.classList.remove("v220-hit"),180);
+        b.log=`⚔️ ${F(bossDmg)} sebzés a bossnak · ${incomingRoll.blocked?"🛡️ BLOKK! ":"☠️ "}${F(incoming)} sebzés érkezett.`; triggerDungeonEffect(b.dungeon.effectType); const battlePanel=document.getElementById("v219DungeonBattle");battlePanel?.classList.add(incomingRoll.blocked?"v272-block":"v220-hit");setTimeout(()=>battlePanel?.classList.remove("v220-hit","v272-block"),280);
 
         if(b.bossHp<=0 || b.round>=12){
           b.bossHp=0;
@@ -4524,10 +4523,10 @@ document.addEventListener("click",e=>{
         }
       }else{
         const bossDmg=Math.max(1,Math.floor(b.bossMaxHp*(.045+Math.random()*.045)));
-        const incoming=Math.max(1,Math.floor(b.playerMaxHp*(.11+Math.random()*.09)*(typeof dungeonIncomingMultiplierV266==="function"?dungeonIncomingMultiplierV266():1)));
+        const incomingBase=b.playerMaxHp*(.11+Math.random()*.09)*(typeof dungeonIncomingMultiplierV266==="function"?dungeonIncomingMultiplierV266(d):1),incomingRoll=typeof dungeonBlockRollV272==="function"?dungeonBlockRollV272(incomingBase):{blocked:false,damage:Math.max(1,Math.floor(incomingBase))},incoming=incomingRoll.damage;
         b.bossHp=Math.max(Math.floor(b.bossMaxHp*.18),b.bossHp-bossDmg);
         b.playerHp=Math.max(0,b.playerHp-incoming);
-        b.log=`⚔️ ${F(bossDmg)} sebzés a bossnak · 💥 ${F(incoming)} sebzést kaptál.`; triggerDungeonEffect(b.dungeon.effectType); document.getElementById("v219DungeonBattle")?.classList.add("v220-hit"); setTimeout(()=>document.getElementById("v219DungeonBattle")?.classList.remove("v220-hit"),180);
+        b.log=`⚔️ ${F(bossDmg)} sebzés a bossnak · ${incomingRoll.blocked?"🛡️ BLOKK! ":"💥 "}${F(incoming)} sebzést kaptál.`; triggerDungeonEffect(b.dungeon.effectType); const battlePanel=document.getElementById("v219DungeonBattle");battlePanel?.classList.add(incomingRoll.blocked?"v272-block":"v220-hit");setTimeout(()=>battlePanel?.classList.remove("v220-hit","v272-block"),280);
 
         if(b.playerHp<=0 || b.round>=10){
           b.playerHp=0;
