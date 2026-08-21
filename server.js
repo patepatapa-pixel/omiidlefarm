@@ -230,6 +230,14 @@ async function init(){
     updateContent.updates.unshift({id:"v22_47",version:"V22.47",title:"Árnyék Kaszinó és intelligens adminpanel",date:"2026-08-21",summary:"Új játékbeli kaszinó, látható nyílvesszőállapot és gyorsabb tartalomkészítés.",changes:["Az automata harcnál látható az aktív nyílvesszők száma és sebzésbónusza.","Új Kaszinó fül Coin Flip, Koponya és Sárkány Slot játékokkal.","Adminból külön állítható minden nyerési esély, szorzó és tétlimit.","A kaszinó nyereménye nem lépheti túl a valutaplafonokat.","Az adminpanel sötét, kártyás és nagyobb méretű elrendezést kapott.","Új területnél és bossnál elég nevet megadni: a többi érték automatikusan az előző legerősebb fölé skálázódik."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_48")){
+    updateContent.updates.unshift({id:"v22_48",version:"V22.48",title:"Animált kaszinógépek és nyerési hangok",date:"2026-08-21",summary:"A kaszinójátékok mostantól teljes pörgetési animációval és hanggal működnek.",changes:["A Coin Flip valódi forgó érmeanimációt kapott.","A Koponya és Sárkány Slot három külön pörgő tekercset használ.","Győzelemnél arany felvillanás, konfetti és csilingelő dallam szól.","Vereségnél vörös rázkódás és mély bukáshang hallható.","Pörgetés közben minden kaszinógomb lezár, ezért egy tét csak egyszer számolódhat el.","Csökkentett animációs beállításnál a látványelemek automatikusan visszafogottak."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_49")){
+    updateContent.updates.unshift({id:"v22_49",version:"V22.49",title:"Slot ingyen pörgetések",date:"2026-08-21",summary:"A Koponya és Sárkány Slot kis eséllyel ingyen pörgetéseket adhat.",changes:["A Koponya Slot alapból 5% eséllyel 1 free spint ad.","A Sárkány Slot alapból 3% eséllyel 2 free spint ad.","A free spin az eredeti tétet és valutát jegyzi meg, ezért nem használható ki tétváltással.","A megmaradt ingyen pörgetések száma közvetlenül a slotkártyán látható.","Adminból külön állítható mindkét játék free-spin esélye és mennyisége.","Ingyen pörgetésből is nyerhető további ingyen pörgetés."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
   const capMigration="v2246_wallet_caps";
   const capDone=(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[capMigration])).rows[0];
   if(!capDone){
@@ -279,7 +287,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.47.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.49.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{

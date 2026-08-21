@@ -1,4 +1,16 @@
-OMI IDLE FARM ONLINE V22.47
+OMI IDLE FARM ONLINE V22.49
+
+V22.49 SLOT FREE SPIN:
+- Koponya és Sárkány Slot kis eséllyel ingyen pörgetést ad.
+- A free spin az eredeti tétet és valutát használja.
+- A megmaradt ingyen pörgetések láthatók a játék kártyáján.
+- Free-spin esély és mennyiség külön állítható adminból.
+
+V22.48 ANIMÁLT KASZINÓ:
+- Forgó Coin Flip érme, pörgő Koponya és Sárkány Slot tekercsek.
+- Győzelmi felvillanás, konfetti és csilingelő hang.
+- Vereségi vörös effekt és mély bukáshang.
+- Pörgetés alatt lezárt vezérlők a többszörös elszámolás ellen.
 
 V22.47 KASZINÓ ÉS INTELLIGENS ADMINPANEL:
 - Automata harcnál látható nyílvesszőkészlet és sebzésbónusz.
