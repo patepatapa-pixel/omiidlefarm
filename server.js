@@ -290,6 +290,10 @@ async function init(){
     updateContent.updates.unshift({id:"v22_62",version:"V22.62",title:"Felszerelés-központú automata farm",date:"2026-08-21",summary:"A wave önmagában többé nem elég: a hosszú távú haladáshoz valódi felszerelést is kell gyűjteni és használni.",changes:["Minden 25. wave felszerelési próba lett.","A szükséges valódi felszereléshelyek száma fokozatosan 2-ről 6-ra nő.","A Kalandor kezdőszett nem számít bele a felszerelési próbába.","A próba a tárgyak tényleges támadását, védelmét, kritjét, dropját és opcióit is pontozza.","Sikertelen próba esetén a játékos ugyanazon a wave-en marad, de garantált segítő tárgydropot kap.","A normál és az egyedi bossok sem kerülhetik meg a felszerelési kaput.","A Paragonhoz a wave-követelmény mellett az aktuális felszerelési próba is szükséges.","Az Automata farm oldalon élő állapotjelző mutatja a szükséges tárgyhelyet és gear erőt.","A V22.61 külön visszaállítási csomagként változatlanul megmarad."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_63")){
+    updateContent.updates.unshift({id:"v22_63",version:"V22.63",title:"Közös felszerelésfejlesztés",date:"2026-08-21",summary:"A farmfelkészültségi sávból egyetlen gombbal fejleszthető az összes felszerelt valódi tárgy.",changes:["Új MINDENT FEJLESZT gomb került a farmfelkészültségi panelre.","A gomb minden felszerelt valódi tárgyon egyszerre egy fejlesztési kísérletet végez.","A teljes arany- és ércköltség előre látható.","Ha nincs meg a teljes fedezet, semmit nem von le és a gomb nem indítható.","Minden tárgy megtartja a saját fejlesztési esélyét.","A Kalandor kezdőszett kimarad, mert nem számít bele a felszerelési próbába.","A fejlesztés után a gear erő és a farmfelkészültség azonnal frissül."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
   const capMigration="v2246_wallet_caps";
   const capDone=(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[capMigration])).rows[0];
   if(!capDone){
@@ -339,7 +343,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.62.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.63.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{

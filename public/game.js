@@ -1484,6 +1484,23 @@ function renderFarmReadinessV262(){
  if(title)title.textContent=r.slots?`${r.realSlots}/${r.slots} valódi tárgy · ${r.score}/${r.scoreNeed} gear erő`:"Kezdő szakasz";
  if(text)text.textContent=r.slots?`Minden 25. wave felszerelési próba. Következő próba: Wave ${Math.ceil((save.wave+1)/25)*25}. A Kalandor kezdőszett nem számít.`:"A felszerelési próba Wave 25-nél indul.";
  if(state)state.textContent=blocked?"⚠️ TÁRGYAT KELL FEJLESZTENI":r.ready?"✅ HALADÁS ENGEDÉLYEZVE":"🎁 GYŰJTS VALÓDI FELSZERELÉST";
+ renderUpgradeAllFarmGearV263();
+}
+function upgradeableFarmGearV263(){return realFarmGearV262().filter(it=>Number(it.plus||0)<15)}
+function upgradeAllFarmGearCostV263(){const items=upgradeableFarmGearV263();return {items,gold:items.reduce((n,it)=>n+upgradeCost(it),0),ore:items.reduce((n,it)=>n+oreCost(it),0)}}
+function renderUpgradeAllFarmGearV263(){
+ const btn=$("#upgradeAllFarmGearV263"),label=$("#upgradeAllFarmGearCostV263");if(!btn||!label)return;
+ const c=upgradeAllFarmGearCostV263(),afford=c.items.length&&save.gold>=c.gold&&save.ore>=c.ore;
+ btn.disabled=!afford;btn.textContent=c.items.length?`⚒️ MINDENT FEJLESZT (${c.items.length})`:"✅ MINDEN VALÓDI TÁRGY MAX";
+ label.textContent=c.items.length?`Következő közös kör: ${fmt(c.gold)} 💰 + ${fmt(c.ore)} ⛏️`:"Nincs fejleszthető valódi felszerelés";
+ if(!btn.dataset.boundV263){btn.dataset.boundV263="1";btn.onclick=upgradeAllFarmGearV263}
+}
+function upgradeAllFarmGearV263(){
+ const c=upgradeAllFarmGearCostV263();if(!c.items.length)return toast("✅ Minden felszerelt valódi tárgy elérte a maximumot.");
+ if(save.gold<c.gold||save.ore<c.ore)return toast(`❌ A teljes körhöz ${fmt(c.gold)} arany és ${fmt(c.ore)} érc szükséges.`);
+ if(!confirm(`${c.items.length} felszerelt tárgy egyszeri fejlesztési köre?\n\nTeljes költség: ${fmt(c.gold)} arany + ${fmt(c.ore)} érc\nMinden tárgy a saját fejlesztési esélyével próbálkozik.`))return;
+ save.gold-=c.gold;save.ore-=c.ore;let success=0;c.items.forEach(it=>{if(Math.random()*100<upgradeChance(it.plus)){it.plus++;success++}});
+ persist();renderAll();toast(`⚒️ Közös fejlesztés: ${success}/${c.items.length} sikeres · -${fmt(c.gold)} arany · -${fmt(c.ore)} érc`);
 }
 function passFarmCheckpointV262(wave=save.wave,show=true){
  const r=farmReadinessV262(wave);if(!r.checkpoint||r.ready){save.gearTrialFailsV262=0;return true}
