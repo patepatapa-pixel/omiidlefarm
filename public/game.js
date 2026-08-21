@@ -4859,12 +4859,30 @@ document.addEventListener("click",e=>{
   }
 
   function ensurePanel(){
-    const host=document.getElementById("page-paragon")||document.getElementById("page-farm");if(!host)return;
+    // V23.02: always place the premium controller on the Character page,
+    // where it is easy to find after the admin unlocks it.
+    const host=document.getElementById("page-character")||document.getElementById("page-paragon")||document.getElementById("page-farm");
+    if(!host)return;
     let p=document.getElementById("v299FullAutoPanel");
-    if(!p){p=document.createElement("section");p.id="v299FullAutoPanel";p.className="card v299-full-auto";host.prepend(p)}
+    if(!p){
+      p=document.createElement("section");
+      p.id="v299FullAutoPanel";
+      p.className="card v299-full-auto v302-character-auto";
+      host.prepend(p);
+    }else if(p.parentElement!==host){
+      host.prepend(p);
+    }
     const s=S()||{};
-    p.innerHTML=`<div><small>🤖 20 € PRÉMIUM RENDSZER</small><h3>Teljes Automata Rendszer</h3><p>Equip Best · automata fejlesztés · intelligens opcióforgatás · Paragon statok · alap fejlesztések · selejtezés · automata Paragon/Prestige</p></div><label class="v299-switch"><input id="v299FullAutoToggle" type="checkbox" ${s.fullAutoEnabled?"checked":""} ${s.fullAutoUnlocked?"":"disabled"}><b>${s.fullAutoUnlocked?(s.fullAutoEnabled?"AKTÍV":"BEKAPCSOLÁS"):"🔒 NINCS FELOLDVA"}</b></label>`;
-    p.querySelector("#v299FullAutoToggle")?.addEventListener("change",e=>{s.fullAutoEnabled=Boolean(s.fullAutoUnlocked&&e.target.checked);quietPersist();ensurePanel();if(typeof toast==="function")toast(s.fullAutoEnabled?"🤖 Teljes Automata Rendszer bekapcsolva.":"🤖 Teljes Automata Rendszer kikapcsolva.")});
+    const unlocked=Boolean(s.fullAutoUnlocked);
+    const active=Boolean(unlocked&&s.fullAutoEnabled);
+    p.innerHTML=`<div class="v302-auto-copy"><small>🤖 20 € PRÉMIUM RENDSZER</small><h3>Teljes Automata Rendszer</h3><p>Automatikus Equip Best · felszerelés fejlesztés és opcióforgatás · alap fejlesztések · Paragon statok · selejtezés · Auto Paragon és Auto Prestige.</p><em>${unlocked?"✅ Admin által feloldva":"🔒 Előbb az adminnak kell feloldania a fiókodon."}</em></div><button id="v299FullAutoToggleBtn" class="v302-auto-toggle ${active?"active":""}" ${unlocked?"":"disabled"}>${active?"🟢 AUTOMATA AKTÍV":"🤖 "+(unlocked?"AUTOMATA BEKAPCSOLÁSA":"NINCS FELOLDVA")}</button>`;
+    p.querySelector("#v299FullAutoToggleBtn")?.addEventListener("click",()=>{
+      if(!s.fullAutoUnlocked){if(typeof toast==="function")toast("🔒 Az admin még nem oldotta fel a Teljes Automata Rendszert.");return}
+      s.fullAutoEnabled=!s.fullAutoEnabled;
+      quietPersist();
+      ensurePanel();
+      if(typeof toast==="function")toast(s.fullAutoEnabled?"🤖 Teljes Automata Rendszer bekapcsolva.":"🤖 Teljes Automata Rendszer kikapcsolva.");
+    });
   }
 
   async function tick(){
@@ -4885,7 +4903,7 @@ document.addEventListener("click",e=>{
 
   setInterval(tick,1800);
   window.addEventListener("load",()=>setTimeout(ensurePanel,350));
-  document.addEventListener("click",e=>{if(e.target.closest?.('[data-tab="paragon"],[data-tab="farm"]'))setTimeout(ensurePanel,80)},true);
+  document.addEventListener("click",e=>{if(e.target.closest?.('[data-tab="character"],[data-tab="paragon"],[data-tab="farm"]'))setTimeout(ensurePanel,80)},true);
   window.v299FullAutoTick=tick;
 })();
 
@@ -5552,11 +5570,8 @@ setInterval(()=>{
  try{
   const p=document.getElementById("v299FullAutoPanel");
   if(p&&typeof window.v299FullAutoTick==="function"){
-    const input=p.querySelector("#v299FullAutoToggle");
-    if(input){
-      input.disabled=!save.fullAutoUnlocked;
-      if(!save.fullAutoUnlocked)input.checked=false;
-    }
+    const btn=p.querySelector("#v299FullAutoToggleBtn");
+    if(btn)btn.disabled=!save.fullAutoUnlocked;
   }
   if(document.getElementById("page-shop")?.classList.contains("active")&&typeof renderStore==="function")renderStore();
  }catch(e){}

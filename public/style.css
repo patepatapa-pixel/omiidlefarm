@@ -4522,3 +4522,11 @@ nav.tabs{display:flex!important;flex-wrap:wrap!important;justify-content:center;
 .v300-full-auto-product{border:1px solid #d8aa2d!important;box-shadow:0 0 24px #d8aa2d33!important;background:linear-gradient(145deg,#18130a,#0b0d12)!important}
 .v300-full-auto-product h3{color:#ffda68}.v300-full-auto-product>strong{font-size:20px;color:#ffd34c}
 .v300-auto-state{display:block;margin:8px 0;color:#c8b67a;font-weight:800}
+
+/* V23.02 Character page Full Auto controller */
+.v302-character-auto{position:relative;z-index:3;margin:0 0 16px!important;border:1px solid #e2b53e!important}
+.v302-auto-copy em{display:block;margin-top:8px;color:#d9c37a;font-style:normal;font-weight:800}
+.v302-auto-toggle{min-width:220px;padding:14px 16px;border-radius:12px;border:1px solid #80631c;background:#231c0b;color:#ffd75c;font-weight:1000;cursor:pointer}
+.v302-auto-toggle.active{border-color:#55d889;background:#0d281a;color:#72f2a4;box-shadow:0 0 18px #38d87b33}
+.v302-auto-toggle:disabled{opacity:.55;cursor:not-allowed}
+@media(max-width:700px){.v302-auto-toggle{width:100%;margin-top:12px}}
