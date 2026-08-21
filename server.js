@@ -412,6 +412,14 @@ async function init(){
     updateContent.updates.unshift({id:"v22_84",version:"V22.84",title:"Ritka Hasadék Boss jutalomesemény",date:"2026-08-21",summary:"Minden wave bossnál 3% eséllyel ritka Hasadék Boss érkezhet, amely garantáltan öt wave-et ugrik.",changes:["A Hasadék Boss megjelenési esélye pontosan 3%.","Legyőzése garantált +5 wave-haladást ad.","A normál bossok külön kisebb véletlen wave-ugrásai megmaradnak.","Győzelemkor teljes képernyős kék–arany effekt és nagy +5 WAVE felirat jelenik meg.","A ritka győzelmet háromhangú csilingelés jelzi."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_85")){
+    updateContent.updates.unshift({id:"v22_85",version:"V22.85",title:"Paragonhoz igazított területút",date:"2026-08-21",summary:"Minden terület wave alapján nyílik, az utolsó terület pedig pontosan az aktuális Paragon-követelménynél válik elérhetővé.",changes:["A területfeloldást kizárólag az aktuális wave határozza meg.","A feloldási pontok minden Paragon-ciklus követelményéhez automatikusan újraosztódnak.","Az utolsó terület pontosan a Paragonhoz szükséges wave-en nyílik meg.","A területkártyák kiírják a saját feloldási wave-jüket és az aktuális Paragon-célt.","Adminból hozzáadott új területeknél a rendszer automatikusan újraosztja a teljes útvonalat."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_86")){
+    updateContent.updates.unshift({id:"v22_86",version:"V22.86",title:"Fix Wave 400 Paragon-út és végjátékfarm",date:"2026-08-21",summary:"Minden Paragon-ciklus Wave 400-ig tart, a területek egyirányúan nyílnak, a végén pedig teljes jutalmú fejlesztőfarm marad.",changes:["A Paragon wave-követelménye minden szinten fixen 400.","A nyolc alap terület feloldási pontja: 1, 45, 98, 155, 214, 274, 337 és 400.","Új terület megnyitásakor a játékos automatikusan továbblép, a korábbi területek pedig lezáródnak az adott ciklusban.","Wave 400 után a wave nem nő tovább Paragon nélkül.","Az utolsó területen továbbra is 100%-os arany-, nyersanyag- és tárgyjutalom jár.","A játékos így a Paragon előtt tovább erősítheti felszerelését a nehezebb dungeonokhoz.","Paragon után újra Wave 1 és az első terület következik."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
   const powerCapMigration="v2282_rank_power_cap_30000";
   if(!(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[powerCapMigration])).rows[0]){await q("UPDATE game_saves SET power=LEAST(power,30000)");await q("INSERT INTO system_migrations(migration_key) VALUES($1)",[powerCapMigration])}
   const realPowerMigration="v2283_recalculate_real_power";
@@ -469,7 +477,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.84.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.86.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{

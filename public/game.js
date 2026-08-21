@@ -464,10 +464,17 @@ function renderCore(){
 }
 function renderZones(){
  const best=strongestUnlockedZone();
- $("#zones").innerHTML=ZONES.map((z,i)=>{const weak=i<best,locked=i>best;return `<div class="zone ${i===save.zone?"active":""} ${locked?"locked":""} ${weak?"zone-too-weak":""}" data-zone="${i}"><b>${z.icon} ${z.name}</b><small>${z.enemy} · Ajánlott erő: ${fmt(z.need)} · 🛡️ Ajánlott DEF: ${fmt(recommendedDefenseV271(i,save.wave))}</small><small>Drop: ${(z.drop*100).toFixed(0)}% · 💰 Fix ${fmt(zoneMobGold(i))} arany / mob · 🌊 Wave haladás</small>${weak?'<strong class="zone-cap-badge">⬆️ LEZÁRT KORÁBBI TERÜLET</strong>':locked?'<strong class="zone-cap-badge">🔒 MÉG NINCS FELOLDVA</strong>':""}</div>`}).join("");
- $$("[data-zone]").forEach(e=>e.onclick=()=>{let i=+e.dataset.zone,current=strongestUnlockedZone();if(i>current)return toast("🔒 Ezt a területet még nem oldottad fel.");if(i<current)return toast("⬆️ A korábbi területek lezárultak. Folytasd a jelenlegi területen!");grantStarterGearV260(i);save.zone=i;save.waveKills=0;save.waveBoss=false;save.bossHp=0;enemyHp=normalEnemyMaxHp();persist();renderAll();toast("🗺️ "+ZONES[i].name)})
+ if(save.zone!==best){save.zone=best;save.waveBoss=false;save.waveRiftBossV284=false;save.bossHp=0;save.waveKills=0;enemyHp=normalEnemyMaxHp();persist()}
+ const thresholds=zoneWaveThresholdsV285();
+ $("#zones").innerHTML=ZONES.map((z,i)=>{const weak=i<best,locked=i>best;return `<div class="zone ${i===save.zone?"active":""} ${locked?"locked":""} ${weak?"zone-too-weak":""}" data-zone="${i}"><b>${z.icon} ${z.name}</b><small>🌊 Feloldás: Wave ${fmt(thresholds[i])} · 🛡️ Ajánlott DEF: ${fmt(recommendedDefenseV271(i,save.wave))}</small><small>Drop: ${(z.drop*100).toFixed(0)}% · 💰 Fix ${fmt(zoneMobGold(i))} arany / mob · Paragon cél: Wave ${fmt(paragonWaveRequirement())}</small>${weak?'<strong class="zone-cap-badge">⬆️ TELJESÍTETT TERÜLET</strong>':locked?`<strong class="zone-cap-badge">🔒 WAVE ${fmt(thresholds[i])} SZÜKSÉGES</strong>`:""}</div>`}).join("");
+ $$("[data-zone]").forEach(e=>e.onclick=()=>{let i=+e.dataset.zone,current=strongestUnlockedZone();if(i>current)return toast("🔒 Ezt a területet még nem oldottad fel.");if(i<current)return toast("⛔ A teljesített terület végleg lezárult ebben a Paragon-ciklusban.");grantStarterGearV260(i);save.zone=i;save.waveKills=0;save.waveBoss=false;save.bossHp=0;enemyHp=normalEnemyMaxHp();persist();renderAll();toast("🗺️ "+ZONES[i].name)})
 }
-function progressionMinimumZoneV260(){const w=Math.max(1,Number(save.wave||1)),waveSteps=[1,25,75,150,250,400,650,950];while(waveSteps.length<ZONES.length)waveSteps.push(waveSteps.at(-1)+400);let byWave=0;waveSteps.forEach((n,i)=>{if(w>=n)byWave=i});return Math.min(ZONES.length-1,byWave)}
+function zoneWaveThresholdsV285(){
+ const count=Math.max(1,ZONES.length),req=Math.max(1,paragonWaveRequirement());
+ if(count===1)return [1];
+ return Array.from({length:count},(_,i)=>i===0?1:i===count-1?req:Math.max(2,Math.round(req*Math.pow(i/(count-1),1.12))));
+}
+function progressionMinimumZoneV260(){const w=Math.max(1,Number(save.wave||1)),waveSteps=zoneWaveThresholdsV285();let byWave=0;waveSteps.forEach((n,i)=>{if(w>=n)byWave=i});return Math.min(ZONES.length-1,byWave)}
 function equipBestSilentV260(){Object.keys(SLOT_NAMES).forEach(slot=>{const choices=save.inventory.filter(x=>x&&x.slot===slot&&Number.isFinite(Number(x.id))).sort((a,b)=>itemScore(b)-itemScore(a));if(choices.length)save.equipped[slot]=choices[0].id})}
 function grantStarterGearV260(){equipBestSilentV260();return false}
 function strongestUnlockedZone(){const best=progressionMinimumZoneV260();save.highestZoneEver=best;return best}
@@ -1509,17 +1516,16 @@ function farmActivityPointsV264(){return 0}
 function farmCheckpointPassedV264(){return true}
 function farmReadinessV262(){return {points:0,target:0,pct:1,ready:true,checkpoint:false,passed:true}}
 function paragonOverfarmV274(){
- const req=paragonWaveRequirement(),over=Math.max(0,Math.floor(Number(save.wave||1))-req),grace=25,cap=100;
- const steps=Math.max(0,Math.ceil((over-grace)/25)),rewardMult=Math.max(.1,1-steps*.3);
- return {req,over,grace,cap,rewardMult,capped:over>=cap};
+ const req=paragonWaveRequirement(),over=Math.max(0,Math.floor(Number(save.wave||1))-req);
+ return {req,over,grace:0,cap:0,rewardMult:1,capped:Number(save.wave||1)>=req};
 }
 function renderParagonOverfarmV274(){
- const e=$("#paragonOverfarmStateV274");if(!e)return;const o=paragonOverfarmV274(),pct=Math.round(o.rewardMult*100);
- e.classList.toggle("warning",o.over>o.grace);e.classList.toggle("capped",o.capped);
- e.textContent=o.capped?`⛔ PARAGON SZÜKSÉGES · ${pct}% JUTALOM · WAVE LIMIT`:o.over>o.grace?`⚠️ TÚLFARM: ${pct}% ARANY ÉS DROP · LIMITIG ${o.cap-o.over} WAVE`:o.over>0?`🌟 PARAGON ELÉRHETŐ · MÉG ${o.grace-o.over} WAVE TELJES JUTALOM`:`✅ TELJES FARMJUTALOM · PARAGON WAVE ${o.req}`;
+ const e=$("#paragonOverfarmStateV274");if(!e)return;const o=paragonOverfarmV274();
+ e.classList.toggle("warning",false);e.classList.toggle("capped",o.capped);
+ e.textContent=o.capped?`🌟 PARAGON ELÉRHETŐ · UTOLSÓ TERÜLET FARM · 100% JUTALOM`: `✅ TELJES FARMJUTALOM · PARAGON CÉL: WAVE ${o.req}`;
 }
 function renderFarmReadinessV262(){renderUpgradeAllFarmGearV263();renderParagonOverfarmV274()}
-function advanceWaveV274(amount=1){const o=paragonOverfarmV274(),limit=o.req+o.cap;if(save.wave>=limit)return 0;const before=save.wave;save.wave=Math.min(limit,save.wave+Math.max(1,Math.floor(Number(amount||1))));return save.wave-before}
+function advanceWaveV274(amount=1){const limit=paragonWaveRequirement();if(save.wave>=limit)return 0;const before=save.wave;save.wave=Math.min(limit,save.wave+Math.max(1,Math.floor(Number(amount||1))));return save.wave-before}
 function upgradeableFarmGearV263(){return realFarmGearV262().filter(it=>Number(it.plus||0)<15)}
 function upgradeAllFarmGearCostV263(){const items=upgradeableFarmGearV263();return {items,gold:items.reduce((n,it)=>n+upgradeCost(it),0),ore:items.reduce((n,it)=>n+oreCost(it),0)}}
 function renderUpgradeAllFarmGearV263(){
@@ -1543,11 +1549,7 @@ function applyWaveGoal(){
 
 // ================= V15.5 WAVE / BOSS / PARAGON RULES =================
 function paragonWaveRequirement(){
-  const next=Math.max(1,Math.floor(Number(save.paragonLevel||0))+1);
-  if(next<=5)return 250+(next-1)*25;
-  if(next<=10)return 350+(next-5)*35;
-  if(next<=20)return Math.round(525+(next-10)*47.5);
-  return Math.min(1500,1000+(next-20)*50);
+  return 400;
 }
 function isBossCheckpointWave(wave){
   return Number(wave||1)>=1;
@@ -1760,7 +1762,7 @@ function v10AwardBossKill(){
  applyWaveGoal();
  enemyHp=normalEnemyMaxHp();
 
- $("#combatLog").textContent=waveAdvance?`🏆 Wave ${oldWave} Boss legyőzve! +${fmt(reward)} arany${bossGemsWon?` · +${bossGemsWon} gyémánt`:""}. ${waveAdvance>1?`⚡ +${waveAdvance} WAVE UGRÁS! `:""}Wave ${save.wave} indul.`:`⛔ Wave ${oldWave} Boss legyőzve, de elérted a túlfarm-limitet. Lépj Paragont a további haladáshoz.`;
+ $("#combatLog").textContent=waveAdvance?`🏆 Wave ${oldWave} Boss legyőzve! +${fmt(reward)} arany${bossGemsWon?` · +${bossGemsWon} gyémánt`:""}. ${waveAdvance>1?`⚡ +${waveAdvance} WAVE UGRÁS! `:""}Wave ${save.wave} indul.`:`🌟 Wave ${oldWave} Boss legyőzve! A Paragon elérhető; az utolsó területen tovább farmolhatsz 100% jutalommal.`;
  if(waveAdvance===5)toast("⚡ JACKPOT! A boss +5 wave-et ugrott!");
  if(oldWave%100===0){
    save.gems+=3; save.soul+=3; save.ore+=25;
@@ -1988,7 +1990,7 @@ v10AwardBossKill=function(){
  applyWaveGoal();
  enemyHp=ZONES[save.zone].hp;
 
- $("#combatLog").textContent=waveAdvance?`🏆 ${b.name||"Boss"} legyőzve! +${fmt(reward)} arany · +${fmt(Number(b.xp||0))} XP${gemsWon?` · +${gemsWon} gyémánt`:""}${waveAdvance>1?` · ⚡ +${waveAdvance} wave`:""} · Wave ${save.wave}`:`⛔ ${b.name||"Boss"} legyőzve, de elérted a túlfarm-limitet. Lépj Paragont a további haladáshoz.`;
+ $("#combatLog").textContent=waveAdvance?`🏆 ${b.name||"Boss"} legyőzve! +${fmt(reward)} arany · +${fmt(Number(b.xp||0))} XP${gemsWon?` · +${gemsWon} gyémánt`:""}${waveAdvance>1?` · ⚡ +${waveAdvance} wave`:""} · Wave ${save.wave}`:`🌟 ${b.name||"Boss"} legyőzve! A Paragon elérhető; folytathatod a teljes jutalmú végjátékfarmot.`;
  toast(`🏆 ${b.name||"Boss"} legyőzve!`);
  persist();
 };
