@@ -80,7 +80,7 @@
 <h2>🛠️ ADMIN GAME STUDIO</h2>
 <p>Minden játékosérték és új játéktartalom kezelése egy helyen.</p>
 <div class="studio-tabs">
-<button data-studio="players">👥 Játékosok</button><button data-studio="gameplay">🎮 Játékmenet</button><button data-studio="pvp">⚔️ PvP</button><button data-studio="exchange">⚖️ Váltópiac / Pet árak</button><button data-studio="store">💳 Feltöltés / Shop</button><button data-studio="updates">📢 Frissítések</button><button data-studio="bosses">👹 Bossok</button><button data-studio="items">⚔️ Tárgyak</button><button data-studio="pets">🐾 Petek</button><button data-studio="auras">✨ Aurák</button><button data-studio="zones">🗺️ Területek</button><button data-studio="raw">🧬 Haladó</button>
+<button data-studio="players">👥 Játékosok</button><button data-studio="gameplay">🎮 Játékmenet</button><button data-studio="pvp">⚔️ PvP</button><button data-studio="exchange">⚖️ Váltópiac / Pet árak</button><button data-studio="store">💳 Feltöltés / Shop</button><button data-studio="npcshop">🏪 NPC bolt</button><button data-studio="updates">📢 Frissítések</button><button data-studio="bosses">👹 Bossok</button><button data-studio="items">⚔️ Tárgyak</button><button data-studio="pets">🐾 Petek</button><button data-studio="auras">✨ Aurák</button><button data-studio="zones">🗺️ Területek</button><button data-studio="raw">🧬 Haladó</button>
 </div>
 
 <div class="studio-page" id="studio-exchange">
@@ -151,6 +151,25 @@
  <h3 style="margin-top:18px">📨 Vásárlási igények</h3>
  <button id="refreshShopRequests">↻ Frissítés</button>
  <div id="shopRequests" class="builder-list"></div>
+</div>
+
+<div class="studio-page" id="studio-npcshop">
+ <h3>🏪 Játékon belüli NPC bolt</h3><p class="muted">A kereskedő forgó készletének, árazásának és ritkaságának beállításai.</p>
+ <div class="admin-stat-grid">
+  <label>Kínálat frissülése (óra)<input id="cfgNpcRefreshHours" type="number" min="1"></label>
+  <label>Felszerelések száma<input id="cfgNpcGearOffers" type="number" min="1" max="8"></label>
+  <label>Ritka pet esély %<input id="cfgNpcRarePetChance" type="number" min="0" max="100" step="0.1"></label>
+  <label>Nyílvessző / csomag<input id="cfgNpcArrowAmount" type="number" min="1"></label>
+  <label>Nyílvessző sebzésbónusz %<input id="cfgNpcArrowDamage" type="number" min="0" max="200" step="1"></label>
+  <label>Nyílcsomag aranyára<input id="cfgNpcArrowGold" type="number" min="0"></label>
+  <label>Felszerelés alap aranyára<input id="cfgNpcGearGold" type="number" min="0"></label>
+  <label>Felszerelés alap ércára<input id="cfgNpcGearOre" type="number" min="0"></label>
+  <label>Pet alap gyémántára<input id="cfgNpcPetGems" type="number" min="0"></label>
+  <label>Játékos maximum arany<input id="cfgWalletGoldCap" type="number" min="1"></label>
+  <label>Játékos maximum gyémánt<input id="cfgWalletGemsCap" type="number" min="1"></label>
+  <label>Játékos maximum érc<input id="cfgWalletOreCap" type="number" min="1"></label>
+  <label>Játékos maximum lélekkő<input id="cfgWalletSoulCap" type="number" min="1"></label>
+ </div><button id="saveNpcShopConfig">💾 NPC bolt mentése</button>
 </div>
 
 <div class="studio-page" id="studio-gameplay">

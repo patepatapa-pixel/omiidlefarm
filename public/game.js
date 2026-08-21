@@ -598,6 +598,43 @@ function renderExchange(){
  $$('[data-exchange-count]').forEach(s=>s.onchange=()=>{save.exchangeBuyCounts[s.dataset.exchangeCount]=Math.max(1,Math.floor(Number(s.value||1)));persist();renderExchange()});
  $$('[data-exchange-buy]').forEach(b=>b.onclick=()=>{const key=b.dataset.exchangeBuy,def=defs.find(x=>x.key===key),count=Math.max(1,Math.floor(Number(save.exchangeBuyCounts?.[key]||1))),o=cfg.exchange[key],cost=o.gold*count,reward=o.amount*count;if(!def||save.gold<cost)return toast(`Nincs elég arany. Szükséges: ${fmt(cost)} 💰`);save.gold-=cost;save[def.field]=Number(save[def.field]||0)+reward;persist();renderAll();toast(`✅ ${count}× csomag: ${fmt(cost)} arany → ${fmt(reward)} ${def.name}. A ${count}× választás megmaradt.`)});
 }
+const NPC_SHOP_DEFAULTS_V246={refreshHours:6,gearOffers:4,rarePetChancePct:8,arrowAmount:1000,arrowDamagePct:15,arrowGoldCost:1200,gearGoldBase:1800,gearOreBase:8,petGemBase:80};
+function npcShopCfgV246(){return {...NPC_SHOP_DEFAULTS_V246,...(window.OMI_CONTENT?.npcShop||{})}}
+function npcRandV246(seed){let h=2166136261;for(const c of String(seed))h=Math.imul(h^c.charCodeAt(0),16777619);return()=>{h+=0x6D2B79F5;let t=h;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296}}
+function npcCostTextV246(c={}){return [["gold","💰"],["gems","💎"],["ore","⛏️"]].filter(([k])=>Number(c[k])>0).map(([k,i])=>`${fmt(c[k])} ${i}`).join(" + ")}
+function ensureNpcStockV246(){
+ const cfg=npcShopCfgV246(),ms=Math.max(1,Number(cfg.refreshHours||6))*3600000,bucket=Math.floor(Date.now()/ms);
+ if(save.npcShopStock?.bucket===bucket&&Number(save.npcShopStock.configVersion||0)===Number(cfg.configVersion||0)&&Array.isArray(save.npcShopStock.offers))return save.npcShopStock;
+ const r=npcRandV246(`${currentUser?.id||save.uid||1}_${bucket}`),offers=[],rarityPick=()=>{const n=r()*100;return n<2?"legendary":n<12?"mythic":n<37?"epic":n<72?"rare":"normal"},slots=Object.keys(SLOT_NAMES),rm={normal:1,rare:1.35,epic:1.8,mythic:2.5,legendary:3.5};
+ for(let i=0;i<Math.max(1,Math.min(8,Number(cfg.gearOffers||4)));i++){
+  const slot=slots[Math.floor(r()*slots.length)],rarity=rarityPick(),mult=rm[rarity],scale=(1+Math.max(0,save.zone)*.55)*(1+Math.min(250,save.level)*.018)*mult;
+  const item={slot,rarity,name:`${rarityName(rarity)} ${SLOT_NAMES[slot]}`,plus:0,atk:0,def:0,crit:0,drop:0};
+  if(slot==="weapon")item.atk=Math.max(3,Math.floor(8*scale));else if(["armor","helmet"].includes(slot))item.def=Math.max(3,Math.floor(7*scale));else if(slot==="gloves")item.crit=.006*scale;else if(slot==="boots")item.def=Math.max(2,Math.floor(4*scale));else item.drop=.012*scale;
+  offers.push({id:`gear_${i}`,type:"gear",icon:SLOT_ICONS[slot],title:item.name,subtitle:`${SLOT_NAMES[slot]} · ${rarityName(rarity)} · 1–5 opció`,item,cost:{gold:Math.floor(Number(cfg.gearGoldBase)*mult*(1+save.zone*.35)),ore:Math.max(1,Math.floor(Number(cfg.gearOreBase)*mult))},limit:1,bought:0,rarity});
+ }
+ offers.push({id:"arrows",type:"arrows",icon:"🏹",title:"Edzett nyílvesszőcsomag",subtitle:`${fmt(cfg.arrowAmount)} lövés · +${Number(cfg.arrowDamagePct)}% sebzés`,cost:{gold:Math.max(0,Math.floor(Number(cfg.arrowGoldCost)))},amount:Math.max(1,Math.floor(Number(cfg.arrowAmount))),limit:10,bought:0,rarity:"rare"});
+ const rareRoll=r()*100,petRarity=rareRoll<Number(cfg.rarePetChancePct||8)/4?"legendary":rareRoll<Number(cfg.rarePetChancePct||8)?"mythic":r()<.45?"epic":"rare",pool=PET_POOL.filter(p=>p.rarity===petRarity),pet=pool[Math.floor(r()*pool.length)]||PET_POOL.find(p=>p.rarity==="rare")||PET_POOL[0],petMult=rm[petRarity]||1;
+ offers.push({id:"pet",type:"pet",icon:pet.icon||"🐾",title:pet.name,subtitle:`${rarityName(petRarity)} pet · ${PET_BONUS_NAMES[pet.bonus]||pet.bonus} +${Math.round(Number(pet.value||0)*100)}%`,pet:{...pet},cost:{gems:Math.max(1,Math.floor(Number(cfg.petGemBase)*petMult))},limit:1,bought:0,rarity:petRarity});
+ save.npcShopStock={bucket,configVersion:Number(cfg.configVersion||0),expiresAt:(bucket+1)*ms,offers};persist();return save.npcShopStock;
+}
+function renderNpcShopV246(){
+ const root=$("#npcShopOffers");if(!root)return;const stock=ensureNpcStockV246(),left=Math.max(0,stock.expiresAt-Date.now()),h=Math.floor(left/3600000),m=Math.floor(left%3600000/60000);
+ if($("#npcShopRefresh"))$("#npcShopRefresh").textContent=`${h} óra ${m} perc`;if($("#npcArrowCount"))$("#npcArrowCount").textContent=`${fmt(save.arrows||0)} 🏹`;
+ root.innerHTML=stock.offers.map(o=>{const sold=Number(o.bought||0)>=Number(o.limit||1),can=Object.entries(o.cost||{}).every(([k,v])=>Number(save[k]||0)>=Number(v||0));return `<article class="npc-offer-v246 rarity-${o.rarity} ${sold?"sold":""}"><div class="npc-offer-icon-v246">${o.icon}</div><div><small>${o.type==="gear"?"FELSZERELÉS":o.type==="pet"?"RITKA PET":"FOGYÓESZKÖZ"}</small><h3>${o.title}</h3><p>${o.subtitle}</p></div><div class="npc-offer-bottom-v246"><b>${npcCostTextV246(o.cost)}</b><span>${o.bought||0}/${o.limit||1} megvéve</span><button data-npc-buy="${o.id}" ${sold||!can?"disabled":""}>${sold?"ELFOGYOTT":can?"MEGVÁSÁRLÁS":"NINCS ELÉG VALUTA"}</button></div></article>`}).join("");
+ root.querySelectorAll("[data-npc-buy]").forEach(b=>b.onclick=()=>buyNpcOfferV246(b.dataset.npcBuy));
+}
+function buyNpcOfferV246(id){
+ const stock=ensureNpcStockV246(),o=stock.offers.find(x=>x.id===id);if(!o||Number(o.bought||0)>=Number(o.limit||1))return toast("Ez az ajánlat elfogyott.");
+ if(!Object.entries(o.cost||{}).every(([k,v])=>Number(save[k]||0)>=Number(v||0)))return toast("Nincs elég játékbeli valutád.");
+ if(o.type==="gear"&&save.inventory.length>=120)return toast("🎒 Az inventory megtelt.");
+ Object.entries(o.cost||{}).forEach(([k,v])=>save[k]=Math.max(0,Number(save[k]||0)-Number(v||0)));
+ if(o.type==="arrows")save.arrows=Math.min(100000,Number(save.arrows||0)+Number(o.amount||0));
+ if(o.type==="gear"){const it={...o.item,id:save.uid++,options:[]};rollItemOptions(it);save.inventory.push(it);save.stats.itemsFound++}
+ if(o.type==="pet")save.pets.push({...o.pet,fusionRarity:"common",fusionLevel:0,fusionMultiplier:1});
+ o.bought=Number(o.bought||0)+1;persist();renderAll();renderNpcShopV246();toast(`🏪 Megvásárolva: ${o.title}`);
+}
+document.addEventListener("click",e=>{if(e.target.closest?.('[data-tab="npcshop"]'))setTimeout(renderNpcShopV246,50)},true);
+$("#npcShopManualRefresh")?.addEventListener("click",renderNpcShopV246);
 function petEquipScore(p){
  if(!p)return -1;
  const weights={all:3.4,damage:1.4,gold:1.2,crit:1.3,drop:1.1};
@@ -1106,6 +1143,7 @@ async function cloudSave(){
  try{
    save.last=Date.now();
    const d=await api("/api/save",{method:"POST",body:JSON.stringify({save,power:power()})});
+   if(d.economyCapped&&d.save){["gold","gems","ore","soul"].forEach(k=>save[k]=Number(d.save[k]??save[k]));localStorage.setItem("omiIdleComplete",JSON.stringify(save));renderAll();toast("⚖️ Egy valuta elérte a szerver gazdasági maximumát.")}
    if(d.overrideApplied&&d.save){
      save=normalizeV6Save(d.save);
      localStorage.setItem("omiIdleComplete",JSON.stringify(save));
@@ -1485,6 +1523,7 @@ function v10PlayerAttack(){
  if(!save.waveBoss)ensurePowerAppropriateZone();
  v10EnsurePlayerHp();
  let hit=damage(),crit=Math.random()<critChance();
+ if(Number(save.arrows||0)>0){hit*=1+Math.max(0,Number(npcShopCfgV246().arrowDamagePct||15))/100;save.arrows=Math.max(0,Number(save.arrows)-1)}
  if(crit){hit*=2;save.stats.critHits++}
  enemyHp-=hit;
  if(save.waveBoss)save.bossHp=Math.max(0,enemyHp);

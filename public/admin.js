@@ -72,6 +72,7 @@ function renderBuildersV8(){
  fillDefaultBossGems();
  fillZoneHpBalance();
  renderUpdatesAdminV242();
+ if(typeof fillNpcShopAdminV246==="function")fillNpcShopAdminV246();
 }
 async function saveConfigV8(){await sa("/api/admin/content-config",{method:"POST",body:JSON.stringify({config:studioConfig})});renderBuildersV8()}
 qsa("[data-add]").forEach(btn=>btn.onclick=async()=>{
@@ -259,6 +260,17 @@ async function loadShopRequests(){
 }
 qs("#refreshShopRequests")?.addEventListener("click",loadShopRequests);
 setTimeout(()=>{fillPvpAdmin();renderShopAdmin();loadShopRequests();fillV11PlayerMeta()},1300);
+
+function fillNpcShopAdminV246(){
+ const n={refreshHours:6,gearOffers:4,rarePetChancePct:8,arrowAmount:1000,arrowDamagePct:15,arrowGoldCost:1200,gearGoldBase:1800,gearOreBase:8,petGemBase:80,...(studioConfig.npcShop||{})},c={gold:5000000,gems:50000,ore:100000,soul:50000,...(studioConfig.economyCaps||{})};
+ [["#cfgNpcRefreshHours",n.refreshHours],["#cfgNpcGearOffers",n.gearOffers],["#cfgNpcRarePetChance",n.rarePetChancePct],["#cfgNpcArrowAmount",n.arrowAmount],["#cfgNpcArrowDamage",n.arrowDamagePct],["#cfgNpcArrowGold",n.arrowGoldCost],["#cfgNpcGearGold",n.gearGoldBase],["#cfgNpcGearOre",n.gearOreBase],["#cfgNpcPetGems",n.petGemBase],["#cfgWalletGoldCap",c.gold],["#cfgWalletGemsCap",c.gems],["#cfgWalletOreCap",c.ore],["#cfgWalletSoulCap",c.soul]].forEach(([id,v])=>{if(qs(id))qs(id).value=v});
+}
+qs("#saveNpcShopConfig")?.addEventListener("click",async()=>{
+ studioConfig.npcShop={refreshHours:num("#cfgNpcRefreshHours"),gearOffers:num("#cfgNpcGearOffers"),rarePetChancePct:num("#cfgNpcRarePetChance"),arrowAmount:num("#cfgNpcArrowAmount"),arrowDamagePct:num("#cfgNpcArrowDamage"),arrowGoldCost:num("#cfgNpcArrowGold"),gearGoldBase:num("#cfgNpcGearGold"),gearOreBase:num("#cfgNpcGearOre"),petGemBase:num("#cfgNpcPetGems"),configVersion:Date.now()};
+ studioConfig.economyCaps={gold:num("#cfgWalletGoldCap"),gems:num("#cfgWalletGemsCap"),ore:num("#cfgWalletOreCap"),soul:num("#cfgWalletSoulCap")};
+ await saveConfigV8();fillNpcShopAdminV246();alert("✅ NPC bolt és pénztárcaplafonok mentve.");
+});
+setTimeout(fillNpcShopAdminV246,1400);
 
 // V22.19 exchange market and pet economy
 const V219_ECONOMY_DEFAULTS={exchange:{gems:{gold:2500,amount:5},ore:{gold:1200,amount:10},tickets:{gold:3500,amount:1}},petSummonCost:10,petSlotCosts:[50,150,300],petSummonRates:{normal:55,rare:28,epic:12,mythic:4,legendary:1},petFusionCosts:{rare:10,mythic:10,legendary:10,celestial:10,imperial:10,eternal:10},petFusionRequirements:{rare:5,mythic:3,legendary:3,celestial:3,imperial:3,eternal:3},petMultiOption:{imperialChancePct:10,eternalChancePct:20,minPct:2,maxPct:8,maxExtraOptions:2},achievementExchange:{gems:{points:10,amount:5},ore:{points:5,amount:50},tickets:{points:8,amount:2}}};

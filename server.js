@@ -219,6 +219,19 @@ async function init(){
     updateContent.updates.unshift({id:"v22_45",version:"V22.45",title:"Kibővített képességfa és update-szavazás",date:"2026-08-21",summary:"Sokkal hosszabb karakterfejlődés és frissítésenkénti játékos-visszajelzés érkezett.",changes:["A képességfa 29 külön képességre és több mint 300 fejlesztési szintre bővült.","Négy hosszú ág: Harc, Farm, AFK és Pet.","Új mesterskillek és több egymásra épülő előfeltétel.","A lélekkőköltség fokozatosan, egyre gyorsabban növekszik.","A régi kiosztott képességpontok megmaradnak.","Minden látható frissítés külön like/dislike szavazást kapott.","Egy játékos frissítésenként egy szavazatot adhat, amely módosítható vagy visszavonható."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_46")){
+    updateContent.npcShop={refreshHours:6,gearOffers:4,rarePetChancePct:8,arrowAmount:1000,arrowDamagePct:15,arrowGoldCost:1200,gearGoldBase:1800,gearOreBase:8,petGemBase:80,configVersion:1,...(updateContent.npcShop||{})};
+    updateContent.economyCaps={gold:5000000,gems:50000,ore:100000,soul:50000,...(updateContent.economyCaps||{})};
+    updateContent.updates.unshift({id:"v22_46",version:"V22.46",title:"Vándorkereskedő és gazdaságvédelem",date:"2026-08-21",summary:"Megérkezett az állandó játékon belüli NPC bolt, korlátozott forgó kínálattal.",changes:["Új Vándorkereskedő oldal felszerelésekkel, nyílvesszőkkel és ritka petekkel.","A kínálat 6 óránként frissül, a felszerelés és pet ajánlatonként egyszer vehető meg.","A nyílvesszők fogyóeszközként növelik a támadások sebzését.","A bolt aranyat, ércet és gyémántot von ki a gazdaságból.","Szerveroldali pénztárcaplafon védi a játékot a milliós–milliárdos felhalmozástól.","Adminból állítható minden NPC-boltérték és valutaplafon.","Dungeon token, aura token és hátastöredék nem resetelődik."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
+  const capMigration="v2246_wallet_caps";
+  const capDone=(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[capMigration])).rows[0];
+  if(!capDone){
+    const rows=(await q("SELECT user_id,save_data FROM game_saves")).rows;
+    for(const row of rows){const s=row.save_data||{},clean=(v,max)=>Math.min(max,Math.max(0,Number.isFinite(Number(v))?Number(v):0));s.gold=clean(s.gold,5000000);s.gems=clean(s.gems,50000);s.ore=clean(s.ore,100000);s.soul=clean(s.soul,50000);await q("UPDATE game_saves SET save_data=$1,gold=$2,updated_at=NOW() WHERE user_id=$3",[s,Math.floor(s.gold),row.user_id])}
+    await q("INSERT INTO system_migrations(migration_key) VALUES($1)",[capMigration]);
+  }
 
   await q(`
     CREATE TABLE IF NOT EXISTS discord_links(
@@ -261,7 +274,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.45.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.46.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{
@@ -471,6 +484,10 @@ app.post("/api/save",auth,async(req,res)=>{
     const pending=(await q("SELECT patch FROM admin_pending_overrides WHERE user_id=$1",[req.user.id])).rows[0];
     const overrideApplied=Boolean(pending?.patch && Object.keys(pending.patch).length);
     if(overrideApplied)data=deepMergeSave(data,pending.patch);
+    const requestedWallet={gold:Number(data.gold||0),gems:Number(data.gems||0),ore:Number(data.ore||0),soul:Number(data.soul||0)};
+    const economyConfig=await mainConfig(),caps={gold:5000000,gems:50000,ore:100000,soul:50000,...(economyConfig.economyCaps||{})};
+    ["gold","gems","ore","soul"].forEach(k=>{const cap=Math.max(1,Math.floor(Number(caps[k])||1)),value=Math.floor(Number(data[k])||0);data[k]=Math.max(0,Math.min(cap,value))});
+    const economyCapped=["gold","gems","ore","soul"].some(k=>Math.floor(requestedWallet[k])!==Number(data[k]));
     const level=Math.max(1,Math.floor(Number(data.level||1)));
     const kills=Math.max(0,Math.floor(Number(data.kills||0)));
     const gold=Math.max(0,Math.floor(Number(data.gold||0)));
@@ -488,7 +505,7 @@ app.post("/api/save",auth,async(req,res)=>{
     `,[req.user.id,data,power,level,kills,gold]);
     await q("UPDATE users SET last_save_at=NOW() WHERE id=$1",[req.user.id]);
     if(overrideApplied)await q("DELETE FROM admin_pending_overrides WHERE user_id=$1",[req.user.id]);
-    res.json({ok:true,save:data,overrideApplied});
+    res.json({ok:true,save:data,overrideApplied,economyCapped,walletCaps:caps});
   }catch(e){console.error(e);res.status(500).json({error:"A mentés nem sikerült."})}
 });
 

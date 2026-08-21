@@ -1,4 +1,13 @@
-OMI IDLE FARM ONLINE V22.45
+OMI IDLE FARM ONLINE V22.46
+
+V22.46 VÁNDORKERESKEDŐ ÉS GAZDASÁGVÉDELEM:
+- Forgó NPC bolt fegyverekkel, vértekkel, nyílvesszőkkel és ritka petekkel.
+- Korlátozott készlet, alapból 6 órás frissülés.
+- A bolt aranyat, ércet és gyémántot fogyaszt.
+- Nyílvesszők harci sebzésbónuszt adnak és támadásonként fogynak.
+- Szerveroldali alap plafon: 5 000 000 arany, 50 000 gyémánt, 100 000 érc, 50 000 lélekkő.
+- A plafonok és az NPC bolt összes balanszértéke adminból módosítható.
+- Dungeon token, aura token és hátastöredék változatlanul megmarad.
 
 V22.45 KIBŐVÍTETT KÉPESSÉGFA ÉS UPDATE-SZAVAZÁS:
 - 29 képesség, négy teljes fejlődési ág és több mint 300 fejlesztési szint.
