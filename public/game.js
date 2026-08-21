@@ -475,6 +475,7 @@ function renderCore(){
  renderEquipped();renderBonuses();renderCharacterVisual()
 }
 function renderZones(){
+ instantZoneAdvanceV305(false);
  const best=strongestUnlockedZone();
  if(save.zone!==best){save.zone=best;save.waveBoss=false;save.waveRiftBossV284=false;save.bossHp=0;save.waveKills=0;enemyHp=normalEnemyMaxHp();persist()}
  const thresholds=zoneWaveThresholdsV285();
@@ -4975,6 +4976,54 @@ document.addEventListener("click",e=>{
   document.addEventListener("click",e=>{if(e.target.closest?.('[data-tab="character"],[data-tab="paragon"],[data-tab="farm"]'))setTimeout(ensurePanel,80)},true);
   window.v299FullAutoTick=tick;
 })();
+
+
+/* V23.05 - GLOBAL instant zone progression fix
+   A Wave határozza meg a kötelező aktuális területet minden játékosnál.
+   Nem csak Full Auto mellett működik. */
+let v305LastForcedZone=-1;
+function instantZoneAdvanceV305(showToast=true){
+  try{
+    if(!save || typeof strongestUnlockedZone!=="function")return false;
+    const best=Number(strongestUnlockedZone());
+    const current=Number(save.zone||0);
+
+    // The player must always be on the highest area unlocked by the current Wave.
+    if(Number.isFinite(best) && best>current){
+      save.zone=best;
+      save.highestZoneEver=Math.max(Number(save.highestZoneEver||0),best);
+      save.waveKills=0;
+      save.waveBoss=false;
+      save.waveRiftBossV284=false;
+      save.bossHp=0;
+      save.respawnUntil=0;
+      try{
+        enemyHp=typeof normalEnemyMaxHp==="function"
+          ? normalEnemyMaxHp()
+          : Number(ZONES?.[best]?.hp||1);
+      }catch(e){}
+
+      if(typeof persist==="function")persist();
+      if(typeof renderAll==="function")renderAll();
+
+      if(showToast && v305LastForcedZone!==best && typeof toast==="function"){
+        toast(`🗺️ Új terület feloldva: ${ZONES?.[best]?.name||("Terület "+(best+1))} · Wave ${Number(save.wave||1)}`);
+      }
+      v305LastForcedZone=best;
+      return true;
+    }
+
+    if(best===current)v305LastForcedZone=best;
+  }catch(e){}
+  return false;
+}
+
+// Very fast guard so a player cannot remain on an outdated lower area.
+setInterval(()=>instantZoneAdvanceV305(true),200);
+window.instantZoneAdvanceV305=instantZoneAdvanceV305;
+
+// Backward compatibility for the V23.04 calls already placed in the combat flow.
+function instantFullAutoZoneAdvanceV304(){ return instantZoneAdvanceV305(true); }
 
 /* V22.2 admin 10x compatibility: existing combat speed uses save.speed10Unlocked */
 window.v222AdminSpeedSupported=true;
