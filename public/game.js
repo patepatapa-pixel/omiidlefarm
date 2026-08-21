@@ -6255,15 +6255,22 @@ window.OMI_BALANCE_V2319={
 
   function switchLanguage(lang){
     lang=lang==="en"?"en":"hu";
+    const current=window.OMI_LANG==="en"?"en":"hu";
     localStorage.setItem(KEY,lang);
-    // Reload gives perfect Hungarian restore and lets every dynamic widget re-render cleanly.
-    if(lang==="hu"){
-      window.OMI_LANG="hu";
-      location.reload();
-      return;
+    window.OMI_LANG=lang;
+
+    // V23.26: every language change performs a clean reload.
+    // After reload the saved language is read before the UI is translated,
+    // so the player immediately receives the selected full-language page.
+    document.documentElement.classList.add("v2326-language-changing");
+    const sw=document.getElementById("v2321LangSwitcher");
+    if(sw){
+      sw.classList.add("switching");
+      sw.querySelectorAll("button").forEach(b=>b.disabled=true);
+      const label=sw.querySelector(".v2326-lang-label");
+      if(label)label.textContent=lang==="en"?"🇬🇧 Loading English...":"🇭🇺 Magyar betöltése...";
     }
-    window.OMI_LANG="en";
-    translateWholePage();
+    setTimeout(()=>location.reload(),280);
   }
 
   window.OMI_LANG=localStorage.getItem(KEY)==="en"?"en":"hu";
@@ -6286,9 +6293,24 @@ window.OMI_BALANCE_V2319={
     }
   });
 
-  window.addEventListener("load",()=>{
-    document.querySelectorAll("[data-v2321-lang]").forEach(b=>b.classList.toggle("active",b.dataset.v2321Lang===window.OMI_LANG));
+  function applySavedLanguageV2326(){
+    document.documentElement.lang=window.OMI_LANG==="en"?"en":"hu";
+    document.querySelectorAll("[data-v2321-lang]").forEach(b=>{
+      const active=b.dataset.v2321Lang===window.OMI_LANG;
+      b.classList.toggle("active",active);
+      b.setAttribute("aria-pressed",active?"true":"false");
+    });
     if(window.OMI_LANG==="en")translateWholePage();
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",applySavedLanguageV2326,{once:true});
+  }else{
+    applySavedLanguageV2326();
+  }
+
+  window.addEventListener("load",()=>{
+    applySavedLanguageV2326();
     observer.observe(document.body,{subtree:true,childList:true,characterData:true});
   });
 })();
