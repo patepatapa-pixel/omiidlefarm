@@ -10,7 +10,7 @@
 <header class="topbar">
   <div class="brand"><span>⚔️ OMI</span> IDLE FARM <em>COMPLETE</em></div>
   <div class="top-actions">
-    <span class="build-version" id="buildVersionBadge">V22.46</span><span id="onlineUser">👤 Vendég</span>
+    <span class="build-version" id="buildVersionBadge">V22.47</span><span id="onlineUser">👤 Vendég</span>
     <button class="ghost" id="leaderboardBtn">🏆 Ranglista</button>
     <button class="ghost admin-only-btn" id="adminPanelBtn" style="display:none">⚙️ Adminpanel</button><button class="ghost" id="authBtn">Belépés</button>
     <span id="saveState">💾 Mentve</span>
@@ -33,6 +33,7 @@
   <button class="tab" data-tab="pvp">⚔️ PvP</button><button class="tab" data-tab="shop">💳 Feltöltés</button><button class="tab" data-tab="stats">📊 Statisztika</button>
   <button class="tab" data-tab="mounts">🐎 Hátasok</button>
   <button class="tab" data-tab="npcshop">🏪 Vándorkereskedő</button>
+  <button class="tab" data-tab="casino">🎰 Kaszinó</button>
   <button class="tab" data-tab="updates">📢 Frissítések</button>
 </nav>
 
@@ -328,7 +329,7 @@
           <div class="v10-detail"><span id="enemyRegenText">💚 Regen 0%/mp</span><span id="enemyAttackSpeedText">⏱️ 1.35 mp</span></div>
         </div>
       </div>
-      <div class="combat-log" id="combatLog">A farm elindult...</div>
+      <div class="arrow-combat-hud-v247" id="arrowCombatHud">🏹 Nincs aktív harci nyílvessző</div><div class="combat-log" id="combatLog">A farm elindult...</div>
       <div class="battle-stats">
         <div><small>Sebzés / ütés</small><b id="damageText">0</b></div>
         <div><small>Krit esély</small><b id="critText">0%</b></div>
@@ -723,6 +724,12 @@
   <section class="npc-hero-v246"><div><span>🏪 JÁTÉKON BELÜLI NPC BOLT</span><h1>Mordek, a Vándorkereskedő</h1><p>Forgó felszerelések, harci nyílvesszők és ritkán felbukkanó petek. Minden vásárlás kizárólag játékbeli valutából történik.</p></div><div class="npc-portrait-v246">🧙‍♂️</div></section>
   <section class="npc-status-v246"><div><small>KÍNÁLAT FRISSÜL</small><b id="npcShopRefresh">—</b></div><div><small>HARCI NYÍLVESSZŐ</small><b id="npcArrowCount">0 🏹</b></div><button id="npcShopManualRefresh">↻ Kínálat ellenőrzése</button></section>
   <div id="npcShopOffers" class="npc-shop-grid-v246"></div>
+</section>
+
+<section class="page" id="page-casino">
+ <section class="casino-hero-v247"><div><span>🎰 JÁTÉKBELI SZERENCSEJÁTÉK</span><h1>Árnyék Kaszinó</h1><p>Csak játékbeli valutával játszható. Állítsd be a tétet, válassz játékot, és vállald a kockázatot.</p></div><div>🎲</div></section>
+ <section class="casino-controls-v247"><label>Valuta<select id="casinoCurrency"><option value="gold">💰 Arany</option><option value="gems">💎 Gyémánt</option><option value="ore">⛏️ Érc</option></select></label><label>Tét<input id="casinoBet" type="number" min="1" value="100"></label><div><small>EGYENLEG</small><b id="casinoBalance">0</b></div></section>
+ <div id="casinoGames" class="casino-grid-v247"></div><div id="casinoResult" class="casino-result-v247">Válassz játékot!</div>
 </section>
 
 <section class="page" id="page-updates">

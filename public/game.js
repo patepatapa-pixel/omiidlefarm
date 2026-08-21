@@ -635,6 +635,11 @@ function buyNpcOfferV246(id){
 }
 document.addEventListener("click",e=>{if(e.target.closest?.('[data-tab="npcshop"]'))setTimeout(renderNpcShopV246,50)},true);
 $("#npcShopManualRefresh")?.addEventListener("click",renderNpcShopV246);
+const CASINO_DEFAULTS_V247={minBet:{gold:100,gems:1,ore:5},maxBet:{gold:25000,gems:100,ore:500},games:{coin:{name:"Coin Flip",icon:"🪙",chance:47,mult:1.9,desc:"Fej vagy írás – közel fele esély."},skull:{name:"Koponya",icon:"💀",chance:28,mult:3.2,desc:"Kockázatosabb, nagyobb jutalom."},dragon:{name:"Sárkány Slot",icon:"🐉",chance:8,mult:10,desc:"Ritka jackpot a legnagyobb szorzóval."}}};
+function casinoCfgV247(){const r=window.OMI_CONTENT?.casino||{};return {minBet:{...CASINO_DEFAULTS_V247.minBet,...(r.minBet||{})},maxBet:{...CASINO_DEFAULTS_V247.maxBet,...(r.maxBet||{})},games:{coin:{...CASINO_DEFAULTS_V247.games.coin,...(r.games?.coin||{})},skull:{...CASINO_DEFAULTS_V247.games.skull,...(r.games?.skull||{})},dragon:{...CASINO_DEFAULTS_V247.games.dragon,...(r.games?.dragon||{})}}}}
+function renderCasinoV247(){const root=$("#casinoGames");if(!root)return;const cfg=casinoCfgV247(),cur=$("#casinoCurrency")?.value||"gold",icons={gold:"💰",gems:"💎",ore:"⛏️"};$("#casinoBalance").textContent=`${fmt(save[cur]||0)} ${icons[cur]}`;const inp=$("#casinoBet");inp.min=cfg.minBet[cur];inp.max=cfg.maxBet[cur];root.innerHTML=Object.entries(cfg.games).map(([id,g])=>`<article class="casino-game-v247 game-${id}"><div>${g.icon}</div><h2>${g.name}</h2><p>${g.desc}</p><span>Nyerési esély: <b>${Number(g.chance)}%</b></span><span>Kifizetés: <b>${Number(g.mult)}×</b></span><button data-casino-play="${id}">JÁTÉK</button></article>`).join("");root.querySelectorAll("[data-casino-play]").forEach(b=>b.onclick=()=>playCasinoV247(b.dataset.casinoPlay))}
+function playCasinoV247(id){const cfg=casinoCfgV247(),g=cfg.games[id],cur=$("#casinoCurrency").value,bet=Math.floor(Number($("#casinoBet").value||0)),min=Number(cfg.minBet[cur]),max=Number(cfg.maxBet[cur]);if(!g||bet<min||bet>max)return toast(`A tét ${fmt(min)} és ${fmt(max)} között lehet.`);if(Number(save[cur]||0)<bet)return toast("Nincs elég valutád.");if(Date.now()-Number(save.lastCasinoPlay||0)<700)return toast("Várj egy pillanatot.");save.lastCasinoPlay=Date.now();save[cur]-=bet;const won=Math.random()*100<Number(g.chance),payout=won?Math.floor(bet*Number(g.mult)):0;if(won)save[cur]+=payout;const caps={gold:5000000,gems:50000,ore:100000,...(window.OMI_CONTENT?.economyCaps||{})};save[cur]=Math.min(Number(caps[cur]||Infinity),save[cur]);save.casinoStats=save.casinoStats||{plays:0,wins:0,wagered:0};save.casinoStats.plays++;save.casinoStats.wagered+=bet;if(won)save.casinoStats.wins++;persist();renderAll();renderCasinoV247();$("#casinoResult").innerHTML=won?`${g.icon} <b>NYERTÉL!</b> +${fmt(payout-bet)} nettó nyeremény`:`${g.icon} <b>VESZTETTÉL!</b> -${fmt(bet)}`}
+$("#casinoCurrency")?.addEventListener("change",renderCasinoV247);document.addEventListener("click",e=>{if(e.target.closest?.('[data-tab="casino"]'))setTimeout(renderCasinoV247,50)},true);
 function petEquipScore(p){
  if(!p)return -1;
  const weights={all:3.4,damage:1.4,gold:1.2,crit:1.3,drop:1.1};
@@ -1518,13 +1523,19 @@ function v10AwardBossKill(){
  }
  v161LiveHud();
 }
+function farmHitEffectV247(hit,crit,arrow,killed,boss){
+ const arena=$("#page-farm .enemy");if(!arena)return;arena.classList.remove("farm-hit-v247","farm-crit-v247","farm-kill-v247","farm-boss-hit-v247");void arena.offsetWidth;arena.classList.add("farm-hit-v247");if(crit)arena.classList.add("farm-crit-v247");if(killed)arena.classList.add("farm-kill-v247");if(boss)arena.classList.add("farm-boss-hit-v247");
+ const fx=document.createElement("span");fx.className=`farm-damage-fx-v247 ${crit?"crit":""} ${arrow?"arrow":""}`;fx.textContent=`${arrow?"🏹 ":crit?"💥 ":"⚔️ "}-${fmt(hit)}`;fx.style.left=`${48+(Math.random()-.5)*22}%`;arena.appendChild(fx);
+ const slash=document.createElement("i");slash.className=`farm-slash-v247 ${arrow?"arrow":""}`;arena.appendChild(slash);while(arena.querySelectorAll(".farm-damage-fx-v247,.farm-slash-v247").length>10)arena.querySelector(".farm-damage-fx-v247,.farm-slash-v247")?.remove();setTimeout(()=>{fx.remove();slash.remove();arena.classList.remove("farm-hit-v247","farm-crit-v247","farm-kill-v247","farm-boss-hit-v247")},620);
+}
 function v10PlayerAttack(){
  if(!v10IsAlive())return;
  if(!save.waveBoss)ensurePowerAppropriateZone();
  v10EnsurePlayerHp();
- let hit=damage(),crit=Math.random()<critChance();
- if(Number(save.arrows||0)>0){hit*=1+Math.max(0,Number(npcShopCfgV246().arrowDamagePct||15))/100;save.arrows=Math.max(0,Number(save.arrows)-1)}
+ let hit=damage(),crit=Math.random()<critChance(),arrow=Number(save.arrows||0)>0;
+ if(arrow){hit*=1+Math.max(0,Number(npcShopCfgV246().arrowDamagePct||15))/100;save.arrows=Math.max(0,Number(save.arrows)-1)}
  if(crit){hit*=2;save.stats.critHits++}
+ hit=Math.floor(hit);const killed=enemyHp-hit<=0;farmHitEffectV247(hit,crit,arrow,killed,Boolean(save.waveBoss));
  enemyHp-=hit;
  if(save.waveBoss)save.bossHp=Math.max(0,enemyHp);
  if(enemyHp<=0){
@@ -1626,6 +1637,7 @@ async function v10LoadGameplay(){
  }catch(e){V10CFG={...V10_DEFAULTS}}
  save.waveGoal=Math.max(1,Number(save.waveGoal||V10CFG.waveKills));
  v10EnsurePlayerHp();
+ const arrowHud=$("#arrowCombatHud");if(arrowHud){const count=Number(save.arrows||0),pct=Number(npcShopCfgV246().arrowDamagePct||15);arrowHud.classList.toggle("active",count>0);arrowHud.textContent=count>0?`🏹 AKTÍV NYÍLVESSZŐ · ${fmt(count)} lövés · +${pct}% sebzés`:"🏹 Nincs aktív harci nyílvessző"}
  if(save.waveBoss){
    const max=v10BossMaxHp();
    enemyHp=Math.min(max,Math.max(1,Number(save.bossHp||max)));

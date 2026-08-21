@@ -1,4 +1,12 @@
-OMI IDLE FARM ONLINE V22.46
+OMI IDLE FARM ONLINE V22.47
+
+V22.47 KASZINÓ ÉS INTELLIGENS ADMINPANEL:
+- Automata harcnál látható nyílvesszőkészlet és sebzésbónusz.
+- Coin Flip, Koponya és Sárkány Slot játékbeli valutával.
+- Adminból állítható nyerési esély, szorzó, minimum és maximum tét.
+- A kaszinó betartja a szerveres pénztárcaplafonokat.
+- Nagyobb, sötét, kártyás adminfelület olvasható mezőkkel.
+- Boss és terület készítésénél elég a név; az üres értékek az előző legerősebb tartalomból skálázódnak.
 
 V22.46 VÁNDORKERESKEDŐ ÉS GAZDASÁGVÉDELEM:
 - Forgó NPC bolt fegyverekkel, vértekkel, nyílvesszőkkel és ritka petekkel.

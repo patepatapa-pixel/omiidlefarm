@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OMI Idle Farm Admin</title><link rel="stylesheet" href="style.css"></head>
-<body>
+<body class="admin-page-v247">
 <header class="topbar"><div class="brand"><span>⚙️ OMI</span> ADMIN</div><div class="top-actions"><a href="/" style="color:#ddd">← Játék</a><button class="ghost" id="adminLogout">Kilépés</button></div></header>
 <main>
 <section class="hero card"><div><div class="eyebrow">ADMIN PANEL</div><h1>OMI Idle Farm kezelőfelület</h1><p>Játékosok, mentések, tiltások, jutalmak és ranglista ellenőrzése.</p></div><div class="hero-power"><small>JÁTÉKOSOK</small><strong id="playerCount">0</strong></div></section>
@@ -80,7 +80,7 @@
 <h2>🛠️ ADMIN GAME STUDIO</h2>
 <p>Minden játékosérték és új játéktartalom kezelése egy helyen.</p>
 <div class="studio-tabs">
-<button data-studio="players">👥 Játékosok</button><button data-studio="gameplay">🎮 Játékmenet</button><button data-studio="pvp">⚔️ PvP</button><button data-studio="exchange">⚖️ Váltópiac / Pet árak</button><button data-studio="store">💳 Feltöltés / Shop</button><button data-studio="npcshop">🏪 NPC bolt</button><button data-studio="updates">📢 Frissítések</button><button data-studio="bosses">👹 Bossok</button><button data-studio="items">⚔️ Tárgyak</button><button data-studio="pets">🐾 Petek</button><button data-studio="auras">✨ Aurák</button><button data-studio="zones">🗺️ Területek</button><button data-studio="raw">🧬 Haladó</button>
+<button data-studio="players">👥 Játékosok</button><button data-studio="gameplay">🎮 Játékmenet</button><button data-studio="pvp">⚔️ PvP</button><button data-studio="exchange">⚖️ Váltópiac / Pet árak</button><button data-studio="store">💳 Feltöltés / Shop</button><button data-studio="npcshop">🏪 NPC bolt</button><button data-studio="casino">🎰 Kaszinó</button><button data-studio="updates">📢 Frissítések</button><button data-studio="bosses">👹 Bossok</button><button data-studio="items">⚔️ Tárgyak</button><button data-studio="pets">🐾 Petek</button><button data-studio="auras">✨ Aurák</button><button data-studio="zones">🗺️ Területek</button><button data-studio="raw">🧬 Haladó</button>
 </div>
 
 <div class="studio-page" id="studio-exchange">
@@ -171,6 +171,15 @@
   <label>Játékos maximum lélekkő<input id="cfgWalletSoulCap" type="number" min="1"></label>
  </div><button id="saveNpcShopConfig">💾 NPC bolt mentése</button>
 </div>
+
+<div class="studio-page" id="studio-casino"><h3>🎰 Kaszinó beállítások</h3><p class="muted">A kifizetési szorzó a teljes visszakapott összeget jelenti. Az alapértékek mindhárom játéknál házelőnyt tartanak.</p><div class="admin-stat-grid">
+ <label>Minimum aranytét<input id="cfgCasinoMinGold" type="number" min="1"></label><label>Maximum aranytét<input id="cfgCasinoMaxGold" type="number" min="1"></label>
+ <label>Minimum gyémánttét<input id="cfgCasinoMinGems" type="number" min="1"></label><label>Maximum gyémánttét<input id="cfgCasinoMaxGems" type="number" min="1"></label>
+ <label>Minimum érctét<input id="cfgCasinoMinOre" type="number" min="1"></label><label>Maximum érctét<input id="cfgCasinoMaxOre" type="number" min="1"></label>
+ <label>Coin Flip nyerési esély %<input id="cfgCasinoCoinChance" type="number" min="0" max="100" step="0.1"></label><label>Coin Flip szorzó<input id="cfgCasinoCoinMult" type="number" min="1" step="0.1"></label>
+ <label>Koponya nyerési esély %<input id="cfgCasinoSkullChance" type="number" min="0" max="100" step="0.1"></label><label>Koponya szorzó<input id="cfgCasinoSkullMult" type="number" min="1" step="0.1"></label>
+ <label>Sárkány Slot nyerési esély %<input id="cfgCasinoDragonChance" type="number" min="0" max="100" step="0.1"></label><label>Sárkány Slot szorzó<input id="cfgCasinoDragonMult" type="number" min="1" step="0.1"></label>
+ </div><button id="saveCasinoConfig">💾 Kaszinó mentése</button></div>
 
 <div class="studio-page" id="studio-gameplay">
  <h3>🎮 Harcrendszer / Játékmenet</h3>

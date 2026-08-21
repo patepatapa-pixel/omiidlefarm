@@ -225,6 +225,11 @@ async function init(){
     updateContent.updates.unshift({id:"v22_46",version:"V22.46",title:"Vándorkereskedő és gazdaságvédelem",date:"2026-08-21",summary:"Megérkezett az állandó játékon belüli NPC bolt, korlátozott forgó kínálattal.",changes:["Új Vándorkereskedő oldal felszerelésekkel, nyílvesszőkkel és ritka petekkel.","A kínálat 6 óránként frissül, a felszerelés és pet ajánlatonként egyszer vehető meg.","A nyílvesszők fogyóeszközként növelik a támadások sebzését.","A bolt aranyat, ércet és gyémántot von ki a gazdaságból.","Szerveroldali pénztárcaplafon védi a játékot a milliós–milliárdos felhalmozástól.","Adminból állítható minden NPC-boltérték és valutaplafon.","Dungeon token, aura token és hátastöredék nem resetelődik."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_47")){
+    updateContent.casino={minBet:{gold:100,gems:1,ore:5},maxBet:{gold:25000,gems:100,ore:500},games:{coin:{chance:47,mult:1.9},skull:{chance:28,mult:3.2},dragon:{chance:8,mult:10}},...(updateContent.casino||{})};
+    updateContent.updates.unshift({id:"v22_47",version:"V22.47",title:"Árnyék Kaszinó és intelligens adminpanel",date:"2026-08-21",summary:"Új játékbeli kaszinó, látható nyílvesszőállapot és gyorsabb tartalomkészítés.",changes:["Az automata harcnál látható az aktív nyílvesszők száma és sebzésbónusza.","Új Kaszinó fül Coin Flip, Koponya és Sárkány Slot játékokkal.","Adminból külön állítható minden nyerési esély, szorzó és tétlimit.","A kaszinó nyereménye nem lépheti túl a valutaplafonokat.","Az adminpanel sötét, kártyás és nagyobb méretű elrendezést kapott.","Új területnél és bossnál elég nevet megadni: a többi érték automatikusan az előző legerősebb fölé skálázódik."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
   const capMigration="v2246_wallet_caps";
   const capDone=(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[capMigration])).rows[0];
   if(!capDone){
@@ -274,7 +279,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.46.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.47.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{

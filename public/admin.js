@@ -73,6 +73,7 @@ function renderBuildersV8(){
  fillZoneHpBalance();
  renderUpdatesAdminV242();
  if(typeof fillNpcShopAdminV246==="function")fillNpcShopAdminV246();
+ if(typeof fillCasinoAdminV247==="function")fillCasinoAdminV247();
 }
 async function saveConfigV8(){await sa("/api/admin/content-config",{method:"POST",body:JSON.stringify({config:studioConfig})});renderBuildersV8()}
 qsa("[data-add]").forEach(btn=>btn.onclick=async()=>{
@@ -82,6 +83,14 @@ qsa("[data-add]").forEach(btn=>btn.onclick=async()=>{
  if(!o.name)return alert("Adj nevet!");
  if(!o.id)o.id=base+"_"+Date.now();
  studioConfig[type]=studioConfig[type]||[];
+ if(type==="zones"){
+  const last=studioConfig.zones.at(-1)||{hp:190000,maxHp:300000,gold:210,xp:4500,need:5000,dropChance:36};
+  o.icon=o.icon||"🗺️";o.enemy=o.enemy||o.name;o.hp=o.hp>0?o.hp:Math.floor(Number(last.hp||190000)*1.65);o.maxHp=o.maxHp>0?o.maxHp:Math.floor(Number(last.maxHp||last.hp||300000)*1.65);o.gold=o.gold>0?o.gold:Math.floor(Number(last.gold||210)*1.4);o.xp=o.xp>0?o.xp:Math.floor(Number(last.xp||4500)*1.55);o.need=o.need>0?o.need:Math.floor(Number(last.need||5000)*1.6);o.dropChance=o.dropChance>0?o.dropChance:Math.min(60,Number(last.dropChance||36)+3);
+ }
+ if(type==="bosses"){
+  const last=studioConfig.bosses.at(-1)||{hp:250000,damage:800,xp:6000,gold:300,gems:1,gemDropChance:20,regenPct:.2,dropChance:40,minLevel:50,minZone:7};
+  o.icon=o.icon||"👹";o.hp=o.hp>0?o.hp:Math.floor(Number(last.hp||250000)*1.65);o.damage=o.damage>0?o.damage:Math.floor(Number(last.damage||800)*1.35);o.xp=o.xp>0?o.xp:Math.floor(Number(last.xp||6000)*1.5);o.gold=o.gold>0?o.gold:Math.floor(Number(last.gold||300)*1.35);o.gems=o.gems>0?o.gems:Math.max(1,Number(last.gems||1));o.gemDropChance=o.gemDropChance>0?o.gemDropChance:Number(last.gemDropChance||20);o.regenPct=o.regenPct>0?o.regenPct:Number(last.regenPct||.2);o.dropChance=o.dropChance>0?o.dropChance:Math.min(60,Number(last.dropChance||40)+2);o.minLevel=o.minLevel>0?o.minLevel:Math.ceil(Number(last.minLevel||50)*1.25);o.minZone=o.minZone>0?o.minZone:Number(last.minZone||7)+1;
+ }
  studioConfig[type].push(o);
  await saveConfigV8();
  wrap.querySelectorAll("[data-field]").forEach(i=>i.value="");
@@ -271,6 +280,9 @@ qs("#saveNpcShopConfig")?.addEventListener("click",async()=>{
  await saveConfigV8();fillNpcShopAdminV246();alert("✅ NPC bolt és pénztárcaplafonok mentve.");
 });
 setTimeout(fillNpcShopAdminV246,1400);
+
+function fillCasinoAdminV247(){const c={minBet:{gold:100,gems:1,ore:5},maxBet:{gold:25000,gems:100,ore:500},games:{coin:{chance:47,mult:1.9},skull:{chance:28,mult:3.2},dragon:{chance:8,mult:10}},...(studioConfig.casino||{})};c.minBet={gold:100,gems:1,ore:5,...(c.minBet||{})};c.maxBet={gold:25000,gems:100,ore:500,...(c.maxBet||{})};c.games={coin:{chance:47,mult:1.9,...(c.games?.coin||{})},skull:{chance:28,mult:3.2,...(c.games?.skull||{})},dragon:{chance:8,mult:10,...(c.games?.dragon||{})}};[["#cfgCasinoMinGold",c.minBet.gold],["#cfgCasinoMaxGold",c.maxBet.gold],["#cfgCasinoMinGems",c.minBet.gems],["#cfgCasinoMaxGems",c.maxBet.gems],["#cfgCasinoMinOre",c.minBet.ore],["#cfgCasinoMaxOre",c.maxBet.ore],["#cfgCasinoCoinChance",c.games.coin.chance],["#cfgCasinoCoinMult",c.games.coin.mult],["#cfgCasinoSkullChance",c.games.skull.chance],["#cfgCasinoSkullMult",c.games.skull.mult],["#cfgCasinoDragonChance",c.games.dragon.chance],["#cfgCasinoDragonMult",c.games.dragon.mult]].forEach(([id,v])=>{if(qs(id))qs(id).value=v})}
+qs("#saveCasinoConfig")?.addEventListener("click",async()=>{studioConfig.casino={minBet:{gold:num("#cfgCasinoMinGold"),gems:num("#cfgCasinoMinGems"),ore:num("#cfgCasinoMinOre")},maxBet:{gold:num("#cfgCasinoMaxGold"),gems:num("#cfgCasinoMaxGems"),ore:num("#cfgCasinoMaxOre")},games:{coin:{chance:num("#cfgCasinoCoinChance"),mult:num("#cfgCasinoCoinMult")},skull:{chance:num("#cfgCasinoSkullChance"),mult:num("#cfgCasinoSkullMult")},dragon:{chance:num("#cfgCasinoDragonChance"),mult:num("#cfgCasinoDragonMult")}}};await saveConfigV8();fillCasinoAdminV247();alert("✅ Kaszinó beállítások mentve.")});setTimeout(fillCasinoAdminV247,1450);
 
 // V22.19 exchange market and pet economy
 const V219_ECONOMY_DEFAULTS={exchange:{gems:{gold:2500,amount:5},ore:{gold:1200,amount:10},tickets:{gold:3500,amount:1}},petSummonCost:10,petSlotCosts:[50,150,300],petSummonRates:{normal:55,rare:28,epic:12,mythic:4,legendary:1},petFusionCosts:{rare:10,mythic:10,legendary:10,celestial:10,imperial:10,eternal:10},petFusionRequirements:{rare:5,mythic:3,legendary:3,celestial:3,imperial:3,eternal:3},petMultiOption:{imperialChancePct:10,eternalChancePct:20,minPct:2,maxPct:8,maxExtraOptions:2},achievementExchange:{gems:{points:10,amount:5},ore:{points:5,amount:50},tickets:{points:8,amount:2}}};
