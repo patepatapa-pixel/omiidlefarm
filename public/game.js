@@ -3,11 +3,14 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const SLOT_NAMES={weapon:"Fegyver",helmet:"Sisak",armor:"Páncél",gloves:"Kesztyű",boots:"Csizma",ring:"Gyűrű"};
 const SLOT_ICONS={weapon:"⚔️",helmet:"🪖",armor:"🛡️",gloves:"🧤",boots:"🥾",ring:"💍"};
 const RARITIES=[
- {key:"normal",name:"Normal",mult:1,chance:60},
- {key:"rare",name:"Rare",mult:1.35,chance:25},
- {key:"epic",name:"Epic",mult:1.8,chance:10},
- {key:"mythic",name:"Mythic",mult:2.5,chance:4},
- {key:"legendary",name:"Legendary",mult:3.5,chance:1}
+ {key:"normal",name:"Normal",mult:1,chance:44.5},
+ {key:"rare",name:"Rare",mult:1.35,chance:30},
+ {key:"epic",name:"Epic",mult:1.8,chance:15},
+ {key:"mythic",name:"Mythic",mult:2.5,chance:6},
+ {key:"legendary",name:"Legendary",mult:3.5,chance:3},
+ {key:"imperial",name:"Imperial",mult:4.7,chance:1},
+ {key:"celestial",name:"Celestial",mult:6.2,chance:.4},
+ {key:"eternal",name:"Eternal",mult:8,chance:.1}
 ];
 const ZONES=[
  {name:"Zöld mező",icon:"🐗",enemy:"Vadkan",hp:45,gold:10,xp:6,need:1,drop:.10},
@@ -226,7 +229,7 @@ function toast(t){let e=$("#toast");e.textContent=t;e.classList.add("show");setT
 function fmt(n){return Math.floor(Number(n||0)).toLocaleString("hu-HU")}
 function needXp(){return 100+save.level*45}
 function equipObj(slot){let id=save.equipped[slot];return save.inventory.find(x=>x.id===id)||null}
-function upgradeMult(item){return 1+item.plus*.10}
+function upgradeMult(item){return 1+item.plus*.14}
 const ITEM_RAW_ATK_CAP_V290={normal:180,rare:240,epic:320,mythic:420,legendary:600,imperial:1050,celestial:1300,eternal:1500};
 function itemRawAttackCapV290(item){return ITEM_RAW_ATK_CAP_V290[String(item?.rarity||"normal")]||260}
 function itemStats(item){
@@ -262,6 +265,13 @@ function normalGoldBonusCap(){const raw=window.OMI_CONTENT?.gameplay?.goldBonusC
 function normalGoldBonus(){return Math.max(0,(save.base.armorTraining-1)*.05+skillBonus("gold")+bonuses().gold)}
 function paragonGoldBonus(){return Math.max(0,Number(save.paragonStats.gold||0)*.03*Math.max(0,Number(save.paragonLevel||0)))}
 function goldBonus(){return 1+Math.min(normalGoldBonusCap(),normalGoldBonus())+paragonGoldBonus()}
+const goldBonusBaseV23196=goldBonus;
+goldBonus=function(){
+ const base=Math.max(1,Number(goldBonusBaseV23196()||1));
+ const io=typeof itemOptionBonuses==="function"?itemOptionBonuses():{};
+ return base*(1+Math.max(0,Number(io.gold||0))/100);
+};
+
 function fixedZoneGold(zoneIndex=save.zone){
  const fixed=window.OMI_CONTENT?.gameplay?.zoneFixedGold;
  const fallback=ZONES[zoneIndex]?.gold??0;
@@ -275,42 +285,51 @@ function mountBonusPctV288(level){const raw=Math.max(0,Math.floor(Number(level||
 function mountPowerMultiplierV277(){const m=save.mounts?.[save.activeMount];return 1+mountBonusPctV288(m?.level)}
 function rawPowerV280(){return (damageCoreV281(false)*1.2+v10Defense()*.8+save.level*.8+save.base.mining*.5+save.base.luck*.5)*mountPowerMultiplierV277()}
 function power(){
- const raw=Math.max(0,rawPowerV280()),cap=100000;
- return Math.min(cap,Math.floor(cap*raw/(raw+cap*.42)));
+ const raw=Math.max(0,Number(rawPowerV280()||0)),cap=100000;
+ return Math.max(0,Math.min(cap,Math.floor(cap*raw/(raw+cap*.22))));
 }
 function rankName(){let p=power();return p<1000?"Kezdő":p<5000?"Harcos":p<15000?"Elit":p<35000?"Mester":p<65000?"Hős":p<90000?"Legenda":"Isteni"}
-function baseCost(d){return Math.floor(d.base*Math.pow(1.32,save.base[d.key]-1))}
+function baseCost(d){return Math.floor(d.base*Math.pow(1.255,save.base[d.key]-1))}
 function rarityRoll(){
- let bonus=(save.base.luck-1)*.25+skillBonus("drop")*15;
- let r=Math.random()*100;
- if(r<3+bonus*.08)return RARITIES[4];
- if(r<8+bonus*.15)return RARITIES[3];
- if(r<20+bonus*.28)return RARITIES[2];
- if(r<45+bonus*.45)return RARITIES[1];
- return RARITIES[0]
+ const bonus=Math.max(0,dropBonus()*100),r=Math.random()*100;
+ const eternal=.10+Math.min(.10,bonus*.002);
+ const celestial=.40+Math.min(.30,bonus*.005);
+ const imperial=1.00+Math.min(.60,bonus*.010);
+ const legendary=3.00+Math.min(1.20,bonus*.018);
+ const mythic=6.00+Math.min(2.00,bonus*.025);
+ const epic=15.00+Math.min(3.00,bonus*.035);
+ const rare=30.00+Math.min(4.00,bonus*.045);
+ let x=eternal;if(r<x)return RARITIES.find(v=>v.key==="eternal");
+ x+=celestial;if(r<x)return RARITIES.find(v=>v.key==="celestial");
+ x+=imperial;if(r<x)return RARITIES.find(v=>v.key==="imperial");
+ x+=legendary;if(r<x)return RARITIES.find(v=>v.key==="legendary");
+ x+=mythic;if(r<x)return RARITIES.find(v=>v.key==="mythic");
+ x+=epic;if(r<x)return RARITIES.find(v=>v.key==="epic");
+ x+=rare;if(r<x)return RARITIES.find(v=>v.key==="rare");
+ return RARITIES.find(v=>v.key==="normal");
 }
 
 const ITEM_OPT_DEFS={
- atkPct:{name:"Sebzés %",desc:"A teljes sebzésedet növeli.",unit:"%",min:1,max:12},
- hpPct:{name:"Max HP %",desc:"A maximális életerődet növeli.",unit:"%",min:1,max:15},
- defPct:{name:"Védelem %",desc:"A teljes védelmedet növeli.",unit:"%",min:1,max:12},
- crit:{name:"Krit esély",desc:"Növeli a kritikus találat esélyét.",unit:"%",min:.5,max:6},
- drop:{name:"Drop bónusz",desc:"Növeli a felszerelés dobási esélyét.",unit:"%",min:.5,max:8},
- hpRegen:{name:"HP Regen",desc:"Másodpercenként extra HP%-ot regenerálsz.",unit:"%/mp",min:.1,max:1.5},
- bossDmg:{name:"Boss sebzés",desc:"Növeli a Bossok ellen okozott sebzést.",unit:"%",min:2,max:15},
+ atkPct:{name:"Sebzés %",desc:"A teljes sebzésedet növeli.",unit:"%",min:1,max:16},
+ hpPct:{name:"Max HP %",desc:"A maximális életerődet növeli.",unit:"%",min:1,max:18},
+ defPct:{name:"Védelem %",desc:"A teljes védelmedet növeli.",unit:"%",min:1,max:16},
+ crit:{name:"Krit esély",desc:"Növeli a kritikus találat esélyét.",unit:"%",min:.5,max:7},
+ drop:{name:"Drop bónusz",desc:"Növeli a felszerelés dobási esélyét.",unit:"%",min:.5,max:9},
+ gold:{name:"Arany bónusz",desc:"Növeli a megszerzett aranyat.",unit:"%",min:2,max:18},
+ hpRegen:{name:"HP Regen",desc:"Másodpercenként extra HP%-ot regenerálsz.",unit:"%/mp",min:.1,max:1.8},
+ bossDmg:{name:"Boss sebzés",desc:"Növeli a Bossok ellen okozott sebzést.",unit:"%",min:2,max:18},
  pvpDmg:{name:"PvP sebzés",desc:"Növeli a játékosok elleni sebzést.",unit:"%",min:1,max:10}
 };
 function rarityOptCount(rarity){
- return {normal:1,rare:2,epic:3,mythic:4,legendary:5}[rarity]||1;
+ return {normal:1,rare:2,epic:3,mythic:4,legendary:5,imperial:5,celestial:5,eternal:5}[rarity]||1;
 }
 function optionScaleByRarity(rarity){
- return {normal:.55,rare:.72,epic:.88,mythic:1,legendary:1.18}[rarity]||.55;
+ return {normal:.55,rare:.72,epic:.88,mythic:1,legendary:1.18,imperial:1.32,celestial:1.48,eternal:1.65}[rarity]||.55;
 }
 function ensureItemOptions(it){
  if(!it)return it;
  if(!Array.isArray(it.options))it.options=[];
- it.gold=0;
- it.options=it.options.filter(o=>o?.key!=="gold");
+ it.gold=Math.max(0,Number(it.gold||0));
  if(it.options.length>5)it.options=it.options.slice(0,5);
  return it;
 }
@@ -333,7 +352,7 @@ function itemOptionText(o){
  return `${d.name}: +${o.value}${d.unit}`;
 }
 function itemRerollCost(it){
- const r={normal:1,rare:2,epic:4,mythic:8,legendary:15}[it.rarity]||1;
+ const r={normal:1,rare:2,epic:4,mythic:8,legendary:15,imperial:22,celestial:30,eternal:42}[it.rarity]||1;
  return Math.floor((80+Number(it.plus||0)*35)*r);
 }
 function rerollItemOptions(id){
@@ -344,7 +363,7 @@ function rerollItemOptions(id){
  toast(`🎲 ${it.name} opciói újraforgatva.`);
 }
 function itemOptionBonuses(){
- const out={atkPct:0,hpPct:0,defPct:0,crit:0,drop:0,hpRegen:0,bossDmg:0,pvpDmg:0};
+ const out={atkPct:0,hpPct:0,defPct:0,crit:0,drop:0,gold:0,hpRegen:0,bossDmg:0,pvpDmg:0};
  Object.keys(save.equipped||{}).forEach(slot=>{
   const it=equipObj(slot);if(!it)return;
   ensureItemOptions(it);
@@ -499,6 +518,14 @@ function renderZones(){
    ${powerBar}
    <small>🛡️ Ajánlott DEF: ${fmt(recommendedDefenseV271(i,save.wave))}</small>
    <small>Drop: ${(z.drop*100).toFixed(0)}% · 💰 Fix ${fmt(zoneMobGold(i))} arany / mob · ❤️ Mob HP: ${fmt(i===save.zone?normalEnemyMaxHp():Math.max(10,Math.floor(([160,520,1450,3800,9000,19000,35000,60000][i]||60000)*.90)))} · 👹 Boss: ~${(5+i*.38).toFixed(1)}× mob</small>
+   ${i===ZONES.length-1?(()=>{
+     const f=finalZoneParagonStateV23195();
+     if(f.eligible)return '<div class="v23195-paragon-final ready">🌟 PARAGON SZINTLÉPÉS ELÉRHETŐ</div>';
+     const miss=[];
+     if(!f.waveDone)miss.push(`Wave ${fmt(f.waveNeed)}`);
+     if(!f.powerDone)miss.push(`${fmt(Math.max(0,f.powerNeed-f.powerNow))} ERŐ`);
+     return `<div class="v23195-paragon-final">🌟 PARAGON CÉL · ${miss.length?miss.join(" · "):"Érd el ezt a területet"}</div>`;
+   })():""}
    ${weak?'<strong class="zone-cap-badge">⬆️ TELJESÍTETT TERÜLET</strong>':locked
      ? `<strong class="zone-cap-badge">${g.waveDone&&!g.powerDone?`⚔️ MÉG ${fmt(Math.max(0,g.powerNeed-g.powerNow))} ERŐ KELL`:!g.waveDone?`🌊 WAVE CÉL HIÁNYZIK`:"🔒 ZÁROLVA"}</strong>`
      : '<strong class="zone-cap-badge v23194-open">✅ MINDKÉT CÉL TELJESÍTVE</strong>'}
@@ -521,7 +548,7 @@ function zoneWaveThresholdsV285(){
  return Array.from({length:count},(_,i)=>i===0?1:i===count-1?Math.max(2,req-18):Math.max(2,Math.round(req*Math.pow(i/(count-1),1.08))));
 }
 function zoneMinPowerV319(zone){
- const gates=[0,900,2200,4500,8500,14500,23000,34000];
+ const gates=[0,650,1400,2600,4500,7000,10500,15000,21000];
  zone=Math.max(0,Math.min(gates.length-1,Math.floor(Number(zone||0))));
  return gates[zone];
 }
@@ -544,23 +571,14 @@ function zoneGoalStateV23194(i){
  }
 }
 function progressionMinimumZoneV260(){
- const s=(typeof save!=="undefined"&&save)?save:{};
- const w=Math.max(1,Number(s.wave||1)),waveSteps=zoneWaveThresholdsV285();
+ const w=Math.max(1,Number(save?.wave||1)),steps=zoneWaveThresholdsV285();
  let byWave=0;
- waveSteps.forEach((n,i)=>{if(w>=n)byWave=i});
-
+ steps.forEach((n,i)=>{if(w>=n)byWave=i});
  let p=0;
- try{
-   p=Math.max(0,Number(typeof power==="function"?power():0)||0);
- }catch(e){
-   console.warn("[ZONE POWER GATE] power calculation failed; keeping current zone.",e);
-   return Math.max(0,Math.min(ZONES.length-1,Number(s.zone||0)));
- }
-
+ try{p=Math.max(0,Number(typeof power==="function"?power():0)||0)}
+ catch(e){console.warn("[SAFE POWER GATE]",e);return Math.max(0,Math.min(ZONES.length-1,Number(save?.zone||0)))}
  let byPower=0;
- for(let i=0;i<ZONES.length;i++){
-   if(p>=zoneMinPowerV319(i))byPower=i;
- }
+ for(let i=0;i<ZONES.length;i++)if(p>=zoneMinPowerV319(i))byPower=i;
  return Math.max(0,Math.min(ZONES.length-1,byWave,byPower));
 }
 function equipBestSilentV260(){Object.keys(SLOT_NAMES).forEach(slot=>{const choices=save.inventory.filter(x=>x&&x.slot===slot&&Number.isFinite(Number(x.id))).sort((a,b)=>itemScore(b)-itemScore(a));if(choices.length)save.equipped[slot]=choices[0].id})}
@@ -588,10 +606,10 @@ function itemPowerScore(it){
    Number(st.drop||0)*700+
    Number(it.plus||0)*30;
 
- const rarityScore={normal:0,rare:80,epic:180,mythic:320,legendary:520}[it.rarity]||0;
+ const rarityScore={normal:0,rare:100,epic:250,mythic:500,legendary:900,imperial:1500,celestial:2400,eternal:3600}[it.rarity]||0;
  score+=rarityScore;
 
- const optWeight={atkPct:35,hpPct:22,defPct:25,crit:42,drop:24,hpRegen:35,bossDmg:26,pvpDmg:20};
+ const optWeight={atkPct:70,hpPct:22,defPct:48,crit:58,drop:12,gold:10,hpRegen:25,bossDmg:40,pvpDmg:12};
  (it.options||[]).forEach(o=>score+=Number(o.value||0)*(optWeight[o.key]||10));
  return score;
 }
@@ -1002,9 +1020,34 @@ function renderWave(){
  ];
  pairs.forEach(([id,val])=>{const el=$("#"+id);if(el)el.textContent=val});
 }
+
+function finalZoneParagonStateV23195(){
+ try{
+   const last=Math.max(0,ZONES.length-1);
+   const g=typeof zoneGoalStateV23194==="function"
+     ?zoneGoalStateV23194(last)
+     :{waveDone:false,powerDone:false,waveNeed:paragonWaveRequirement(),powerNeed:0,waveNow:Number(save?.wave||1),powerNow:0};
+   const onFinalZone=Number(save?.zone||0)>=last;
+   return {
+     last,
+     onFinalZone,
+     waveDone:Boolean(g.waveDone),
+     powerDone:Boolean(g.powerDone),
+     waveNeed:Number(g.waveNeed||paragonWaveRequirement()),
+     powerNeed:Number(g.powerNeed||0),
+     waveNow:Number(g.waveNow||save?.wave||1),
+     powerNow:Number(g.powerNow||0),
+     eligible:Boolean(onFinalZone&&g.waveDone&&g.powerDone)
+   };
+ }catch(e){
+   return {last:Math.max(0,ZONES.length-1),onFinalZone:false,waveDone:false,powerDone:false,waveNeed:paragonWaveRequirement(),powerNeed:0,waveNow:Number(save?.wave||1),powerNow:0,eligible:false};
+ }
+}
+
 function renderParagon(){
  const req=paragonWaveRequirement();
- const eligible=save.wave>=req;
+ const finalGateV23195=finalZoneParagonStateV23195();
+ const eligible=finalGateV23195.eligible;
  const setText=(id,val)=>{const e=$("#"+id);if(e)e.textContent=val};
 
  setText("prestigeLevel",save.prestigeLevel);
@@ -1030,14 +1073,21 @@ function renderParagon(){
  renderPrestigeMilestonesV257();
 
  const text=$("#prestigeText"),paragonScale=Math.max(1,save.paragonLevel);
- if(text)text.textContent=(eligible
-   ?`Paragon szintlépés elérhető! Wave ${save.wave} / ${req}.`
-   :`Még ${Math.max(0,req-save.wave)} wave kell a következő Paragon szinthez. Követelmény: Wave ${req}.`)+` · Paragon statok hatásszorzója: ${paragonScale}×`;
+ if(text){
+   const f=finalGateV23195;
+   const missing=[];
+   if(!f.onFinalZone)missing.push("érd el a Csiki fajzat utolsó farmterületét");
+   if(!f.waveDone)missing.push(`Wave ${fmt(f.waveNeed)}`);
+   if(!f.powerDone)missing.push(`${fmt(Math.max(0,f.powerNeed-f.powerNow))} hiányzó ERŐ`);
+   text.textContent=(eligible
+     ?`🌟 Paragon szintlépés elérhető a Csiki fajzat területén!`
+     :`Paragonhoz: ${missing.join(" · ")}.`)+` · Paragon statok hatásszorzója: ${paragonScale}×`;
+ }
 
  const btn=$("#prestigeBtn");
  if(btn){
    btn.disabled=!eligible;
-   btn.textContent=eligible?`🌟 PARAGON SZINTLÉPÉS`:`🌟 PARAGON · WAVE ${req}`;
+   btn.textContent=eligible?`🌟 PARAGON SZINTLÉPÉS`:`🌟 PARAGON · CIKI FAJZAT CÉL`;
  }
 
  const stats=[
@@ -1081,7 +1131,13 @@ function restorePremiumMultipliersV297(p){
 
 function doPrestige(automatic=false){
  const req=paragonWaveRequirement();
- if(save.wave<req)return toast(`🔒 Következő Paragon követelmény: Wave ${req}.`);
+ const f=finalZoneParagonStateV23195();
+ if(!f.eligible){
+   if(!f.onFinalZone)return toast("🔒 Paragonhoz előbb el kell érned a Csiki fajzat utolsó farmterületét.");
+   if(!f.waveDone)return toast(`🌊 Paragonhoz még a Wave ${fmt(f.waveNeed)} célt kell teljesítened.`);
+   if(!f.powerDone)return toast(`⚔️ Paragonhoz még ${fmt(Math.max(0,f.powerNeed-f.powerNow))} ERŐ hiányzik.`);
+   return toast("🔒 A Paragon feltételei még nem teljesültek.");
+ }
 
  if(!automatic&&!confirm(`Paragon újrakezdés?\n\nJelenlegi Paragon: ${save.paragonLevel}\nÚj Paragon: ${save.paragonLevel+1}\nAz új szinten 1 Sebzés Paragon statpont +${(save.paragonLevel+1)*2}% sebzést ad.\nJutalom: 5 új Paragon statpont és +1 Aura token\n\nRESETELŐDIK: karakterszint, XP, wave, normál statok, alap fejlesztések, inventory, felszerelés, arany, gyémánt és érc.\nMEGMARAD: teljes képességfa, képességpontok, kill szám, kiosztott Paragon statok, lélekkő, dungeon token, petek, hátasok, aurák, achievementek és gyorsítás.`))return;
 
@@ -1635,29 +1691,17 @@ function powerCatchupMultiplierV23193(){
 }
 
 function normalEnemyMaxHp(){
-  const zone=Math.max(0,Math.min(ZONES.length-1,Number(save.zone||0)));
-  const wave=Math.max(1,Number(save.wave||1));
-  const prestige=Math.max(0,Number(save.prestigeLevel||0));
-
-  // V23.19.2: smooth PvE curve. Early mobs stay quick; later zones take a few real hits.
-  const zoneBase=[160,520,1450,3800,9000,19000,35000,60000][zone]||60000;
-
-  const thresholds=zoneWaveThresholdsV285();
-  const start=Math.max(1,Number(thresholds[zone]||1));
-  const nextIndex=Math.min(zone+1,thresholds.length-1);
-  const end=Math.max(start+1,Number(thresholds[nextIndex]||paragonWaveRequirement()));
-  const local=Math.max(0,Math.min(1,(wave-start)/(end-start)));
-
-  // Within one area the mob grows by ~55%, preventing abrupt walls.
-  const waveScale=.90+local*.55;
-
-  // Prestige makes PvE slightly stronger, but never explodes exponentially.
-  const prestigeScale=1+Math.min(.35,prestige*.0045);
-
-  const speedScale=typeof combatSpeedHpMultiplierV282==="function"
-    ?combatSpeedHpMultiplierV282():1;
-
-  return Math.max(10,Math.floor(zoneBase*waveScale*prestigeScale*speedScale));
+ const zone=Math.max(0,Math.min(ZONES.length-1,Number(save.zone||0)));
+ const wave=Math.max(1,Number(save.wave||1)),prestige=Math.max(0,Number(save.prestigeLevel||0));
+ const zoneBase=[120,380,950,2200,4700,8500,14000,22000,32000][zone]||32000;
+ const thresholds=zoneWaveThresholdsV285();
+ const start=Math.max(1,Number(thresholds[zone]||1));
+ const end=Math.max(start+1,Number(thresholds[Math.min(zone+1,thresholds.length-1)]||paragonWaveRequirement()));
+ const local=Math.max(0,Math.min(1,(wave-start)/(end-start)));
+ const waveScale=.88+local*.72;
+ const prestigeScale=1+Math.min(.32,prestige*.004);
+ const speedScale=typeof combatSpeedHpMultiplierV282==="function"?combatSpeedHpMultiplierV282():1;
+ return Math.max(10,Math.floor(zoneBase*waveScale*prestigeScale*speedScale));
 }
 function waveKillRequirement(wave){
   wave=Math.max(1,Number(wave||1));
@@ -1704,7 +1748,7 @@ function applyWaveGoal(){
 
 // ================= V15.5 WAVE / BOSS / PARAGON RULES =================
 function paragonWaveRequirement(){
-  return 220;
+  return 500;
 }
 function isBossCheckpointWave(wave){
   return Number(wave||1)>=1;
@@ -1757,16 +1801,10 @@ function v10MaxHp(){
  ));
 }
 function v10BossMaxHp(){
-  const mobHp=Math.max(10,normalEnemyMaxHp());
-  const zone=Math.max(0,Math.min(ZONES.length-1,Number(save.zone||0)));
-  const wave=Math.max(1,Number(save.wave||1));
-
-  // Boss target: roughly 5–8 normal mobs worth of HP.
-  const zoneMult=5.0+zone*.38;
-  const lateWaveBonus=Math.min(1.0,(wave/Math.max(1,paragonWaveRequirement()))*1.0);
-  const mult=zoneMult+lateWaveBonus;
-
-  return Math.max(mobHp,Math.floor(mobHp*mult));
+ const mob=Math.max(10,normalEnemyMaxHp()),zone=Math.max(0,Number(save.zone||0)),wave=Math.max(1,Number(save.wave||1));
+ const progress=Math.min(1,wave/Math.max(1,paragonWaveRequirement()));
+ const mult=4.5+zone*.32+progress*1.1;
+ return Math.max(mob,Math.floor(mob*mult));
 }
 function v10EnemyMaxHp(){return save.waveBoss?v10BossMaxHp():normalEnemyMaxHp()}
 function v10RawEnemyDamage(){
@@ -4312,8 +4350,8 @@ document.addEventListener("click",e=>{
 
   // V22.41 compact, readable progression scale.
   const V2241_DUNGEON_BALANCE=[
-    [1200,[1200,1800]],[3000,[2500,3800]],[6500,[5000,7500]],[11000,[9000,13500]],[18000,[15000,22000]],
-    [28000,[24000,35000]],[40000,[36000,52000]],[55000,[52000,76000]],[72000,[76000,110000]],[90000,[115000,165000]]
+    [900,[1200,1800]],[1800,[2500,3800]],[3200,[5000,7500]],[5000,[9000,13500]],[7500,[15000,22000]],
+    [10500,[24000,35000]],[14000,[36000,52000]],[18000,[52000,76000]],[23000,[76000,110000]],[30000,[115000,165000]]
   ];
   DUNGEONS_V218.forEach((d,i)=>{const b=V2241_DUNGEON_BALANCE[i];if(!b)return;d.reqPower=b[0];d.rewards.gold=b[1]});
 
@@ -4582,15 +4620,9 @@ document.addEventListener("click",e=>{
 
   function bossMaxHp(d){
     const req=Math.max(100,Number(d.reqPower||100));
-
-    // Safe dungeons are faster; risky dungeons are real boss fights.
-    const baseMult=d.safe?3.0:7.0;
-
-    // Later dungeons gain a small extra endurance bonus without becoming absurd.
     const idx=Math.max(0,DUNGEONS_V218.findIndex(x=>x.id===d.id));
-    const progression=1+Math.min(.30,idx*.035);
-
-    return Math.max(500,Math.floor(req*baseMult*progression));
+    const mult=(d.safe?2.6:5.4)*(1+Math.min(.25,idx*.025));
+    return Math.max(500,Math.floor(req*mult));
   }
 
   function ensureBattlePanel(root){
@@ -6125,3 +6157,23 @@ window.OMI_POWER_GATE_V23193={gates:[0,900,2200,4500,8500,14500,23000,34000],cat
    Wave completion gets a checkmark immediately.
    The zone opens only after both Wave + Power are completed. */
 window.OMI_DUAL_ZONE_GOALS_V23194=true;
+
+/* V23.19.5 PARAGON FINAL-ZONE GATE
+   Paragon is available only on the final Csiki fajzat farm area
+   after both Wave and Power goals are completed. */
+window.OMI_PARAGON_FINAL_ZONE_V23195=true;
+
+/* V23.19.6 LONGER WAVES + EASIER POWER
+   Paragon: Wave 500 + final farm-area power goal.
+   Power cap: 100,000.
+   High rarities restored: Imperial / Celestial / Eternal.
+   Gold item option restored.
+   Gear +15 scaling strengthened.
+   Mob / farm boss / dungeon boss HP rebalanced around the easier power curve.
+*/
+window.OMI_BALANCE_V23196={
+ paragonWave:500,
+ maxPower:100000,
+ zonePower:[0,650,1400,2600,4500,7000,10500,15000,21000],
+ rarities:["normal","rare","epic","mythic","legendary","imperial","celestial","eternal"]
+};
