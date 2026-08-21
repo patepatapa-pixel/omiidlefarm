@@ -744,6 +744,8 @@ app.post("/api/save",auth,async(req,res)=>{
     data.speed10Unlocked=Boolean(premiumSource.speed10Unlocked);
     data.autoParagonUnlocked=Boolean(premiumSource.autoParagonUnlocked);
     data.dungeonBatchUnlocked=Boolean(premiumSource.dungeonBatchUnlocked);
+    // PvP progression is server-authoritative. A stale browser autosave must never roll it back.
+    if(stored && stored.pvpBuild && typeof stored.pvpBuild==="object")data.pvpBuild=pvpBuild(stored);
     const power=serverPowerV283(data);
     const requestedWallet={gold:Number(data.gold||0),gems:Number(data.gems||0),ore:Number(data.ore||0),soul:Number(data.soul||0)};
     const economyConfig=await mainConfig(),caps={gold:5000000,gems:50000,ore:100000,soul:50000,...(economyConfig.economyCaps||{})};

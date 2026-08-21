@@ -5285,7 +5285,26 @@ window.v222AdminSpeedSupported=true;
    <div class="v291-summary"><span><small>PvP ATK</small><b>${F(st.atk)}</b></span><span><small>PvP HP</small><b>${F(st.hp)}</b></span><span><small>PvP DEF</small><b>${F(st.def)}</b></span><span><small>Block</small><b>${Math.round((st.block||0)*100)}%</b></span><span><small>Krit</small><b>${Math.round((st.crit||0)*100)}%</b></span><span><small>Dupla ütés</small><b>${Math.round((st.doubleHit||0)*100)}%</b></span><span><small>Item PvP bónusz</small><b>+${Number(st.gearPvpPct||0).toFixed(1)}%</b></span></div>
    <div class="v291-grid">${Object.keys(MAX).map(k=>{const n=Number(lv[k]||0),cost=d.costs?.[k]||0,max=MAX[k];return `<article><div><b>${LABEL[k]}</b><small>${n} / ${max} szint</small></div><button data-v291-up="${k}" ${n>=max||Number(d.soul||0)<cost?"disabled":""}>${n>=max?"MAX":`+1 · ${F(cost)} 🧿`}</button></article>`}).join("")}</div>
    <div class="v291-note">🧱 Block maximum 40% · 🍀 Szerencse növeli a kritikus esélyt · ⚡ Dupla találat külön második ütést ad.</div>`;
-   box.querySelectorAll("[data-v291-up]").forEach(b=>b.onclick=async()=>{b.disabled=true;try{await api("/api/pvp/upgrade",{method:"POST",body:JSON.stringify({stat:b.dataset.v291Up})});if(typeof toast==="function")toast("🏟️ PvP stat fejlesztve!");await load();if(typeof loadPvp==="function")loadPvp()}catch(e){if(typeof toast==="function")toast("❌ "+e.message);b.disabled=false}})
+   box.querySelectorAll("[data-v291-up]").forEach(b=>b.onclick=async()=>{
+    b.disabled=true;
+    try{
+      const d2=await api("/api/pvp/upgrade",{method:"POST",body:JSON.stringify({stat:b.dataset.v291Up})});
+      // Keep the local/cloud save in sync with the authoritative PvP upgrade response.
+      if(typeof save!=="undefined"&&save){
+        save.soul=Math.max(0,Number(d2.soul??save.soul??0));
+        save.pvpBuild={...(d2.levels||{})};
+        save.last=Date.now();
+        localStorage.setItem("omiIdleComplete",JSON.stringify(save));
+      }
+      if(typeof renderAll==="function")renderAll();
+      if(typeof toast==="function")toast(`🏟️ PvP stat fejlesztve! -${F(d2.cost||0)} lélekkő`);
+      await load();
+      if(typeof loadPvp==="function")loadPvp();
+    }catch(e){
+      if(typeof toast==="function")toast("❌ "+e.message);
+      b.disabled=false;
+    }
+   })
   }catch(e){box.innerHTML=`<p>❌ ${e.message}</p>`}
  }
  window.v291LoadPvpBuild=load;
