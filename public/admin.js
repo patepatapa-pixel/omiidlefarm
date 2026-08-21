@@ -467,7 +467,7 @@ function v222Payload(){
     speed10Unlocked:Boolean(document.getElementById("v222Speed10")?.checked),
     autoParagonUnlocked:Boolean(document.getElementById("v237AutoParagon")?.checked),
      fullAutoUnlocked:Boolean(document.getElementById("v299FullAuto")?.checked),
-     fullAutoEnabled:Boolean(s.fullAutoEnabled && document.getElementById("v299FullAuto")?.checked),
+     fullAutoEnabled:Boolean((curSP()?.save_data?.fullAutoEnabled ?? false) && document.getElementById("v299FullAuto")?.checked),
     dungeonBatchUnlocked:Boolean(document.getElementById("v279DungeonBatch")?.checked),
     combatSpeed:Number(document.getElementById("v222CombatSpeed")?.value||1)
   };
