@@ -467,10 +467,10 @@ function renderZones(){
  $("#zones").innerHTML=ZONES.map((z,i)=>{const weak=i<best,locked=i>best;return `<div class="zone ${i===save.zone?"active":""} ${locked?"locked":""} ${weak?"zone-too-weak":""}" data-zone="${i}"><b>${z.icon} ${z.name}</b><small>${z.enemy} · Ajánlott erő: ${fmt(z.need)} · 🛡️ Ajánlott DEF: ${fmt(recommendedDefenseV271(i,save.wave))}</small><small>Drop: ${(z.drop*100).toFixed(0)}% · 💰 Fix ${fmt(zoneMobGold(i))} arany / mob · 🌊 Wave haladás</small>${weak?'<strong class="zone-cap-badge">⬆️ LEZÁRT KORÁBBI TERÜLET</strong>':locked?'<strong class="zone-cap-badge">🔒 MÉG NINCS FELOLDVA</strong>':""}</div>`}).join("");
  $$("[data-zone]").forEach(e=>e.onclick=()=>{let i=+e.dataset.zone,current=strongestUnlockedZone();if(i>current)return toast("🔒 Ezt a területet még nem oldottad fel.");if(i<current)return toast("⬆️ A korábbi területek lezárultak. Folytasd a jelenlegi területen!");grantStarterGearV260(i);save.zone=i;save.waveKills=0;save.waveBoss=false;save.bossHp=0;enemyHp=normalEnemyMaxHp();persist();renderAll();toast("🗺️ "+ZONES[i].name)})
 }
-function progressionMinimumZoneV260(){const w=Math.max(1,Number(save.wave||1)),p=Math.max(0,Number(save.paragonLevel||0)),pr=Math.max(0,Number(save.prestigeLevel||0)),waveSteps=[1,25,75,150,250,400,650,950];let byWave=0;waveSteps.forEach((n,i)=>{if(w>=n)byWave=i});const byParagon=p>=25?7:p>=17?6:p>=12?5:p>=8?4:p>=5?3:p>=3?2:p>=1?1:0,byPrestige=Math.min(7,Math.floor(pr/15));return Math.min(ZONES.length-1,Math.max(byWave,byParagon,byPrestige,Number(save.highestZoneEver||0)))}
+function progressionMinimumZoneV260(){const w=Math.max(1,Number(save.wave||1)),waveSteps=[1,25,75,150,250,400,650,950];while(waveSteps.length<ZONES.length)waveSteps.push(waveSteps.at(-1)+400);let byWave=0;waveSteps.forEach((n,i)=>{if(w>=n)byWave=i});return Math.min(ZONES.length-1,byWave)}
 function equipBestSilentV260(){Object.keys(SLOT_NAMES).forEach(slot=>{const choices=save.inventory.filter(x=>x&&x.slot===slot&&Number.isFinite(Number(x.id))).sort((a,b)=>itemScore(b)-itemScore(a));if(choices.length)save.equipped[slot]=choices[0].id})}
 function grantStarterGearV260(){equipBestSilentV260();return false}
-function strongestUnlockedZone(){let byPower=0,p=power();ZONES.forEach((z,i)=>{if(p>=Number(z.need||0))byPower=i});const best=Math.min(ZONES.length-1,Math.max(byPower,progressionMinimumZoneV260()));save.highestZoneEver=Math.max(Number(save.highestZoneEver||0),best);return best}
+function strongestUnlockedZone(){const best=progressionMinimumZoneV260();save.highestZoneEver=best;return best}
 function ensurePowerAppropriateZone(){const best=strongestUnlockedZone();if(save.zone<best){grantStarterGearV260(best);save.zone=best;save.highestZoneEver=Math.max(Number(save.highestZoneEver||0),best);save.waveBoss=false;save.bossHp=0;enemyHp=normalEnemyMaxHp();persist();toast(`🗺️ Kötelező területváltás: ${ZONES[best].name}`);return true}return false}
 function renderBaseUpgrades(){
  $("#baseUpgrades").innerHTML=BASE_UPS.map(d=>`<div class="upgrade-row"><div class="upgrade-icon">${d.icon}</div><div><b>${d.name} · Lv.${save.base[d.key]}</b><small>${d.desc}</small></div><button data-base="${d.key}" ${save.gold<baseCost(d)?"disabled":""}>${fmt(baseCost(d))} 💰</button></div>`).join("");
@@ -974,7 +974,7 @@ function doPrestige(automatic=false){
  save.auraTokens++;
 
  // A normál karakter újraindul; a vagyon, kill és tartós rendszerek megmaradnak.
- save.level=1;save.xp=0;save.wave=1;save.waveKills=0;save.waveGoal=10;save.waveBoss=false;save.bossHp=0;save.zone=0;save.gearTrialFailsV262=0;save.farmActivityV264={drops:0,bosses:0,upgrades:0,dungeons:0};save.lastFarmCheckpointV264=0;
+ save.level=1;save.xp=0;save.wave=1;save.waveKills=0;save.waveGoal=10;save.waveBoss=false;save.waveRiftBossV284=false;save.bossHp=0;save.zone=0;save.highestZoneEver=0;save.gearTrialFailsV262=0;save.farmActivityV264={drops:0,bosses:0,upgrades:0,dungeons:0};save.lastFarmCheckpointV264=0;
  save.base={weaponTraining:1,armorTraining:1,mining:1,luck:1};
  save.gold=0;save.gems=0;save.ore=0;
  if(save.autoDeleteSettings)save.autoDeleteSettings.enabled=false;
@@ -1001,7 +1001,7 @@ function doTruePrestige(){
  if(next===75)save.auraTokens=Number(save.auraTokens||0)+5;
  if(next===100)save.petSlotsUnlocked=5;
  save.paragonLevel=0; // A kiosztott Paragon statok és a megmaradt pontok tartósak.
- save.level=1;save.xp=0;save.wave=1;save.waveKills=0;save.waveGoal=8;save.waveBoss=false;save.bossHp=0;save.zone=0;save.gearTrialFailsV262=0;save.farmActivityV264={drops:0,bosses:0,upgrades:0,dungeons:0};save.lastFarmCheckpointV264=0;
+ save.level=1;save.xp=0;save.wave=1;save.waveKills=0;save.waveGoal=8;save.waveBoss=false;save.waveRiftBossV284=false;save.bossHp=0;save.zone=0;save.highestZoneEver=0;save.gearTrialFailsV262=0;save.farmActivityV264={drops:0,bosses:0,upgrades:0,dungeons:0};save.lastFarmCheckpointV264=0;
  save.base={weaponTraining:1,armorTraining:1,mining:1,luck:1};save.gold=0;save.gems=0;save.ore=0;
  if(save.autoDeleteSettings)save.autoDeleteSettings.enabled=false;
  save.inventory=[];save.equipped={weapon:null,helmet:null,armor:null,gloves:null,boots:null,ring:null};
@@ -1495,7 +1495,7 @@ function normalEnemyMaxHp(){
   const g=window.OMI_CONTENT?.gameplay||{},hits=Math.max(1,Number(g.mobTargetHits||2));
   const multipliers=Array.isArray(g.zoneHpMultipliers)?g.zoneHpMultipliers:[],zoneMult=Math.max(.1,Number(multipliers[save.zone]??100)/100);
   const stage=Math.max(8,Number(z.need||1)),waveScale=1+Math.min(4,Math.max(0,Number(save.wave||1)-1)/375);
-  return Math.max(1,Math.floor(stage*1.5*hits/2*waveScale*zoneMult));
+  return Math.max(1,Math.floor(stage*1.5*hits/2*waveScale*zoneMult*combatSpeedHpMultiplierV282()));
 }
 function waveKillRequirement(wave){
   wave=Math.max(1,Number(wave||1));
@@ -1554,6 +1554,7 @@ function isBossCheckpointWave(wave){
 }
 function restartCurrentBossWave(){
   save.waveBoss=false;
+  save.waveRiftBossV284=false;
   save.bossHp=0;
   save.waveKills=0;
   // A játékos ugyanazon a wave-en marad és újra teljesíti.
@@ -1639,6 +1640,7 @@ function effectiveCombatSpeed(){
  const allowed=n===10&&!save.speed10Unlocked?3:n;
  return allowed*(1+Math.min(.25,Number(save.prestigeLevel||0)*.0025));
 }
+function combatSpeedHpMultiplierV282(){const speed=[1,2,3,10].includes(Number(save.combatSpeed))?Number(save.combatSpeed):1,g=window.OMI_CONTENT?.gameplay||{},cfg={1:1,2:1.35,3:1.75,10:3.5,...(g.combatSpeedHpMultipliers||{})};return Math.max(1,Number(cfg[speed]||1))}
 function setCombatSpeed(n){
  n=Number(n);
  if(![1,2,3,10].includes(n))return;
@@ -1650,6 +1652,7 @@ function setCombatSpeed(n){
    return;
  }
  save.combatSpeed=n;
+ enemyHp=save.waveBoss?v10BossMaxHp():normalEnemyMaxHp();if(save.waveBoss)save.bossHp=enemyHp;
  persist();
  if(currentUser&&cloudReady){cloudSave();setTimeout(()=>cloudSave(),750)}
  if(typeof v10RestartTimers==="function")v10RestartTimers();
@@ -1669,6 +1672,7 @@ function renderCombatSpeed(){
  });
  const premium=$("#speed10PurchaseState");
  if(premium)premium.textContent=save.speed10Unlocked?"✅ Aktiválva":"🔒 Nincs aktiválva";
+ const note=document.querySelector(".speed-note-v165");if(note)note.textContent=`Aktuális HP-terhelés: ${combatSpeedHpMultiplierV282().toFixed(2)}× · 1×: 100% · 2×: 135% · 3×: 175% · 10×: 350%`;
 }
 document.addEventListener("click",e=>{
  const b=e.target.closest?.(".combat-speed-btn");
@@ -1713,9 +1717,10 @@ function v10AwardNormalKill(){
    if(isBossCheckpointWave(save.wave)){
      // Minden wave utolsó normál killje után automatikusan boss jön.
      save.waveBoss=true;
+     save.waveRiftBossV284=Math.random()<.03;
      save.bossHp=v10BossMaxHp();
      enemyHp=save.bossHp;
-     $("#combatLog").textContent=`👹 Wave ${save.wave} BOSS érkezett! Ha legyőz, ezt a wave-et újra kell kezdened.`;
+     $("#combatLog").textContent=save.waveRiftBossV284?`🌀 RITKA HASADÉK BOSS érkezett! Legyőzve garantált +5 wave.`:`👹 Wave ${save.wave} BOSS érkezett! Ha legyőz, ezt a wave-et újra kell kezdened.`;
    }else{
      const old=save.wave;
      if(!passFarmCheckpointV262(old)){$("#combatLog").textContent=`⚔️ Wave ${old} Farm aktivitás: fejlessz tárgyat vagy teljesíts dungeont!`;v161LiveHud();return}
@@ -1732,7 +1737,11 @@ function v10AwardNormalKill(){
  }
  v161LiveHud();
 }
-function rollBossWaveAdvance(){const r=Math.random()*100;if(r<3)return 5;if(r<8)return 3;if(r<18)return 2;return 1}
+function rollBossWaveAdvance(){if(save.waveRiftBossV284)return 5;const r=Math.random()*100;if(r<5)return 3;if(r<15)return 2;return 1}
+function riftBossRewardFxV284(){
+ const old=document.querySelector("#riftBossRewardV284");if(old)old.remove();const fx=document.createElement("div");fx.id="riftBossRewardV284";fx.className="rift-boss-reward-v284";fx.innerHTML=`<div class="rift-burst-v284"></div><section><i>🌀</i><small>3%-OS RITKA BOSS</small><h2>HASADÉK BOSS LEGYŐZVE!</h2><strong>+5 WAVE</strong><p>A tér meghasadt, és előreléptél öt teljes wave-et.</p></section>${Array.from({length:24},(_,i)=>`<b style="--i:${i}">${i%3===0?"✦":i%3===1?"◆":"●"}</b>`).join("")}`;document.body.appendChild(fx);setTimeout(()=>fx.remove(),4200);
+ try{const AC=window.AudioContext||window.webkitAudioContext,ctx=new AC(),now=ctx.currentTime;[659.25,783.99,987.77].forEach((freq,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type="sine";o.frequency.value=freq;g.gain.setValueAtTime(0,now+i*.13);g.gain.linearRampToValueAtTime(.18,now+i*.13+.025);g.gain.exponentialRampToValueAtTime(.001,now+i*.13+.5);o.connect(g).connect(ctx.destination);o.start(now+i*.13);o.stop(now+i*.13+.52)});setTimeout(()=>ctx.close(),1300)}catch(e){}
+}
 function v10AwardBossKill(){
  const z=ZONES[save.zone];
  const overfarm=paragonOverfarmV274(),reward=Math.floor(bossGoldReward(V10CFG.defaultBossFixedGold??1000)*overfarm.rewardMult);
@@ -1745,7 +1754,7 @@ function v10AwardBossKill(){
  save.waveBoss=false;
  save.bossHp=0;
  if(!passFarmCheckpointV262(oldWave)){$("#combatLog").textContent=`⚔️ A boss elesett, de Wave ${oldWave} Farm aktivitása még nincs teljesítve.`;v161LiveHud();return}
- const rolledAdvance=rollBossWaveAdvance(),waveAdvance=advanceWaveV274(rolledAdvance);
+ const riftBoss=Boolean(save.waveRiftBossV284),rolledAdvance=rollBossWaveAdvance(),waveAdvance=advanceWaveV274(rolledAdvance);save.waveRiftBossV284=false;if(riftBoss)riftBossRewardFxV284();
  save.waveKills=0;
  applyWaveGoal();
  applyWaveGoal();
@@ -1974,7 +1983,7 @@ v10AwardBossKill=function(){
  save.waveBoss=false;
  save.bossHp=0;
  if(!passFarmCheckpointV262(oldWave)){$("#combatLog").textContent=`⚔️ ${b.name||"Boss"} elesett, de a Wave ${oldWave} Farm aktivitása még nincs teljesítve.`;persist();v161LiveHud();return}
- const rolledAdvance=rollBossWaveAdvance(),waveAdvance=advanceWaveV274(rolledAdvance);
+ const riftBoss=Boolean(save.waveRiftBossV284),rolledAdvance=rollBossWaveAdvance(),waveAdvance=advanceWaveV274(rolledAdvance);save.waveRiftBossV284=false;if(riftBoss)riftBossRewardFxV284();
  save.waveKills=0;
  applyWaveGoal();
  enemyHp=ZONES[save.zone].hp;

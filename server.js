@@ -105,6 +105,25 @@ function deepMergeSave(target,patch){
   return out;
 }
 
+function serverPowerV283(s={}){
+ const n=v=>Number.isFinite(Number(v))?Number(v):0,skills=s.skills||{},rank=k=>Math.max(0,n(skills[k]));
+ const skillPower=rank("root")*.02+rank("power")*.025+rank("berserk")*.02+rank("warMaster")*.03;
+ const petSkill=rank("pet")*.03+rank("pack")*.03+rank("bond")*.025+rank("instinct")*.025+rank("alpha")*.02+rank("evolution")*.03+rank("petMaster")*.04;
+ const inv=Array.isArray(s.inventory)?s.inventory:[],eq=s.equipped||{},items=Object.values(eq).map(id=>inv.find(x=>String(x?.id)===String(id))).filter(Boolean);
+ let atk=0,def=0,atkPct=0,defPct=0;
+ for(const it of items){const mult=1+Math.max(0,n(it.plus))*.1;atk+=Math.floor(Math.max(0,n(it.atk))*mult);def+=Math.floor(Math.max(0,n(it.def))*mult);for(const o of (Array.isArray(it.options)?it.options:[]).slice(0,5)){if(o?.key==="atkPct")atkPct+=n(o.value);if(o?.key==="defPct")defPct+=n(o.value)}}
+ const pets=Array.isArray(s.pets)?s.pets:[],active=(Array.isArray(s.activePets)?s.activePets:[]).slice(0,Math.max(1,n(s.petSlotsUnlocked)||1));let petDamage=0;
+ for(const i of active){const p=pets[i];if(!p)continue;const entries=[{bonus:p.bonus||"damage",value:Math.max(0,n(p.value))},...(Array.isArray(p.extraOptions)?p.extraOptions:[])];for(const o of entries){const v=Math.max(0,n(o?.value))*(1+petSkill);if(o?.bonus==="damage")petDamage+=v;else if(o?.bonus==="all")petDamage+=v}}
+ atk*=1+Math.min(1.5,petDamage);
+ const level=Math.max(1,n(s.level)||1),paragon=Math.max(0,n(s.paragonLevel)),prestige=Math.max(0,Math.min(100,n(s.prestigeLevel))),base=s.base||{},ps=s.paragonStats||{};
+ const damage=Math.max(1,Math.floor((5+level*.65+Math.max(1,n(base.weaponTraining)||1)*2.2+atk)*(1+skillPower+Math.min(4,n(ps.damage)*.02*paragon))*(1+atkPct/100)*(1+Math.min(.5,prestige*.005))));
+ const zone=Math.max(0,n(s.zone)),wave=Math.max(1,n(s.wave)||1),target=Math.max(10,Math.floor(30*(1+zone*1.2)*Math.pow(1+wave/100,.5)));
+ const rawDef=Math.max(0,(def+Math.max(1,n(base.armorTraining)||1)*2+level*.3+prestige*1.5)*(1+defPct/100)),effectiveDef=Math.max(0,Math.floor(target*(3*rawDef/(rawDef+target*2))));
+ const mount=s.mounts?.[s.activeMount],mountMult=1+Math.max(0,Math.floor(n(mount?.level)))*.02;
+ const raw=(damage*1.2+effectiveDef*.8+level*.8+Math.max(1,n(base.mining)||1)*.5+Math.max(1,n(base.luck)||1)*.5)*mountMult,cap=30000;
+ return Math.max(0,Math.floor(cap*raw/(raw+cap)));
+}
+
 async function init(){
   await q(`
     CREATE TABLE IF NOT EXISTS users(
@@ -381,6 +400,26 @@ async function init(){
     updateContent.updates.unshift({id:"v22_81",version:"V22.81",title:"Boss közben is stabil összerő",date:"2026-08-21",summary:"Az összerő többé nem ugrál például 28k és 44k között a normál mob és a wave boss váltakozásakor.",changes:["A hiba oka az volt, hogy az összerő a pillanatnyilag aktív Boss sebzés bónuszt is beleszámolta.","A stabil összerő most kizárólag a karakter állandó alapsebzéséből számolódik.","A Boss sebzés opció és a képességfa Boss sebzése továbbra is teljes erővel működik boss harc közben.","A harci Boss sebzés többé nem módosítja a karakterlapon látható összerőt.","A ranglista, területfeloldás, dungeonkövetelmény és PvP ugyanazt a stabil erőt használja.","Normál mob és boss váltásakor az erőérték változatlan marad.","Valódi felszerelés-, pet-, hátas- vagy statváltozás továbbra is azonnal frissíti az összerőt."],visible:false,createdAt:new Date().toISOString()});
     await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_82")){
+    updateContent.updates.unshift({id:"v22_82",version:"V22.82",title:"Paragon farmciklus és gyorsítási HP-terhelés",date:"2026-08-21",summary:"Paragon után az Automata harc valóban az első területről indul újra, a nagyobb sebességek pedig több mob- és boss HP-val járnak.",changes:["Paragon és Prestige után a karakter Wave 1-re, az első területre és normál mobállapotba kerül.","A korábbi legmagasabb terület minden új ciklusban alaphelyzetbe áll.","A megmaradó Paragon-, Prestige-, pet- vagy hátaserő nem ugorhatja át azonnal a területeket.","A területek minden ciklusban wave alapján nyílnak meg újra.","Az egyedi további területek 950 wave után 400 wave-enként nyílnak.","A 2× gyorsítás 1,35× mob- és boss HP-t ad.","A 3× gyorsítás 1,75× mob- és boss HP-t ad.","A 10× gyorsítás 3,5× mob- és boss HP-t ad.","A gyorsítás továbbra is előnyös, de nem teszi aránytalanul gyorssá a wave-haladást.","Sebességváltáskor az aktuális ellenfél HP-ja azonnal az új terhelésre áll.","A HP-szorzók a játékmenet-konfiguráció combatSpeedHpMultipliers mezőjében módosíthatók.","A ranglistán tárolt régi, 30 000 feletti erők szerveroldali korrekciót kapnak."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_83")){
+    updateContent.updates.unshift({id:"v22_83",version:"V22.83",title:"Valós ranglistaerő minden játékosnál",date:"2026-08-21",summary:"A ranglista szerveroldalon, a teljes karaktermentésből számolja újra az összerőt.",changes:["A ranglista többé nem bízik a böngészőből küldött erőértékben.","A szerver a felszerelésből, opciókból, petekből, skillekből, Paragonból, Prestige-ből, DEF-ből és hátasból számol.","A boss közbeni ideiglenes sebzésbónusz nem változtatja meg a ranglistaerőt.","Minden korábban regisztrált játékos ereje egyszerre újraszámítódik, belépés nélkül is.","A régi DEF-értékek ugyanabban a migrációban kerülnek az új balanszra."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_84")){
+    updateContent.updates.unshift({id:"v22_84",version:"V22.84",title:"Ritka Hasadék Boss jutalomesemény",date:"2026-08-21",summary:"Minden wave bossnál 3% eséllyel ritka Hasadék Boss érkezhet, amely garantáltan öt wave-et ugrik.",changes:["A Hasadék Boss megjelenési esélye pontosan 3%.","Legyőzése garantált +5 wave-haladást ad.","A normál bossok külön kisebb véletlen wave-ugrásai megmaradnak.","Győzelemkor teljes képernyős kék–arany effekt és nagy +5 WAVE felirat jelenik meg.","A ritka győzelmet háromhangú csilingelés jelzi."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
+  const powerCapMigration="v2282_rank_power_cap_30000";
+  if(!(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[powerCapMigration])).rows[0]){await q("UPDATE game_saves SET power=LEAST(power,30000)");await q("INSERT INTO system_migrations(migration_key) VALUES($1)",[powerCapMigration])}
+  const realPowerMigration="v2283_recalculate_real_power";
+  if(!(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[realPowerMigration])).rows[0]){
+    const rows=(await q("SELECT user_id,save_data FROM game_saves")).rows;
+    for(const row of rows){const s=row.save_data||{};if(!s.defBalanceV275){for(const it of (Array.isArray(s.inventory)?s.inventory:[])){if(Number(it?.def)>0)it.def=Math.max(1,Math.round(Number(it.def)*.28))}s.defBalanceV275=true}await q("UPDATE game_saves SET save_data=$1,power=$2,updated_at=NOW() WHERE user_id=$3",[s,serverPowerV283(s),row.user_id])}
+    await q("INSERT INTO system_migrations(migration_key) VALUES($1)",[realPowerMigration]);
+  }
   const capMigration="v2246_wallet_caps";
   const capDone=(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[capMigration])).rows[0];
   if(!capDone){
@@ -430,7 +469,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.81.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.84.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{
@@ -635,7 +674,6 @@ app.get("/api/me",auth,async(req,res)=>{
 app.post("/api/save",auth,async(req,res)=>{
   try{
     let data=req.body.save;
-    const power=Math.max(0,Math.floor(Number(req.body.power||0)));
     if(!data || typeof data!=="object")return res.status(400).json({error:"Hibás mentés."});
     const stored=(await q("SELECT save_data FROM game_saves WHERE user_id=$1",[req.user.id])).rows[0]?.save_data||{};
     const pending=(await q("SELECT patch FROM admin_pending_overrides WHERE user_id=$1",[req.user.id])).rows[0];
@@ -645,6 +683,7 @@ app.post("/api/save",auth,async(req,res)=>{
     data.speed10Unlocked=Boolean(premiumSource.speed10Unlocked);
     data.autoParagonUnlocked=Boolean(premiumSource.autoParagonUnlocked);
     data.dungeonBatchUnlocked=Boolean(premiumSource.dungeonBatchUnlocked);
+    const power=serverPowerV283(data);
     const requestedWallet={gold:Number(data.gold||0),gems:Number(data.gems||0),ore:Number(data.ore||0),soul:Number(data.soul||0)};
     const economyConfig=await mainConfig(),caps={gold:5000000,gems:50000,ore:100000,soul:50000,...(economyConfig.economyCaps||{})};
     ["gold","gems","ore","soul"].forEach(k=>{const cap=Math.max(1,Math.floor(Number(caps[k])||1)),value=Math.floor(Number(data[k])||0);data[k]=Math.max(0,Math.min(cap,value))});
