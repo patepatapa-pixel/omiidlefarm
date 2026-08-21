@@ -741,11 +741,18 @@ app.post("/api/save",auth,async(req,res)=>{
     const overrideApplied=Boolean(pending?.patch && Object.keys(pending.patch).length);
     if(overrideApplied)data=deepMergeSave(data,pending.patch);
     const premiumSource=overrideApplied?data:stored;
+    const prestigeAdvancedV298=Math.max(0,Number(data.prestigeLevel||0))>Math.max(0,Number(stored.prestigeLevel||0));
+    if(prestigeAdvancedV298){
+      data.pvpBuild={atk:0,hp:0,def:0,block:0,luck:0,double:0};
+      data.paragonStats={damage:0,gold:0,drop:0,crit:0};
+      data.paragonPoints=0;
+      delete data.pvpSoulSession;
+    }
     data.speed10Unlocked=Boolean(stored.speed10Unlocked || premiumSource.speed10Unlocked);
     data.autoParagonUnlocked=Boolean(premiumSource.autoParagonUnlocked);
     data.dungeonBatchUnlocked=Boolean(stored.dungeonBatchUnlocked || premiumSource.dungeonBatchUnlocked);
     // PvP progression/session is server-authoritative. A stale browser autosave must never roll it back.
-    if(stored && stored.pvpBuild && typeof stored.pvpBuild==="object")data.pvpBuild=pvpBuild(stored);
+    if(!prestigeAdvancedV298 && stored && stored.pvpBuild && typeof stored.pvpBuild==="object")data.pvpBuild=pvpBuild(stored);
     if(stored && stored.pvpSoulSession && stored.pvpSoulSession.active){
       data.pvpSoulSession={...stored.pvpSoulSession,active:true,budget:Math.max(0,Math.floor(Number(stored.pvpSoulSession.budget||0)))};
     }
@@ -976,9 +983,17 @@ function pvpBuild(save){
     double:Math.max(0,Math.min(40,Math.floor(Number(raw.double||0))))
   };
 }
-function pvpUpgradeCost(stat,level){
+function pvpUpgradeDiscount(save){
+  save=save||{};
+  const paragon=Math.max(0,Math.floor(Number(save.paragonLevel||0)));
+  const prestige=Math.max(0,Math.floor(Number(save.prestigeLevel||0)));
+  // V22.98: Paragon -1% / szint, Prestige -2% / szint, összesen max. -70%.
+  return Math.min(.70,paragon*.01+prestige*.02);
+}
+function pvpUpgradeCost(stat,level,save){
   const base={atk:3,hp:3,def:3,block:6,luck:5,double:7}[stat]||5;
-  return Math.max(1,Math.floor(base*Math.pow(1.11,Math.max(0,Number(level||0)))));
+  const raw=base*Math.pow(1.11,Math.max(0,Number(level||0)));
+  return Math.max(1,Math.floor(raw*(1-pvpUpgradeDiscount(save))));
 }
 function pvpStats(save){
   save=save||{};
@@ -1024,8 +1039,8 @@ app.post("/api/pvp/session/start",auth,async(req,res)=>{
       save.soul=0; // new farmed soulstones collect here while PvP is open
       await q("UPDATE game_saves SET save_data=$1,updated_at=NOW() WHERE user_id=$2",[save,req.user.id]);
     }
-    const levels=pvpBuild(save),stats=pvpStats(save),costs={};for(const k of Object.keys(levels))costs[k]=pvpUpgradeCost(k,levels[k]);
-    res.json({ok:true,budget:Math.max(0,Math.floor(Number(sess.budget||0))),pending:Math.max(0,Math.floor(Number(save.soul||0))),levels,stats,costs});
+    const levels=pvpBuild(save),stats=pvpStats(save),costs={};for(const k of Object.keys(levels))costs[k]=pvpUpgradeCost(k,levels[k],save);
+    res.json({ok:true,budget:Math.max(0,Math.floor(Number(sess.budget||0))),pending:Math.max(0,Math.floor(Number(save.soul||0))),levels,stats,costs,discountPct:Math.round(pvpUpgradeDiscount(save)*100)});
   }catch(e){console.error("PVP SESSION START ERROR:",e);res.status(500).json({error:"A PvP lélekkő keret nem indítható."})}
 });
 
@@ -1048,8 +1063,8 @@ app.get("/api/pvp/profile",auth,async(req,res)=>{
   const row=(await q("SELECT save_data FROM game_saves WHERE user_id=$1",[req.user.id])).rows[0];
   if(!row)return res.status(404).json({error:"Mentés nem található."});
   const save=row.save_data||{},levels=pvpBuild(save),stats=pvpStats(save),sess=save.pvpSoulSession;
-  const costs={};for(const k of Object.keys(levels))costs[k]=pvpUpgradeCost(k,levels[k]);
-  res.json({levels,stats,costs,soul:Math.max(0,Math.floor(Number(sess?.active?sess.budget:save.soul||0))),pendingSoul:Math.max(0,Math.floor(Number(sess?.active?save.soul:0))),sessionActive:Boolean(sess?.active)});
+  const costs={};for(const k of Object.keys(levels))costs[k]=pvpUpgradeCost(k,levels[k],save);
+  res.json({levels,stats,costs,soul:Math.max(0,Math.floor(Number(sess?.active?sess.budget:save.soul||0))),pendingSoul:Math.max(0,Math.floor(Number(sess?.active?save.soul:0))),sessionActive:Boolean(sess?.active),discountPct:Math.round(pvpUpgradeDiscount(save)*100)});
 });
 app.post("/api/pvp/upgrade",auth,async(req,res)=>{
   try{
@@ -1060,13 +1075,13 @@ app.post("/api/pvp/upgrade",auth,async(req,res)=>{
     if(!row)return res.status(404).json({error:"Mentés nem található."});
     const save=row.save_data||{},levels=pvpBuild(save),lv=levels[stat],sess=save.pvpSoulSession;
     if(lv>=max[stat])return res.status(400).json({error:"Ez a PvP stat már maximumon van."});
-    const cost=pvpUpgradeCost(stat,lv);
+    const cost=pvpUpgradeCost(stat,lv,save);
     const available=Math.max(0,Math.floor(Number(sess?.active?sess.budget:save.soul||0)));
     if(available<cost)return res.status(400).json({error:`Nincs elég lélekkő. Kell: ${cost}`});
     if(sess?.active){sess.budget=available-cost;save.pvpSoulSession=sess}else save.soul=available-cost;
     save.pvpBuild={...levels,[stat]:lv+1};
     await q("UPDATE game_saves SET save_data=$1,updated_at=NOW() WHERE user_id=$2",[save,req.user.id]);
-    res.json({ok:true,cost,soul:Math.max(0,Math.floor(Number(sess?.active?sess.budget:save.soul||0))),pendingSoul:Math.max(0,Math.floor(Number(sess?.active?save.soul:0))),levels:save.pvpBuild,stats:pvpStats(save),sessionActive:Boolean(sess?.active)});
+    res.json({ok:true,cost,soul:Math.max(0,Math.floor(Number(sess?.active?sess.budget:save.soul||0))),pendingSoul:Math.max(0,Math.floor(Number(sess?.active?save.soul:0))),levels:save.pvpBuild,stats:pvpStats(save),sessionActive:Boolean(sess?.active),discountPct:Math.round(pvpUpgradeDiscount(save)*100)});
   }catch(e){console.error("PVP UPGRADE ERROR:",e);res.status(500).json({error:"A PvP fejlesztés nem sikerült."});}
 });
 

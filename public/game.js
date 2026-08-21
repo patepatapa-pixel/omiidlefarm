@@ -981,6 +981,24 @@ function renderParagon(){
    $$("[data-aura]").forEach(b=>b.onclick=()=>buyOrEquipAura(b.dataset.aura));
  }
 }
+// V22.97 - Prestige/Paragon must never remove purchased/admin-enabled multipliers.
+function premiumMultiplierSnapshotV297(){
+  return {
+    speed10Unlocked:Boolean(save.speed10Unlocked),
+    dungeonBatchUnlocked:Boolean(save.dungeonBatchUnlocked),
+    combatSpeed:[1,2,3,10].includes(Number(save.combatSpeed))?Number(save.combatSpeed):1,
+    dungeonBatchV278:save.dungeonBatchV278&&typeof save.dungeonBatchV278==="object"?structuredClone(save.dungeonBatchV278):{}
+  };
+}
+function restorePremiumMultipliersV297(p){
+  if(!p)return;
+  save.speed10Unlocked=Boolean(save.speed10Unlocked||p.speed10Unlocked);
+  save.dungeonBatchUnlocked=Boolean(save.dungeonBatchUnlocked||p.dungeonBatchUnlocked);
+  save.combatSpeed=(p.combatSpeed===10&&save.speed10Unlocked)?10:([1,2,3].includes(p.combatSpeed)?p.combatSpeed:Number(save.combatSpeed||1));
+  save.dungeonBatchV278={...(p.dungeonBatchV278||{}),...(save.dungeonBatchV278||{})};
+  preservePremiumUnlocksV296?.();
+}
+
 function doPrestige(automatic=false){
  const req=paragonWaveRequirement();
  if(save.wave<req)return toast(`🔒 Következő Paragon követelmény: Wave ${req}.`);
@@ -1010,15 +1028,20 @@ function doTruePrestige(){
  if(save.prestigeLevel>=cap)return toast("👑 Elérted a Prestige 100 maximumot!");
  if(save.paragonLevel<req)return toast(`🔒 Prestige ${save.prestigeLevel+1} követelménye: ${req} Paragon.`);
  const next=save.prestigeLevel+1,tokenReward=1+(next%10===0?2:0);
- if(!confirm(`PRESTIGE ${next}?\n\nKövetelmény teljesítve: ${save.paragonLevel} / ${req} Paragon.\nJutalom: ${tokenReward} Prestige token és állandó Prestige erősítés.\n\nRESETELŐDIK: a felhasznált Paragon-szint, wave, karakter szint/XP, normál fejlesztések, inventory, felszerelés, arany, gyémánt és érc.\nMEGMARAD: kiosztott Paragon statok és pontok, teljes képességfa, Prestige tokenek, lélekkő, dungeon- és aura token, petek, hátasok, aurák, achievementek, kill, PvP rating, 10× gyorsítás és Automata Paragon.`))return;
+ if(!confirm(`PRESTIGE ${next}?\n\nKövetelmény teljesítve: ${save.paragonLevel} / ${req} Paragon.\nJutalom: ${tokenReward} Prestige token és állandó Prestige erősítés.\n\nRESETELŐDIK: Paragon-szint, kiosztott Paragon statok/pontok, PvP statok, wave, karakter szint/XP, normál fejlesztések, inventory, felszerelés, arany, gyémánt és érc.\nMEGMARAD: teljes képességfa, Prestige tokenek, lélekkő, dungeon- és aura token, petek, hátasok, aurák, achievementek, kill, PvP rating és prémium szorzók.\n\nPvP újraépítési kedvezmény: Paragononként -1%, Prestige szintenként -2%, maximum -70%.`))return;
  save.prestigeLevel=next;save.prestigeTokens=Number(save.prestigeTokens||0)+tokenReward;
+ // V22.98: Prestige után a PvP és kiosztott Paragon statok újraépítendők.
+ save.paragonStats={damage:0,gold:0,drop:0,crit:0};
+ save.paragonPoints=0;
+ save.pvpBuild={atk:0,hp:0,def:0,block:0,luck:0,double:0};
+ delete save.pvpSoulSession;
  if(next===5)save.auraTokens=Number(save.auraTokens||0)+1;
  if(next===10)save.prestigeTokens+=2;
  if(next===25)save.mountShards=Number(save.mountShards||0)+10;
  if(next===50)save.tickets=Number(save.tickets||0)+5;
  if(next===75)save.auraTokens=Number(save.auraTokens||0)+5;
  if(next===100)save.petSlotsUnlocked=5;
- save.paragonLevel=0; // A kiosztott Paragon statok és a megmaradt pontok tartósak.
+ save.paragonLevel=0; // V22.98: Prestige után a Paragon statok/pontok nulláról épülnek újra.
  save.level=1;save.xp=0;save.wave=1;save.waveKills=0;save.waveGoal=8;save.waveBoss=false;save.waveRiftBossV284=false;save.bossHp=0;save.zone=0;save.highestZoneEver=0;save.gearTrialFailsV262=0;save.farmActivityV264={drops:0,bosses:0,upgrades:0,dungeons:0};save.lastFarmCheckpointV264=0;
  save.base={weaponTraining:1,armorTraining:1,mining:1,luck:1};save.gold=0;save.gems=0;save.ore=0;
  if(save.autoDeleteSettings)save.autoDeleteSettings.enabled=false;
@@ -4181,6 +4204,27 @@ document.addEventListener("click",e=>{
     return out;
   }
 
+  function runDungeonBatchFallbackV298(d,batchCount=1){
+    const s=s218();ensureDungeonState();
+    batchCount=[1,2,3,5,10].includes(Number(batchCount))?Number(batchCount):1;
+    if(batchCount===10&&!s.dungeonBatchUnlocked){if(typeof toast==="function")toast("🔒 A 10× dungeonfutam nincs feloldva.");return}
+    const totalCost=Number(d.ticketCost||1)*batchCount,tickets=Number(s.tickets||0);
+    if(tickets<totalCost){if(typeof toast==="function")toast(`🎫 ${batchCount} futamhoz ${totalCost} jegy kell.`);return}
+    s.tickets=tickets-totalCost;s.dungeonStats.runs+=batchCount;
+    let wins=0,losses=0,total={gold:0,ore:0,gems:0,soul:0};
+    for(let i=0;i<batchCount;i++){
+      const win=d.safe||Math.random()<successChance(d);
+      if(win){wins++;const rw=applyRewards(d);Object.keys(total).forEach(k=>total[k]+=Number(rw[k]||0));}
+      else losses++;
+    }
+    s.dungeonStats.wins+=wins;s.dungeonStats.losses+=losses;s.dungeonStats.streak=losses?0:Number(s.dungeonStats.streak||0)+wins;
+    s.stats=s.stats||{};s.stats.dungeons=Number(s.stats.dungeons||0)+wins;
+    if(wins)addFarmActivityV264("dungeons",wins);
+    s.dungeonClears[d.id]=Number(s.dungeonClears[d.id]||0)+wins;
+    if(typeof persist==="function")persist();if(typeof renderAll==="function")renderAll();renderDungeonV218();
+    if(typeof toast==="function")toast(`🏆 ${d.name}: ${wins}/${batchCount} siker · +${fmt218(total.gold)} arany`);
+  }
+
   function runDungeon(d){
     const s=s218();
     ensureDungeonState();
@@ -4334,7 +4378,11 @@ document.addEventListener("click",e=>{
     root.querySelectorAll("[data-v218-dungeon]").forEach(btn=>{
       btn.onclick=()=>{
         const d=DUNGEONS_V218.find(x=>x.id===btn.dataset.v218Dungeon);
-        if(d) runDungeon(d);
+        if(!d)return;
+        const selected=[1,2,3,5,10].includes(Number(s.dungeonBatchV278?.[d.id]))?Number(s.dungeonBatchV278[d.id]):1;
+        // V22.98: always use the animated battle engine, including true multi-run rewards/clears.
+        if(typeof window.v219StartDungeonBattle==="function")window.v219StartDungeonBattle(d,selected);
+        else runDungeonBatchFallbackV298(d,selected);
       };
     });
     root.querySelectorAll("[data-v278-dungeon-batch]").forEach(sel=>sel.onchange=()=>{s.dungeonBatchV278[sel.dataset.v278DungeonBatch]=Number(sel.value)||1;if(typeof persist==="function")persist();renderDungeonV218()});
@@ -4583,6 +4631,7 @@ document.addEventListener("click",e=>{
     };
 
     drawBattle();
+    setTimeout(()=>triggerDungeonEffect(d.effectType||"rockfall"),80);
     requestAnimationFrame(()=>window.scrollTo({top:stableScrollY,left:window.scrollX,behavior:"auto"}));
 
     battleTimer=setInterval(()=>{

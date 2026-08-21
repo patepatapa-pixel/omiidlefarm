@@ -4506,3 +4506,8 @@ nav.tabs{display:flex!important;flex-wrap:wrap!important;justify-content:center;
 .rift-boss-reward-v284 strong{font-size:22px!important;grid-column:3!important;grid-row:1/4!important}
 .rift-boss-reward-v284 p,.rift-boss-reward-v284>b,.rift-burst-v284{display:none!important}
 @media(max-width:600px){.rift-boss-reward-v284{left:12px!important;right:12px!important;bottom:12px!important;width:auto!important}}
+
+/* V22.98 dungeon battle visual restore */
+#v219DungeonBattle:not(.hidden){animation:v298DungeonAppear .35s ease both}
+@keyframes v298DungeonAppear{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+#v219DungeonBattle.v221-cast .v221-effect-layer{display:block!important;opacity:1!important;visibility:visible!important}
