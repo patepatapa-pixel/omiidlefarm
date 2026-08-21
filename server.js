@@ -240,6 +240,15 @@ async function init(){
   }
   if(!updateContent.updates.some(x=>x&&x.id==="v22_50")){
     updateContent.updates.unshift({id:"v22_50",version:"V22.50",title:"Kaszinó egyenlegjavítás",date:"2026-08-21",summary:"A vesztes kaszinókörök többé semmilyen valutát nem írhatnak jóvá.",changes:["A kaszinó minden körben rögzíti a kezdőegyenleget, tétet, kifizetést és záróegyenleget.","Fizetős vesztes kör eredménye pontosan: kezdőegyenleg mínusz tét.","Ingyen pörgetés elvesztésekor az egyenleg változatlan marad.","A kijelzett nyereség vagy veszteség a tényleges egyenlegváltozást mutatja.","Az utolsó 20 kaszinótranzakció ellenőrzési célból mentésre kerül."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_51")){
+    updateContent.updates.unshift({id:"v22_51",version:"V22.51",title:"Tartós képességfa",date:"2026-08-21",summary:"A képességfa Paragon szintlépés után teljes egészében megmarad.",changes:["A megszerzett képességszintek nem nullázódnak Paragonkor.","A kiosztott és megmaradt képességpontok is megmaradnak.","A Paragon megerősítő ablaka külön felsorolja a tartós képességfát."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
+  }
+  if(!updateContent.updates.some(x=>x&&x.id==="v22_52")){
+    updateContent.updates.unshift({id:"v22_52",version:"V22.52",title:"Rejtett kaszinóesélyek",date:"2026-08-21",summary:"A kaszinó pontos nyerési százalékai kizárólag az admin számára láthatók.",changes:["A játékoskártyákról eltűnt a nyerési esély százaléka.","Az ingyen pörgetés megszerzési százaléka sem látható a játékosnak.","A kifizetési szorzó és a meglévő ingyen pörgetések száma továbbra is látható.","Az adminpanelben minden esély továbbra is állítható."],visible:false,createdAt:new Date().toISOString()});
+    await q("INSERT INTO game_content(key,value,updated_at) VALUES('main',$1,NOW()) ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value,updated_at=NOW()",[updateContent]);
   }
   const capMigration="v2246_wallet_caps";
   const capDone=(await q("SELECT 1 FROM system_migrations WHERE migration_key=$1",[capMigration])).rows[0];
@@ -290,7 +299,7 @@ async function init(){
   }
 }
 
-app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.50.0"}));
+app.get("/api/health",(req,res)=>res.json({ok:true,name:"OMI Idle Farm Online",version:"22.52.0"}));
 
 app.post("/api/register",async(req,res)=>{
   try{
