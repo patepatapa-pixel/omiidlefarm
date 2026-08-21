@@ -5,6 +5,7 @@ const pg=require("pg");
 const bcrypt=require("bcryptjs");
 const jwt=require("jsonwebtoken");
 const cookieParser=require("cookie-parser");
+const vm=require("vm");
 
 const app=express();
 app.set("trust proxy",1);
@@ -164,6 +165,18 @@ async function init(){
       reviewed_by BIGINT REFERENCES users(id) ON DELETE SET NULL
     );
     CREATE INDEX IF NOT EXISTS anticheat_alerts_user_created_idx ON anticheat_alerts(user_id,created_at DESC);
+    CREATE TABLE IF NOT EXISTS ai_development_runs(
+      id BIGSERIAL PRIMARY KEY,
+      admin_id BIGINT REFERENCES users(id) ON DELETE SET NULL,
+      request_text TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'started',
+      summary TEXT,
+      commit_sha TEXT,
+      changed_files JSONB NOT NULL DEFAULT '[]'::jsonb,
+      error_text TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      finished_at TIMESTAMPTZ
+    );
     CREATE TABLE IF NOT EXISTS admin_pending_overrides(
       user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
       patch JSONB NOT NULL DEFAULT '{}'::jsonb,
@@ -1260,6 +1273,162 @@ app.post("/api/admin/player/:id/quick",auth,admin,async(req,res)=>{
   }catch(e){
     console.error("QUICK ADMIN ERROR:",e);
     res.status(500).json({error:"Az admin művelet nem sikerült."});
+  }
+});
+
+
+
+/* ================= V22.92 AI FEJLESZTŐ + GITHUB + RENDER DEPLOY ================= */
+const AI_ALLOWED_FILES=["server.js","public/game.js","public/index.html","public/admin.js","public/admin.html","public/style.css","render.yaml","package.json","README.txt"];
+function aiDevConfig(){
+  return {
+    openai:Boolean(process.env.OPENAI_API_KEY),
+    github:Boolean(process.env.GITHUB_TOKEN&&process.env.GITHUB_REPO),
+    render:Boolean(process.env.RENDER_DEPLOY_HOOK_URL),
+    repo:String(process.env.GITHUB_REPO||""),
+    branch:String(process.env.GITHUB_BRANCH||"main"),
+    model:String(process.env.OPENAI_MODEL||"gpt-5.6")
+  };
+}
+function aiReadProjectFile(rel){
+  if(!AI_ALLOWED_FILES.includes(rel))throw new Error("Nem engedélyezett projektfájl: "+rel);
+  const full=path.join(__dirname,rel);
+  const normalized=path.normalize(full);
+  if(!normalized.startsWith(path.normalize(__dirname+path.sep)))throw new Error("Hibás fájlútvonal.");
+  return require("fs").readFileSync(normalized,"utf8");
+}
+function aiPickContextFiles(prompt){
+  const p=String(prompt||"").toLowerCase();
+  const picked=new Set(["server.js","public/game.js","public/index.html"]);
+  if(/admin|panel|játékos|beállítás|konfigur|moder|boss|pet|dungeon|pvp/.test(p)){picked.add("public/admin.js");picked.add("public/admin.html")}
+  if(/kinézet|design|szín|css|méret|gomb|panel|elrendez|mobil|reszponz|anim|effekt|vizu/.test(p))picked.add("public/style.css");
+  return [...picked];
+}
+function aiExtractText(data){
+  if(typeof data?.output_text==="string"&&data.output_text.trim())return data.output_text;
+  const out=[];
+  for(const item of (data?.output||[]))for(const c of (item?.content||[]))if(typeof c?.text==="string")out.push(c.text);
+  return out.join("\n");
+}
+function aiParseJson(text){
+  let t=String(text||"").trim();
+  t=t.replace(/^```(?:json)?\s*/i,"").replace(/\s*```$/i,"");
+  const a=t.indexOf("{"),b=t.lastIndexOf("}");
+  if(a>=0&&b>a)t=t.slice(a,b+1);
+  return JSON.parse(t);
+}
+async function aiGeneratePatch(requestText){
+  const files=aiPickContextFiles(requestText);
+  let budget=620000,parts=[];
+  for(const rel of files){
+    let content=aiReadProjectFile(rel);
+    if(content.length>budget)content=content.slice(0,budget);
+    budget-=content.length;
+    parts.push(`\n===== FILE: ${rel} =====\n${content}`);
+    if(budget<=0)break;
+  }
+  const instructions=`Te az OMI IDLE FARM webjáték senior fejlesztője vagy. A feladatod kizárólag biztonságos, célzott forráskód-módosítás készítése.\n\nSZABÁLYOK:\n- Csak a megadott projektfájlokat módosíthatod.\n- Nem kérhetsz és nem olvashatsz környezeti változókat, tokeneket, jelszavakat, cookie-kat vagy adatbázis-titkokat.\n- Nem adhatsz hozzá eval/Function/child_process/exec/spawn/shell parancsfuttatást, távoli kódletöltést vagy rejtett backdoort.\n- Ne gyengítsd az auth/admin ellenőrzést.\n- Tartsd meg a meglévő funkciókat, hacsak a kérés nem kéri kifejezetten a változtatásukat.\n- Kizárólag JSON-t adj vissza, markdown nélkül.\n- Minden módosítás exact search/replace legyen. A search szövegnek egyedinek és szó szerint megtalálhatónak kell lennie.\n- Egy műveletben ne cserélj indokolatlanul teljes fájlt; célzott blokkokat használj.\n\nJSON forma:\n{"summary":"rövid magyar összefoglaló","operations":[{"path":"public/game.js","search":"pontos régi szöveg","replace":"új szöveg"}]}\nMaximum 10 operation. Engedélyezett fájlok: ${AI_ALLOWED_FILES.join(", ")}.`;
+  const body={model:String(process.env.OPENAI_MODEL||"gpt-5.6"),instructions,input:`ADMIN FEJLESZTÉSI KÉRÉS:\n${requestText}\n\nAKTUÁLIS FORRÁSKÓD:${parts.join("")}`};
+  const r=await fetch("https://api.openai.com/v1/responses",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+process.env.OPENAI_API_KEY},body:JSON.stringify(body)});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error("AI API hiba: "+(d?.error?.message||r.status));
+  const patch=aiParseJson(aiExtractText(d));
+  if(!patch||!Array.isArray(patch.operations)||!patch.operations.length)throw new Error("Az AI nem adott alkalmazható módosítást.");
+  if(patch.operations.length>10)throw new Error("Túl sok módosítási művelet érkezett.");
+  return patch;
+}
+function aiApplyPatch(patch){
+  const changed=new Map();
+  for(const op of patch.operations){
+    const rel=String(op?.path||"");
+    if(!AI_ALLOWED_FILES.includes(rel))throw new Error("Az AI tiltott fájlt próbált módosítani: "+rel);
+    const search=String(op?.search??""),replace=String(op?.replace??"");
+    if(!search||search.length>180000||replace.length>220000)throw new Error("Érvénytelen módosítási blokk: "+rel);
+    if(/child_process|\beval\s*\(|new\s+Function\s*\(|\.exec\s*\(|\.spawn\s*\(/i.test(replace))throw new Error("Biztonsági okból tiltott kódrészletet adott az AI: "+rel);
+    let content=changed.has(rel)?changed.get(rel):aiReadProjectFile(rel);
+    const first=content.indexOf(search);
+    if(first<0)throw new Error("Nem található a módosítandó kódrészlet: "+rel);
+    if(content.indexOf(search,first+1)>=0)throw new Error("Nem egyedi a módosítandó kódrészlet: "+rel);
+    content=content.slice(0,first)+replace+content.slice(first+search.length);
+    changed.set(rel,content);
+  }
+  for(const [rel,content] of changed){
+    if(rel.endsWith(".js"))new vm.Script(content,{filename:rel});
+    if(content.includes("OPENAI_API_KEY=")||content.includes("GITHUB_TOKEN=")||content.includes("RENDER_DEPLOY_HOOK_URL="))throw new Error("Titkos kulcs nem írható forrásfájlba.");
+  }
+  return changed;
+}
+async function ghApi(url,opt={}){
+  const r=await fetch("https://api.github.com"+url,{...opt,headers:{"Accept":"application/vnd.github+json","Authorization":"Bearer "+process.env.GITHUB_TOKEN,"X-GitHub-Api-Version":"2026-03-10","Content-Type":"application/json",...(opt.headers||{})}});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error("GitHub API hiba: "+(d?.message||r.status));
+  return d;
+}
+function ghRepoParts(){
+  const [owner,repo]=String(process.env.GITHUB_REPO||"").split("/");
+  if(!owner||!repo)throw new Error("A GITHUB_REPO formátuma owner/repo legyen.");
+  return {owner,repo};
+}
+async function aiVerifyGitHubBase(changed){
+  const {owner,repo}=ghRepoParts(),branch=String(process.env.GITHUB_BRANCH||"main");
+  for(const [rel,localNew] of changed){
+    const d=await ghApi(`/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${rel.split("/").map(encodeURIComponent).join("/")}?ref=${encodeURIComponent(branch)}`);
+    const remote=Buffer.from(String(d.content||"").replace(/\n/g,""),"base64").toString("utf8");
+    const localOld=aiReadProjectFile(rel);
+    if(remote!==localOld)throw new Error(`A GitHub ${rel} fájlja eltér a jelenleg futó verziótól. Előbb a legfrissebb commitot deployold, majd próbáld újra.`);
+    if(localNew===localOld)throw new Error("A módosítás nem változtatott a fájlon: "+rel);
+  }
+}
+async function aiCommitGitHub(changed,summary){
+  const {owner,repo}=ghRepoParts(),branch=String(process.env.GITHUB_BRANCH||"main");
+  const ref=await ghApi(`/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/ref/heads/${encodeURIComponent(branch)}`);
+  const parentSha=ref?.object?.sha;
+  const parent=await ghApi(`/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/commits/${parentSha}`);
+  const tree=[];
+  for(const [rel,content] of changed){
+    const blob=await ghApi(`/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/blobs`,{method:"POST",body:JSON.stringify({content:Buffer.from(content,"utf8").toString("base64"),encoding:"base64"})});
+    tree.push({path:rel,mode:"100644",type:"blob",sha:blob.sha});
+  }
+  const newTree=await ghApi(`/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/trees`,{method:"POST",body:JSON.stringify({base_tree:parent.tree.sha,tree})});
+  const commit=await ghApi(`/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/commits`,{method:"POST",body:JSON.stringify({message:"AI Admin: "+String(summary||"játékfejlesztés").slice(0,120),tree:newTree.sha,parents:[parentSha]})});
+  await ghApi(`/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/refs/heads/${encodeURIComponent(branch)}`,{method:"PATCH",body:JSON.stringify({sha:commit.sha,force:false})});
+  return commit.sha;
+}
+async function aiTriggerRender(commitSha){
+  const raw=String(process.env.RENDER_DEPLOY_HOOK_URL||"");
+  if(!raw)return {skipped:true};
+  const u=new URL(raw);u.searchParams.set("ref",commitSha);
+  const r=await fetch(u,{method:"POST"});
+  if(!r.ok)throw new Error("A GitHub commit elkészült, de a Render deploy indítása hibát adott: HTTP "+r.status);
+  return {ok:true,status:r.status};
+}
+app.get("/api/admin/ai-developer/status",auth,admin,async(req,res)=>{
+  const cfg=aiDevConfig();
+  const rows=(await q("SELECT id,request_text,status,summary,commit_sha,changed_files,error_text,created_at,finished_at FROM ai_development_runs ORDER BY id DESC LIMIT 12")).rows.catch(()=>[]);
+  res.json({configured:cfg.openai&&cfg.github&&cfg.render,services:cfg,runs:rows});
+});
+app.post("/api/admin/ai-developer/run",auth,admin,async(req,res)=>{
+  const requestText=String(req.body?.request||"").trim().slice(0,6000),cfg=aiDevConfig();
+  if(requestText.length<8)return res.status(400).json({error:"Írd le részletesebben, mit szeretnél fejleszteni."});
+  if(!cfg.openai||!cfg.github||!cfg.render)return res.status(400).json({error:"Az AI fejlesztő nincs teljesen beállítva. Szükséges: OPENAI_API_KEY, GITHUB_TOKEN, GITHUB_REPO, RENDER_DEPLOY_HOOK_URL."});
+  let runId=null;
+  try{
+    runId=(await q("INSERT INTO ai_development_runs(admin_id,request_text,status) VALUES($1,$2,'thinking') RETURNING id",[req.user.id,requestText])).rows[0].id;
+    const patch=await aiGeneratePatch(requestText);
+    await q("UPDATE ai_development_runs SET status='validating',summary=$1 WHERE id=$2",[String(patch.summary||""),runId]);
+    const changed=aiApplyPatch(patch);
+    await aiVerifyGitHubBase(changed);
+    await q("UPDATE ai_development_runs SET status='publishing',changed_files=$1 WHERE id=$2",[JSON.stringify([...changed.keys()]),runId]);
+    const sha=await aiCommitGitHub(changed,patch.summary);
+    await q("UPDATE ai_development_runs SET status='deploying',commit_sha=$1 WHERE id=$2",[sha,runId]);
+    await aiTriggerRender(sha);
+    await q("UPDATE ai_development_runs SET status='done',finished_at=NOW() WHERE id=$1",[runId]);
+    await q("INSERT INTO admin_logs(admin_id,action) VALUES($1,$2)",[req.user.id,"AI_DEV_DEPLOY_"+sha.slice(0,8)]).catch(()=>{});
+    res.json({ok:true,summary:String(patch.summary||"Fejlesztés elkészült."),changedFiles:[...changed.keys()],commitSha:sha,message:"A módosítás GitHubra került, a Render deploy elindult."});
+  }catch(e){
+    console.error("AI DEVELOPER ERROR",e);
+    if(runId)await q("UPDATE ai_development_runs SET status='failed',error_text=$1,finished_at=NOW() WHERE id=$2",[String(e.message||e).slice(0,4000),runId]).catch(()=>{});
+    res.status(500).json({error:String(e.message||"Az AI fejlesztés nem sikerült.")});
   }
 });
 

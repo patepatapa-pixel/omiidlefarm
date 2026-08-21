@@ -569,3 +569,16 @@ V22.10 PVP HOTFIX
 - Legendary alap drop 3%.
 - Endgame rarity: Legendary -> Imperial -> Celestial -> Eternal.
 - Fegyver attack végső plafon: 1500.
+
+
+=== V22.92 AI FEJLESZTŐ / AUTOMATIKUS TELEPÍTÉS ===
+Az Admin panel új „AI Fejlesztő” füle természetes nyelvű fejlesztési kérést tud forráskód-módosítássá alakítani, GitHubra commitolni és Renderre telepíteni.
+Render Environment változók:
+OPENAI_API_KEY = OpenAI API kulcs (titkos)
+OPENAI_MODEL = gpt-5.6 (opcionális)
+GITHUB_TOKEN = fine-grained GitHub token, Contents: Read and write jogosultsággal
+GITHUB_REPO = tulajdonos/repository, pl. nevem/omi-idle-farm
+GITHUB_BRANCH = main (vagy a Renderhez kötött branch)
+RENDER_DEPLOY_HOOK_URL = a Render service Settings > Deploy Hook titkos URL-je
+A kulcsokat SOHA ne írd admin mezőbe vagy forráskódba; csak Render Environment alatt add meg.
+A rendszer exact search/replace patcheket engedélyez, JavaScript szintaxist ellenőriz, tiltja a shell/exec jellegű kódot az AI utasításaiban, ellenőrzi hogy a GitHub fájlok megegyeznek-e a futó verzióval, majd egyetlen Git commitot készít és csak ezután indít Render deployt.
