@@ -5975,260 +5975,236 @@ window.OMI_BALANCE_V2319={
 };
 
 
-/* ================= V23.21 HU / EN LANGUAGE SYSTEM ================= */
+
+/* ================= V23.24 FULL HU / EN LANGUAGE SYSTEM ================= */
 (function(){
-  const KEY="omiLangV2321";
-  const exact={
-    "Feltöltés":"E-Coin",
-    "E-érme":"E-Coin",
-    "Karakter":"Character",
-    "Farm":"Farm",
-    "Felszerelés":"Equipment",
-    "Képességek":"Skills",
-    "Petek":"Pets",
-    "Hátasok":"Mounts",
-    "Kazamaták":"Dungeons",
-    "PvP":"PvP",
-    "Statisztika":"Statistics",
-    "Ranglista":"Leaderboard",
-    "Frissítések":"Updates",
-    "Kaszinó":"Casino",
-    "Beállítások":"Settings",
-    "Arany":"Gold",
-    "Gyémánt":"Diamonds",
-    "Érc":"Ore",
-    "Lélekkő":"Soul Stone",
-    "Dungeon jegy":"Dungeon Ticket",
-    "Erő":"Power",
-    "Statpont":"Stat Point",
-    "Aura token":"Aura Token",
-    "Prestige token":"Prestige Token",
-    "Szint":"Level",
-    "Wave":"Wave",
-    "Következő párbaj":"Next Duel",
-    "Új párbaj indítható":"New duel available",
-    "Válassz ellenfelet!":"Choose an opponent!",
-    "Párbaj aréna":"Duel Arena",
-    "PvP Aréna":"PvP Arena",
-    "Legutóbbi párbajok":"Recent Duels",
-    "Jutalmak":"Rewards",
-    "Ajánlott erő":"Recommended Power",
-    "Ajánlott DEF":"Recommended DEF",
-    "Jegy / futam":"Ticket / Run",
-    "Siker esélyed":"Your Success Chance",
-    "Teljesítve":"Completed",
-    "Lehetséges jutalom":"Possible Reward",
-    "Belépés":"Enter",
-    "Farmolás":"Farm",
-    "Kezdők barlangja":"Beginner Cave",
-    "Kezdő":"Beginner",
-    "Harcos":"Warrior",
-    "Elit":"Elite",
-    "Mester":"Master",
-    "Hős":"Hero",
-    "Legenda":"Legend",
-    "Isteni":"Divine",
-    "Aktiválva":"Activated",
-    "Nincs aktiválva":"Not Activated",
-    "Bekapcsolás":"Enable",
-    "Kikapcsolás":"Disable",
-    "Automata aktív":"Automation Active",
-    "Nincs feloldva":"Not Unlocked",
-    "Admin által feloldva":"Unlocked by Admin",
-    "Teljes Automata Rendszer":"Full Automation System",
-    "Auto Paragon szintelő":"Auto Paragon Leveler",
-    "10× Harci / Wave Sebesség":"10× Combat / Wave Speed",
-    "E-érme rendszer":"E-Coin System",
-    "E-érme egyenleged":"Your E-Coin Balance",
-    "Kiváltás":"Redeem",
-    "Már aktív":"Already Active",
-    "Csak admin adhatja":"Admin Only",
-    "Discordon/eventeken nyerhető":"Earnable on Discord / Events",
-    "Nem szükséges a normál fejlődéshez":"Not Required for Normal Progress",
+  const KEY="omiLangV2324";
+
+  const dict={
+    // navigation
+    "Karakter":"Character","Farm":"Farm","Felszerelés":"Equipment","Képességek":"Skills",
+    "Petek":"Pets","Hátasok":"Mounts","Kazamaták":"Dungeons","PvP":"PvP","Statisztika":"Statistics",
+    "Ranglista":"Leaderboard","Kaszinó":"Casino","Frissítések":"Updates","E-érme":"E-Coin",
+    "Beállítások":"Settings","Kilépés":"Logout","Belépés":"Login","Regisztráció":"Register",
+
+    // resources
+    "Arany":"Gold","Gyémánt":"Diamonds","Érc":"Ore","Lélekkő":"Soul Stone","Dungeon jegy":"Dungeon Ticket",
+    "Erő":"Power","Statpont":"Stat Point","Aura token":"Aura Token","Prestige token":"Prestige Token",
+    "Szint":"Level","Tapasztalat":"Experience","Sebzés":"Damage","Védelem":"Defense","Krit":"Crit",
+    "Drop":"Drop","Szerencse":"Luck","Bányászat":"Mining","Fegyveredzés":"Weapon Training",
+    "Páncéledzés":"Armor Training","HP Regen":"HP Regen",
+
+    // common ui
+    "Aktiválva":"Activated","Nincs aktiválva":"Not Activated","Feloldva":"Unlocked",
+    "Nincs feloldva":"Not Unlocked","Bekapcsolás":"Enable","Kikapcsolás":"Disable",
+    "Mentés":"Save","Minden mentése":"Save All","Törlés":"Delete","Szerkesztés":"Edit",
+    "Bezárás":"Close","Vissza":"Back","Kiváltás":"Redeem","Már aktív":"Already Active",
+    "Vásárlási igény":"Purchase Request","Kiváltható":"Redeemable",
+
+    // zones/combat
+    "Zöld mező":"Green Meadow","Sötét erdő":"Dark Forest","Elhagyott bánya":"Abandoned Mine",
+    "Démon torony":"Demon Tower","Sárkány-völgy":"Dragon Valley","Mennydörgés fennsík":"Thunder Plateau",
+    "Üresség":"Void","Isteni kapu":"Divine Gate","Vadkan":"Boar","Árnyfarkas":"Shadow Wolf",
+    "Skorpió":"Scorpion","Démon őr":"Demon Guard","Ősi sárkány":"Ancient Dragon",
+    "Viharóriás":"Storm Giant","Void Lord":"Void Lord","Égi őrző":"Celestial Guardian",
+    "Normál farm":"Normal Farm","BOSS":"BOSS","Feloldás":"Unlock","Minimum erő":"Minimum Power",
+    "Ajánlott DEF":"Recommended DEF","Paragon cél":"Paragon Goal","Teljesített terület":"Completed Area",
+    "Kötelező területváltás":"Forced Area Change","Új terület feloldva":"New Area Unlocked",
+
+    // equipment
+    "Fegyver":"Weapon","Sisak":"Helmet","Páncél":"Armor","Kesztyű":"Gloves","Csizma":"Boots","Gyűrű":"Ring",
+    "Üres":"Empty","Felszerelés ATK":"Equipment ATK","Boss arany bónusz":"Boss Gold Bonus","Aktív pet":"Active Pet",
+    "LEGJOBB HÁTAS":"BEST MOUNT","Saját istálló":"Your Stable","ŐSI LÁDA NYITÁSA":"OPEN ANCIENT CHEST",
+    "Hátasesély":"Mount Chance","töredék":"shard","Legjobb hátas":"Best Mount",
+
+    // pets
+    "Pet összeolvasztás / reroll":"Pet Fusion / Reroll","Erősebb pet":"Stronger Pet",
+    "Nincs még 3 egyforma peted.":"You do not have 3 identical pets yet.","ÖSSZES EGYSZERRE":"MERGE ALL",
+    "Pet kraftolás":"Pet Crafting","Az értékek összeadódnak.":"Values are added together.",
+
+    // dungeon
+    "KAZAMATA RENDSZER":"DUNGEON SYSTEM","Ajánlott erő":"Recommended Power","Jegy / futam":"Ticket / Run",
+    "Siker esélyed":"Your Success Chance","Teljesítve":"Completed","Mentett gyorsítás":"Saved Speed",
+    "Lehetséges jutalom":"Possible Reward","Egyszerre teljesítendő":"Runs at Once","Teljes költség":"Total Cost",
+    "külön siker- és droppróba":"separate success and drop rolls","Belépés":"Enter","Farmolás":"Farm",
+    "Biztonságos farm":"Safe Farm","Kockázatos kazamata":"Risky Dungeon","PRÉMIUM FUTAM AKTÍV":"PREMIUM RUN ACTIVE",
+    "Kezdők barlangja":"Beginner Cave","Barlangi Gólem":"Cave Golem","Elfeledett bánya":"Forgotten Mine",
+    "Bányarém":"Mine Horror","Mélység ura":"Lord of the Abyss","A Mélység Ura":"The Lord of the Abyss",
+
+    // pvp
+    "Párbaj aréna":"Duel Arena","PvP Aréna":"PvP Arena","Válassz ellenfelet és indíts párbajt.":"Choose an opponent and start a duel.",
+    "Válassz ellenfelet!":"Choose an opponent!","PvP győzelmi jutalom":"PvP Victory Reward",
+    "Magasabb ellenfél / rating esetén jobb jutalom.":"Higher-rated opponents give better rewards.",
+    "Új párbaj indítható":"New Duel Available","Legutóbbi párbajok":"Recent Duels",
+    "Nincsenek még párbajok.":"No duels yet.","KÖVETKEZŐ PÁRBAJ":"NEXT DUEL",
+    "60 másodperces PvP várakozás":"60-second PvP cooldown","Várakozás a következő párbajig":"Waiting for the next duel",
+    "ÉLŐ PÁRBAJ":"LIVE DUEL","A párbaj elkezdődött...":"The duel has started...",
+    "Győzelem!":"Victory!","Vereség":"Defeat","Kritikus találat":"Critical Hit","DUPLA TALÁLAT":"DOUBLE HIT",
+    "blokkolta az ütést!":"blocked the hit!","sebzést okozott":"dealt damage",
+
+    // prestige/paragon
+    "Paragon":"Paragon","Prestige":"Prestige","Auto Paragon szintelő":"Auto Paragon Leveler",
+    "Teljes Automata Rendszer":"Full Automation System","AUTOMATA AKTÍV":"AUTOMATION ACTIVE",
+    "AUTOMATA BEKAPCSOLÁSA":"ENABLE AUTOMATION","Admin által feloldva":"Unlocked by Admin",
+    "Haladás":"Progress","Kényelmi automatizálás":"Convenience Automation",
+
+    // ecoin/shop
+    "E-ÉRME RENDSZER":"E-COIN SYSTEM","E-ÉRME EGYENLEGED":"YOUR E-COIN BALANCE",
     "E-érméért kiváltható funkciók":"Features Redeemable with E-Coins",
-    "A játék ingyenesen játszható":"The game is free to play",
-    "Nem kötelező":"Not Required",
-    "Önkéntes támogatás":"Voluntary Support",
-    "Nincs még 3 egyforma peted.":"You do not have 3 identical pets yet.",
-    "Pet összeolvasztás / reroll":"Pet Fusion / Reroll",
-    "ÖSSZES EGYSZERRE":"MERGE ALL",
-    "Legjobb hátas":"Best Mount",
-    "LEGJOBB HÁTAS":"BEST MOUNT",
-    "KAZAMATA RENDSZER":"DUNGEON SYSTEM",
-    "PRÉMIUM":"PREMIUM",
-    "PRÉMIUM AUTOMATIZÁLÁS":"PREMIUM AUTOMATION",
-    "KÖVETKEZŐ PÁRBAJ":"NEXT DUEL",
-    "PVP ARÉNA":"PVP ARENA",
-    "Új terület feloldva":"New Area Unlocked",
-    "Minimum erő":"Minimum Power",
-    "Feloldás":"Unlock",
-    "Teljesített terület":"Completed Area",
-    "WAVE SZÜKSÉGES":"WAVE REQUIRED",
-    "Normál farm":"Normal Farm",
-    "BOSS":"BOSS",
-    "Wave teljesítve!":"Wave completed!",
-    "Szintlépés!":"Level Up!",
-    "Győzelem!":"Victory!",
-    "Vereség":"Defeat",
-    "Várj":"Wait",
-    "másodpercet":"seconds",
-    "Készülj a következő párbajra!":"Prepare for the next duel!",
-    "Új párbaj indítható":"New Duel Available",
-    "Várakozás a következő párbajig":"Waiting for the next duel",
-    "Teljes költség":"Total Cost",
-    "Egyszerre teljesítendő":"Runs at Once",
-    "PRÉMIUM FUTAM AKTÍV":"PREMIUM RUN ACTIVE",
-    "Nincs elég gyémánt.":"Not enough diamonds.",
-    "Nincs elég lélekkő.":"Not enough Soul Stones.",
-    "Nincs elég E-érméd.":"Not enough E-Coins.",
-    "Játékosok":"Players",
-    "Ellenfél":"Opponent",
-    "Te":"You",
-    "Kör":"Round",
-    "ÉLŐ PÁRBAJ":"LIVE DUEL",
-    "A párbaj elkezdődött...":"The duel has started...",
-    "Kritikus találat":"Critical Hit",
-    "DUPLA TALÁLAT":"DOUBLE HIT",
-    "blokkolta az ütést!":"blocked the hit!",
-    "sebzést okozott":"dealt damage",
-    "Arany és támogatói csomagok":"Gold and Support Packages",
-    "E-érme / Beváltható csomagok":"E-Coin / Redeemable Packages",
-    "E-érme / beváltható csomagok":"E-Coin / Redeemable Packages",
-    "Keress Discordon":"Find us on Discord",
-    "E-ÉRME ÉS KÖZÖSSÉGI JUTALMAK":"E-COINS & COMMUNITY REWARDS",
-    "Csak admin adhatja · Discord/event jutalomként szerezhető.":"Admin only · Earnable as Discord/event rewards.",
-    "Ezen a felületen nincs eurós fizetés és nincs bankkártyás vásárlás.":"There are no euro payments or card purchases on this page.",
-    "játékbeli beváltási pont":"in-game redemption point",
-    "Képességfejlődés":"Skill Progress",
-    "Kimaxolt képességek":"Maxed Skills",
-    "Elérhető lélekkő":"Available Soul Stones",
-    "Saját istálló":"Your Stable",
-    "ŐSI LÁDA NYITÁSA":"OPEN ANCIENT CHEST",
-    "Hátasesély":"Mount Chance",
-    "egyébként 1 töredék":"otherwise 1 shard",
-    "Aktív pet":"Active Pet",
-    "Nincs":"None",
-    "Üres":"Empty"
+    "Csak admin adhatja":"Admin Only","Discordon/eventeken nyerhető":"Earnable on Discord / Events",
+    "Nem szükséges a normál fejlődéshez":"Not Required for Normal Progress",
+    "E-ÉRME ÉS KÖZÖSSÉGI JUTALMAK":"E-COINS & COMMUNITY REWARDS","Keress Discordon":"Find us on Discord",
+    "PRÉMIUM":"PREMIUM","PRÉMIUM AUTOMATIZÁLÁS":"PREMIUM AUTOMATION",
+    "10× Harci / Wave Sebesség":"10× Combat / Wave Speed",
+    "E-érme egyenlegedből azonnal kiváltható.":"Can be redeemed instantly from your E-Coin balance.",
+    "Egyszeri E-érme beváltással végleg feloldható.":"Permanently unlocked with a one-time E-Coin redemption.",
+
+    // misc
+    "Kezdő":"Beginner","Harcos":"Warrior","Elit":"Elite","Mester":"Master","Hős":"Hero","Legenda":"Legend","Isteni":"Divine",
+    "Nincs":"None","Jutalom":"Reward","Következő":"Next","Szükséges":"Required","Esély":"Chance",
+    "Ingyenes":"Free","Aktív":"Active","Fiókodon feloldva":"Unlocked on your account","Csak admin adhatja · Discord/event jutalomként szerezhető.":"Admin only · Earnable as Discord/event rewards."
   };
 
-  const regexRules=[
-    [/^(\d+)\s*másodperc$/i,(_,n)=>`${n} seconds`],
-    [/^(\d+)\s*másodperc$/i,(_,n)=>`${n} seconds`],
-    [/^Wave\s+(\d+)\s+szükséges$/i,(_,n)=>`Wave ${n} required`],
-    [/^(\d+)\s*E-érme$/i,(_,n)=>`${n} E-Coin`],
-    [/^(\d+)\s*jegy$/i,(_,n)=>`${n} tickets`],
-    [/^(\d+)×\s*futam$/i,(_,n)=>`${n}× runs`],
-    [/^(\d+)\s*mp$/i,(_,n)=>`${n} sec`],
-    [/^Lv\.(\d+)$/i,(_,n)=>`Lv.${n}`],
-    [/^(\d+)\s*erő$/i,(_,n)=>`${n} Power`]
+  const phrasePairs=[
+    ["Nincs elég E-érméd","Not enough E-Coins"],
+    ["Nincs elég lélekkő","Not enough Soul Stones"],
+    ["Nincs elég gyémánt","Not enough diamonds"],
+    ["Nincs elég arany","Not enough gold"],
+    ["Nincs elég érc","Not enough ore"],
+    ["Nincs elég jegy","Not enough tickets"],
+    ["Wave teljesítve","Wave completed"],
+    ["Boss legyőzve","Boss defeated"],
+    ["Szintlépés","Level up"],
+    ["Új terület feloldva","New area unlocked"],
+    ["Kötelező területváltás","Forced area change"],
+    ["Minimum erő","Minimum Power"],
+    ["Ajánlott erő","Recommended Power"],
+    ["Ajánlott DEF","Recommended DEF"],
+    ["Teljes költség","Total Cost"],
+    ["Lehetséges jutalom","Possible Reward"],
+    ["Teljesítve","Completed"],
+    ["Feloldás","Unlock"],
+    ["Győzelem","Victory"],
+    ["Vereség","Defeat"],
+    ["Várj","Wait"],
+    ["másodpercet","seconds"],
+    ["másodperc","seconds"],
+    ["párbaj","duel"],
+    ["ellenfél","opponent"],
+    ["Arany","Gold"],
+    ["Gyémánt","Diamonds"],
+    ["Lélekkő","Soul Stone"],
+    ["Érc","Ore"],
+    ["E-érme","E-Coin"],
+    ["jegy","ticket"],
+    ["erő","Power"],
+    ["szint","level"],
+    ["jutalom","reward"],
+    ["feloldva","unlocked"],
+    ["aktiválva","activated"]
   ];
 
-  function norm(s){return String(s||"").replace(/\s+/g," ").trim()}
-  function translateString(s){
-    if(window.OMI_LANG_V2321!=="en")return s;
-    const raw=String(s??"");
-    const t=norm(raw);
-    if(!t)return raw;
-    if(exact[t])return raw.replace(t,exact[t]);
-    for(const [rx,fn] of regexRules){const m=t.match(rx);if(m)return raw.replace(t,fn(...m))}
-    // Phrase-level replacements inside longer dynamic strings.
-    let out=raw;
-    const parts=[
-      ["Nincs elég lélekkő","Not enough Soul Stones"],
-      ["Nincs elég gyémánt","Not enough diamonds"],
-      ["Nincs elég E-érméd","Not enough E-Coins"],
-      ["E-érme","E-Coin"],
-      ["Wave teljesítve","Wave completed"],
-      ["Boss legyőzve","Boss defeated"],
-      ["Szintlépés","Level up"],
-      ["Győzelem","Victory"],
-      ["Vereség","Defeat"],
-      ["Következő","Next"],
-      ["Ajánlott erő","Recommended Power"],
-      ["Ajánlott DEF","Recommended DEF"],
-      ["Minimum erő","Minimum Power"],
-      ["Feloldás","Unlock"],
-      ["Teljesítve","Completed"],
-      ["Jutalom","Reward"],
-      ["Arany","Gold"],
-      ["Gyémánt","Diamonds"],
-      ["Lélekkő","Soul Stone"],
-      ["Érc","Ore"],
-      ["jegy","ticket"],
-      ["erő","Power"],
-      ["másodperc","seconds"],
-      ["párbaj","duel"],
-      ["ellenfél","opponent"]
-    ];
-    for(const [hu,en] of parts)out=out.replaceAll(hu,en);
+  function norm(s){return String(s??"").replace(/\s+/g," ").trim()}
+
+  function translateText(raw){
+    if(window.OMI_LANG!=="en")return raw;
+    const s=String(raw??"");
+    const t=norm(s);
+    if(!t)return s;
+    if(dict[t])return s.replace(t,dict[t]);
+
+    let out=s;
+    for(const [hu,en] of phrasePairs)out=out.replaceAll(hu,en);
+
+    out=out.replace(/(\d+)\s*E-érme/g,"$1 E-Coin");
+    out=out.replace(/(\d+)\s*mp\b/g,"$1 sec");
+    out=out.replace(/(\d+)\s*másodperc\b/g,"$1 seconds");
+    out=out.replace(/(\d+)×\s*futam/g,"$1× runs");
+    out=out.replace(/Wave\s+(\d+)\s+szükséges/gi,"Wave $1 required");
     return out;
   }
 
-  function rememberOriginal(el,kind,val){
-    const k="v2321"+kind;
-    if(el.dataset && !el.dataset[k])el.dataset[k]=val;
+  // Store original Hungarian content only once so switching back is instant and exact.
+  function storeOriginal(el){
+    if(!el || el.nodeType!==Node.ELEMENT_NODE)return;
+    if(el.closest?.("#v2321LangSwitcher"))return;
+    if(!el.dataset.v2324OriginalHtml)el.dataset.v2324OriginalHtml=el.innerHTML;
   }
 
-  function translateNode(node){
-    if(window.OMI_LANG_V2321!=="en")return;
-    if(node.nodeType===Node.TEXT_NODE){
-      const p=node.parentElement;
-      if(!p||p.closest("#v2321LangSwitcher"))return;
-      const before=node.nodeValue;
-      const after=translateString(before);
-      if(after!==before)node.nodeValue=after;
-      return;
+  function translateElement(el){
+    if(!el || el.nodeType!==Node.ELEMENT_NODE || el.closest?.("#v2321LangSwitcher"))return;
+
+    // text nodes
+    for(const node of [...el.childNodes]){
+      if(node.nodeType===Node.TEXT_NODE){
+        if(window.OMI_LANG==="en")node.nodeValue=translateText(node.nodeValue);
+      }
     }
-    if(node.nodeType!==Node.ELEMENT_NODE)return;
-    const el=node;
-    if(el.closest("#v2321LangSwitcher"))return;
-    el.childNodes.forEach(translateNode);
+
     ["title","placeholder","aria-label"].forEach(attr=>{
       if(el.hasAttribute?.(attr)){
-        const v=el.getAttribute(attr);
-        const nv=translateString(v);
-        if(nv!==v)el.setAttribute(attr,nv);
+        const originalKey="v2324Attr"+attr.replace(/[^a-z]/gi,"");
+        if(!el.dataset[originalKey])el.dataset[originalKey]=el.getAttribute(attr);
+        el.setAttribute(attr,window.OMI_LANG==="en"?translateText(el.dataset[originalKey]):el.dataset[originalKey]);
       }
     });
+
+    [...el.children].forEach(translateElement);
   }
 
-  function restoreHungarian(root=document.body){
-    if(!root)return;
-    // Dynamic UI is re-rendered frequently. The cleanest restore is reload after switching to HU.
-    location.reload();
+  function restoreElement(el){
+    if(!el || el.nodeType!==Node.ELEMENT_NODE || el.closest?.("#v2321LangSwitcher"))return;
+    if(el.dataset.v2324OriginalHtml){
+      el.innerHTML=el.dataset.v2324OriginalHtml;
+      delete el.dataset.v2324OriginalHtml;
+    }
   }
 
-  function apply(){
-    document.documentElement.lang=window.OMI_LANG_V2321==="en"?"en":"hu";
-    document.querySelectorAll("[data-v2321-lang]").forEach(b=>b.classList.toggle("active",b.dataset.v2321Lang===window.OMI_LANG_V2321));
-    if(window.OMI_LANG_V2321==="en")translateNode(document.body);
+  function translateWholePage(){
+    if(window.OMI_LANG!=="en")return;
+    document.documentElement.lang="en";
+    translateElement(document.body);
+    document.querySelectorAll("[data-v2321-lang]").forEach(b=>b.classList.toggle("active",b.dataset.v2321Lang==="en"));
   }
 
-  window.OMI_LANG_V2321=localStorage.getItem(KEY)==="en"?"en":"hu";
-  window.omiTranslateV2321=translateString;
+  function switchLanguage(lang){
+    lang=lang==="en"?"en":"hu";
+    localStorage.setItem(KEY,lang);
+    // Reload gives perfect Hungarian restore and lets every dynamic widget re-render cleanly.
+    if(lang==="hu"){
+      window.OMI_LANG="hu";
+      location.reload();
+      return;
+    }
+    window.OMI_LANG="en";
+    translateWholePage();
+  }
+
+  window.OMI_LANG=localStorage.getItem(KEY)==="en"?"en":"hu";
+  window.omiTranslate=translateText;
 
   document.addEventListener("click",e=>{
     const b=e.target.closest?.("[data-v2321-lang]");
     if(!b)return;
-    const next=b.dataset.v2321Lang==="en"?"en":"hu";
-    localStorage.setItem(KEY,next);
-    if(next==="hu" && window.OMI_LANG_V2321==="en"){location.reload();return}
-    window.OMI_LANG_V2321=next;
-    apply();
+    switchLanguage(b.dataset.v2321Lang);
   },true);
 
-  const obs=new MutationObserver(muts=>{
-    if(window.OMI_LANG_V2321!=="en")return;
-    for(const m of muts){
-      m.addedNodes.forEach(translateNode);
-      if(m.type==="characterData")translateNode(m.target);
+  const observer=new MutationObserver(mutations=>{
+    if(window.OMI_LANG!=="en")return;
+    for(const m of mutations){
+      m.addedNodes.forEach(n=>{
+        if(n.nodeType===Node.ELEMENT_NODE)translateElement(n);
+        else if(n.nodeType===Node.TEXT_NODE)n.nodeValue=translateText(n.nodeValue);
+      });
+      if(m.type==="characterData")m.target.nodeValue=translateText(m.target.nodeValue);
     }
   });
 
   window.addEventListener("load",()=>{
-    apply();
-    obs.observe(document.body,{subtree:true,childList:true,characterData:true});
-    setInterval(()=>{if(window.OMI_LANG_V2321==="en")translateNode(document.body)},1800);
+    document.querySelectorAll("[data-v2321-lang]").forEach(b=>b.classList.toggle("active",b.dataset.v2321Lang===window.OMI_LANG));
+    if(window.OMI_LANG==="en")translateWholePage();
+    observer.observe(document.body,{subtree:true,childList:true,characterData:true});
   });
 })();
+
 

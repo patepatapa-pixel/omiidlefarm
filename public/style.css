@@ -4880,3 +4880,32 @@ nav.tabs{display:flex!important;flex-wrap:wrap!important;justify-content:center;
   .v2321-lang-switcher button span{display:none}
   .v2321-lang-switcher button{padding:7px 9px;font-size:18px}
 }
+
+/* V23.23 highly visible HU / EN flag switch */
+.v2321-lang-switcher{
+  top:14px!important;
+  right:20px!important;
+  padding:7px!important;
+  gap:7px!important;
+  border:2px solid #d6aa43!important;
+  background:#090e16!important;
+  box-shadow:0 0 0 1px rgba(255,225,132,.12),0 8px 30px rgba(0,0,0,.55),0 0 18px rgba(214,170,67,.18)!important;
+}
+.v2321-lang-switcher button{
+  min-height:40px;
+  padding:8px 12px!important;
+  font-size:14px!important;
+}
+.v2321-lang-switcher button::first-letter{font-size:22px}
+.v2321-lang-switcher button.active{
+  border-color:#ffe17e!important;
+  background:linear-gradient(135deg,#30230b,#17120a)!important;
+  color:#fff1ad!important;
+}
+@media(max-width:700px){
+  .v2321-lang-switcher{top:8px!important;right:8px!important}
+  .v2321-lang-switcher button{min-width:44px;min-height:40px;padding:6px 9px!important;font-size:20px!important}
+}
+
+/* V23.24 language switch polish */
+.v2321-lang-switcher:before{content:"🌐";display:grid;place-items:center;padding:0 4px;font-size:16px}
