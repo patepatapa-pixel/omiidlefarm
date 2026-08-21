@@ -4349,3 +4349,12 @@ body:not(.v229-character-visible) #page-character{display:none!important}
   #page-character>.character-attributes{grid-template-columns:1fr!important}
   #page-character .v15-character-stage{min-height:340px!important;height:340px!important}
 }
+
+/* V22.30: Pet actions and strict admin-only Character panel. */
+.pet-title-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.pet-equip-best{background:linear-gradient(135deg,#2b8ee6,#51d4ff)!important;color:#031019!important;box-shadow:0 0 18px rgba(63,190,255,.24)}
+.admin-studio-panel-v230[hidden],
+body:not(.v202-is-admin) #page-character .admin-studio-panel-v230{display:none!important}
+body.v202-is-admin #page-character .admin-studio-panel-v230{display:block!important}
+#page-character .admin-studio-only-v202{position:static!important;inset:auto!important;transform:none!important}
+@media(max-width:650px){.pet-title-actions{width:100%;justify-content:stretch}.pet-title-actions button{flex:1}}

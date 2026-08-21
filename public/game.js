@@ -51,10 +51,28 @@ function skillBonus(key){
 }
 const PET_POOL=[
  {name:"Kis Farkas",icon:"🐺",bonus:"damage",value:.08,rarity:"normal"},
+ {name:"Barna Medve",icon:"🐻",bonus:"gold",value:.07,rarity:"normal"},
+ {name:"Barlangi Denevér",icon:"🦇",bonus:"crit",value:.05,rarity:"normal"},
+ {name:"Felderítő Holló",icon:"🐦‍⬛",bonus:"drop",value:.05,rarity:"normal"},
  {name:"Arany Róka",icon:"🦊",bonus:"gold",value:.12,rarity:"rare"},
- {name:"Kristály Bagoly",icon:"🦉",bonus:"drop",value:.08,rarity:"epic"},
- {name:"Démon Kölyök",icon:"😈",bonus:"crit",value:.10,rarity:"mythic"},
- {name:"Mini Sárkány",icon:"🐲",bonus:"all",value:.12,rarity:"legendary"}
+ {name:"Hópárduc",icon:"🐆",bonus:"damage",value:.13,rarity:"rare"},
+ {name:"Szerencsenyúl",icon:"🐇",bonus:"drop",value:.10,rarity:"rare"},
+ {name:"Viharsólyom",icon:"🦅",bonus:"crit",value:.09,rarity:"rare"},
+ {name:"Kristály Bagoly",icon:"🦉",bonus:"drop",value:.15,rarity:"epic"},
+ {name:"Kristály Gólem",icon:"🗿",bonus:"damage",value:.18,rarity:"epic"},
+ {name:"Holdszarvas",icon:"🦌",bonus:"gold",value:.18,rarity:"epic"},
+ {name:"Fantom Macska",icon:"🐈‍⬛",bonus:"crit",value:.13,rarity:"epic"},
+ {name:"Démon Kölyök",icon:"😈",bonus:"crit",value:.18,rarity:"mythic"},
+ {name:"Főnix",icon:"🔥",bonus:"all",value:.08,rarity:"mythic"},
+ {name:"Cerberus",icon:"🐕‍🦺",bonus:"damage",value:.24,rarity:"mythic"},
+ {name:"Kincses Mimic",icon:"🧰",bonus:"gold",value:.28,rarity:"mythic"},
+ {name:"Void Holló",icon:"🌌",bonus:"drop",value:.18,rarity:"mythic"},
+ {name:"Mini Sárkány",icon:"🐲",bonus:"all",value:.12,rarity:"legendary"},
+ {name:"Égi Kirin",icon:"🦄",bonus:"all",value:.15,rarity:"legendary"},
+ {name:"Arany Griff",icon:"🦁",bonus:"damage",value:.32,rarity:"legendary"},
+ {name:"Szerencseszellem",icon:"🧞",bonus:"gold",value:.36,rarity:"legendary"},
+ {name:"Ősi Teknős",icon:"🐢",bonus:"drop",value:.25,rarity:"legendary"},
+ {name:"Időbagoly",icon:"🦉",bonus:"crit",value:.22,rarity:"legendary"}
 ];
 const DUNGEONS=[
  {id:"cave",name:"Kristálybarlang",icon:"💎",need:800,hp:6000,rewardGold:12000,rewardGems:1,rewardSoul:3,tickets:1},
@@ -531,6 +549,20 @@ function renderExchange(){
  root.innerHTML=defs.map(x=>{const o=cfg.exchange[x.key],can=save.gold>=o.gold;return `<article class="exchange-offer tone-${x.tone}"><div class="exchange-offer-icon">${x.icon}</div><div class="exchange-offer-copy"><small>ARANYBÓL VÁLTHATÓ</small><h3>${x.name}</h3><div class="exchange-rate"><span>${fmt(o.gold)} 💰</span><b>→</b><strong>${fmt(o.amount)} ${x.icon}</strong></div></div><label>Csomagok<select data-exchange-count="${x.key}"><option value="1">1×</option><option value="5">5×</option><option value="10">10×</option><option value="25">25×</option></select></label><button data-exchange-buy="${x.key}" ${can?"":"disabled"}>${can?"ÁTVÁLTÁS":"NINCS ELÉG ARANY"}</button></article>`}).join("");
  $$('[data-exchange-buy]').forEach(b=>b.onclick=()=>{const key=b.dataset.exchangeBuy,def=defs.find(x=>x.key===key),count=Math.max(1,Math.floor(Number($(`[data-exchange-count="${key}"]`)?.value||1))),o=cfg.exchange[key],cost=o.gold*count,reward=o.amount*count;if(!def||save.gold<cost)return toast(`Nincs elég arany. Szükséges: ${fmt(cost)} 💰`);save.gold-=cost;save[def.field]=Number(save[def.field]||0)+reward;persist();renderAll();toast(`✅ Átváltva: ${fmt(cost)} arany → ${fmt(reward)} ${def.name}`)});
 }
+function petEquipScore(p){
+ if(!p)return -1;
+ const weights={all:3.4,damage:1.4,gold:1.2,crit:1.3,drop:1.1};
+ const rarity={normal:0,rare:.0001,epic:.0002,mythic:.0003,legendary:.0004};
+ return Math.max(0,Number(p.value||0))*(weights[p.bonus]||1)+(rarity[p.rarity]||0);
+}
+function equipBestPets(){
+ const slots=Math.max(1,Math.min(4,Number(save.petSlotsUnlocked||1)));
+ const ranked=save.pets.map((pet,index)=>({pet,index,score:petEquipScore(pet)})).filter(x=>x.pet).sort((a,b)=>b.score-a.score||b.index-a.index);
+ if(!ranked.length)return toast("🐾 Még nincs felszerelhető peted.");
+ const selected=ranked.slice(0,slots).map(x=>x.index),same=selected.length===save.activePets.length&&selected.every((x,i)=>x===save.activePets[i]);
+ save.activePets=selected;save.activePet=selected[0]??null;persist();renderAll();
+ toast(same?"🐾 Már a legerősebb petek vannak felszerelve.":`🐾 EQUIP BEST: ${selected.length} legerősebb pet felszerelve!`);
+}
 function renderPets(){
  const eco=economyCfg(),costs=[0,...eco.petSlotCosts],active=save.activePets||[];
  const petBonus=p=>`${p.bonus==="damage"?"⚔️ Sebzés":p.bonus==="gold"?"💰 Arany":p.bonus==="drop"?"🎁 Drop":p.bonus==="crit"?"🎯 Krit":"✨ Minden"} +${(Number(p.value||0)*100).toFixed(0)}%`;
@@ -544,8 +576,9 @@ function renderPets(){
  $$("[data-pet]").forEach(b=>b.onclick=()=>{const i=+b.dataset.pet,pos=save.activePets.indexOf(i);if(pos>=0)save.activePets.splice(pos,1);else if(save.activePets.length>=save.petSlotsUnlocked)return toast("🔒 Nincs több szabad pet hely.");else save.activePets.push(i);save.activePet=save.activePets[0]??null;persist();renderAll();toast(pos>=0?"🐾 Pet levéve":"🐾 Pet felszerelve")});
  $$("[data-buy-pet-slot]").forEach(b=>b.onclick=()=>{const slot=+b.dataset.buyPetSlot,cost=costs[slot];if(slot!==save.petSlotsUnlocked)return;if(save.gems<cost)return toast("Nincs elég gyémánt.");save.gems-=cost;save.petSlotsUnlocked++;persist();renderAll();toast(`🔓 ${slot+1}. pet hely feloldva!`)});
  const summonBtn=$("#petSummon");if(summonBtn)summonBtn.textContent=`🎲 Pet idézés · ${fmt(eco.petSummonCost)} 💎`;
+ const bestBtn=$("#equipBestPets");if(bestBtn)bestBtn.onclick=e=>{e.preventDefault();equipBestPets()};
 }
-function summonPet(){const cost=economyCfg().petSummonCost;if(save.gems<cost)return toast(`Nincs elég gyémánt. A pet idézés ára ${fmt(cost)} 💎.`);save.gems-=cost;let r=Math.random()*100,p=r<2?PET_POOL[4]:r<8?PET_POOL[3]:r<25?PET_POOL[2]:r<55?PET_POOL[1]:PET_POOL[0];save.pets.push({...p});persist();renderAll();toast(`🐾 ${p.name} érkezett!`)}
+function summonPet(){const cost=economyCfg().petSummonCost;if(save.gems<cost)return toast(`Nincs elég gyémánt. A pet idézés ára ${fmt(cost)} 💎.`);save.gems-=cost;const r=Math.random()*100,rarity=r<2?"legendary":r<9?"mythic":r<25?"epic":r<55?"rare":"normal",pool=PET_POOL.filter(p=>p.rarity===rarity),p=pool[Math.floor(Math.random()*pool.length)]||PET_POOL[0];save.pets.push({...p});persist();renderAll();toast(`🐾 ${p.name} érkezett! (${rarityName(p.rarity)})`)}
 function renderDungeons(){
  $("#dungeons").innerHTML=DUNGEONS.map(d=>`<div class="dungeon-card ${power()<d.need?"locked":""}"><div style="font-size:30px">${d.icon}</div><h3>${d.name}</h3><small>Erő: ${fmt(d.need)} · Jegy: ${d.tickets}</small><p>${fmt(d.rewardGold)} 💰 + ${d.rewardGems} 💎 + ${d.rewardSoul} 🔵</p><button data-dungeon="${d.id}" ${power()<d.need||save.tickets<d.tickets?"disabled":""}>Belépés</button></div>`).join("");
  $$("[data-dungeon]").forEach(b=>b.onclick=()=>runDungeon(b.dataset.dungeon))
@@ -1149,6 +1182,8 @@ window.OMI_CONTENT={bosses:[],items:[],pets:[],auras:[],zones:[]};fetch("/api/co
   const page=document.getElementById("page-character");
   const tab=document.querySelector('[data-tab="character"]');
   if(!page||!tab)return;
+  const stats=document.querySelector(".character-attributes.v15-attributes");
+  if(stats&&stats.parentElement!==page)page.appendChild(stats);
   const visible=page.classList.contains("active")&&tab.classList.contains("active");
   page.hidden=!visible;
   document.body.classList.toggle("v229-character-visible",visible);
@@ -1959,7 +1994,9 @@ document.addEventListener("click",e=>{
   }
 
   function v202ApplyAdminStudioVisibility(){
-    document.body.classList.toggle("v202-is-admin",v202IsAdmin());
+    const isAdmin=v202IsAdmin();
+    document.body.classList.toggle("v202-is-admin",isAdmin);
+    document.querySelectorAll("#page-character .admin-studio-panel-v230").forEach(el=>el.hidden=!isAdmin);
   }
 
   window.v202ApplyAdminStudioVisibility=v202ApplyAdminStudioVisibility;
