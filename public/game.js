@@ -6137,6 +6137,7 @@ window.OMI_BALANCE_V2319={
       ["Nincs elég lélekkő","Not enough Soul Stones"],
       ["Nincs elég gyémánt","Not enough diamonds"],
       ["Nincs elég E-érméd","Not enough E-Coins"],
+      ["E-érme","E-Coin"],
       ["Wave teljesítve","Wave completed"],
       ["Boss legyőzve","Boss defeated"],
       ["Szintlépés","Level up"],
