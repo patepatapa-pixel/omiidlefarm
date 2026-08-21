@@ -270,6 +270,16 @@ function fixedZoneGold(zoneIndex=save.zone){
 }
 function zoneMobGold(zoneIndex=save.zone){return fixedZoneGold(zoneIndex)}
 
+/* V23.20.2 - Fix XP / mob, adminból területenként állítható */
+function fixedZoneXpV23202(zoneIndex=save.zone){
+ const g=window.OMI_CONTENT?.gameplay||{};
+ const fixed=Array.isArray(g.zoneFixedXp)?g.zoneFixedXp:[6,15,35,85,220,600,1650,4500];
+ const fallback=ZONES[zoneIndex]?.xp??0;
+ const v=Number(fixed[Math.max(0,Math.floor(Number(zoneIndex||0)))]??fallback);
+ return Math.max(0,Math.floor(Number.isFinite(v)?v:fallback));
+}
+
+
 /* V23.20.1 - Farmterületi Lélekkő drop, adminból állítható */
 function zoneSoulDropCfgV23201(zoneIndex=save.zone){
  const g=window.OMI_CONTENT?.gameplay||{};
@@ -501,7 +511,7 @@ function renderZones(){
  const best=strongestUnlockedZone();
  if(save.zone!==best){save.zone=best;save.waveBoss=false;save.waveRiftBossV284=false;save.bossHp=0;save.waveKills=0;enemyHp=normalEnemyMaxHp();persist()}
  const thresholds=zoneWaveThresholdsV285();
- $("#zones").innerHTML=ZONES.map((z,i)=>{const weak=i<best,locked=i>best;return `<div class="zone ${i===save.zone?"active":""} ${locked?"locked":""} ${weak?"zone-too-weak":""}" data-zone="${i}"><b>${z.icon} ${z.name}</b><small>🌊 Feloldás: Wave ${fmt(thresholds[i])} · ⚔️ Minimum erő: ${fmt(zoneMinPowerV319(i))} · 🛡️ Ajánlott DEF: ${fmt(recommendedDefenseV271(i,save.wave))}</small><small>Drop: ${(z.drop*100).toFixed(0)}% · 💰 Fix ${fmt(zoneMobGold(i))} arany / mob · 🔵 Lélekkő ${zoneSoulDropCfgV23201(i).chance.toFixed(1)}% (${zoneSoulDropCfgV23201(i).min}–${zoneSoulDropCfgV23201(i).max}) · Paragon cél: Wave ${fmt(paragonWaveRequirement())}</small>${weak?'<strong class="zone-cap-badge">⬆️ TELJESÍTETT TERÜLET</strong>':locked?`<strong class="zone-cap-badge">🔒 WAVE ${fmt(thresholds[i])} SZÜKSÉGES</strong>`:""}</div>`}).join("");
+ $("#zones").innerHTML=ZONES.map((z,i)=>{const weak=i<best,locked=i>best;return `<div class="zone ${i===save.zone?"active":""} ${locked?"locked":""} ${weak?"zone-too-weak":""}" data-zone="${i}"><b>${z.icon} ${z.name}</b><small>🌊 Feloldás: Wave ${fmt(thresholds[i])} · ⚔️ Minimum erő: ${fmt(zoneMinPowerV319(i))} · 🛡️ Ajánlott DEF: ${fmt(recommendedDefenseV271(i,save.wave))}</small><small>Drop: ${(z.drop*100).toFixed(0)}% · 💰 Fix ${fmt(zoneMobGold(i))} arany / mob · ⭐ Fix ${fmt(fixedZoneXpV23202(i))} XP / mob · 🔵 Lélekkő ${zoneSoulDropCfgV23201(i).chance.toFixed(1)}% (${zoneSoulDropCfgV23201(i).min}–${zoneSoulDropCfgV23201(i).max}) · Paragon cél: Wave ${fmt(paragonWaveRequirement())}</small>${weak?'<strong class="zone-cap-badge">⬆️ TELJESÍTETT TERÜLET</strong>':locked?`<strong class="zone-cap-badge">🔒 WAVE ${fmt(thresholds[i])} SZÜKSÉGES</strong>`:""}</div>`}).join("");
  $$("[data-zone]").forEach(e=>e.onclick=()=>{let i=+e.dataset.zone,current=strongestUnlockedZone();if(i>current)return toast("🔒 Ezt a területet még nem oldottad fel.");if(i<current)return toast("⛔ A teljesített terület végleg lezárult ebben a Paragon-ciklusban.");grantStarterGearV260(i);save.zone=i;save.waveKills=0;save.waveBoss=false;save.bossHp=0;enemyHp=normalEnemyMaxHp();persist();renderAll();toast("🗺️ "+ZONES[i].name)})
 }
 function zoneWaveThresholdsV285(){
@@ -1462,7 +1472,7 @@ document.addEventListener("click",e=>{
 let away=Math.min((12+skillRank("afkCap")+skillRank("endurance")+skillRank("dreamMaster"))*3600,Math.max(0,(Date.now()-save.last)/1000));
 if(away>15){
  let z=ZONES[save.zone],eff=Math.min(3.5,.55+skillBonus("offline")),kills=Math.floor(away*damage()/z.hp*eff);
- if(kills>0){let g=Math.floor(kills*zoneMobGold(save.zone)*paragonOverfarmV274().rewardMult);const sc=zoneSoulDropCfgV23201(save.zone),expected=kills*(sc.chance/100)*((sc.min+sc.max)/2),offlineSoul=Math.max(0,Math.floor(expected+(Math.random()-.5)*Math.sqrt(Math.max(1,expected))));save.gold+=g;save.stats.goldEarned+=g;save.kills+=kills;save.xp+=kills*z.xp;save.soul+=offlineSoul;toast(`🌙 Offline farm: ${fmt(kills)} kill · ${fmt(g)} arany${offlineSoul?` · 🔵 +${fmt(offlineSoul)} Lélekkő`:""}`)}
+ if(kills>0){let g=Math.floor(kills*zoneMobGold(save.zone)*paragonOverfarmV274().rewardMult);const sc=zoneSoulDropCfgV23201(save.zone),expected=kills*(sc.chance/100)*((sc.min+sc.max)/2),offlineSoul=Math.max(0,Math.floor(expected+(Math.random()-.5)*Math.sqrt(Math.max(1,expected))));save.gold+=g;save.stats.goldEarned+=g;save.kills+=kills;save.xp+=kills*fixedZoneXpV23202(save.zone);save.soul+=offlineSoul;toast(`🌙 Offline farm: ${fmt(kills)} kill · ${fmt(g)} arany${offlineSoul?` · 🔵 +${fmt(offlineSoul)} Lélekkő`:""}`)}
 }
 while(save.xp>=needXp()){save.xp-=needXp();save.level++}
 
@@ -1801,7 +1811,7 @@ function v161LiveHud(){
 function v10AwardNormalKill(){
  ensurePowerAppropriateZone();
  const z=ZONES[save.zone],overfarm=paragonOverfarmV274(),g=Math.floor(zoneMobGold(save.zone)*overfarm.rewardMult);
- casinoFarmGoldV256(g);save.stats.goldEarned+=g;save.xp+=z.xp;save.kills++;
+ casinoFarmGoldV256(g);save.stats.goldEarned+=g;save.xp+=fixedZoneXpV23202(save.zone);save.kills++;
  if(Math.random()<(.07+save.base.mining*.005)*overfarm.rewardMult)save.ore++;  const soulDropV23201=rollZoneSoulDropV23201(save.zone);
   if(soulDropV23201>0)save.soul+=soulDropV23201;
  if(Math.random()<.006*overfarm.rewardMult)save.tickets++;
@@ -1830,7 +1840,7 @@ function v10AwardNormalKill(){
    }
  }else{
    enemyHp=normalEnemyMaxHp();
-   $("#combatLog").textContent=`${z.enemy} legyőzve · +${fmt(g)} arany${soulDropV23201?` · 🔵 +${soulDropV23201} Lélekkő`:""} · Wave ${save.wave}: ${save.waveKills}/${save.waveGoal}`;
+   $("#combatLog").textContent=`${z.enemy} legyőzve · +${fmt(g)} arany · ⭐ +${fmt(fixedZoneXpV23202(save.zone))} XP${soulDropV23201?` · 🔵 +${soulDropV23201} Lélekkő`:""} · Wave ${save.wave}: ${save.waveKills}/${save.waveGoal}`;
  }
  v161LiveHud();
 }

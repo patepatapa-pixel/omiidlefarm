@@ -233,7 +233,7 @@ async function init(){
     const contentRow=(await q("SELECT value FROM game_content WHERE key='main'")).rows[0];
     const content=contentRow?.value||{};
     content.balanceVersion=2241;
-    content.gameplay={...(content.gameplay||{}),basePlayerHp:100,hpPerLevel:5,defenseEffectPct:.8,bossDamageMult:1.45,bossRegenPct:.2,respawnSec:5,zoneFixedGold:[5,9,16,28,48,80,130,210],zoneSoulDropChancePct:[1,1.5,2,2.5,3,3.5,4,5],zoneSoulDropMin:[1,1,1,1,1,1,1,1],zoneSoulDropMax:[1,1,1,2,2,2,3,3],defaultBossFixedGold:120,bossGemDropChance:20,mobTargetHits:2,waveKills:8,bossHpGrowthPct:8};
+    content.gameplay={...(content.gameplay||{}),basePlayerHp:100,hpPerLevel:5,defenseEffectPct:.8,bossDamageMult:1.45,bossRegenPct:.2,respawnSec:5,zoneFixedGold:[5,9,16,28,48,80,130,210],zoneFixedXp:[6,15,35,85,220,600,1650,4500],zoneSoulDropChancePct:[1,1.5,2,2.5,3,3.5,4,5],zoneSoulDropMin:[1,1,1,1,1,1,1,1],zoneSoulDropMax:[1,1,1,2,2,2,3,3],defaultBossFixedGold:120,bossGemDropChance:20,mobTargetHits:2,waveKills:8,bossHpGrowthPct:8};
     content.mounts={...(content.mounts||{}),shardChancePct:2,shardAmount:1,shardsRequired:10,chestCost:{gold:1500,gems:10,ore:25,soul:1,tickets:1},upgradeCostMultiplier:1};
     content.economy={...(content.economy||{}),exchange:{gems:{gold:2500,amount:5},ore:{gold:1200,amount:10},tickets:{gold:3500,amount:1}}};
     if(Array.isArray(content.bosses))content.bosses=content.bosses.map(b=>({...b,gold:Math.max(40,Math.floor(Number(b.gold||120)/20))}));

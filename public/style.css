@@ -4844,3 +4844,6 @@ nav.tabs{display:flex!important;flex-wrap:wrap!important;justify-content:center;
 /* V23.20.1 farmterületi Lélekkő admin */
 .v23201-soul-admin{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(90,130,190,.22)}
 @media(max-width:800px){.v23201-soul-admin{grid-template-columns:1fr}}
+
+/* V23.20.2 fixed XP admin */
+.zone-balance-card label{min-width:0}
