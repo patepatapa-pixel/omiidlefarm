@@ -620,15 +620,42 @@ function itemPowerScore(it){
  (it.options||[]).forEach(o=>score+=Number(o.value||0)*(optWeight[o.key]||10));
  return score;
 }
+
+/* ================= V23.20.0 ITEM POWER + GEARSCORE ================= */
+function itemGearScoreV23200(it){
+ if(!it)return 0;
+ try{return Math.max(0,Math.floor(itemPowerScore(it)))}catch(e){return 0}
+}
+function itemStrengthV23200(it){
+ if(!it)return 0;
+ try{
+   ensureItemOptions(it);
+   const st=itemStats(it),opts=Array.isArray(it.options)?it.options:[];
+   const optCombat=opts.reduce((sum,o)=>{
+     const w={atkPct:38,defPct:26,crit:44,bossDmg:22,hpPct:11,hpRegen:6,drop:2,gold:1,pvpDmg:8}[o?.key]||2;
+     return sum+Math.max(0,Number(o?.value||0))*w;
+   },0);
+   const rarity={normal:1,rare:1.08,epic:1.18,mythic:1.32,legendary:1.50,imperial:1.72,celestial:1.98,eternal:2.28,immortal:2.60}[String(it.rarity||"normal").toLowerCase()]||1;
+   const base=Number(st.atk||0)*4.2+Number(st.def||0)*2.5+Number(st.crit||0)*3200+Number(it.plus||0)*65+optCombat;
+   return Math.max(1,Math.floor(base*rarity));
+ }catch(e){return Math.max(1,Number(it.plus||0)*50)}
+}
+function characterGearScoreV23200(){
+ try{return Object.keys(save.equipped||{}).reduce((sum,slot)=>sum+itemGearScoreV23200(equipObj(slot)),0)}catch(e){return 0}
+}
+function characterItemStrengthV23200(){
+ try{return Object.keys(save.equipped||{}).reduce((sum,slot)=>sum+itemStrengthV23200(equipObj(slot)),0)}catch(e){return 0}
+}
+
 function equipBestItems(){
  const slots=Object.keys(SLOT_NAMES);
  let changed=0;
  slots.forEach(slot=>{
    const candidates=save.inventory.filter(it=>it.slot===slot);
    if(!candidates.length)return;
-   candidates.sort((a,b)=>itemPowerScore(b)-itemPowerScore(a));
+   candidates.sort((a,b)=>itemGearScoreV23200(b)-itemGearScoreV23200(a));
    const best=candidates[0],current=equipObj(slot);
-   if(!current||itemPowerScore(best)>itemPowerScore(current)){
+   if(!current||itemGearScoreV23200(best)>itemGearScoreV23200(current)){
      save.equipped[slot]=best.id;changed++;
    }
  });
@@ -669,6 +696,10 @@ function renderInventory(){
     <b>${it.name} +${Math.max(0,Math.min(15,Number(it.plus||0)))}</b>
     <small>${rarityName(it.rarity)} · ${SLOT_NAMES[it.slot]} · ${it.options.length}/5 opt</small>
     <small>${itemSummary(it)}</small>
+    <div class="v23200-item-score-row">
+      <span>⚔️ Item Erő <b>${fmt(itemStrengthV23200(it))}</b></span>
+      <span>💠 GearScore <b>${fmt(itemGearScoreV23200(it))}</b></span>
+    </div>
     <div class="item-options">${opts}</div>
     <small>Eladási ár: ${fmt(sellValue(it))} 💰</small>
     <div class="actions">
@@ -1400,6 +1431,10 @@ function renderDynamicEquipment(){
    celestial:"Celestial égi aura",eternal:"Eternal isteni aura"
  }[best]||"Alap aura";
 
+ const gs=document.getElementById("v23200CharacterGearScore");
+ if(gs)gs.textContent=typeof fmt==="function"?fmt(characterGearScoreV23200()):String(characterGearScoreV23200());
+ const ie=document.getElementById("v23200CharacterItemStrength");
+ if(ie)ie.textContent=typeof fmt==="function"?fmt(characterItemStrengthV23200()):String(characterItemStrengthV23200());
  const system=root.closest(".v23199-character-system");
  if(system){
    ["normal","rare","epic","mythic","legendary","imperial","celestial","eternal"].forEach(r=>system.classList.remove("hero-rarity-"+r));
@@ -3975,7 +4010,7 @@ document.addEventListener("click",e=>{
 (function(){
   const DEFAULTS={
     enabled:false,
-    rarities:{normal:false,rare:false,epic:false,mythic:false,legendary:false},
+    rarities:{normal:false,rare:false,epic:false,mythic:false,legendary:false,imperial:false,celestial:false,eternal:false,immortal:false},
     maxPower:0,
     protectPlus:1,
     protectLocked:true
@@ -4006,7 +4041,7 @@ document.addEventListener("click",e=>{
     r=String(r||"normal").toLowerCase();
     if(r==="common")r="normal";
     if(r==="mistic"||r==="mystic")r="mythic";
-    return ["normal","rare","epic","mythic","legendary"].includes(r)?r:"normal";
+    return ["normal","rare","epic","mythic","legendary","imperial","celestial","eternal","immortal"].includes(r)?r:"normal";
   }
 
   function inventoryArray(){
@@ -4057,20 +4092,8 @@ document.addEventListener("click",e=>{
 
   function itemPower(item){
     if(!item)return 0;
-    const direct=["power","score","strength","itemPower","combatPower"];
-    for(const k of direct){
-      if(Number.isFinite(Number(item[k])))return Number(item[k]);
-    }
-    // approximate score from common item fields when no explicit score exists
-    let n=0;
-    n += Number(item.atk||item.attack||item.damage||0);
-    n += Number(item.def||item.defense||0);
-    n += Number(item.hp||item.maxHp||0)/10;
-    n += Number(item.plus||0)*20;
-    if(Array.isArray(item.options)){
-      item.options.forEach(o=>{ n += Number(o?.value||o?.amount||0); });
-    }
-    return Math.floor(n);
+    try{return typeof itemGearScoreV23200==="function"?itemGearScoreV23200(item):Math.max(0,Math.floor(itemPowerScore(item)))}catch(e){}
+    return Math.max(0,Math.floor(Number(item.atk||0)*4+Number(item.def||0)*2+Number(item.plus||0)*60));
   }
 
   function shouldDelete(item,settings,refs){
@@ -6112,10 +6135,10 @@ window.v222AdminSpeedSupported=true;
    const d=await api("/api/pvp/profile"),st=d.stats||{},lv=d.levels||{};budget=Number(d.soul||0);active=Boolean(d.sessionActive||active);
    box.innerHTML=`<div class="v291-head"><div><small>🏟️ KÜLÖN PVP KARAKTER</small><h2>PvP fejlesztés · csak Lélekkőből</h2><p>Belépéskor a nálad lévő lélekkő lesz a <b>kiosztható PvP keret</b>. A PvP közben droppolt új lélekkő külön gyűlik, és kilépéskor kapod meg róla az értesítést.</p></div><div class="v291-soul"><span>🧿 Kiosztható</span><b>${F(budget)}</b><small>Háttérben droppolt: +${F(d.pendingSoul||save?.soul||0)}</small></div></div>
    <div class="v291-summary"><span><small>PvP ATK</small><b>${F(st.atk)}</b></span><span><small>PvP HP</small><b>${F(st.hp)}</b></span><span><small>PvP DEF</small><b>${F(st.def)}</b></span><span><small>Block</small><b>${Math.round((st.block||0)*100)}%</b></span><span><small>Krit</small><b>${Math.round((st.crit||0)*100)}%</b></span><span><small>Dupla ütés</small><b>${Math.round((st.doubleHit||0)*100)}%</b></span><span><small>Item PvP bónusz</small><b>+${Number(st.gearPvpPct||0).toFixed(1)}%</b></span></div>
-   <div class="v291-grid">${Object.keys(MAX).map(k=>{const n=Number(lv[k]||0),cost=Number(d.costs?.[k]||0),max=MAX[k];return `<article><div><b>${LABEL[k]}</b><small>${n} / ${max} szint</small></div><button data-v291-up="${k}" ${n>=max||budget<cost?"disabled":""}>${n>=max?"MAX":`+1 · ${F(cost)} 🧿`}</button></article>`}).join("")}</div>
+   <div class="v291-grid">${Object.keys(MAX).map(k=>{const n=Number(lv[k]||0),cost=Number(d.costs?.[k]||0),max=MAX[k];return `<article><div><b>${LABEL[k]}</b><small>${n} / ${max} szint · következő: ${F(cost)} 🧿</small></div><div class="v23200-pvp-multi">${[1,5,10].map(a=>`<button data-v291-up="${k}" data-v291-amount="${a}" ${n>=max||budget<cost?"disabled":""}>+${a}</button>`).join("")}<button data-v291-up="${k}" data-v291-amount="max" ${n>=max||budget<cost?"disabled":""}>MAX</button></div></article>`}).join("")}</div>
    <div class="v291-note">🧱 Block maximum 40% · 🍀 Szerencse növeli a kritikus esélyt · ⚡ Dupla találat külön második ütést ad.</div>`;
    box.querySelectorAll("[data-v291-up]").forEach(b=>b.onclick=async()=>{
-    b.disabled=true;try{const d2=await api("/api/pvp/upgrade",{method:"POST",body:JSON.stringify({stat:b.dataset.v291Up})});budget=Number(d2.soul||0);if(typeof save!=="undefined"&&save){save.pvpBuild={...(d2.levels||{})};persist?.()}toast?.(`🏟️ PvP stat fejlesztve! -${F(d2.cost||0)} lélekkő`);await load();if(typeof loadPvp==="function")loadPvp()}catch(e){toast?.("❌ "+e.message);b.disabled=false}
+    b.disabled=true;try{const d2=await api("/api/pvp/upgrade",{method:"POST",body:JSON.stringify({stat:b.dataset.v291Up,amount:b.dataset.v291Amount||"1"})});budget=Number(d2.soul||0);if(typeof save!=="undefined"&&save){save.pvpBuild={...(d2.levels||{})};persist?.()}toast?.(`🏟️ +${F(d2.added||1)} PvP pont kiosztva · -${F(d2.cost||0)} lélekkő`);await load();if(typeof loadPvp==="function")loadPvp()}catch(e){toast?.("❌ "+e.message);b.disabled=false}
    });
   }catch(e){box.innerHTML=`<p>❌ ${e.message}</p>`}
  }
@@ -6277,3 +6300,5 @@ window.OMI_PARAGON_DISPLAY_FIX_V23198=true;
 /* V23.19.9 CHARACTER VISUAL REDESIGN
    Visual-only character/equipment redesign. No gameplay or balance formulas changed. */
 window.OMI_CHARACTER_REDESIGN_V23199=true;
+
+window.OMI_GEARSCORE_V23200=true;

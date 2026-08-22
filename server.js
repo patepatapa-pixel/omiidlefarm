@@ -1078,15 +1078,23 @@ app.post("/api/pvp/upgrade",auth,async(req,res)=>{
     if(!(stat in max))return res.status(400).json({error:"Ismeretlen PvP stat."});
     const row=(await q("SELECT save_data FROM game_saves WHERE user_id=$1 FOR UPDATE",[req.user.id])).rows[0];
     if(!row)return res.status(404).json({error:"Mentés nem található."});
-    const save=row.save_data||{},levels=pvpBuild(save),lv=levels[stat],sess=save.pvpSoulSession;
+    const save=row.save_data||{},levels=pvpBuild(save),sess=save.pvpSoulSession;
+    let lv=Math.max(0,Number(levels[stat]||0));
     if(lv>=max[stat])return res.status(400).json({error:"Ez a PvP stat már maximumon van."});
-    const cost=pvpUpgradeCost(stat,lv,save);
-    const available=Math.max(0,Math.floor(Number(sess?.active?sess.budget:save.soul||0)));
-    if(available<cost)return res.status(400).json({error:`Nincs elég lélekkő. Kell: ${cost}`});
-    if(sess?.active){sess.budget=available-cost;save.pvpSoulSession=sess}else save.soul=available-cost;
-    save.pvpBuild={...levels,[stat]:lv+1};
+    let available=Math.max(0,Math.floor(Number(sess?.active?sess.budget:save.soul||0)));
+    const rawAmount=req.body.amount;
+    const wanted=String(rawAmount).toLowerCase()==="max"?max[stat]-lv:Math.max(1,Math.min(10,Math.floor(Number(rawAmount||1))));
+    let added=0,spent=0;
+    for(let i=0;i<wanted&&lv<max[stat];i++){
+      const oneCost=Math.max(0,Math.floor(Number(pvpUpgradeCost(stat,lv,save)||0)));
+      if(available<oneCost)break;
+      available-=oneCost;spent+=oneCost;lv++;added++;
+    }
+    if(!added)return res.status(400).json({error:`Nincs elég lélekkő. Következő pont ára: ${Math.max(0,Math.floor(Number(pvpUpgradeCost(stat,lv,save)||0)))}`});
+    if(sess?.active){sess.budget=available;save.pvpSoulSession=sess}else save.soul=available;
+    save.pvpBuild={...levels,[stat]:lv};
     await q("UPDATE game_saves SET save_data=$1,updated_at=NOW() WHERE user_id=$2",[save,req.user.id]);
-    res.json({ok:true,cost,soul:Math.max(0,Math.floor(Number(sess?.active?sess.budget:save.soul||0))),pendingSoul:Math.max(0,Math.floor(Number(sess?.active?save.soul:0))),levels:save.pvpBuild,stats:pvpStats(save),sessionActive:Boolean(sess?.active),discountPct:Math.round(pvpUpgradeDiscount(save)*100)});
+    res.json({ok:true,cost:spent,added,soul:available,pendingSoul:Math.max(0,Math.floor(Number(sess?.active?save.soul:0))),levels:save.pvpBuild,stats:pvpStats(save),sessionActive:Boolean(sess?.active),discountPct:Math.round(pvpUpgradeDiscount(save)*100)});
   }catch(e){console.error("PVP UPGRADE ERROR:",e);res.status(500).json({error:"A PvP fejlesztés nem sikerült."});}
 });
 

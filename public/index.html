@@ -153,6 +153,11 @@
           </div>
         </div>
       </div>
+<div class="v23200-character-gear-summary">
+  <div><span>⚔️ Felszerelés Erő</span><b id="v23200CharacterItemStrength">0</b></div>
+  <div><span>💠 GearScore</span><b id="v23200CharacterGearScore">0</b></div>
+  <small>Az Item Erő a közvetlen harci értéket, a GearScore a felszerelés teljes minőségét mutatja.</small>
+</div>
 <div class="v15-bottom-stats">
           <div><span>✨ Aura</span><b id="v15Aura">Nincs aura</b></div>
           <div><span>🐾 Pet</span><b id="v15Pet">Nincs</b></div>
@@ -435,14 +440,18 @@
       <label><input type="checkbox" data-v216-rarity="epic"> Epic</label>
       <label><input type="checkbox" data-v216-rarity="mythic"> Mythic</label>
       <label><input type="checkbox" data-v216-rarity="legendary"> Legendary</label>
+      <label><input type="checkbox" data-v216-rarity="imperial"> Imperial</label>
+      <label><input type="checkbox" data-v216-rarity="celestial"> Celestial</label>
+      <label><input type="checkbox" data-v216-rarity="eternal"> Eternal</label>
+      <label><input type="checkbox" data-v216-rarity="immortal"> Immortal</label>
     </div>
 
     <div class="v216-box">
-      <b>Erősség szűrő</b>
-      <label>Csak ez alatt töröljön:
+      <b>💠 GearScore szűrő</b>
+      <label>Csak ez alatt a GearScore alatt töröljön:
         <input type="number" id="v216MaxPowerDelete" min="0" step="1" value="0">
       </label>
-      <small>0 = nincs erősség korlát. Példa: 500 → csak az 500 alatti, kijelölt rarity tárgyakat törli.</small>
+      <small>0 = nincs GearScore korlát. Példa: 1500 → csak az 1500 alatti GearScore-ú, kijelölt rarity tárgyakat törli.</small>
     </div>
 
     <div class="v216-box">
@@ -492,6 +501,10 @@
       <div class="bulk-rarity epic"><b>Epic</b><button data-bulk-delete="epic">🗑️ Törlés</button><button data-bulk-sell="epic">💰 Eladás</button></div>
       <div class="bulk-rarity mythic"><b>Mythic</b><button data-bulk-delete="mythic">🗑️ Törlés</button><button data-bulk-sell="mythic">💰 Eladás</button></div>
       <div class="bulk-rarity legendary"><b>Legendary</b><button data-bulk-delete="legendary">🗑️ Törlés</button><button data-bulk-sell="legendary">💰 Eladás</button></div>
+      <div class="bulk-rarity imperial"><b>Imperial</b><button data-bulk-delete="imperial">🗑️ Törlés</button><button data-bulk-sell="imperial">💰 Eladás</button></div>
+      <div class="bulk-rarity celestial"><b>Celestial</b><button data-bulk-delete="celestial">🗑️ Törlés</button><button data-bulk-sell="celestial">💰 Eladás</button></div>
+      <div class="bulk-rarity eternal"><b>Eternal</b><button data-bulk-delete="eternal">🗑️ Törlés</button><button data-bulk-sell="eternal">💰 Eladás</button></div>
+      <div class="bulk-rarity immortal"><b>Immortal</b><button data-bulk-delete="immortal">🗑️ Törlés</button><button data-bulk-sell="immortal">💰 Eladás</button></div>
     </div>
     <small class="bulk-note">A felszerelt tárgyakat a rendszer soha nem törli és nem adja el tömeges művelettel.</small>
   </section>

@@ -5042,3 +5042,11 @@ nav.tabs{display:flex!important;flex-wrap:wrap!important;justify-content:center;
 @media(prefers-reduced-motion:reduce){
  .v23199-orb,.v23199-rune,.v23199-portal,.v23199-ground-ring,.v23199-card-glow{animation:none!important}
 }
+
+.v23200-item-score-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:7px 0}
+.v23200-item-score-row span{display:flex;justify-content:space-between;padding:6px 8px;border:1px solid rgba(115,135,165,.22);border-radius:8px;background:rgba(8,12,18,.62);font-size:10px;color:#aeb9c8}
+.v23200-item-score-row b{color:#f2cc62}
+.v23200-character-gear-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0;padding:10px;border:1px solid rgba(224,177,67,.30);border-radius:12px;background:rgba(8,12,18,.72)}
+.v23200-character-gear-summary div{display:flex;justify-content:space-between;padding:8px 10px;border-radius:9px;background:rgba(255,255,255,.025)}
+.v23200-character-gear-summary b{color:#ffd467}.v23200-character-gear-summary small{grid-column:1/-1;text-align:center;color:#748091}
+.v23200-pvp-multi{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}.v23200-pvp-multi button{min-width:48px;padding:7px 9px;font-weight:1000}
