@@ -77,7 +77,7 @@
   </div>
   <div id="v222EditorStatus"></div>
 </section>
-<hr><h3>🎁 Jutalom hozzáadása</h3><p class="muted">A kiválasztott játékos egyenlegéhez adja hozzá az értéket.</p><div style="display:grid;grid-template-columns:1fr 1fr auto;gap:7px"><select id="grantType"><option value="gold">💰 Arany</option><option value="gems">💎 Gyémánt</option><option value="ore">⛏️ Érc</option><option value="soul">🔵 Lélekkő</option><option value="tickets">🎫 Dungeon jegy</option><option value="achievementPoints">🏆 Achievement pont</option><option value="skillPoints">📚 Skill pont</option><option value="paragonStatPoints">📌 Paragon pont</option></select><input id="grantAmount" type="number" min="1" value="1000"><button id="grantBtn">➕ Hozzáadás</button></div><hr><div style="display:flex;gap:7px;flex-wrap:wrap"><button id="banBtn" class="danger">Tiltás</button><button id="resetBtn" class="danger">Mentés teljes reset</button></div></div></div>
+<hr><h3>🎁 Jutalom hozzáadása</h3><p class="muted">A kiválasztott játékos egyenlegéhez adja hozzá az értéket.</p><div style="display:grid;grid-template-columns:1fr 1fr auto;gap:7px"><select id="grantType"><option value="gold">💰 Arany</option><option value="gems">💎 Gyémánt</option><option value="ore">⛏️ Érc</option><option value="soul">🔵 Lélekkő</option><option value="tickets">🎫 Dungeon jegy</option><option value="achievementPoints">🏆 Achievement pont</option><option value="skillPoints">📚 Skill pont</option><option value="paragonStatPoints">📌 Paragon pont</option><option value="auraTokens">✨ Aura token</option></select><input id="grantAmount" type="number" min="1" value="1000"><button id="grantBtn">➕ Hozzáadás</button></div><hr><div style="display:flex;gap:7px;flex-wrap:wrap"><button id="banBtn" class="danger">Tiltás</button><button id="resetBtn" class="danger">Mentés teljes reset</button></div></div></div>
 <div id="toast"></div>
 <section class="card admin-studio">
 <h2>🛠️ ADMIN GAME STUDIO</h2>
@@ -124,7 +124,21 @@
 <label>🎒 Inventory +50 ára<input id="cfgAuraInv50Cost" type="number" min="0"></label>
 <label>🧳 Inventory +100 ára<input id="cfgAuraInv100Cost" type="number" min="0"></label>
 <label>🌌 Aura Mester ára<input id="cfgAuraMasteryCost" type="number" min="0"></label>
-</div><button id="saveAuraTokenShopConfig">💾 Aura Token Shop mentése</button>
+</div><hr><h4>🌌 Aura árak</h4>
+<p class="muted">Minden aura ára külön állítható Aura Tokenben. A „Nincs aura” mindig ingyenes.</p>
+<div class="admin-stat-grid">
+<label>🔵 Kék energia aura ára<input id="cfgAuraBlueCost" type="number" min="0"></label>
+<label>🟣 Lila misztikus aura ára<input id="cfgAuraPurpleCost" type="number" min="0"></label>
+<label>🔴 Bíbor démon aura ára<input id="cfgAuraCrimsonCost" type="number" min="0"></label>
+<label>🟡 Legendás arany aura ára<input id="cfgAuraGoldCostAura" type="number" min="0"></label>
+<label>🌌 Void isteni aura ára<input id="cfgAuraVoidCost" type="number" min="0"></label>
+<label>☀️ Napkorona aura ára<input id="cfgAuraSolarCost" type="number" min="0"></label>
+<label>🌠 Asztrális aura ára<input id="cfgAuraAstralCost" type="number" min="0"></label>
+<label>👑 Császári fény ára<input id="cfgAuraEmperorCost" type="number" min="0"></label>
+<label>✨ Eternal citromfény ára<input id="cfgAuraEternalCost" type="number" min="0"></label>
+<label>🏆 Prestige 100 korona ára<input id="cfgAuraCenturionCost" type="number" min="0"></label>
+</div>
+<button id="saveAuraTokenShopConfig">💾 Aura Token Shop mentése</button>
 <hr><h3>🐎 Hátasrendszer balansz</h3>
  <p class="muted">A töredék legyen ritka. Példa: 2% esély átlagosan körülbelül 50 bosskillenként ad töredéket.</p>
  <div class="admin-stat-grid">

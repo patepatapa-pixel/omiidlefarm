@@ -982,6 +982,18 @@ const AURAS=[
  {id:"eternal",name:"Eternal citromfény",className:"aura-gold",cost:45,need:0,bonus:{gold:.07,xp:.05,drop:.05,bossDmg:.05},bonusText:"+7% arany · +5% XP/drop/boss"},
  {id:"centurion",name:"Prestige 100 korona",className:"aura-gold",cost:75,need:0,bonus:{gold:.05,xp:.05,drop:.05,bossDmg:.05,dungeonDmg:.05},bonusText:"+5% minden fő PvE bónusz"}
 ];
+
+/* ================= V23.20.4 ADMIN-CONFIGURABLE AURA PRICES ================= */
+function auraPriceConfigV23204(){
+ const c=(typeof CONTENT!=="undefined"&&CONTENT?.auraTokenShop)||{};
+ return c.auraPrices||{};
+}
+function auraCostV23204(a){
+ if(!a)return 0;
+ const cfg=auraPriceConfigV23204();
+ return Math.max(0,Math.floor(Number(cfg[a.id]??a.cost??0)));
+}
+
 function prestigeParagonRequirement(){
  const p=Math.max(0,Number(save.prestigeLevel||0));
  return Math.min(16,8+Math.floor(p/8));
@@ -1252,7 +1264,7 @@ function renderParagon(){
  if(shop){
    shop.innerHTML=AURAS.map(a=>{
      const owned=save.ownedAuras.includes(a.id),active=save.activeAura===a.id,locked=false;
-     return `<div class="aura-card ${active?"active":""}"><b>✨ ${a.name}</b><small>${a.id==="none"?"Alap":`${a.cost} Aura token`}</small>${a.bonusText?`<span class="v23201-aura-bonus">⚡ ${a.bonusText}</span>`:""}<button data-aura="${a.id}" ${locked?"disabled":""}>${active?"Aktív":owned?"Aktiválás":"Megvásárlás"}</button></div>`
+     return `<div class="aura-card ${active?"active":""}"><b>✨ ${a.name}</b><small>${a.id==="none"?"Alap":`${auraCostV23204(a)} Aura token`}</small>${a.bonusText?`<span class="v23201-aura-bonus">⚡ ${a.bonusText}</span>`:""}<button data-aura="${a.id}" ${locked?"disabled":""}>${active?"Aktív":owned?"Aktiválás":"Megvásárlás"}</button></div>`
    }).join("");
    $$("[data-aura]").forEach(b=>b.onclick=()=>buyOrEquipAura(b.dataset.aura));
  }
@@ -1335,9 +1347,10 @@ function doTruePrestige(automatic=false){
 }
 function buyOrEquipAura(id){
  const a=AURAS.find(x=>x.id===id);if(!a)return;
+ const cost=typeof auraCostV23204==="function"?auraCostV23204(a):Math.max(0,Number(a.cost||0));
  if(!save.ownedAuras.includes(id)){
-   if(Number(save.auraTokens||0)<a.cost)return toast(`✨ Nincs elég Aura token. Kell: ${a.cost}`);
-   save.auraTokens=Math.max(0,Number(save.auraTokens||0)-a.cost);
+   if(Number(save.auraTokens||0)<cost)return toast(`✨ Nincs elég Aura token. Kell: ${cost}`);
+   save.auraTokens=Math.max(0,Number(save.auraTokens||0)-cost);
    save.ownedAuras.push(id);
  }
  save.activeAura=id;persist();renderAll();toast("✨ Aura aktiválva: "+a.name);
@@ -6427,3 +6440,9 @@ window.OMI_PRESTIGE_ENDGAME_SHOP_V23201=true;
 window.OMI_AURA_TOKEN_ONLY_SHOP_V23202=true;
 
 window.OMI_AURA_ADMIN_CONFIG_V23203=true;
+
+/* V23.20.4
+ Admin újra tud Aura Tokent adni.
+ Aura Token továbbra is Prestige szintlépéssel is szerezhető (alap: 5 / Prestige).
+ Az összes aura ára és az Endgame Shop árai adminból állíthatók. */
+window.OMI_AURA_FULL_ADMIN_V23204=true;

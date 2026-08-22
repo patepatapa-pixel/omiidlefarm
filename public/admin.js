@@ -312,17 +312,51 @@ function fillEconomyAdmin(){
  const mm={cfgMountShardChance:m.shardChancePct,cfgMountShardAmount:m.shardAmount,cfgMountShardRequired:m.shardsRequired,cfgMountChestGold:m.chestCost.gold,cfgMountChestGems:m.chestCost.gems,cfgMountChestOre:m.chestCost.ore,cfgMountChestSoul:m.chestCost.soul,cfgMountChestTickets:m.chestCost.tickets,cfgMountUpgradeMult:m.upgradeCostMultiplier};Object.entries(mm).forEach(([id,value])=>{const el=qs("#"+id);if(el)el.value=value});
 }
 
+
+const AURA_PRICE_D_V23204={blue:1,purple:2,crimson:3,gold:5,void:8,solar:12,astral:18,emperor:28,eternal:45,centurion:75};
+function fillAuraPricesV23204(){
+ const p=studioConfig.auraTokenShop?.auraPrices||{},map={
+  cfgAuraBlueCost:p.blue??AURA_PRICE_D_V23204.blue,
+  cfgAuraPurpleCost:p.purple??AURA_PRICE_D_V23204.purple,
+  cfgAuraCrimsonCost:p.crimson??AURA_PRICE_D_V23204.crimson,
+  cfgAuraGoldCostAura:p.gold??AURA_PRICE_D_V23204.gold,
+  cfgAuraVoidCost:p.void??AURA_PRICE_D_V23204.void,
+  cfgAuraSolarCost:p.solar??AURA_PRICE_D_V23204.solar,
+  cfgAuraAstralCost:p.astral??AURA_PRICE_D_V23204.astral,
+  cfgAuraEmperorCost:p.emperor??AURA_PRICE_D_V23204.emperor,
+  cfgAuraEternalCost:p.eternal??AURA_PRICE_D_V23204.eternal,
+  cfgAuraCenturionCost:p.centurion??AURA_PRICE_D_V23204.centurion
+ };
+ Object.entries(map).forEach(([id,v])=>{const e=qs("#"+id);if(e)e.value=v});
+}
+
 const AURA_SHOP_D_V23203={tickets10:[2,10],gems300:[3,300],ore250:[3,250],soul120:[4,120],pet10:[5,10],gearLegend:[8,1],drop2h:[5,120],gold2h:[5,120],dungeon2h:[8,120],inv50:[10,50],inv100:[18,100],auraMastery:[20,25]};
 function fillAuraShopV23203(){
  const c=studioConfig.auraTokenShop||{},I=c.items||{},v=(id,n)=>Number(I[id]?.[n]??AURA_SHOP_D_V23203[id][n==="cost"?0:1]);
  const M={cfgAuraPrestigeReward:Number(c.prestigeReward??5),cfgAuraTicketsCost:v("tickets10","cost"),cfgAuraTicketsReward:v("tickets10","reward"),cfgAuraGemsCost:v("gems300","cost"),cfgAuraGemsReward:v("gems300","reward"),cfgAuraOreCost:v("ore250","cost"),cfgAuraOreReward:v("ore250","reward"),cfgAuraSoulCost:v("soul120","cost"),cfgAuraSoulReward:v("soul120","reward"),cfgAuraPetCost:v("pet10","cost"),cfgAuraPetReward:v("pet10","reward"),cfgAuraGearCost:v("gearLegend","cost"),cfgAuraDropCost:v("drop2h","cost"),cfgAuraDropReward:v("drop2h","reward"),cfgAuraGoldCost:v("gold2h","cost"),cfgAuraGoldReward:v("gold2h","reward"),cfgAuraDungeonCost:v("dungeon2h","cost"),cfgAuraDungeonReward:v("dungeon2h","reward"),cfgAuraInv50Cost:v("inv50","cost"),cfgAuraInv100Cost:v("inv100","cost"),cfgAuraMasteryCost:v("auraMastery","cost")};
  Object.entries(M).forEach(([id,val])=>{const e=qs("#"+id);if(e)e.value=val});
+
+ fillAuraPricesV23204();
 }
 qs("#saveAuraTokenShopConfig")?.addEventListener("click",async()=>{
  const n=id=>Math.max(0,Math.floor(Number(qs("#"+id)?.value||0))),old=studioConfig.auraTokenShop?.items||{};
  studioConfig.auraTokenShop={prestigeReward:n("cfgAuraPrestigeReward"),items:{
  tickets10:{cost:n("cfgAuraTicketsCost"),reward:n("cfgAuraTicketsReward")},gems300:{cost:n("cfgAuraGemsCost"),reward:n("cfgAuraGemsReward")},ore250:{cost:n("cfgAuraOreCost"),reward:n("cfgAuraOreReward")},soul120:{cost:n("cfgAuraSoulCost"),reward:n("cfgAuraSoulReward")},pet10:{cost:n("cfgAuraPetCost"),reward:n("cfgAuraPetReward")},gearLegend:{cost:n("cfgAuraGearCost"),reward:1},drop2h:{cost:n("cfgAuraDropCost"),reward:n("cfgAuraDropReward")},gold2h:{cost:n("cfgAuraGoldCost"),reward:n("cfgAuraGoldReward")},dungeon2h:{cost:n("cfgAuraDungeonCost"),reward:n("cfgAuraDungeonReward")},inv50:{cost:n("cfgAuraInv50Cost"),reward:50},inv100:{cost:n("cfgAuraInv100Cost"),reward:100},auraMastery:{cost:n("cfgAuraMasteryCost"),reward:25}}};
- await saveConfigV8();fillAuraShopV23203();alert("✅ Aura Token Shop elmentve.");
+ 
+ const price=id=>Math.max(0,Math.floor(Number(qs("#"+id)?.value||0)));
+ studioConfig.auraTokenShop.auraPrices={
+  blue:price("cfgAuraBlueCost"),
+  purple:price("cfgAuraPurpleCost"),
+  crimson:price("cfgAuraCrimsonCost"),
+  gold:price("cfgAuraGoldCostAura"),
+  void:price("cfgAuraVoidCost"),
+  solar:price("cfgAuraSolarCost"),
+  astral:price("cfgAuraAstralCost"),
+  emperor:price("cfgAuraEmperorCost"),
+  eternal:price("cfgAuraEternalCost"),
+  centurion:price("cfgAuraCenturionCost")
+ };
+await saveConfigV8();fillAuraShopV23203();alert("✅ Aura Token Shop, Aura árak és Prestige jutalom elmentve.");
 });
 
 qs("#saveEconomyConfig")?.addEventListener("click",async()=>{
