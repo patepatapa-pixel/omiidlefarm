@@ -5062,3 +5062,7 @@ nav.tabs{display:flex!important;flex-wrap:wrap!important;justify-content:center;
 .v23201-shop-icon{font-size:28px;text-align:center}.v23201-shop-copy{display:flex;flex-direction:column;min-width:0}.v23201-shop-copy small{font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:#7d8998}.v23201-shop-copy b{font-size:12px}.v23201-shop-copy span{font-size:9px;color:#929eac;margin-top:3px}.v23201-shop-copy em{font-style:normal;font-size:9px;color:#aa94ff;margin-top:4px;font-weight:900}
 .v23201-shop-buy{text-align:right}.v23201-shop-buy strong{display:block;color:#ffd25b;font-size:11px;margin-bottom:6px}.v23201-shop-buy button{font-size:9px;padding:7px 9px}.v23201-aura-bonus{display:block;color:#78e6aa;font-size:9px;font-weight:900;margin:5px 0}
 @media(max-width:1050px){.v23201-token-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:680px){.v23201-token-grid{grid-template-columns:1fr}.v23201-shop-card{grid-template-columns:38px 1fr}.v23201-shop-buy{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center}}
+
+/* V23.20.2 – Aura Token-only Shop */
+.v23201-token-pill{border-color:rgba(164,105,255,.45)!important;background:rgba(77,42,138,.15)!important}
+.v23201-token-pill b,.v23201-shop-buy strong{color:#d3b5ff!important}

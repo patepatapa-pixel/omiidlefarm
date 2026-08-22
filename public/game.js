@@ -971,16 +971,16 @@ function renderStats(){
 
 const AURAS=[
  {id:"none",name:"Nincs aura",className:"",cost:0,need:0,bonus:{}},
- {id:"blue",name:"Kék energia aura",className:"aura-blue",cost:1,need:1,bonus:{xp:.02},bonusText:"+2% XP"},
- {id:"purple",name:"Lila misztikus aura",className:"aura-purple",cost:2,need:2,bonus:{drop:.02},bonusText:"+2% drop"},
- {id:"crimson",name:"Bíbor démon aura",className:"aura-crimson",cost:3,need:3,bonus:{bossDmg:.03},bonusText:"+3% boss sebzés"},
- {id:"gold",name:"Legendás arany aura",className:"aura-gold",cost:5,need:5,bonus:{gold:.05},bonusText:"+5% arany"},
- {id:"void",name:"Void isteni aura",className:"aura-void",cost:8,need:8,bonus:{dungeonDmg:.05},bonusText:"+5% dungeon erő"},
- {id:"solar",name:"Napkorona aura",className:"aura-gold",cost:12,need:15,bonus:{xp:.05},bonusText:"+5% XP"},
- {id:"astral",name:"Asztrális aura",className:"aura-purple",cost:18,need:25,bonus:{drop:.05},bonusText:"+5% drop"},
- {id:"emperor",name:"Császári fény",className:"aura-gold",cost:28,need:40,bonus:{gold:.05,xp:.03,drop:.03},bonusText:"+5% arany · +3% XP/drop"},
- {id:"eternal",name:"Eternal citromfény",className:"aura-gold",cost:45,need:60,bonus:{gold:.07,xp:.05,drop:.05,bossDmg:.05},bonusText:"+7% arany · +5% XP/drop/boss"},
- {id:"centurion",name:"Prestige 100 korona",className:"aura-gold",cost:75,need:100,bonus:{gold:.05,xp:.05,drop:.05,bossDmg:.05,dungeonDmg:.05},bonusText:"+5% minden fő PvE bónusz"}
+ {id:"blue",name:"Kék energia aura",className:"aura-blue",cost:1,need:0,bonus:{xp:.02},bonusText:"+2% XP"},
+ {id:"purple",name:"Lila misztikus aura",className:"aura-purple",cost:2,need:0,bonus:{drop:.02},bonusText:"+2% drop"},
+ {id:"crimson",name:"Bíbor démon aura",className:"aura-crimson",cost:3,need:0,bonus:{bossDmg:.03},bonusText:"+3% boss sebzés"},
+ {id:"gold",name:"Legendás arany aura",className:"aura-gold",cost:5,need:0,bonus:{gold:.05},bonusText:"+5% arany"},
+ {id:"void",name:"Void isteni aura",className:"aura-void",cost:8,need:0,bonus:{dungeonDmg:.05},bonusText:"+5% dungeon erő"},
+ {id:"solar",name:"Napkorona aura",className:"aura-gold",cost:12,need:0,bonus:{xp:.05},bonusText:"+5% XP"},
+ {id:"astral",name:"Asztrális aura",className:"aura-purple",cost:18,need:0,bonus:{drop:.05},bonusText:"+5% drop"},
+ {id:"emperor",name:"Császári fény",className:"aura-gold",cost:28,need:0,bonus:{gold:.05,xp:.03,drop:.03},bonusText:"+5% arany · +3% XP/drop"},
+ {id:"eternal",name:"Eternal citromfény",className:"aura-gold",cost:45,need:0,bonus:{gold:.07,xp:.05,drop:.05,bossDmg:.05},bonusText:"+7% arany · +5% XP/drop/boss"},
+ {id:"centurion",name:"Prestige 100 korona",className:"aura-gold",cost:75,need:0,bonus:{gold:.05,xp:.05,drop:.05,bossDmg:.05,dungeonDmg:.05},bonusText:"+5% minden fő PvE bónusz"}
 ];
 function prestigeParagonRequirement(){
  const p=Math.max(0,Number(save.prestigeLevel||0));
@@ -1144,8 +1144,8 @@ function buyPrestigeShopV23201(id){
  const s=prestigeShopStateV23201(),owned=Boolean(s.owned[id]);
  if(d.once&&owned)return toast("✅ Ezt a végleges fejlesztést már megszerezted.");
  if(d.requires&&!s.owned[d.requires])return toast("🔒 Előbb az Inventory +50 fejlesztést kell megvenned.");
- if(Number(save.prestigeTokens||0)<d.cost)return toast(`🟡 Nincs elég Prestige token. Kell: ${d.cost}`);
- save.prestigeTokens-=d.cost;
+ if(Number(save.auraTokens||0)<d.cost)return toast(`✨ Nincs elég Aura token. Kell: ${d.cost}`);
+ save.auraTokens=Math.max(0,Number(save.auraTokens||0)-d.cost);
  if(d.once)s.owned[id]=true;
  if(id==="tickets10")save.tickets=Number(save.tickets||0)+10;
  else if(id==="gems300")save.gems=Number(save.gems||0)+300;
@@ -1160,8 +1160,9 @@ function buyPrestigeShopV23201(id){
 }
 function formatBoostTimeV23201(ms){const min=Math.ceil(ms/60000);return min>=60?`${Math.floor(min/60)}ó ${min%60}p`:`${min}p`}
 function renderPrestigeTokenShopV23201(){
+ const topAura=document.getElementById("auraShopTokenBalanceV23202");if(topAura)topAura.textContent=typeof fmt==="function"?fmt(save.auraTokens||0):String(save.auraTokens||0);
  const root=document.getElementById("prestigeTokenShopV23201");if(!root)return;
- const counter=document.getElementById("prestigeTokensShopV23201");if(counter)counter.textContent=typeof fmt==="function"?fmt(save.prestigeTokens||0):String(save.prestigeTokens||0);
+ const counter=document.getElementById("auraTokensShopV23202");if(counter)counter.textContent=typeof fmt==="function"?fmt(save.auraTokens||0):String(save.auraTokens||0);
  const s=prestigeShopStateV23201();
  root.innerHTML=PRESTIGE_SHOP_V23201.map(d=>{
   const owned=d.once&&Boolean(s.owned[d.id]),locked=d.requires&&!s.owned[d.requires],active=["drop2h","gold2h","dungeon2h"].includes(d.id)&&prestigeBoostActiveV23201(d.id);
@@ -1169,7 +1170,7 @@ function renderPrestigeTokenShopV23201(){
   return `<article class="v23201-shop-card ${owned?"owned":""} ${active?"boost-active":""}">
    <div class="v23201-shop-icon">${d.icon}</div>
    <div class="v23201-shop-copy"><small>${d.type}</small><b>${d.name}</b><span>${d.desc}</span>${active?`<em>⏱️ Aktív: ${remain}</em>`:""}</div>
-   <div class="v23201-shop-buy"><strong>${d.cost} 🟡</strong><button data-prestige-shop-v23201="${d.id}" ${owned||locked?"disabled":""}>${owned?"✓ MEGVAN":locked?"🔒 ELŐFELTÉTEL":"MEGVESZEM"}</button></div>
+   <div class="v23201-shop-buy"><strong>${d.cost} ✨</strong><button data-prestige-shop-v23201="${d.id}" ${owned||locked?"disabled":""}>${owned?"✓ MEGVAN":locked?"🔒 ELŐFELTÉTEL":"MEGVESZEM"}</button></div>
   </article>`;
  }).join("");
  root.querySelectorAll("[data-prestige-shop-v23201]").forEach(b=>b.onclick=()=>buyPrestigeShopV23201(b.dataset.prestigeShopV23201));
@@ -1237,8 +1238,8 @@ function renderParagon(){
  const shop=$("#auraShop");
  if(shop){
    shop.innerHTML=AURAS.map(a=>{
-     const owned=save.ownedAuras.includes(a.id),active=save.activeAura===a.id,locked=save.prestigeLevel<a.need;
-     return `<div class="aura-card ${active?"active":""}"><b>✨ ${a.name}</b><small>${a.id==="none"?"Alap":`Prestige ${a.need} · ${a.cost} Prestige token`}</small>${a.bonusText?`<span class="v23201-aura-bonus">⚡ ${a.bonusText}</span>`:""}<button data-aura="${a.id}" ${locked?"disabled":""}>${active?"Aktív":owned?"Aktiválás":"Megvásárlás"}</button></div>`
+     const owned=save.ownedAuras.includes(a.id),active=save.activeAura===a.id,locked=false;
+     return `<div class="aura-card ${active?"active":""}"><b>✨ ${a.name}</b><small>${a.id==="none"?"Alap":`${a.cost} Aura token`}</small>${a.bonusText?`<span class="v23201-aura-bonus">⚡ ${a.bonusText}</span>`:""}<button data-aura="${a.id}" ${locked?"disabled":""}>${active?"Aktív":owned?"Aktiválás":"Megvásárlás"}</button></div>`
    }).join("");
    $$("[data-aura]").forEach(b=>b.onclick=()=>buyOrEquipAura(b.dataset.aura));
  }
@@ -1321,12 +1322,13 @@ function doTruePrestige(automatic=false){
 function buyOrEquipAura(id){
  const a=AURAS.find(x=>x.id===id);if(!a)return;
  if(!save.ownedAuras.includes(id)){
-   if(save.prestigeLevel<a.need)return toast("🔒 Magasabb Prestige szint szükséges.");
-   if(save.prestigeTokens<a.cost)return toast("Nincs elég Prestige token.");
-   save.prestigeTokens-=a.cost;save.ownedAuras.push(id);
+   if(Number(save.auraTokens||0)<a.cost)return toast(`✨ Nincs elég Aura token. Kell: ${a.cost}`);
+   save.auraTokens=Math.max(0,Number(save.auraTokens||0)-a.cost);
+   save.ownedAuras.push(id);
  }
  save.activeAura=id;persist();renderAll();toast("✨ Aura aktiválva: "+a.name);
 }
+
 $("#equipBestBtn")?.addEventListener("click",equipBest);
 $("#prestigeBtn")?.addEventListener("click",doPrestige);
 $("#truePrestigeBtn")?.addEventListener("click",doTruePrestige);
@@ -6403,3 +6405,9 @@ window.OMI_GEARSCORE_V23200=true;
  document.addEventListener("click",e=>{if(e.target.closest?.('[data-tab="aurashop"]'))setTimeout(refreshPrestigeShopV23201,80)},true);
 })();
 window.OMI_PRESTIGE_ENDGAME_SHOP_V23201=true;
+
+/* V23.20.2
+ Aura Shop és Endgame Shop kizárólag Aura Tokent használ.
+ Prestige szint és Prestige Token nem feltétel a shophoz vagy az aurákhoz.
+ A külön Prestige mechanika ettől változatlanul megmarad. */
+window.OMI_AURA_TOKEN_ONLY_SHOP_V23202=true;
