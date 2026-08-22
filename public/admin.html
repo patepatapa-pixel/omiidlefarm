@@ -77,7 +77,7 @@
   </div>
   <div id="v222EditorStatus"></div>
 </section>
-<hr><h3>🎁 Jutalom hozzáadása</h3><p class="muted">A kiválasztott játékos egyenlegéhez adja hozzá az értéket.</p><div style="display:grid;grid-template-columns:1fr 1fr auto;gap:7px"><select id="grantType"><option value="gold">💰 Arany</option><option value="gems">💎 Gyémánt</option><option value="ore">⛏️ Érc</option><option value="soul">🔵 Lélekkő</option><option value="tickets">🎫 Dungeon jegy</option><option value="achievementPoints">🏆 Achievement pont</option><option value="skillPoints">📚 Skill pont</option><option value="paragonStatPoints">📌 Paragon pont</option><option value="auraTokens">✨ Aura token</option></select><input id="grantAmount" type="number" min="1" value="1000"><button id="grantBtn">➕ Hozzáadás</button></div><hr><div style="display:flex;gap:7px;flex-wrap:wrap"><button id="banBtn" class="danger">Tiltás</button><button id="resetBtn" class="danger">Mentés teljes reset</button></div></div></div>
+<hr><h3>🎁 Jutalom hozzáadása</h3><p class="muted">A kiválasztott játékos egyenlegéhez adja hozzá az értéket.</p><div style="display:grid;grid-template-columns:1fr 1fr auto;gap:7px"><select id="grantType"><option value="gold">💰 Arany</option><option value="gems">💎 Gyémánt</option><option value="ore">⛏️ Érc</option><option value="soul">🔵 Lélekkő</option><option value="tickets">🎫 Dungeon jegy</option><option value="achievementPoints">🏆 Achievement pont</option><option value="skillPoints">📚 Skill pont</option><option value="paragonStatPoints">📌 Paragon pont</option><option value="auraTokens">✨ Aura token</option><option value="pvpCups">🏆 PvP Kupa</option></select><input id="grantAmount" type="number" min="1" value="1000"><button id="grantBtn">➕ Hozzáadás</button></div><hr><div style="display:flex;gap:7px;flex-wrap:wrap"><button id="banBtn" class="danger">Tiltás</button><button id="resetBtn" class="danger">Mentés teljes reset</button></div></div></div>
 <div id="toast"></div>
 <section class="card admin-studio">
 <h2>🛠️ ADMIN GAME STUDIO</h2>
@@ -164,6 +164,17 @@
   <label>Párbaj cooldown mp<input id="cfgPvpCooldown" type="number" min="0"></label>
   <label>Győzelem rating jutalom<input id="cfgPvpRatingWin" type="number" min="1" value="18"></label>
   <label>Vereség rating levonás<input id="cfgPvpRatingLoss" type="number" min="1" value="20"></label>
+  <label>🏆 Alap Kupa / győzelem<input id="cfgPvpCupBaseWin" type="number" min="0"></label>
+  <label>🔥 Hány streakenként járjon bónusz<input id="cfgPvpCupStreakEvery" type="number" min="1"></label>
+  <label>🔥 Kupa bónusz / lépcső<input id="cfgPvpCupStreakBonus" type="number" min="0"></label>
+  <label>🔥 Max streak-bónusz Kupa<input id="cfgPvpCupStreakMaxBonus" type="number" min="0"></label>
+  <label>📈 Stat árnövekedés % / szint<input id="cfgPvpCupCostGrowth" type="number" min="0" step="0.1"></label>
+  <label>⚔️ ATK alapár<input id="cfgPvpCupAtkCost" type="number" min="1"></label>
+  <label>❤️ HP alapár<input id="cfgPvpCupHpCost" type="number" min="1"></label>
+  <label>🛡️ DEF alapár<input id="cfgPvpCupDefCost" type="number" min="1"></label>
+  <label>🧱 Block alapár<input id="cfgPvpCupBlockCost" type="number" min="1"></label>
+  <label>🍀 Luck alapár<input id="cfgPvpCupLuckCost" type="number" min="1"></label>
+  <label>⚡ Double alapár<input id="cfgPvpCupDoubleCost" type="number" min="1"></label>
  </div>
  <button id="savePvpConfig">💾 PvP mentése</button>
 </div>

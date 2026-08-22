@@ -244,12 +244,13 @@ qs("#toggleLeaderboard")?.addEventListener("click",async()=>{
 });
 
 function fillPvpAdmin(){
- const p={minLevel:20,rewardGold:500,cooldownSec:10,ratingWin:18,ratingLoss:20,...(studioConfig.pvp||{})};
- [["#cfgPvpMinLevel","minLevel"],["#cfgPvpRewardGold","rewardGold"],["#cfgPvpCooldown","cooldownSec"],["#cfgPvpRatingWin","ratingWin"],["#cfgPvpRatingLoss","ratingLoss"]].forEach(([id,k])=>{if(qs(id))qs(id).value=p[k]});
+ const p={minLevel:20,rewardGold:500,cooldownSec:10,ratingWin:18,ratingLoss:20,cupBaseWin:2,cupStreakEvery:3,cupStreakBonus:1,cupStreakMaxBonus:20,cupCostGrowthPct:11,cupBaseCosts:{atk:3,hp:3,def:3,block:6,luck:5,double:7},...(studioConfig.pvp||{})};
+ const M={cfgPvpMinLevel:p.minLevel,cfgPvpRewardGold:p.rewardGold,cfgPvpCooldown:p.cooldownSec,cfgPvpRatingWin:p.ratingWin,cfgPvpRatingLoss:p.ratingLoss,cfgPvpCupBaseWin:p.cupBaseWin,cfgPvpCupStreakEvery:p.cupStreakEvery,cfgPvpCupStreakBonus:p.cupStreakBonus,cfgPvpCupStreakMaxBonus:p.cupStreakMaxBonus,cfgPvpCupCostGrowth:p.cupCostGrowthPct,cfgPvpCupAtkCost:p.cupBaseCosts?.atk??3,cfgPvpCupHpCost:p.cupBaseCosts?.hp??3,cfgPvpCupDefCost:p.cupBaseCosts?.def??3,cfgPvpCupBlockCost:p.cupBaseCosts?.block??6,cfgPvpCupLuckCost:p.cupBaseCosts?.luck??5,cfgPvpCupDoubleCost:p.cupBaseCosts?.double??7};
+ Object.entries(M).forEach(([id,v])=>{const e=qs("#"+id);if(e)e.value=v});
 }
 qs("#savePvpConfig")?.addEventListener("click",async()=>{
- studioConfig.pvp={minLevel:num("#cfgPvpMinLevel"),rewardGold:num("#cfgPvpRewardGold"),cooldownSec:num("#cfgPvpCooldown"),ratingWin:num("#cfgPvpRatingWin"),ratingLoss:num("#cfgPvpRatingLoss")};
- await saveConfigV8();fillPvpAdmin();alert("✅ PvP beállítások mentve.");
+ studioConfig.pvp={minLevel:num("#cfgPvpMinLevel"),rewardGold:num("#cfgPvpRewardGold"),cooldownSec:num("#cfgPvpCooldown"),ratingWin:num("#cfgPvpRatingWin"),ratingLoss:num("#cfgPvpRatingLoss"),cupBaseWin:num("#cfgPvpCupBaseWin"),cupStreakEvery:Math.max(1,num("#cfgPvpCupStreakEvery")),cupStreakBonus:num("#cfgPvpCupStreakBonus"),cupStreakMaxBonus:num("#cfgPvpCupStreakMaxBonus"),cupCostGrowthPct:num("#cfgPvpCupCostGrowth"),cupBaseCosts:{atk:Math.max(1,num("#cfgPvpCupAtkCost")),hp:Math.max(1,num("#cfgPvpCupHpCost")),def:Math.max(1,num("#cfgPvpCupDefCost")),block:Math.max(1,num("#cfgPvpCupBlockCost")),luck:Math.max(1,num("#cfgPvpCupLuckCost")),double:Math.max(1,num("#cfgPvpCupDoubleCost"))}};
+ await saveConfigV8();fillPvpAdmin();alert("✅ PvP Kupa jutalmak és fejlesztési árak mentve.");
 });
 
 function renderShopAdmin(){

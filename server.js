@@ -759,6 +759,7 @@ app.post("/api/save",auth,async(req,res)=>{
     // Browser autosave must never overwrite a newly earned Win Streak or PvP build.
     data.pvpWinStreak=Math.max(0,Math.floor(Number(stored.pvpWinStreak||0)));
     data.pvpBestWinStreak=Math.max(data.pvpWinStreak,Math.max(0,Math.floor(Number(stored.pvpBestWinStreak||0))));
+    data.pvpCups=Math.max(0,Math.floor(Number(stored.pvpCups||0)));
     if(stored && stored.pvpBuild && typeof stored.pvpBuild==="object")data.pvpBuild=pvpBuild(stored);
     if(stored && stored.pvpSoulSession && stored.pvpSoulSession.active){
       data.pvpSoulSession={...stored.pvpSoulSession,active:true,budget:Math.max(0,Math.floor(Number(stored.pvpSoulSession.budget||0)))};
@@ -878,7 +879,7 @@ app.post("/api/admin/player/:id/reset",auth,admin,async(req,res)=>{
 app.post("/api/admin/player/:id/grant",auth,admin,async(req,res)=>{
   const type=String(req.body.type||"");
   const amount=Math.floor(Number(req.body.amount));
-  if(!["gold","gems","ore","soul","tickets","achievementPoints","skillPoints","paragonStatPoints","auraTokens"].includes(type))return res.status(400).json({error:"Hibás jutalomtípus."});
+  if(!["gold","gems","ore","soul","tickets","achievementPoints","skillPoints","paragonStatPoints","auraTokens","pvpCups"].includes(type))return res.status(400).json({error:"Hibás jutalomtípus."});
   if(!Number.isFinite(amount)||amount<=0)return res.status(400).json({error:"Adj meg 0-nál nagyobb mennyiséget."});
   if(amount>1e12)return res.status(400).json({error:"Túl nagy mennyiség."});
   const g=(await q("SELECT save_data FROM game_saves WHERE user_id=$1",[req.params.id])).rows[0];
@@ -997,10 +998,26 @@ function pvpUpgradeDiscount(save){
   // V22.98: Paragon -1% / szint, Prestige -2% / szint, összesen max. -70%.
   return Math.min(.70,paragon*.01+prestige*.02);
 }
-function pvpUpgradeCost(stat,level,save){
-  const base={atk:3,hp:3,def:3,block:6,luck:5,double:7}[stat]||5;
-  const raw=base*Math.pow(1.11,Math.max(0,Number(level||0)));
+function pvpCupConfig(config={}){
+  const p=config?.pvp||config||{};
+  return {
+    cupBaseWin:Math.max(0,Math.floor(Number(p.cupBaseWin??2))),
+    cupStreakEvery:Math.max(1,Math.floor(Number(p.cupStreakEvery??3))),
+    cupStreakBonus:Math.max(0,Math.floor(Number(p.cupStreakBonus??1))),
+    cupStreakMaxBonus:Math.max(0,Math.floor(Number(p.cupStreakMaxBonus??20))),
+    cupCostGrowthPct:Math.max(0,Number(p.cupCostGrowthPct??11)),
+    cupBaseCosts:{atk:3,hp:3,def:3,block:6,luck:5,double:7,...(p.cupBaseCosts||{})}
+  };
+}
+function pvpUpgradeCost(stat,level,save,config={}){
+  const c=pvpCupConfig(config),base=Math.max(1,Number(c.cupBaseCosts[stat]||5));
+  const raw=base*Math.pow(1+c.cupCostGrowthPct/100,Math.max(0,Number(level||0)));
   return Math.max(1,Math.floor(raw*(1-pvpUpgradeDiscount(save))));
+}
+function pvpCupReward(streak,config={}){
+  const c=pvpCupConfig(config),s=Math.max(1,Math.floor(Number(streak||1)));
+  const steps=Math.floor(Math.max(0,s-1)/c.cupStreakEvery);
+  return Math.max(0,c.cupBaseWin+Math.min(c.cupStreakMaxBonus,steps*c.cupStreakBonus));
 }
 function pvpStats(save){
   save=save||{};
@@ -1069,34 +1086,30 @@ app.post("/api/pvp/session/end",auth,async(req,res)=>{
 app.get("/api/pvp/profile",auth,async(req,res)=>{
   const row=(await q("SELECT save_data FROM game_saves WHERE user_id=$1",[req.user.id])).rows[0];
   if(!row)return res.status(404).json({error:"Mentés nem található."});
-  const save=row.save_data||{},levels=pvpBuild(save),stats=pvpStats(save),sess=save.pvpSoulSession;
-  const costs={};for(const k of Object.keys(levels))costs[k]=pvpUpgradeCost(k,levels[k],save);
-  res.json({levels,stats,costs,soul:Math.max(0,Math.floor(Number(sess?.active?sess.budget:save.soul||0))),pendingSoul:Math.max(0,Math.floor(Number(sess?.active?save.soul:0))),sessionActive:Boolean(sess?.active),discountPct:Math.round(pvpUpgradeDiscount(save)*100)});
+  const save=row.save_data||{},levels=pvpBuild(save),stats=pvpStats(save),cfg=await mainConfig();
+  const costs={};for(const k of Object.keys(levels))costs[k]=pvpUpgradeCost(k,levels[k],save,cfg);
+  res.json({levels,stats,costs,pvpCups:Math.max(0,Math.floor(Number(save.pvpCups||0))),winStreak:Math.max(0,Math.floor(Number(save.pvpWinStreak||0))),discountPct:Math.round(pvpUpgradeDiscount(save)*100)});
 });
+
 app.post("/api/pvp/upgrade",auth,async(req,res)=>{
   try{
-    const stat=String(req.body.stat||"");
-    const max={atk:100,hp:100,def:100,block:40,luck:60,double:40};
+    const stat=String(req.body.stat||""),max={atk:100,hp:100,def:100,block:40,luck:60,double:40};
     if(!(stat in max))return res.status(400).json({error:"Ismeretlen PvP stat."});
     const row=(await q("SELECT save_data FROM game_saves WHERE user_id=$1 FOR UPDATE",[req.user.id])).rows[0];
     if(!row)return res.status(404).json({error:"Mentés nem található."});
-    const save=row.save_data||{},levels=pvpBuild(save),sess=save.pvpSoulSession;
-    let lv=Math.max(0,Number(levels[stat]||0));
+    const save=row.save_data||{},levels=pvpBuild(save),cfg=await mainConfig();
+    let lv=Math.max(0,Number(levels[stat]||0)),available=Math.max(0,Math.floor(Number(save.pvpCups||0)));
     if(lv>=max[stat])return res.status(400).json({error:"Ez a PvP stat már maximumon van."});
-    let available=Math.max(0,Math.floor(Number(sess?.active?sess.budget:save.soul||0)));
-    const rawAmount=req.body.amount;
-    const wanted=String(rawAmount).toLowerCase()==="max"?max[stat]-lv:Math.max(1,Math.min(10,Math.floor(Number(rawAmount||1))));
+    const rawAmount=req.body.amount,wanted=String(rawAmount).toLowerCase()==="max"?max[stat]-lv:Math.max(1,Math.min(10,Math.floor(Number(rawAmount||1))));
     let added=0,spent=0;
     for(let i=0;i<wanted&&lv<max[stat];i++){
-      const oneCost=Math.max(0,Math.floor(Number(pvpUpgradeCost(stat,lv,save)||0)));
-      if(available<oneCost)break;
-      available-=oneCost;spent+=oneCost;lv++;added++;
+      const c=Math.max(1,Math.floor(Number(pvpUpgradeCost(stat,lv,save,cfg)||1)));
+      if(available<c)break;available-=c;spent+=c;lv++;added++;
     }
-    if(!added)return res.status(400).json({error:`Nincs elég lélekkő. Következő pont ára: ${Math.max(0,Math.floor(Number(pvpUpgradeCost(stat,lv,save)||0)))}`});
-    if(sess?.active){sess.budget=available;save.pvpSoulSession=sess}else save.soul=available;
-    save.pvpBuild={...levels,[stat]:lv};
+    if(!added)return res.status(400).json({error:`Nincs elég PvP Kupa. Következő pont ára: ${pvpUpgradeCost(stat,lv,save,cfg)} 🏆`});
+    save.pvpCups=available;save.pvpBuild={...levels,[stat]:lv};
     await q("UPDATE game_saves SET save_data=$1,updated_at=NOW() WHERE user_id=$2",[save,req.user.id]);
-    res.json({ok:true,cost:spent,added,soul:available,pendingSoul:Math.max(0,Math.floor(Number(sess?.active?save.soul:0))),levels:save.pvpBuild,stats:pvpStats(save),sessionActive:Boolean(sess?.active),discountPct:Math.round(pvpUpgradeDiscount(save)*100)});
+    res.json({ok:true,cost:spent,added,pvpCups:available,levels:save.pvpBuild,stats:pvpStats(save),discountPct:Math.round(pvpUpgradeDiscount(save)*100)});
   }catch(e){console.error("PVP UPGRADE ERROR:",e);res.status(500).json({error:"A PvP fejlesztés nem sikerült."});}
 });
 
@@ -1118,7 +1131,7 @@ app.post("/api/pvp/fight",auth,async(req,res)=>{
     const defenderId=Number(req.body.defender_id);
     if(!Number.isInteger(defenderId)||defenderId<=0||defenderId===Number(req.user.id))
       return res.status(400).json({error:"Hibás ellenfél."});
-    const cfg=await mainConfig(),pc={minLevel:20,rewardGold:500,cooldownSec:60,ratingWin:18,ratingLoss:20,...(cfg.pvp||{})};pc.cooldownSec=60;
+    const cfg=await mainConfig(),pc={minLevel:20,rewardGold:500,cooldownSec:60,ratingWin:18,ratingLoss:20,cupBaseWin:2,cupStreakEvery:3,cupStreakBonus:1,cupStreakMaxBonus:20,...(cfg.pvp||{})};pc.cooldownSec=60;
     const last=(await q("SELECT created_at FROM pvp_fights WHERE challenger_id=$1 ORDER BY id DESC LIMIT 1",[req.user.id])).rows[0];
     if(last && (Date.now()-new Date(last.created_at).getTime())<pc.cooldownSec*1000){
       const remaining=Math.max(1,Math.ceil((pc.cooldownSec*1000-(Date.now()-new Date(last.created_at).getTime()))/1000));
@@ -1159,6 +1172,8 @@ app.post("/api/pvp/fight",auth,async(req,res)=>{
     const wg=winnerRow?.save_data||{},lg=loserRow?.save_data||{};
     wg.pvpWinStreak=Math.max(0,Math.floor(Number(wg.pvpWinStreak||0)))+1;
     wg.pvpBestWinStreak=Math.max(Math.max(0,Math.floor(Number(wg.pvpBestWinStreak||0))),wg.pvpWinStreak);
+    const cupReward=pvpCupReward(wg.pvpWinStreak,cfg);
+    wg.pvpCups=Math.max(0,Math.floor(Number(wg.pvpCups||0)))+cupReward;
     lg.pvpWinStreak=0;
     lg.pvpBestWinStreak=Math.max(0,Math.floor(Number(lg.pvpBestWinStreak||0)));
     wg.gold=Number(wg.gold||0)+Number(pc.rewardGold||0);
@@ -1173,6 +1188,8 @@ app.post("/api/pvp/fight",auth,async(req,res)=>{
       winnerRating:Number(winnerRating||0),
       loserRating:Number(loserRating||0),
       rewardGold:Number(pc.rewardGold||0),
+      cupReward:Number(cupReward||0),
+      winnerPvpCups:Math.max(0,Number(wg.pvpCups||0)),
       winnerWinStreak:Math.max(0,Number(wg.pvpWinStreak||0)),
       loserWinStreak:0,
       log:log.slice(0,80)

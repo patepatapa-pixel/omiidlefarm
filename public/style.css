@@ -5084,3 +5084,5 @@ nav.tabs{display:flex!important;flex-wrap:wrap!important;justify-content:center;
 .v23205-streak-lost{display:inline-block;margin-left:8px;color:#aab2be;font-size:10px}
 @keyframes v23205Fire{from{transform:translateY(0) scale(1);filter:drop-shadow(0 0 4px rgba(255,75,10,.45))}to{transform:translateY(-1px) scale(1.08);filter:drop-shadow(0 0 9px rgba(255,145,32,.85))}}
 @media(prefers-reduced-motion:reduce){.v23205-fire,.v23205-result-fire{animation:none!important}}
+
+.v23207-cup{border-color:rgba(235,181,55,.45)!important;background:rgba(91,64,8,.16)!important}.v23207-cup b{color:#ffd45d!important}.v23207-cup-win{color:#ffd45d;font-weight:1000}
