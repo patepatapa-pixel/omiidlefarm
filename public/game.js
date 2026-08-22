@@ -4630,11 +4630,17 @@ document.addEventListener("click",e=>{
     const totalCost=Number(d.ticketCost||1)*batchCount,tickets=Number(s.tickets||0);
     if(tickets<totalCost){if(typeof toast==="function")toast(`🎫 ${batchCount} futamhoz ${totalCost} jegy kell.`);return}
     s.tickets=tickets-totalCost;s.dungeonStats.runs+=batchCount;
-    let wins=0,losses=0,total={gold:0,ore:0,gems:0,soul:0};
-    for(let i=0;i<batchCount;i++){
-      const win=d.safe||Math.random()<successChance(d);
-      if(win){wins++;const rw=applyRewards(d);Object.keys(total).forEach(k=>total[k]+=Number(rw[k]||0));}
-      else losses++;
+    // V23.20.8: A kiválasztott futamszorzó valódi szorzó.
+    // Egy sikeres 2× / 3× / 5× / 10× futam pontosan 2 / 3 / 5 / 10 jutalom- és dropprollt ad.
+    // Nem dobunk külön sikerességet minden egyes részfutamra, mert az korábban véletlenszerűen 1/3/7 stb. jutalmat adott.
+    const batchWin=d.safe||Math.random()<successChance(d);
+    const wins=batchWin?batchCount:0,losses=batchWin?0:batchCount,total={gold:0,ore:0,gems:0,soul:0};
+    if(batchWin){
+      for(let i=0;i<batchCount;i++){
+        const rw=applyRewards(d);
+        Object.keys(total).forEach(k=>total[k]+=Number(rw[k]||0));
+        if(typeof window.v225TryDungeonGearDrop==="function")window.v225TryDungeonGearDrop(d);
+      }
     }
     s.dungeonStats.wins+=wins;s.dungeonStats.losses+=losses;s.dungeonStats.streak=losses?0:Number(s.dungeonStats.streak||0)+wins;
     s.stats=s.stats||{};s.stats.dungeons=Number(s.stats.dungeons||0)+wins;
@@ -4974,10 +4980,10 @@ document.addEventListener("click",e=>{
       s.dungeonClears[d.id]=Number(s.dungeonClears[d.id]||0)+wins;
 
       b.bossHp=0;
-      b.log=`🏆 ${batch} futam: ${wins} siker · ${losses} bukás! +${F(rw.gold)} arany${rw.ore?` · +${rw.ore} érc`:""}${rw.gems?` · +${rw.gems} gyémánt`:""}${rw.soul?` · +${rw.soul} lélekkő`:""}`;
+      b.log=`🏆 ${batch}× FUTAM TELJESÍTVE · ${batch}× jutalom / ${batch}× dropproll! +${F(rw.gold)} arany${rw.ore?` · +${rw.ore} érc`:""}${rw.gems?` · +${rw.gems} gyémánt`:""}${rw.soul?` · +${rw.soul} lélekkő`:""}`;
       drawBattle();
       const endgameDrops=[];for(let dropRun=0;dropRun<wins;dropRun++){const item=window.v225TryDungeonGearDrop?.(d);if(item)endgameDrops.push(item)}
-      if(typeof toast==="function")toast(`🏆 ${d.name}: ${wins}/${batch} siker · ${endgameDrops.length} ritka tárgydrop`);
+      if(typeof toast==="function")toast(`🏆 ${d.name}: ${batch}× futam · ${batch}× dropproll · ${endgameDrops.length} ritka tárgy esett`);
     }else{
       s.dungeonStats.losses+=batch;
       s.dungeonStats.streak=0;
@@ -5031,8 +5037,10 @@ document.addEventListener("click",e=>{
       return Math.max(.05,Math.min(.95,c));
     })();
 
-    let batchWins=0;for(let run=0;run<batchCount;run++)if(d.safe||Math.random()<chance)batchWins++;
-    const predeterminedWin=batchWins>0;
+    // V23.20.8: a batch nem több külön sikerességi dobás.
+    // A teljes kiválasztott szorzó együtt nyer vagy együtt veszít.
+    const predeterminedWin=d.safe||Math.random()<chance;
+    const batchWins=predeterminedWin?batchCount:0;
     const ph=maxPlayerHp();
     const bh=bossMaxHp(d);
 
@@ -5047,7 +5055,7 @@ document.addEventListener("click",e=>{
       round:1,
       speed:Number(s.dungeonSpeeds?.[d.id]||1),
       win:predeterminedWin,
-      log:`${d.bossIcon||"👹"} ${d.bossName||"Boss"} megjelent! · ${batchCount} külön futam eredménye készül.`
+      log:`${d.bossIcon||"👹"} ${d.bossName||"Boss"} megjelent! · ${batchCount}× futam: siker esetén pontosan ${batchCount}× jutalom és ${batchCount}× dropproll.`
     };
 
     drawBattle();
@@ -6423,3 +6431,7 @@ window.OMI_AURA_FULL_ADMIN_V23204=true;
 window.OMI_PVP_WINSTREAK_V23205=true;
 
 window.OMI_PVP_CUP_V23207=true;
+
+/* V23.20.8 – Dungeon multiplier consistency
+   2×/3×/5×/10× always means exactly that many reward and item-drop rolls on a successful batch. */
+window.OMI_DUNGEON_MULTIPLIER_FIX_V23208=true;
