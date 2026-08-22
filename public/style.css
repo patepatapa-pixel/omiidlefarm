@@ -5050,3 +5050,15 @@ nav.tabs{display:flex!important;flex-wrap:wrap!important;justify-content:center;
 .v23200-character-gear-summary div{display:flex;justify-content:space-between;padding:8px 10px;border-radius:9px;background:rgba(255,255,255,.025)}
 .v23200-character-gear-summary b{color:#ffd467}.v23200-character-gear-summary small{grid-column:1/-1;text-align:center;color:#748091}
 .v23200-pvp-multi{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}.v23200-pvp-multi button{min-width:48px;padding:7px 9px;font-weight:1000}
+
+/* V23.20.1 Prestige Endgame Shop */
+.v23201-prestige-token-shop{margin-top:14px;border-color:rgba(221,174,58,.38)!important;background:linear-gradient(145deg,rgba(15,18,25,.98),rgba(20,15,9,.94))!important}
+.v23201-token-pill{min-width:150px;padding:9px 13px;border:1px solid rgba(229,181,64,.35);border-radius:10px;background:rgba(118,82,12,.12)}
+.v23201-token-pill span{display:block;font-size:9px;color:#9b8a61}.v23201-token-pill b{font-size:20px;color:#ffd35d}
+.v23201-shop-legend{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 13px}.v23201-shop-legend span{font-size:9px;padding:5px 8px;border:1px solid rgba(130,145,170,.20);border-radius:99px;background:rgba(255,255,255,.025);color:#aab5c2}
+.v23201-token-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.v23201-shop-card{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:center;min-height:94px;padding:12px;border:1px solid rgba(95,111,136,.35);border-radius:11px;background:linear-gradient(145deg,rgba(8,12,18,.94),rgba(13,16,22,.94))}
+.v23201-shop-card:hover{border-color:rgba(225,179,67,.50);box-shadow:0 0 18px rgba(218,168,48,.07)}.v23201-shop-card.owned{border-color:rgba(70,206,123,.35)}.v23201-shop-card.boost-active{border-color:rgba(116,94,245,.55);box-shadow:0 0 22px rgba(114,78,246,.12)}
+.v23201-shop-icon{font-size:28px;text-align:center}.v23201-shop-copy{display:flex;flex-direction:column;min-width:0}.v23201-shop-copy small{font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:#7d8998}.v23201-shop-copy b{font-size:12px}.v23201-shop-copy span{font-size:9px;color:#929eac;margin-top:3px}.v23201-shop-copy em{font-style:normal;font-size:9px;color:#aa94ff;margin-top:4px;font-weight:900}
+.v23201-shop-buy{text-align:right}.v23201-shop-buy strong{display:block;color:#ffd25b;font-size:11px;margin-bottom:6px}.v23201-shop-buy button{font-size:9px;padding:7px 9px}.v23201-aura-bonus{display:block;color:#78e6aa;font-size:9px;font-weight:900;margin:5px 0}
+@media(max-width:1050px){.v23201-token-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:680px){.v23201-token-grid{grid-template-columns:1fr}.v23201-shop-card{grid-template-columns:38px 1fr}.v23201-shop-buy{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center}}
