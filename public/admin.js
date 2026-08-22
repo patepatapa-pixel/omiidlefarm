@@ -54,7 +54,7 @@ let studioPlayers=[],studioConfig={bosses:[],items:[],pets:[],auras:[],zones:[]}
 const qs=s=>document.querySelector(s),qsa=s=>[...document.querySelectorAll(s)];
 async function sa(url,opt={}){let r=await fetch(url,{headers:{"Content-Type":"application/json"},...opt}),d=await r.json();if(!r.ok)throw Error(d.error||"Hiba");return d}
 const num=id=>Number(qs(id)?.value||0);
-async function loadStudioV8(){try{let p=await sa("/api/admin/players-full");studioPlayers=p.players||[];qs("#studioPlayer").innerHTML=studioPlayers.map(x=>`<option value="${x.id}">${x.username}</option>`).join("");fillSP();let c=await sa("/api/content-config");studioConfig={bosses:[],items:[],pets:[],auras:[],zones:[],updates:[],...(c.config||{})};renderBuildersV8()}catch(e){console.error(e)}}
+async function loadStudioV8(){try{let p=await sa("/api/admin/players-full");studioPlayers=p.players||[];qs("#studioPlayer").innerHTML=studioPlayers.map(x=>`<option value="${x.id}">${x.username}</option>`).join("");fillSP();let c=await sa("/api/content-config");studioConfig={bosses:[],items:[],pets:[],auras:[],zones:[],updates:[],...(c.config||{})};renderBuildersV8();fillAuraShopV23203()}catch(e){console.error(e)}}
 function curSP(){return studioPlayers.find(x=>String(x.id)===qs("#studioPlayer").value)}
 function fillSP(){let p=curSP();if(!p)return;let s=p.save_data||{},v={admLevel:s.level||1,admParagon:s.paragonLevel||0,admPrestige:s.prestigeLevel||0,admGold:s.gold||0,admGems:s.gems||0,admOre:s.ore||0,admSoul:s.soul||0,admTickets:s.tickets||0,admSkillPoints:s.skillPoints||0,admParagonPoints:s.paragonPoints||0,admAuraTokens:s.auraTokens||0,admPrestigeTokens:s.prestigeTokens||0,admWave:s.wave||1,admKills:s.kills||0,admLuck:s.base?.luck||1};Object.entries(v).forEach(([k,x])=>qs("#"+k).value=x);qs("#playerSaveJson").value=JSON.stringify(s,null,2)}
 qs("#studioPlayer")?.addEventListener("change",fillSP);
@@ -311,6 +311,20 @@ function fillEconomyAdmin(){
  const m={shardChancePct:2,shardAmount:1,shardsRequired:10,chestCost:{gold:1500,gems:10,ore:25,soul:1,tickets:1},upgradeCostMultiplier:1,...(studioConfig.mounts||{})};m.chestCost={gold:1500,gems:10,ore:25,soul:1,tickets:1,...(m.chestCost||{})};
  const mm={cfgMountShardChance:m.shardChancePct,cfgMountShardAmount:m.shardAmount,cfgMountShardRequired:m.shardsRequired,cfgMountChestGold:m.chestCost.gold,cfgMountChestGems:m.chestCost.gems,cfgMountChestOre:m.chestCost.ore,cfgMountChestSoul:m.chestCost.soul,cfgMountChestTickets:m.chestCost.tickets,cfgMountUpgradeMult:m.upgradeCostMultiplier};Object.entries(mm).forEach(([id,value])=>{const el=qs("#"+id);if(el)el.value=value});
 }
+
+const AURA_SHOP_D_V23203={tickets10:[2,10],gems300:[3,300],ore250:[3,250],soul120:[4,120],pet10:[5,10],gearLegend:[8,1],drop2h:[5,120],gold2h:[5,120],dungeon2h:[8,120],inv50:[10,50],inv100:[18,100],auraMastery:[20,25]};
+function fillAuraShopV23203(){
+ const c=studioConfig.auraTokenShop||{},I=c.items||{},v=(id,n)=>Number(I[id]?.[n]??AURA_SHOP_D_V23203[id][n==="cost"?0:1]);
+ const M={cfgAuraPrestigeReward:Number(c.prestigeReward??5),cfgAuraTicketsCost:v("tickets10","cost"),cfgAuraTicketsReward:v("tickets10","reward"),cfgAuraGemsCost:v("gems300","cost"),cfgAuraGemsReward:v("gems300","reward"),cfgAuraOreCost:v("ore250","cost"),cfgAuraOreReward:v("ore250","reward"),cfgAuraSoulCost:v("soul120","cost"),cfgAuraSoulReward:v("soul120","reward"),cfgAuraPetCost:v("pet10","cost"),cfgAuraPetReward:v("pet10","reward"),cfgAuraGearCost:v("gearLegend","cost"),cfgAuraDropCost:v("drop2h","cost"),cfgAuraDropReward:v("drop2h","reward"),cfgAuraGoldCost:v("gold2h","cost"),cfgAuraGoldReward:v("gold2h","reward"),cfgAuraDungeonCost:v("dungeon2h","cost"),cfgAuraDungeonReward:v("dungeon2h","reward"),cfgAuraInv50Cost:v("inv50","cost"),cfgAuraInv100Cost:v("inv100","cost"),cfgAuraMasteryCost:v("auraMastery","cost")};
+ Object.entries(M).forEach(([id,val])=>{const e=qs("#"+id);if(e)e.value=val});
+}
+qs("#saveAuraTokenShopConfig")?.addEventListener("click",async()=>{
+ const n=id=>Math.max(0,Math.floor(Number(qs("#"+id)?.value||0))),old=studioConfig.auraTokenShop?.items||{};
+ studioConfig.auraTokenShop={prestigeReward:n("cfgAuraPrestigeReward"),items:{
+ tickets10:{cost:n("cfgAuraTicketsCost"),reward:n("cfgAuraTicketsReward")},gems300:{cost:n("cfgAuraGemsCost"),reward:n("cfgAuraGemsReward")},ore250:{cost:n("cfgAuraOreCost"),reward:n("cfgAuraOreReward")},soul120:{cost:n("cfgAuraSoulCost"),reward:n("cfgAuraSoulReward")},pet10:{cost:n("cfgAuraPetCost"),reward:n("cfgAuraPetReward")},gearLegend:{cost:n("cfgAuraGearCost"),reward:1},drop2h:{cost:n("cfgAuraDropCost"),reward:n("cfgAuraDropReward")},gold2h:{cost:n("cfgAuraGoldCost"),reward:n("cfgAuraGoldReward")},dungeon2h:{cost:n("cfgAuraDungeonCost"),reward:n("cfgAuraDungeonReward")},inv50:{cost:n("cfgAuraInv50Cost"),reward:50},inv100:{cost:n("cfgAuraInv100Cost"),reward:100},auraMastery:{cost:n("cfgAuraMasteryCost"),reward:25}}};
+ await saveConfigV8();fillAuraShopV23203();alert("✅ Aura Token Shop elmentve.");
+});
+
 qs("#saveEconomyConfig")?.addEventListener("click",async()=>{
  const positive=id=>Math.max(1,Math.floor(num("#"+id)));
  studioConfig.economy={...studioConfig.economy,exchange:{gems:{gold:positive("cfgExchangeGemsGold"),amount:positive("cfgExchangeGemsAmount")},ore:{gold:positive("cfgExchangeOreGold"),amount:positive("cfgExchangeOreAmount")},tickets:{gold:positive("cfgExchangeTicketsGold"),amount:positive("cfgExchangeTicketsAmount")}},petSummonCost:positive("cfgPetSummonCost"),petSlotCosts:[positive("cfgPetSlot2Cost"),positive("cfgPetSlot3Cost"),positive("cfgPetSlot4Cost")],petFusionCosts:economyAdminCfg().petFusionCosts,achievementExchange:{gems:{points:positive("cfgAchGemsPoints"),amount:positive("cfgAchGemsAmount")},ore:{points:positive("cfgAchOrePoints"),amount:positive("cfgAchOreAmount")},tickets:{points:positive("cfgAchTicketsPoints"),amount:positive("cfgAchTicketsAmount")}}};

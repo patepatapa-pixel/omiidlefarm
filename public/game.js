@@ -1098,6 +1098,19 @@ const PRESTIGE_SHOP_V23201=[
  {id:"inv100",icon:"🧳",name:"Inventory +100",type:"Végleges",cost:18,desc:"+100 további végleges tárhely",once:true,requires:"inv50"},
  {id:"auraMastery",icon:"🌌",name:"Aura Mester",type:"Végleges",cost:20,desc:"Az aktív aura bónuszai +25%-kal erősebbek",once:true}
 ];
+function auraShopCfgV23203(){
+ const c=(typeof CONTENT!=="undefined"&&CONTENT?.auraTokenShop)||{},items=c.items||{};
+ return {prestigeReward:Math.max(0,Math.floor(Number(c.prestigeReward??5))),items};
+}
+function auraShopItemsV23203(){
+ return PRESTIGE_SHOP_V23201.map(b=>{
+  const x=auraShopCfgV23203().items[b.id]||{};
+  return {...b,cost:Math.max(0,Math.floor(Number(x.cost??b.cost))),reward:Math.max(0,Number(x.reward??({
+   tickets10:10,gems300:300,ore250:250,soul120:120,pet10:10,gearLegend:1,drop2h:120,gold2h:120,dungeon2h:120,inv50:50,inv100:100,auraMastery:25
+  }[b.id]||0)))};
+ });
+}
+
 function prestigeShopStateV23201(){
  if(!save.prestigeShopV23201||typeof save.prestigeShopV23201!=="object")save.prestigeShopV23201={owned:{},boosts:{}};
  save.prestigeShopV23201.owned=save.prestigeShopV23201.owned||{};
@@ -1110,16 +1123,16 @@ function activeAuraBonusV23201(key){
  const a=AURAS.find(x=>x.id===save.activeAura),raw=Math.max(0,Number(a?.bonus?.[key]||0));
  return raw*(prestigeShopStateV23201().owned.auraMastery?1.25:1);
 }
-function inventoryLimitV23201(){const o=prestigeShopStateV23201().owned;return 120+(o.inv50?50:0)+(o.inv100?100:0)}
+function inventoryLimitV23201(){const o=prestigeShopStateV23201().owned,a=auraShopItemsV23203(),v=id=>Number(a.find(x=>x.id===id)?.reward||0);return 120+(o.inv50?v("inv50"):0)+(o.inv100?v("inv100"):0)}
 function xpRewardMultiplierV23201(){return 1+activeAuraBonusV23201("xp")}
 function prestigeGoldMultiplierV23201(){return (1+activeAuraBonusV23201("gold"))*(prestigeBoostActiveV23201("gold2h")?1.25:1)}
 function prestigeDropBonusV23201(){return activeAuraBonusV23201("drop")+(prestigeBoostActiveV23201("drop2h")?.20:0)}
 function prestigeBossDamageMultiplierV23201(){return 1+activeAuraBonusV23201("bossDmg")}
 function prestigeDungeonMultiplierV23201(){return (1+activeAuraBonusV23201("dungeonDmg"))*(prestigeBoostActiveV23201("dungeon2h")?1.20:1)}
-function prestigeShopPetV23201(){
+function prestigeShopPetV23201(count=10){
  const eco=economyCfg(),rates=eco.petSummonRates||{},order=["normal","rare","epic","mythic","legendary"];
  const weights=order.map(k=>Math.max(0,Number(rates[k]||0))),total=weights.reduce((a,b)=>a+b,0)||1;
- for(let n=0;n<10;n++){
+ for(let n=0;n<Math.max(1,Math.floor(Number(count||10)));n++){
   let roll=Math.random()*total,rarity="normal";
   for(let i=0;i<order.length;i++){roll-=weights[i];if(roll<=0){rarity=order[i];break}}
   const pool=PET_POOL.filter(p=>p.rarity===rarity),p=pool[Math.floor(Math.random()*pool.length)]||PET_POOL[0];
@@ -1140,21 +1153,21 @@ function prestigeGearCrateV23201(){
  rollItemOptions(it);addItem(it);
 }
 function buyPrestigeShopV23201(id){
- const d=PRESTIGE_SHOP_V23201.find(x=>x.id===id);if(!d)return;
+ const d=auraShopItemsV23203().find(x=>x.id===id);if(!d)return;
  const s=prestigeShopStateV23201(),owned=Boolean(s.owned[id]);
  if(d.once&&owned)return toast("✅ Ezt a végleges fejlesztést már megszerezted.");
  if(d.requires&&!s.owned[d.requires])return toast("🔒 Előbb az Inventory +50 fejlesztést kell megvenned.");
  if(Number(save.auraTokens||0)<d.cost)return toast(`✨ Nincs elég Aura token. Kell: ${d.cost}`);
  save.auraTokens=Math.max(0,Number(save.auraTokens||0)-d.cost);
  if(d.once)s.owned[id]=true;
- if(id==="tickets10")save.tickets=Number(save.tickets||0)+10;
- else if(id==="gems300")save.gems=Number(save.gems||0)+300;
- else if(id==="ore250")save.ore=Number(save.ore||0)+250;
- else if(id==="soul120")save.soul=Number(save.soul||0)+120;
- else if(id==="pet10")prestigeShopPetV23201();
+ if(id==="tickets10")save.tickets=Number(save.tickets||0)+Math.floor(d.reward);
+ else if(id==="gems300")save.gems=Number(save.gems||0)+Math.floor(d.reward);
+ else if(id==="ore250")save.ore=Number(save.ore||0)+Math.floor(d.reward);
+ else if(id==="soul120")save.soul=Number(save.soul||0)+Math.floor(d.reward);
+ else if(id==="pet10")prestigeShopPetV23201(d.reward);
  else if(id==="gearLegend")prestigeGearCrateV23201();
  else if(["drop2h","gold2h","dungeon2h"].includes(id)){
-  const now=Date.now(),old=Math.max(now,Number(s.boosts[id]||0));s.boosts[id]=old+2*60*60*1000;
+  const now=Date.now(),old=Math.max(now,Number(s.boosts[id]||0));s.boosts[id]=old+Math.max(1,Number(d.reward||120))*60*1000;
  }
  persist();renderAll();renderPrestigeTokenShopV23201();toast(`${d.icon} ${d.name} megszerezve!`);
 }
@@ -1164,7 +1177,7 @@ function renderPrestigeTokenShopV23201(){
  const root=document.getElementById("prestigeTokenShopV23201");if(!root)return;
  const counter=document.getElementById("auraTokensShopV23202");if(counter)counter.textContent=typeof fmt==="function"?fmt(save.auraTokens||0):String(save.auraTokens||0);
  const s=prestigeShopStateV23201();
- root.innerHTML=PRESTIGE_SHOP_V23201.map(d=>{
+ root.innerHTML=auraShopItemsV23203().map(d=>{
   const owned=d.once&&Boolean(s.owned[d.id]),locked=d.requires&&!s.owned[d.requires],active=["drop2h","gold2h","dungeon2h"].includes(d.id)&&prestigeBoostActiveV23201(d.id);
   const remain=active?formatBoostTimeV23201(prestigeBoostRemainingV23201(d.id)):"";
   return `<article class="v23201-shop-card ${owned?"owned":""} ${active?"boost-active":""}">
@@ -1317,7 +1330,8 @@ function doTruePrestige(automatic=false){
  save.inventory=[];save.equipped={weapon:null,helmet:null,armor:null,gloves:null,boots:null,ring:null};
  save.playerHp=0;save.deaths=0;save.respawnUntil=0;enemyHp=normalEnemyMaxHp();v10EnsurePlayerHp();
  persist();if(currentUser&&cloudReady){cloudSave();setTimeout(()=>cloudSave(),900)}renderAll();
- const milestone=PRESTIGE_MILESTONES_V257.find(x=>x.level===next);toast(`👑 PRESTIGE ${next}! +${tokenReward} Prestige token${milestone?` · ${milestone.reward}`:""}`);
+ save.auraTokens=Number(save.auraTokens||0)+(typeof auraShopCfgV23203==="function"?auraShopCfgV23203().prestigeReward:5);
+ const milestone=PRESTIGE_MILESTONES_V257.find(x=>x.level===next);toast(`✨ +${typeof auraShopCfgV23203==="function"?auraShopCfgV23203().prestigeReward:5} Aura token a Prestige szintért!`);toast(`👑 PRESTIGE ${next}! +${tokenReward} Prestige token${milestone?` · ${milestone.reward}`:""}`);
 }
 function buyOrEquipAura(id){
  const a=AURAS.find(x=>x.id===id);if(!a)return;
@@ -6411,3 +6425,5 @@ window.OMI_PRESTIGE_ENDGAME_SHOP_V23201=true;
  Prestige szint és Prestige Token nem feltétel a shophoz vagy az aurákhoz.
  A külön Prestige mechanika ettől változatlanul megmarad. */
 window.OMI_AURA_TOKEN_ONLY_SHOP_V23202=true;
+
+window.OMI_AURA_ADMIN_CONFIG_V23203=true;
