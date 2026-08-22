@@ -1100,15 +1100,16 @@ app.post("/api/pvp/upgrade",auth,async(req,res)=>{
 
 app.get("/api/pvp/opponents",auth,async(req,res)=>{
   const cfg=await mainConfig(),pc={minLevel:20,...(cfg.pvp||{})};
-  const me=(await q("SELECT level FROM game_saves WHERE user_id=$1",[req.user.id])).rows[0];
-  if(Number(me?.level||1)<pc.minLevel)return res.json({locked:true,minLevel:pc.minLevel,rows:[]});
+  const me=(await q("SELECT level,save_data FROM game_saves WHERE user_id=$1",[req.user.id])).rows[0];
+  const myWinStreak=Math.max(0,Math.floor(Number(me?.save_data?.pvpWinStreak||0)));
+  if(Number(me?.level||1)<pc.minLevel)return res.json({locked:true,minLevel:pc.minLevel,myWinStreak,rows:[]});
   const rows=(await q(`
     SELECT u.id,COALESCE(u.player_name,u.username) player_name,u.pvp_rating,g.power,g.level,g.save_data
     FROM users u JOIN game_saves g ON g.user_id=u.id
     WHERE u.id<>$1 AND u.role='player' AND u.banned=FALSE AND g.level >= $2
     ORDER BY ABS(u.pvp_rating-$3),g.power DESC LIMIT 30
   `,[req.user.id,pc.minLevel,req.user.pvp_rating||1000])).rows;
-  res.json({locked:false,minLevel:pc.minLevel,rows:rows.map(r=>({id:r.id,player_name:r.player_name,pvp_rating:r.pvp_rating,power:Math.floor(pvpStats(r.save_data).atk+pvpStats(r.save_data).def+pvpStats(r.save_data).hp/10),level:r.level,avatar:{equipped:r.save_data?.equipped||{},inventory:r.save_data?.inventory||[],activeAura:r.save_data?.activeAura||"none",activePet:r.save_data?.activePet}}))});
+  res.json({locked:false,minLevel:pc.minLevel,myWinStreak,rows:rows.map(r=>({id:r.id,player_name:r.player_name,pvp_rating:r.pvp_rating,winStreak:Math.max(0,Math.floor(Number(r.save_data?.pvpWinStreak||0))),bestWinStreak:Math.max(0,Math.floor(Number(r.save_data?.pvpBestWinStreak||0))),power:Math.floor(pvpStats(r.save_data).atk+pvpStats(r.save_data).def+pvpStats(r.save_data).hp/10),level:r.level,avatar:{equipped:r.save_data?.equipped||{},inventory:r.save_data?.inventory||[],activeAura:r.save_data?.activeAura||"none",activePet:r.save_data?.activePet}}))});
 });
 app.post("/api/pvp/fight",auth,async(req,res)=>{
   try{
@@ -1151,9 +1152,16 @@ app.post("/api/pvp/fight",auth,async(req,res)=>{
     const lossChange=Math.max(1,Math.floor(Number(pc.ratingLoss??20)));
     const winnerRating=(await q("UPDATE users SET pvp_rating=pvp_rating+$1 WHERE id=$2 RETURNING pvp_rating",[winChange,winnerId])).rows[0]?.pvp_rating;
     const loserRating=(await q("UPDATE users SET pvp_rating=GREATEST(0,pvp_rating-$1) WHERE id=$2 RETURNING pvp_rating",[lossChange,loserId])).rows[0]?.pvp_rating;
-    const wg=(await q("SELECT save_data FROM game_saves WHERE user_id=$1",[winnerId])).rows[0]?.save_data||{};
+    const winnerRow=(await q("SELECT save_data FROM game_saves WHERE user_id=$1",[winnerId])).rows[0];
+    const loserRow=(await q("SELECT save_data FROM game_saves WHERE user_id=$1",[loserId])).rows[0];
+    const wg=winnerRow?.save_data||{},lg=loserRow?.save_data||{};
+    wg.pvpWinStreak=Math.max(0,Math.floor(Number(wg.pvpWinStreak||0)))+1;
+    wg.pvpBestWinStreak=Math.max(Math.max(0,Math.floor(Number(wg.pvpBestWinStreak||0))),wg.pvpWinStreak);
+    lg.pvpWinStreak=0;
+    lg.pvpBestWinStreak=Math.max(0,Math.floor(Number(lg.pvpBestWinStreak||0)));
     wg.gold=Number(wg.gold||0)+Number(pc.rewardGold||0);
     await q("UPDATE game_saves SET save_data=$1,gold=$2,updated_at=NOW() WHERE user_id=$3",[wg,Math.floor(wg.gold),winnerId]);
+    await q("UPDATE game_saves SET save_data=$1,updated_at=NOW() WHERE user_id=$2",[lg,loserId]);
     const battle={
       a:{id:a.id,name:a.player_name||a.username,...A},
       b:{id:b.id,name:b.player_name||b.username,...B},
@@ -1163,6 +1171,8 @@ app.post("/api/pvp/fight",auth,async(req,res)=>{
       winnerRating:Number(winnerRating||0),
       loserRating:Number(loserRating||0),
       rewardGold:Number(pc.rewardGold||0),
+      winnerWinStreak:Math.max(0,Number(wg.pvpWinStreak||0)),
+      loserWinStreak:0,
       log:log.slice(0,80)
     };
     await q("INSERT INTO pvp_fights(challenger_id,defender_id,winner_id,battle_data) VALUES($1,$2,$3,$4)",[a.id,b.id,winnerId,battle]);

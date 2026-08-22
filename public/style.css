@@ -5066,3 +5066,21 @@ nav.tabs{display:flex!important;flex-wrap:wrap!important;justify-content:center;
 /* V23.20.2 – Aura Token-only Shop */
 .v23201-token-pill{border-color:rgba(164,105,255,.45)!important;background:rgba(77,42,138,.15)!important}
 .v23201-token-pill b,.v23201-shop-buy strong{color:#d3b5ff!important}
+
+/* V23.20.5 PvP Win Streak */
+#pvpRequirement{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.v23205-my-streak{display:inline-flex;gap:5px;align-items:center;padding:6px 10px;border:1px solid rgba(112,128,151,.25);border-radius:9px;background:rgba(12,16,23,.72);font-size:10px}
+.v23205-my-streak.hot{border-color:rgba(242,133,42,.48);box-shadow:0 0 16px rgba(244,93,27,.10)}
+.v23205-my-streak b{font-size:14px;color:#ffbd4c}
+.v23205-pvp-player-info{display:flex;flex-direction:column;gap:3px;min-width:0}
+.v23205-streak{display:inline-flex;align-items:center;gap:4px;width:max-content;margin-top:5px;padding:4px 7px;border-radius:8px;border:1px solid rgba(99,111,132,.22);background:rgba(7,10,15,.72);font-size:8px;color:#7f8a98;font-weight:900}
+.v23205-streak strong{font-size:12px;color:#7f8a98}
+.v23205-streak>small{margin-left:4px;font-size:7px!important;color:#6d7683!important}
+.v23205-streak.active{color:#ffc463;border-color:rgba(255,135,45,.52);background:linear-gradient(90deg,rgba(83,27,5,.55),rgba(26,13,8,.70));box-shadow:0 0 15px rgba(255,91,20,.12)}
+.v23205-streak.active strong{color:#ffd167;text-shadow:0 0 8px rgba(255,103,30,.40)}
+.v23205-fire{display:inline-block;font-size:15px;filter:drop-shadow(0 0 5px rgba(255,78,14,.65))}
+.v23205-streak.active .v23205-fire{animation:v23205Fire .72s ease-in-out infinite alternate}
+.v23205-result-fire{display:inline-block;margin-left:8px;padding:4px 8px;border-radius:8px;background:rgba(111,35,5,.42);border:1px solid rgba(255,128,35,.42);color:#ffd06a;animation:v23205Fire .72s ease-in-out infinite alternate}
+.v23205-streak-lost{display:inline-block;margin-left:8px;color:#aab2be;font-size:10px}
+@keyframes v23205Fire{from{transform:translateY(0) scale(1);filter:drop-shadow(0 0 4px rgba(255,75,10,.45))}to{transform:translateY(-1px) scale(1.08);filter:drop-shadow(0 0 9px rgba(255,145,32,.85))}}
+@media(prefers-reduced-motion:reduce){.v23205-fire,.v23205-result-fire{animation:none!important}}

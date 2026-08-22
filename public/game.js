@@ -2493,12 +2493,12 @@ async function loadPvp(){
  if(!currentUser){$("#pvpOpponents").innerHTML='<p class="muted">Jelentkezz be a PvP használatához.</p>';return}
  try{
   const d=await api("/api/pvp/opponents");
-  $("#pvpRequirement").textContent=`PvP minimum szint: ${d.minLevel}`;
+  $("#pvpRequirement").innerHTML=`<span>PvP minimum szint: ${d.minLevel}</span><span class="v23205-my-streak ${Number(d.myWinStreak||0)>0?"hot":""}">🔥 Saját Win Streak: <b>${Number(d.myWinStreak||0)}</b></span>`;
   if(d.locked){$("#pvpOpponents").innerHTML=`<div class="shop-warning">🔒 A PvP ${d.minLevel}. szinttől érhető el.</div>`;return}
   $("#pvpOpponents").innerHTML=d.rows.length?d.rows.map(x=>`
    <div class="pvp-player-card">
     <div class="mini-avatar">${pvpAvatarHtml(x)}</div>
-    <div><b>${x.player_name}</b><small>Lv.${x.level} · Erő ${fmt(x.power)} · Rating ${x.pvp_rating}</small></div>
+    <div class="v23205-pvp-player-info"><b>${x.player_name}</b><small>Lv.${x.level} · Erő ${fmt(x.power)} · Rating ${x.pvp_rating}</small><div class="v23205-streak ${Number(x.winStreak||0)>0?"active":""}"><span class="v23205-fire">🔥</span><strong>${Number(x.winStreak||0)}</strong><span>WIN STREAK</span>${Number(x.bestWinStreak||0)>0?`<small>Rekord: ${Number(x.bestWinStreak||0)}</small>`:""}</div></div>
     <button data-pvp="${x.id}" data-pvp-name="${x.player_name}">⚔️ Párbaj</button>
    </div>`).join(""):'<p class="muted">Nincs elérhető ellenfél.</p>';
   $$("[data-pvp]").forEach(b=>b.onclick=()=>startPvp(Number(b.dataset.pvp),b.dataset.pvpName));
@@ -2529,7 +2529,7 @@ function animatePvp(b){
  let i=0,myHp=me.hp,opHp=op.hp;
  const log=b.log||[];
  const t=setInterval(()=>{
-   if(i>=log.length){clearInterval(t);$("#pvpResult").innerHTML=winner?`🏆 GYŐZELEM! +${fmt(b.rewardGold)} arany`:"💀 Vereség";loadPvp();return}
+   if(i>=log.length){clearInterval(t);const streak=winner?Number(b.winnerWinStreak||1):0;$("#pvpResult").innerHTML=winner?`🏆 GYŐZELEM! +${fmt(b.rewardGold)} arany <span class="v23205-result-fire">🔥 ${streak} WIN STREAK</span>`:`💀 Vereség <span class="v23205-streak-lost">🔥 Win Streak lenullázva</span>`;loadPvp();return}
    const e=log[i++],fromMe=(e.from==="a"&&b.a.id===me.id)||(e.from==="b"&&b.b.id===me.id);
    if(fromMe)opHp=Math.max(0,opHp-e.damage);else myHp=Math.max(0,myHp-e.damage);
    $("#duelMyHp").style.width=(myHp/me.hp*100)+"%";$("#duelOpHp").style.width=(opHp/op.hp*100)+"%";
@@ -6446,3 +6446,18 @@ window.OMI_AURA_ADMIN_CONFIG_V23203=true;
  Aura Token továbbra is Prestige szintlépéssel is szerezhető (alap: 5 / Prestige).
  Az összes aura ára és az Endgame Shop árai adminból állíthatók. */
 window.OMI_AURA_FULL_ADMIN_V23204=true;
+
+/* V23.20.5 LIVE PVP WIN STREAK */
+(function(){
+ let timer=null;
+ function start(){
+  clearInterval(timer);
+  timer=setInterval(()=>{
+   const p=document.getElementById("page-pvp");
+   if(p?.classList.contains("active")&&typeof loadPvp==="function")loadPvp();
+  },3000);
+ }
+ window.addEventListener("load",start);
+ document.addEventListener("click",e=>{if(e.target.closest?.('[data-tab="pvp"]'))setTimeout(()=>{loadPvp?.();start()},80)},true);
+})();
+window.OMI_PVP_WINSTREAK_V23205=true;
