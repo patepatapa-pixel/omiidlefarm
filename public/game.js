@@ -1297,7 +1297,7 @@ function doPrestige(automatic=false){
    return toast("🔒 A Paragon feltételei még nem teljesültek.");
  }
 
- if(!automatic&&!confirm(`Paragon újrakezdés?\n\nJelenlegi Paragon: ${save.paragonLevel}\nÚj Paragon: ${save.paragonLevel+1}\nAz új szinten 1 Sebzés Paragon statpont +${(save.paragonLevel+1)*2}% sebzést ad.\nJutalom: 5 új Paragon statpont és +1 Aura token\n\nRESETELŐDIK: karakterszint, XP, wave, normál statok, alap fejlesztések, inventory, felszerelés, arany, gyémánt és érc.\nMEGMARAD: teljes képességfa, képességpontok, kill szám, kiosztott Paragon statok, lélekkő, dungeon token, petek, hátasok, aurák, achievementek és gyorsítás.`))return;
+ if(!automatic&&!confirm(`Paragon újrakezdés?\n\nJelenlegi Paragon: ${save.paragonLevel}\nÚj Paragon: ${save.paragonLevel+1}\nAz új szinten 1 Sebzés Paragon statpont +${(save.paragonLevel+1)*2}% sebzést ad.\nJutalom: 5 új Paragon statpont és +1 Aura token\n\nRESETELŐDIK: karakterszint, XP, wave, normál statok, alap fejlesztések, inventory, felszerelés, arany, gyémánt és érc.\nMEGMARAD: teljes képességfa, képességpontok, kill szám, kiosztott Paragon statok, lélekkő, dungeon token, petek, hátasok, aurák, achievementek, gyorsítás és a TELJES PvP fejlődés (rating, statok, Win Streak).`))return;
 
  save.paragonLevel++;
  save.paragonPoints=5;
@@ -1322,13 +1322,11 @@ function doTruePrestige(automatic=false){
  if(save.prestigeLevel>=cap)return toast("👑 Elérted a Prestige 100 maximumot!");
  if(save.paragonLevel<req)return toast(`🔒 Prestige ${save.prestigeLevel+1} követelménye: ${req} Paragon.`);
  const next=save.prestigeLevel+1,tokenReward=1+(next%10===0?2:0);
- if(!automatic&&!confirm(`PRESTIGE ${next}?\n\nKövetelmény teljesítve: ${save.paragonLevel} / ${req} Paragon.\nJutalom: ${tokenReward} Prestige token és állandó Prestige erősítés.\n\nRESETELŐDIK: Paragon-szint, kiosztott Paragon statok/pontok, PvP statok, wave, karakter szint/XP, normál fejlesztések, inventory, felszerelés, arany, gyémánt és érc.\nMEGMARAD: teljes képességfa, Prestige tokenek, lélekkő, dungeon- és aura token, petek, hátasok, aurák, achievementek, kill, PvP rating és prémium szorzók.\n\nPvP újraépítési kedvezmény: Paragononként -1%, Prestige szintenként -2%, maximum -70%.`))return;
+ if(!automatic&&!confirm(`PRESTIGE ${next}?\n\nKövetelmény teljesítve: ${save.paragonLevel} / ${req} Paragon.\nJutalom: ${tokenReward} Prestige token és állandó Prestige erősítés.\n\nRESETELŐDIK: Paragon-szint, kiosztott Paragon statok/pontok, wave, karakter szint/XP, normál fejlesztések, inventory, felszerelés, arany, gyémánt és érc.\nMEGMARAD: teljes képességfa, Prestige tokenek, lélekkő, dungeon- és aura token, petek, hátasok, aurák, achievementek, kill, TELJES PvP fejlődés, PvP rating, Win Streak és prémium szorzók.\n\nPvP újraépítési kedvezmény: Paragononként -1%, Prestige szintenként -2%, maximum -70%.`))return;
  save.prestigeLevel=next;save.prestigeTokens=Number(save.prestigeTokens||0)+tokenReward;
- // V22.98: Prestige után a PvP és kiosztott Paragon statok újraépítendők.
+ // V23.20.6: Prestige csak a Paragon fejlődést reseteli; a teljes PvP rendszer tartós.
  save.paragonStats={damage:0,gold:0,drop:0,crit:0};
  save.paragonPoints=0;
- save.pvpBuild={atk:0,hp:0,def:0,block:0,luck:0,double:0};
- delete save.pvpSoulSession;
  if(next===5)save.auraTokens=Number(save.auraTokens||0)+1;
  if(next===10)save.prestigeTokens+=2;
  if(next===25)save.mountShards=Number(save.mountShards||0)+10;

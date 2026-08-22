@@ -746,18 +746,20 @@ app.post("/api/save",auth,async(req,res)=>{
     const premiumSource=overrideApplied?data:stored;
     const prestigeAdvancedV298=Math.max(0,Number(data.prestigeLevel||0))>Math.max(0,Number(stored.prestigeLevel||0));
     if(prestigeAdvancedV298){
-      data.pvpBuild={atk:0,hp:0,def:0,block:0,luck:0,double:0};
+      // Paragon progression still follows Prestige reset rules, but PvP is a separate permanent system.
       data.paragonStats={damage:0,gold:0,drop:0,crit:0};
       data.paragonPoints=0;
-      delete data.pvpSoulSession;
     }
     data.speed10Unlocked=Boolean(stored.speed10Unlocked || premiumSource.speed10Unlocked);
     data.autoParagonUnlocked=Boolean(premiumSource.autoParagonUnlocked);
     data.dungeonBatchUnlocked=Boolean(stored.dungeonBatchUnlocked || premiumSource.dungeonBatchUnlocked);
     data.fullAutoUnlocked=Boolean(stored.fullAutoUnlocked || premiumSource.fullAutoUnlocked);
     if(!data.fullAutoUnlocked)data.fullAutoEnabled=false;
-    // PvP progression/session is server-authoritative. A stale browser autosave must never roll it back.
-    if(!prestigeAdvancedV298 && stored && stored.pvpBuild && typeof stored.pvpBuild==="object")data.pvpBuild=pvpBuild(stored);
+    // V23.20.6: ALL PvP progression is server-authoritative and permanent across Paragon/Prestige.
+    // Browser autosave must never overwrite a newly earned Win Streak or PvP build.
+    data.pvpWinStreak=Math.max(0,Math.floor(Number(stored.pvpWinStreak||0)));
+    data.pvpBestWinStreak=Math.max(data.pvpWinStreak,Math.max(0,Math.floor(Number(stored.pvpBestWinStreak||0))));
+    if(stored && stored.pvpBuild && typeof stored.pvpBuild==="object")data.pvpBuild=pvpBuild(stored);
     if(stored && stored.pvpSoulSession && stored.pvpSoulSession.active){
       data.pvpSoulSession={...stored.pvpSoulSession,active:true,budget:Math.max(0,Math.floor(Number(stored.pvpSoulSession.budget||0)))};
     }
